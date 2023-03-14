@@ -1,0 +1,599 @@
+Hey guys, welcome back to another video. 
+Probably not too surprising, I’m back with
+some more minecraft hacked videos. As you can 
+see I’m standing here on my fishing hut that I
+have been using with the autofish mod we created 
+last video. I spent quite some time here just
+farming levels and items. Also in the last video 
+we created a fly hack which was awesome. But today
+I’m going to show you another project I’ve been 
+working on the last couple of days. For that let’s
+fly back up to our base and prepare some tools.
+As you saw in the intro, with these minecraft
+let’s play videos I like to play with the 
+minecraft youtuber stereotypes. And for this
+video I spent wayyyy to much time copying the 
+intro from ilmango. He is an amazing scicraft
+youtuber. I love watching and listening to people 
+who analyze the behavior of a system, who develop
+a really deep understanding about the internals, 
+and then they use that to build amazing technical
+solutions. For me this is the textbook definition 
+of hacking. And so I really appreciate him and
+the larger scicraft community, for sharing their 
+thought process and ideas with the world. Anyway.
+I wanted to tell you about the cool thing I 
+built since the last video. And here it is.
+XRAY! I updated my hack mod with an xray option. 
+Like before, I also looked at existing xray mods.
+In this case I saw that one mod used a Block class 
+mixin overwrtiting the shouldRenderFace method.
+This method returns true or false if the 
+sides of a block should be rendered or not.
+I had to adapt it, in my minecraft version 
+this function was apparently renamed to
+“shouldDrawSide” and I also used a different 
+injection method and overwrote the returnValue
+using the mixing CallbackInfoReturnable feature. 
+But doesn’t matter. In the xray mod I define a
+list of blocks that I want to render when it’s 
+active. So all other blocks are ignored. After
+some testing and playing around and increasing 
+brightness and lighting and stuff. this is the
+result. Pressing a hotkey I can turn xray on 
+or off and I see all the ores unberground.
+So let’s use our flying hack and the xray feature 
+to go mining. I want more diamonds. More iron.
+More coal. I want to fill up my chests!
+I have big plans. First of all I want to
+get enchantments going, I really want a silk 
+touch pickaxe, but also fortune would be great
+to get more diamond drops. I really want to build 
+some nice structures around the base and for that
+I need materials. Including lots of stones. 
+And so having silk touch would be really nice.
+After the first quick mining journey I got enough 
+diamonds and I can fly back to base to replace my
+iron tools with diamond tools. And even craft a 
+first diamond armor. But we need more. We also
+need levels for the enchanments. So cleaning up 
+the inventory, and let’s go for a second round.
+But before I go more mining I wanted to collect 
+some other materials. So I flew over to the
+woodland mansion because right next to it was a 
+lush cave. getting some of the moss blocks would
+be really nice for decoration later. Also there 
+were these super cute axilotles around. Maybe I
+get them later. After collecting enough of 
+that I wanted to get some other wood types.
+Specifically I am looking for dark oak and spruce 
+logs. Those look really nice. Because we have a
+woodland mansion, there are lots of dark oak trees 
+nearby so getting a few of those. After cutting
+some of them down I continue my journey looking 
+for spruce trees. This took a bit of time to find,
+and I’m not sure I find my way back. But finally I 
+found some and speny some time cutting them down.
+On my way back I flew by the woodland 
+mansion again and decided to check it out.
+Thanks to xray we can easily see 
+the different types of rooms.
+And I didn’t know that there are rooms full of 
+chests. I got really excited to loot them, but
+got disappointed. Turns out they are all empty. 
+BUT! With the xray I also saw bookshelves,
+and we need books for the enchantment table 
+later. So I decided to go into the mansion mission
+impossible style to get those. Then we can go back 
+for some more mining. With the diamond pickaxe we
+already have a small speedup and we can get the 
+remaining levels we need for the enchanments.
+Anyway… Some time later returning back with 
+a full inventory, it’s time to get magical.
+Using the dripstone lava farm I got a small lava 
+lake going, which we can turn into obsidian with
+some water. With that we can craft an enchantment 
+table and with the books from the mansion we also
+get enough bookshelves. So let’s enchant our first 
+pickaxe. Let’s see what we get. Unbreaking III,
+that’s promising. And? Efficiency IV, Fortune II 
+and Unbreaking. That’s pretty solid. No mending,
+but we don’t have an experience farm yet anyway. 
+And that’s still super helpful for more mining.
+Though I would have liked to have a silk touch 
+pickaxe as well. It took multiple crafting
+attempts, and using up more of the experience, 
+but I finally had the option for silk touch.
+unfortunately not enough experience left. So using 
+the new diamond pickaxe, let’s hunt for more ores
+to gather more experience. It took a bit, but here 
+we go. I can finally craft a silktouch pickaxe.
+And with that, let’s go more mining. 
+I really want some regular stone
+for some upcoming building projects.
+And while I continue mining I wanted
+to take some time to talk about something 
+that happened a few weeks or months ago.
+And that is the account migration from 
+mojang accounts to microsoft accounts.
+This is very annoying, but I’m coming from an 
+IT security perspective and besides all the good
+reasons why it sucks, it does have, in my opinion, 
+significant security implications. And that’s why
+I wanted to shine a light on that side as well.
+So from a security perspective, what’s the
+difference. Generally mojang accounts were 
+the most basic oldschool login you could
+ever imagine. Username and password. That’s it. 
+Simple. This makes it very useful for scripting
+and botting. Like with anything there are two 
+sides for this. It’s great for fun projects
+where you scan minecraft servers, or develop a fun 
+bot doing something. But it can be super easily
+abused. It’s very easy to abuse it for spamming 
+and advertisement. You can have bots automatically
+joining servers and advertising scams or other 
+shady business stuff. And that’s just the reality,
+if it’s easy to write code for a bot, there will 
+be lots of bots. Oftentimes doing shady stuff. And
+to make matters worse, it was super super easy to 
+find or buy mojang account credentials. Because of
+the simplicity of the login you can just take your 
+basic hacked database from some other website,
+and try the login credentials on mojang accounts. 
+Many many users re-use the same passwords.
+So it’s extremely easy to just go through a list 
+and see if they are valid login credentials.
+That’s how soooo many hacked accounts land on 
+the blackmarket. of course most of them are
+not used anymore by the original buyer. They 
+bought minecraft and stopped playing. So most
+people probably never notice that their account 
+got compromised. But these accounts are really
+useful to be used on servers like hypixel where 
+you could get banned a lot. Using these basically
+throwaway accounts makes it so easy to cheat and 
+hack on these servers. And this is definitely a
+concern for big servers like hypixel.
+And now maybe you wonder how that is
+different to microsoft accounts. Is a microsoft 
+account not also just a username and password.
+Basically the same? No. On the surface 
+for a regular user it might seem that way,
+but that is not the case at all.
+Logins for services like microsoft, facebook,
+google, they are not that simple. When you hit 
+that login button, they don’t just look at your
+credentials. They look at the IP you are coming 
+from, is it your home IP or a VPN? Does the IP log
+in to a handful of accounts typical for a family, 
+or are there hundreds of logins from the same IP.
+Did you usually login from Germany, and suddenly 
+you use a US IP? they can also check if you were
+logged into the account from the same browser 
+before. The old session cookie is maybe still
+there, it’s not valid anymore so you have to 
+login, but they know this old cookie was a valid
+cookie in the past. So that’s useful information 
+to know. Do you come from a laptop or a mobile
+phone. How fast and often do you try to login.
+And then on top of that come all the additional
+account protections with two factor 
+authentication. Verifying your email
+address. Requiring a phone number. That means, 
+when you hit that login button, all of these
+signals are then somehow wired together with 
+machine learning to calculate a trust score.
+Letting you in or not, maybe requiring additional 
+verification or a captcha. Of course I don’t know
+for sure what microsoft is exactly doing, that’s 
+probably a secret, but from my experience,
+I’m like 99% sure that this is happening.
+And so as a regular user, loggin in from the
+same PC all the time, it feels smooth and easy. 
+But as soon as you start automating, scripting
+and botting, you face additional challenges.
+On top of that. With the account migration itself,
+going from mojang to microsoft, for this process 
+you had to verify access to your email. This was
+annoying and many lost their accounts because 
+they had no access to the email anymore.
+But from a security perspective. In one big 
+sweep, HUNDREDS OF THOUSANDS, if not MILLIONS
+of hacked mojang account credentials became 
+worthless overnight. They are not usable anymore.
+Selling accounts of course is still possible, 
+but not with just basic reused credentials.
+Now you need a full microsoft account which has 
+all these trust protections built in. It’s not
+impossible to hijack, but a lot more riskier, more 
+difficult and annoying. I wouldn’t be surprised,
+if huge public servers like hypixel saw a massive 
+cheater and hacker dropoff, right after the
+migration. And I’m almost 100% confident, that it 
+will never get back to levels how it used to be.
+For reference. Accounts before the migration 
+were worth maybe 1-10cents per account.
+I’m no expert in blackmarket stuff, but I wouldn’t 
+be surprised if the price for a hacked minecraft,
+or rather microsoft account is now 100 or 1000 
+times higher. Multiple dollars or euros for a
+single account. Which still some cheaters 
+will buy. But for that price you can also
+almost just buy a new legit minecraft key. this 
+automatically makes it less economically viable
+for scammers, spammers and cheaters.
+And so from a security perspective,
+for the users, but also for microsoft or other 
+companies like hypixel, this account migration
+is a very very IMPACTFUL decision. You know some 
+websites require or encourage you to enable two
+factor authentication. Guild wars 2 did this for 
+example a while ago. But in terms of numbers,
+just cutting down the number of abuse and hacks, 
+this account migration is probably the absolute
+best they could have done. No other policy will 
+ever have this much positive impact on the general
+account security for minecraft. And that is not 
+just a false or misleading marketing claim they
+told you. This is really true.
+At least I believe so.
+Anyway… After mining and collecting lots of 
+material I thought it’s maybe time to head
+into the nether. With the obsidian from earlier 
+I created a portal so lets go. There are two
+things I want to find in the nether. Some nether 
+quartz of course, we need that for redstone stuff,
+but also netherite. Or ancient debris, so we 
+can craft netherite and upgrade our armor.
+So I spent quite some time just digging tunnels 
+and going deeper to look for ancient debris.
+It’s crazy with the xray how easy it is. In 
+a previous survival world I crafter lots of
+TNT and did basically strip mining. This is a 
+lot nicer. And sooo much faster. In a pretty
+short amount of time I got lots of ancient 
+debris. Enough to upgrade my armor and tools.
+However I noticed one problem. My xray 
+hack somehow sometimes doesn’t work.
+Not all junks are rendered. Probably there is 
+some chunk rendering optimization and so these
+chunks are never loaded maybe? I’m not sure. But I 
+had a hard time finding my way back to the portal.
+It’s actually funny looking at the recording 
+now. With replay mod I can create these 3rd
+person camera recordings. And Here I 
+see that the portal was super close.
+But I just didn’t see it with xray. So I 
+guess my hacks are not too perfect either.
+Well… while looking around trying to find 
+my way back I stumbled into a big open area.
+Finally some open nether and not just tunnels. 
+Really nice. And when I was looking around I
+actually noticed a bastion. In the middle there 
+is a nether wart which would be very good to have
+and grow for later. Almost got killed 
+by the hoglins but I managed to escape.
+Unfortunately right when I was flying away from 
+it, something bad happened. Something really bad.
+I flew away very fast, and I guess there was 
+a server or network connection hiccup. Somehow
+my flying hack bypass failed, and the server 
+detected me flying. I was disconnected right
+when I was flying over the open laval. Oh noooo… 
+If I would now log back in, I would start fall.
+I have a fly hack yes, but there is a loading 
+screen. I probably would burn to death before
+I could fly away. Damn… What do I do now? 
+I spent so much time mining ancient debris.
+Well… being faced with certain death due to, I 
+guess, a network protocol hiccup, I thought a
+bit more about the protocol. We also just talked 
+about authentication. So let’s explore an attack
+idea I had since episode one. For that. Let me 
+get my notebook. We are gonna draw some stuff.
+In the very first episode of this series we 
+looked at the game packets , but there is more
+to the protocol. Back then we read that minecraft 
+encrypts the traffic, but we just brushed over it.
+this time I want to look at the protocol before 
+the game packets are being sent and received.
+So that’s what I want to have a closer 
+look at now. How does the encryption work,
+and maybe we can think of some attack ideas. For 
+this we are going to look at the amazing wiki.vg
+site again. Here is the information about the 
+encryption. So let’s visualize this information.
+We have a client C, so the minecraft game 
+running on your PC, and a Server S, running
+somewhere on the internet and you connect to it.
+It all starts with a handshake packet sent from
+the client to the server. Followed by a 
+Login start packet. I only take notes of
+the important data. In this case the 
+login packet contains your username.
+After that the server responds with an 
+Encryption Key Request. This packet contains
+the public key of the server and a random 
+token. So already you can see that there is
+some public/private key cryptography going on.
+Now the client will do the authentication with
+the mojang server. I guess this changed now 
+a bit with microsoft accounts, but generally,
+the client sends an HTTP request to 
+mojang with the login credentials.
+We will look at this more in depth in a moment.
+Let’s first continue with server and client.
+So after the client logged in to mojang the 
+client sends an Encryption Key Response packet.
+In this packet the client includes a SECRET 
+password. But encrypts it with the public key
+of the server. So here is how I visualise it. 
+The client had received the public key from
+the server before, and uses it to encrypt 
+this secret. It also encrypts the token it
+previously received from the server. Probably 
+should have written it in green. Not blue.
+Anyway. The server can now decrypt the secret 
+and token with the cporesponding private key.
+It can check that the token is the same it 
+sent before. So no shenanigans going on there.
+And using the shared secret, the client and 
+server can start sending encrypted packets.
+They now use AES encryption with this shared 
+secret. So they can both easily encrypt and
+decrypt packets sent. So any following packets, 
+so the actual game packets are now AES encrypted.
+Now let’s think about 
+different types of attackers.
+There could be an attacker who can 
+eavesdrop on the network. Maybe you
+play minecraft in a public unencrypted wifi. 
+And everybody can record the packets you send.
+Can this attacker do anything? Well 
+it sees your username in cleartext.
+It also sees the server public key and the token.
+BUT, then the client encrypts the AES secret with
+the public key. Without knowing the private 
+key of the server, somebody just observing
+the packets will not be able to know the content 
+of the following packets. The encryption holds.
+Now let’s think of a more powerful attacker. 
+An attacker who can not only observe, but even
+manipulate the traffic. This could for example 
+happen by an active network attacker rerouting
+your traffic, or more simply, a malicious server. 
+Imagine you join an EVIL server. And of course,
+you don’t know it’s an evil server, you just 
+connect to some IP somebody told you about.
+What could an evil server do. Could 
+maybe the evil server hijack your account
+or connection and login with your account 
+to a different server? Let’s figure it out.
+When you join the evil server and send the 
+handshake and your username, the evil server could
+just forward it to a real server. Maybe hypixel. 
+Now the real server responds with the public
+key and the token. BUT the evil server can now 
+manipulate the traffic. So instead of sending to
+the client the real server public key, you get the 
+public key from the evil server. So far so good.
+You do the mojang login and then you encrypt 
+the shared secret and token with the public key.
+This time the evil server knows the correct 
+private key to decrypt the secret and the token.
+And it can just re-encrypt the secret and token 
+with the public key of the real server and and
+forward it to the real server.
+Now the real server but also
+the evil server know the secret AES key.
+And theoretically we can now encrypt and
+decrypt any of the traffic between the client and 
+real server. Let’s say you are an admin on this
+real server. Now the evil server could inject a 
+command chat message into the traffic, to make me,
+LiveOverflow “op” on the server.
+Does that really work?
+If you join a malicious server could this 
+server hijack your connection and do that?
+And there seems to be another attack possible. 
+how does the server verify your username?
+Right now we could just send a fake username, 
+right? we could just login as an admin.
+We must be missing something.
+And indeed. There is one important
+detail we didn’t really look at yet. It 
+has to do with the mojang authentication.
+Goddamit. I should have planned 
+this better and leave enough space.
+Well… here it goes. During this step the client 
+calculates a sha1 hash where it includes the
+shared secret AND the server public key. The 
+resulting hash, is the so called server hash.
+And now the client sends this 
+hash to the mojang server.
+And this is important.
+Because on the server side,
+the server can actually generate the same hash. 
+It knows the secret, and it’s own public key. So
+generates the same server hash. BUT! Do you see 
+that? The client used the evil server’s public
+key. And the server used it’s real public key. 
+Which means, the server hashes don’t match. When
+the server wants to fetch the player information 
+from the mojang server, it’s just not there. The
+player never registered THIS hash with the server.
+And this prevents the attack. You can continue the
+thoguth experiment to verify this. Now we know the 
+server and client need to generate the same hash.
+Which means the client has to receive the real 
+server public key. But that means the evil server
+cannot decrypt the secret, so the communication is 
+encrypted again and the server cannot do anything.
+So is the protocol safe?
+This is the thing with security
+research. We just audited the protocol on 
+paper!We can always dig deeper. For example
+there could always be implementation bugs. I 
+have not yet looked into the source code but
+for example we could check what happens if we do 
+not follow this protocol and just start sending
+packets in a weird order. Maybe that messes up 
+the internal state machine. Maybe the secret is
+not properly initialzied. Or we can somehow force 
+the client and server to not turn on encryption.
+But maybe also the crypto stuff is not 
+perfect. Immediately I thought about the
+sha1 collision that was found in 2017.
+This is a very specific finding for
+sha1 and we can now think about if this has any 
+implications for this protocol. We can see that
+the attack works by crafting a magical collision 
+block, this block is essentially different data,
+but in the end produces the same hash. 
+So could this be used to somehow get
+the client and server to produce the same hash? 
+Eventhough the client used the evil public key?
+No. The shattered attack is not providing us 
+these capabilities. Alright. Any other dieas?
+When I was looking at the AES encryption I saw 
+that it uses AES CFB8. AES in Cipher Feedback
+Mode. The 8 means that the cipher feedback 
+operates on 8 bits, so individual bytes.
+The graphic on wikipedia is great. Here is how 
+decryption works. So the server receives encrypted
+packets. The ciphertext is the encrypted data, 
+so the encrypted bytes. This block cipher block
+is the AES magical algorithm, we don’t need 
+to understand how AES works. All we know is
+that an encrypted byte is fed into AES. 
+AES then uses the secret key to decrypt it.
+But it’s not quite decrypted yet. Actually the 
+NEXT ciphertext, so the NEXT encrypted byte is
+XORED with the AES result, and only then you get 
+the actual plaintext. The real decrypted byte.
+Why would you do this?
+Well let’s think about us as an active
+attacker. While the packets are encrypted, we can 
+still manipulate the bytes. So let’s consider a
+more basic AES example. AES in ECB mode. It’s not 
+good, as you can see, encrypting an image with ECB
+mode you can still recognize something about the 
+underlaying data. The reason for that is that each
+plaintext block is just simply encrypted. Which 
+means the SAME plaintext bytes, produces the
+SAME encrypted bytes. Seeing the encrypted bytes 
+doesn’t tell you what the plainttext was, BUT you
+know it was always the same plaintext. And that 
+might be enough to perform certain crypto attacks.
+But if you now use something like CFB. then 
+other bytes are included in the encryption and
+decryption process. So encrypting the same data 
+will always be scrambled with another XOR step
+and this kind of obvious attack is not 
+possible anymore. So is minecraft safe then?
+There is another problem. CFB allows 
+us to do another kind of attack.
+Do you see how the encrypted byte is XORED with 
+the output from AES to produce the plaintext byte?
+This means we as an attacker who 
+can manipulate encrypted bytes,
+we can actually control the 
+plaintext. At least a little bit.
+You see. Let’s say we send a chat message 
+with the letter capital AAAAAAAAAAAA.
+Looking into the protocol. We can see that a chat 
+message packet is simply sending that string.
+So we the attacker know that the 
+plaintext byte will be a capital A.
+And because we see the encrypted data, we also 
+know the value of the ciphertext. The encyrtped
+byte XORED with the data from AES produces the A. 
+This means, we can carefully change the ciphertext
+so the XOR produces a plaintext WE WANT.
+For example if we would want to turn the
+capital “A” into a capital “X”, we can just 
+calculate A XOR X, the result is 0x19. So if
+we XOR the encrypted byte with 0x19, it 
+will cause the plaintext to become an X.
+And yes. This is not theoretical. This works.
+Here is a proof of concept. I took the first
+simple TCP proxy written in C that I could find. 
+So when we connect to this localhost IP, the proxy
+will forward the packets to the real server. This 
+proxy cannot see the traffic, it’s encrypted as
+we know. But it can see the of each packet it 
+forwards between the client and real server.
+So for this test setup I went very high up to 
+keep the network traffic minimal and then I send
+a long chat message. As you can see, it;’s very 
+clear which of the data was our chat message.
+So here I added a simple if case, if the 
+proxy sees a packet with this specific size,
+then modify the 124th byte by XORing it with 0x19.
+And we can try that. Here I have the real server
+console open and we can send our chat message 
+AAAAAA. And look at that. The proxy detected
+the chat message, modified the encrypted byte, 
+and the server received the plaintext AAAX.
+As you can see, even though the traffic is 
+encrypted, we managed to manipulate the traffic.
+Now due to the CFB mode, the manipulated 
+ciphertext is now fed into AES and now the
+server reads complete garbage. The packets 
+sent by the client make no sense anymore and
+eventually the client is disconnected. That sucks, 
+but whatever, the manipulation of traffic worked.
+So here is how a real attack could look like.
+An attacker registers a minecraft account with 
+a name similar to an admin on a target server.
+Let’s say the admin is called SomeOtherAdmin, and 
+we create an account with the name SomeOtherAdmiX.
+Then we lure a victim with op permissions to join 
+our malicious server. And then we somehow get the
+admin to re-op the SomeOtherAdmin. But because 
+this player is connected to our malicious proxy,
+we can flip the last character and the 
+server now thinks the command was /op
+SomeOtherAdmiX. We got OP on the real server.
+Mhh… okay… Should I report this to mojang?
+I asked you on twitter:
+Let's say I found a vulnerability:
+- software used by millions
+of people
+- exploitable
+only by an active network attacker (MITM)
+- requires a specific action by the victim
+(through Social Engineering or sheer luck)
+- it’s single chance, cannot be executed
+repeatedly. We get disconnected
+- the impact: is elevated privileges
+But tbh. likely WONTFIX.
+Should I report it because
+it’s a vuln, or not because no real impact.
+to be honest. The attack is rather impractical.
+And it’s a pretty basic attack against 
+AES, so somebody else must have already
+reported it before. This MUST be a duplicate. So 
+personally I would have not even reported it to
+minecraft. nobody can really use it. But because 
+I wanted to make a video about it, it’s an awesome
+example to learn about crypto attacks, so probably 
+I should report it. Just in case. So that’s what I
+did. On the 18th of March I submitted my report 
+to the mojang bug tracker. Known-plaintext
+Attack on AES/CFB8 Encrypted Packets.
+So let’s see what responses I will get. Maybe
+when the video is out, you already know everything 
+about it, maybe the report will be public by then?
+If not. I will update you on what happened 
+in an upcoming episode of Minecraft Hacked.
+Anyway… I almost forgot about our lava 
+problem. How do we get out if it. Maybe
+we just hope that the loading screen wont stay 
+up for long, and we can fly away before we die?
+Let’s see. Login.
+Oh what the heck? I’m back at the portal?
+HOW? Oh my god he saved me. He teleported me over. 
+But I don’t trust him. Let’s get out of here.
+Feels good to be home again.

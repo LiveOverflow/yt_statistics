@@ -1,0 +1,266 @@
+In the last videos we investigated an interesting 
+crash related to some function loading.
+And looking at the libc source code of those 
+functions, we noticed that there are some
+if-conditions that could lead to a dlopen() 
+call. If there is a way to control that,
+we could create a full exploit easily. So let’s 
+check if that would be theoretically possible.
+Quick recap. A shared library name is assembled 
+here with string copies. And it uses ni->name.
+So first it copies libnss_, then appends 
+the ni->name, which is “files” in our case,
+appends .so, and appends the library version. The 
+result is what we can also see in the memory map.
+Here the libnss_files library is already being 
+loaded into the process. Nice. In the man page of
+dlopen we can also read “If filename contains 
+a slash ("/"), then it is interpreted as a
+(relative or absolute) pathname.”. So maybe, if 
+we could somehow influence this library path,
+and have a name with a slash in it, we might 
+be able to load our own malicious library
+from another directory. That would be an 
+incredible goal. If we can do that, we win.
+However the crash we were investigating 
+deeper in the last video doesn’t help us. We
+overwrite this database table which is basically 
+this library pointer. Our overflow doesn’t control
+the name used here, so we would need to have 
+overwritten the service_user object instead.
+So let’s look through our other crashes, 
+maybe we find one that helps us here.
+in our crash logs we can find another 
+crash inside of nss_lookup_function.
+And running that crash case with gdb, going 
+up the callstack and looking at the ni object,
+we see that we actually overwrote that struct!!! 
+The output is a bit deceiving. Looks like we
+didn’t overwrite the name, but you did. It tells 
+you where the string starts here. But the actual
+name is HHHHHHHH. Hs!!!! We control the name! 
+Printf the string ni->name also shows it well.
+But be careful… we crashed in 
+nss_lookup_function. That is not where
+dl_open is happening. the sink we want to reach 
+is in nss_load_library. So how can we get there?
+First of all we need to survive this search, our 
+current testcase crashed right there. Because
+known was an invalid pointer. Mh.
+Not sure yet how to survive
+that. But let’s say we did.
+And the function name was not known before.
+Now it wants to dynamically load that function. 
+But first it has to load the library. Our
+corrupted ni service_user struct is passed in.
+if library is set to some valid value where the
+lib_handle is null, then we assemble the path 
+based on our name, and we reach dl_open. Mh.
+That’s quite a bit of stuff we need to 
+control. But let’s just start trying!
+I take the poc.py script and create a new asd.py 
+script. I recommend using filenames that show how
+terribly hacky the whole process is.
+Then I extract the testcase from the .json
+and replace the testcase loading 
+with the hardcoded testcase.
+Also I shorten the whole thing by replacing the 
+long strings with python string multiplication.
+Ok… so we know that the overflown struct 
+was overflown with “Hs”. So in here we can
+control it. To figure out exactly which Hs 
+overwrite it, we can use a cyclic pattern.
+With pattern create in gef we can get a pattern 
+that is as long as the string we currently have.
+Then we run our asd script and look at the ni 
+struct again. These 61 hex values are lower-case
+as. So we definitely have the pattern here. Now 
+with pattern search we can look at the offset. So
+where does this character sequence appear in here. 
+And we can find them at offset 93, 125 and 133.
+So let’s replace those places in the string 
+with variables to more easily work with it.
+As you can see the interesting places 
+should now have recognizable characters.
+Let’s run asd.py again.
+And when looking at the struct in memory
+now, we see that we successfully replaced next, 
+library, known and name with these values.
+So let’s look at the code to figure out 
+what changes we should make, in order
+to reach the holy grail, the dl_open call.
+First of all, the manpage of dlopen said we
+need to have a slash in the name, in order to 
+have the path interpreted as a relative path,
+and we can load our function. Easy change 
+for now. But we only reach this code
+if library points to somewhere, where 
+lib-handle is null. The code before it says,
+that if the library pointer itself would be 
+null then it might create a new one for us.
+Instead of thinking too much about this code, 
+let’s just try and see what happens if we set
+library to nullbytes. To do that we have to 
+use the trick we figured out looong time ago,
+that we can insert nullbytes by adding backslashes 
+at the end of strings. Then the heap overflow
+loop will copy the terminating null-byte and skip 
+over it. But we need them at the end of strings,
+so we need to add more “fake” environment 
+variables. So basically environment variables
+with just a single backslash would result in 
+memory as an array with just backslash, nullbyte,
+backslash, nullbyte, backslash, nullbyte. And 
+having that 8 times, would write 8 null bytes.
+But I think the current debug method I’m using, 
+doesn’t allow us to set environment variables in
+the order we want and we basically want the 
+same environment variable “the backslash”
+multiple times. That is weird and unusual. As you 
+can see I set them in GDB with set environment,
+and gdb would just not set multiple backslashes 
+like that. We have to control it more precisely,
+so I decided to write a small execution wrapper.
+When directly executing a program with low-level
+execve in C, we can have full 
+control over those aspects.
+Also because we don’t want to mess with the 
+arguments right now, we can hardcode them. instead
+we want to play with the environment variabls, so 
+the idea I had was to set the environment array
+parameter to argv. Or more precisely the address 
+of argv1. So now when we compile this sudoenv c
+code wrapper, we can pass in environment 
+variables as arguments to this program.
+And then execve passes the arguments as 
+the environment variables to sudoedit.
+When I came up with this I felt really clever!
+Also doing it this way has the advantage,
+that we can still use our python debug script. 
+We just have to change the script a little bit.
+to pass the env variables as arguments now. 
+I call the script asd2.py, to make sure we
+do not loose the previous version. Now we can 
+very precisely control their order and values.
+The most significant change is how we deal 
+with the environment variables. Because
+now we pass them as arguments, so they have 
+to be a list, not a key value map anymore.
+To do this you have to know how environment 
+variables are actually stored on the stack.
+They are stored the same way like shown when you 
+execute env. It’s just a string array with key
+equal value. So we have to do the same now here.
+Let’s check if it still all works. We run asd2.
+We can see that it calls now the sudoenv 
+wrapper which then executes sudoedit.
+But… the callstack is wrong. 
+Crap. we screwed something up.
+This took again a while to debug, but eventually 
+I figured it out. I went to main of each
+case. And looked at the environment array 
+envp. And I noticed that previous asd.py
+had them the other way around, than what we had 
+in the script. That’s because python rearranged
+the env variables based on how the map internally 
+works. Usually it doesn’t matter. But for this
+exploit case the order matters a lot. So I simply 
+turned around the list. And now it works. COOL!
+now we can replace the LIBRARY value with 8 
+backslashes. ANd it’s important you also set
+at the end the backslash, because remember, 
+the backslashe causes the copy loop to skip
+over null-byte. So to always continue to the next 
+element in the list, we need to have a backlsash,
+if we end a string. This way the copying 
+continues with the next string in the heap
+overflow copy loop. When we run this now in gdb, 
+we can confirm that we set the library to 0. Cool!
+But… we still crash in this tsearch function. 
+mmhh… Why does it crash? Mh. we pass in the
+known pointer. And known points into bad 
+memory. What happens if it’s null too? Run it.
+Oh… now we turned that into an even weirder 
+crash. Now the whole pointer to ni is overwritten.
+NO WAIT! That makes sense. Because A is the next 
+pointer. So if the code ran further and went to
+the next entry, this makes sense. Which means 
+our struct didn’t crash the program immediately.
+Let’s set a breakpoint in nss_lookup_function 
+and step through the code to see what happens.
+Just FYI, It’s important to not just hit “rerun” 
+in gdb, because of the wrapper. Just execute the
+whole asd2.py script again. Set breakpoint. And 
+Continue. Until we reach the function invocation
+with our written ni struct. Always check ni.
+Oh.. the name is gone… but maybe I miscounted.
+Probably this one I added here. Let’s remove 
+a backslash and check again. Now it works,
+we have them set to null and we have a name.
+now let’s just execute each instruction.
+btw I’m not looking deeply at 
+each executed assembly line,
+I’m kinda just waiting for function calls. We can 
+then match them with what happens in the c code.
+Here for example we call tsearch which crashed 
+earlier. This time we survive it. And when we keep
+going, we eventually end up in nss_load_library. 
+This is really good. And now when we keep going,
+we can see that we execute nss_new_service. There 
+was no direct call because it was an inlined
+function, but you can see it in the call stack. We 
+keep going. AND THERE IT IS!!! we now call dlopen!
+the parameter was libnss_CCCCDDD, 
+and so forth, and ends in so.2…
+That seemed to have worked!!!
+Remember what the dlopen man page said?
+When we have a slash in the name, we interpret it 
+as a relative path. So let’s add a simple slash.
+Rerun the whole thing again. Including 
+setting the breakpoint and stepping forward.
+Here is the dlopen and the path we pass 
+in is libnss_xxxx/liveoverflow.so.2!!!
+Holy shit we are close!!!! Let’s 
+create that attack shared library.
+FOr that we need the folder libnss_xxxx 
+and create a liveoverflow.c file.
+This is very basic boilerplate code just to 
+execute something when the library is loaded.
+Some cool printf. And then setreuid to turn 
+the setuid context that we are running in,
+into a full root context. We are already 
+running as root, but we want to execute
+some shell commands with system, and if we are 
+just setuid I think bash drops privileges again.
+But by really becoming the root user, 
+this will work.so we execute id,
+and write the result of id to the file /tmp/hax.
+Then we have to compile this code as a shared
+library. Position independent code. 
+And call it so.2. And then let’s do
+the whoooole thing again. Breakpoint and 
+stepping through until we see the dl_open.
+Here we come. The path looks good.
+And now let’s just continue, let the program run.
+BOOM!
+Here we have it. WE DID IT! WE DID IT!
+Root.
+And when
+we exit out, we can find /tmp/hax as well.
+We did it! We actually did it! We created a 
+first exploit for the sudoedit heap overflow.
+Now let’s remove the gdb wrapper. And directly 
+execute sudoedit, or indirectly, with our env
+wrapper. And see if it also works outside of GDB.
+And it works!
+This is so awesome!!!
+But now the true test. can we switch to 
+the regular unprivileged user, and does
+it work as well? Fuck…. segmentation 
+fault and we don’t see any output.
+This is what I was worried about. Damn… 
+let’s investigate this next video.
+Thanks again to all the youtube members and 
+patreons who make a series like this possible.
+Find out more how you can support liveoverflow 
+on liveoverflow.com/support. Thank you very much.

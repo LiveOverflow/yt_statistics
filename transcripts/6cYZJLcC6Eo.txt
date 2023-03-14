@@ -1,0 +1,385 @@
+in this video I will show three
+exploitation challenges from the
+Internet via CTF which happened already
+a while back but it didn't get around
+editing it so here is it now the first
+level is exploitation 50 rubies count hi
+my name is Ruby I like converting
+characters and ASCII values and then
+calculating the sum and we have here a
+server given with an IP ineb it wants us
+to provide some ASCII values of 10
+characters we didn't enter enough and
+you see also matching only A to F so
+when we type in 10s we get the sum of
+970 now let's type in the sum of 10 F
+that's a thousand 20 but that's not
+enough we need to get higher than one
+thousand 20 but how can we get a higher
+sum if we are only allowed to use
+maximum of 10 FS well there's a
+weirdness to Ruby regular expressions
+which you have to be very careful with
+and this is what we are going to exploit
+here
+so if we use debug axe to look at the
+regular expression we can see that it
+looks for a start of a string then 10
+times the characters a until F but by
+default Ruby's regular expression match
+Multi lines so as you can see here as
+aligned with the FS and then a new line
+with ast afterwards still matches so the
+idea is clear we want to just inject two
+lines into the whatever we are sending
+to the server and we can do this with
+using echo but when I use echo and the
+FFF and somehow don't see the result
+that I expect to send back from the
+server and I don't understand why so now
+I get really really frustrated and play
+around with it and get confused why
+whatever I am sending I never see the
+result you can see me here angrily just
+sending the same command over and over
+again well I play around with sleeves
+and whatever just like to see if I can
+wait for the response but then I was
+thinking similarly too with exploit to
+leave the the input kind of open I use
+cat and that seems to do the trick now
+I'm able to get the response properly
+back from the server and yes we get the
+flag ruby red x fail
+the next challenge is the exploitation
+70 flex tour here's the ultimate flag
+store and retrieve the flag whenever you
+want we have a zip and again a service
+given with IP and port let's have a look
+at this server so we take the IP and
+deport and connect to it with netcat
+welcome to the flag store choose an
+action register log in get flag soft leg
+okay so we don't type in the word but
+the number please log in first so let's
+have a look at this in the source code
+so in main we see here an endless wire
+loop where it says choose an action
+printing menu followed by a huge switch
+case statement depending on which value
+you choose and to get to something we
+first have to login but if we look at
+the gate flag option we also see that
+there's a case in where it checks if you
+are admin is admin so we have to log in
+first but there was it a menu for
+registration so logging in might be easy
+but there's this another variable is
+admin so somehow we have to be admin -
+as you can see here print the flag for
+the login you use a username and
+password and when we look at the
+variable definitions we see that the
+username is 500 bytes long then
+afterwards come the is admin flag and
+after that the password and if we look
+in the case for the D login we see that
+here's a safe scanf that only reads up
+to five 499 characters so that seems to
+be safe but the other case the
+registration seems to use scanf and not
+have a set length so the idea is to
+register an account with a super-long
+username which might overflow into the
+is admin flag so we've used python to
+just generate a super long string and
+then we select registration and enter a
+password but the password was too short
+so select a longer one and we registered
+now an account now the admin flag should
+be set and if we have a valid login we
+should be admin so we actually specify
+user name stsd but those are the wrong
+prudential obviously so we register
+another account the
+Tezz and shorter username we lock into
+that one but with the registration we
+have already overwritten the admin flag
+and and if we now select the menu item
+get flag we get the flag y-you know has
+Flag okay we solve those two challenges
+pretty fast so now we move on to the
+last exploitation challenge xp80 which
+requires a little bit of more time but
+is super fun too so remote printer print
+are very very important for office
+especially for remote printing and there
+is again a zip file available that we
+can download and a service and IP in a
+port so let's first connect to this
+servers and see what is happening this
+is the remote printer enter an ipv4
+address we enter an address and a port
+thank you I'm trying to brint this
+address now hmm okay so it has something
+to do with an address and a port so we
+might need a server with an IP that is
+reachable from the servers also we
+should start analyzing this file so we
+open it in hopper so let's first look
+for strings this is a remote printer
+that is the first string printed so we
+can quickly find the main menu and you
+see here so this is probably the main
+function where it asked you to enter an
+ipv4 address and the port by using scanf
+after you have entered those addresses
+it tells you that it's trying to connect
+there and cause this other function here
+and you see you already that it like
+opens a socket and creates the struct
+for the connection and then tries to
+receive some data from it and called
+printf and this printf looks already
+pretty bad if you have seen my format
+string exploit vulnerabilities you may
+remember that if you are able to control
+the format part the first parameter of
+printf then it's it's pretty bad there
+is another interesting string saying yeh
+flag that is probably printing then the
+success will be flag and if you look at
+the function where this is from it tries
+to open a file with F open
+and that points to another string which
+is not properly analyzed here so it
+tries to read the flector txt and then
+print this content of this file after it
+opened it so this is obviously the
+function we want to call because this
+will then print the flag okay we know
+now that this tries to connect to an IP
+and port you specify receive some data
+and printf net which obviously leads to
+a format string exploit so we need a
+public IP address to test this I'm using
+digital ocean to quickly spin up a
+server just for an hour or so during the
+CTF which I can then later throw away
+and only pay us one hour and this way I
+can get a public IP to play with and
+it's a Linux machine so it's great so it
+takes a little bit to set up just just a
+few seconds or a minute maybe and then
+you are able to connect to it via SSH
+and then we can test it
+cool done let's copy the IP and use SSH
+to connect to this new server okay cool
+we are on the server now we open we
+listen on one port 8080 and we pipe in a
+SD into it so if something connects to
+this IP now on port 8080 it should print
+it so let's connect to the servers we
+type in our IP and our port and we can
+see that it prints the ASD and we think
+that it might be a format string exploit
+so let's play around with this let's add
+or let's use Python in line to print a
+lot of percentage P or percentage X or
+whatever you want to see if we can
+infect ctrl D format specifier and we
+should be able to leak addresses or
+generally values from the stick so
+Python minus C and then print and then
+the percentage stuff okay now we are
+listening now let's connect again to the
+print server we went our IP and port yet
+we see here all these weird characters
+now let's prepend a few recognizable
+characters to our string maybe just like
+some ace and then let's do the same
+thing again but I don't want to type in
+the IP and port all the time so I write
+this in a file and then pipe that into
+it but again I kind of fail again if I
+just do cat it doesn't work so I have to
+like concatenate two cats so I leave the
+input open and don't close it at least
+that's what I guess is the reason if I'm
+wrong here and you know it better please
+do tell me and if you scroll to the
+start yep there are all for one for one
+for one for one this are those are our
+4s so now we know the offset of our
+string on the stack this means we can
+place there and address where we want to
+write to and use percentage n to write
+to it if you don't know how format
+string exploits work check out my
+introduction to hacking videos about
+format string exploits so first of all
+let's get a few important addresses for
+example one of the important addresses R
+is the address of the goal function that
+we want to call that is the get flag
+function
+and this has the address eight eight six
+seven now if we want to like overwrite
+for example the global off the table of
+a certain function we have to figure out
+what function is called after the printf
+so we can smash the table so let's go
+back into the function that is reading
+our string and printing it and we can
+also you know rename it to to have it
+better documented and after the printf
+there is a call to close so we can now
+go to the to the close call which is the
+global off the table I've also made
+recently a video about that one and if
+we write to this address here the global
+offset table entry address we can
+specify and redirect the code execution
+to whatever we write there so our goal
+is to write the address of get flag at
+this location so now let's modify and
+enhance our exploit proof concept here a
+little bit further
+first of all let's import struct so we
+can convert between integer numbers and
+binary strings because we want to write
+down the address to reference it from
+the stick with percentage N and then we
+also replace the 500-piece with
+something that is more reasonable we can
+count how far away the aaaa is because
+this is where we want to put instead the
+address and we can simply count how many
+values are there before we hit the ace
+so there are six values before and the
+A's are the 7th values so we simply want
+to use six different percentage X's to
+print stuff and then the seventh one
+hits our address so we can do it for
+example six percentage piece and then at
+the end two percentage end to reference
+that but instead of the ace we obviously
+want to place there the address so we
+can already place here the address and
+see if that works
+now I open this binary in gdb and head
+set a breakpoint before and now I'm
+using the exact same address obviously
+with my own binary here to connect to my
+server and get the format string back
+and we can see that we hit now the
+breakpoint and now we want to look
+get the global offset table so the
+breakpoint was after the printf and we
+want to check if we successfully have
+overwritten the globe the global offset
+table entry and we did so it's 32
+instead of a huge number because we
+printed already 32 characters now we can
+calculate how many characters we need to
+write to get the address we do this in
+two writes like my other formal training
+video so first the lower two bytes and
+obviously we also have to subtract again
+how many characters we printed that's 32
+and then we can simply enter the decimal
+version of that number before we perform
+we print the percentage n that should
+write at least the two lower bytes
+successfully in the global offset table
+and we are one step closer
+so we execute again our or exploit code
+we are listening now and we connect to
+it with our binary and again check if we
+have over successfully overwritten the
+amount of characters we run again and we
+look at the global of the table entry
+and yes we have the eight eight six
+seven or in there so now we simply need
+a second write for that one so we first
+take the address that we have first
+written to which we have to write it
+plus two but we also need four more
+bytes in between before we place this
+address
+because add to get the other right
+working we consume one more element to
+pad it and after that the percentage end
+so we always have this pair of
+percentage something and present should
+end with the padding four right so
+that's why we have to make sure we
+consume two bytes in the address and so
+if we do this we get now eight eight
+seven be there and that is obviously a
+little bit too high but we can use this
+trick that I showed you in this other
+video basically right up to three bytes
+which will flow but it doesn't matter
+for the global offset table and we can
+calculate it again how much the padding
+should be to be able to write the
+correct value and I'm converting again
+hex values to decimal with Python and we
+place it in there and then we
+and tested against the binary I run it
+and throw it against the binary but it
+doesn't work the the address seems to be
+weird and I didn't realize that I
+because I extended now the characters
+with the B's and the new address that I
+also shift around how many characters
+are printed for the lower bytes and it's
+just not working and I'm concerned
+constantly screwing up how many
+characters I'm printing it's not and I
+can't hit it anymore
+so it takes for me a while to realize
+that what what my mistake was and when I
+I noticed it when I wrote my my goal and
+where I am right now under it and
+realized oops my lower bytes are higher
+I accidentally added more bytes and my
+calculations are completely screwed up
+so I have to calculate again compensate
+for those errors and eventually I figure
+out how many characters I have to print
+to write the correct address almost done
+compensating for a few more values here
+and if we try it out now we run it we
+check again
+basically now I'm back at the beginning
+compensate again back here for the
+second right I run it I check it zero
+eight zero four eight eight six seven
+that looks perfect
+great so now it seems to work that was
+annoying because I make mistakes and was
+not careful with what I am changing so
+now we should be able to run this
+against the real servers and override
+the global of the table entry for close
+with the flag function and then execute
+that one to read the flag let's try it
+I will formatted remote printer awesome
+we got that flag as well now I'm finally
+done with all my videos about the
+internet Vulcan CTF we can look again at
+the tasks that I've solved it's all
+three web three crypto and three
+exploitation challenges and we can look
+at the scoreboard how I did I think this
+was recorded just shortly before d CTF
+was over I think so I got place 254 with
+610 points
+and thanks so much at internet waha for
+creating such a smooth CTF experience it
+was a lot of fun and there were some
+great challenges that I really enjoyed
+working on
+you

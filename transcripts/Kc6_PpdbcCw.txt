@@ -1,0 +1,235 @@
+Last video we have explored a format string
+vulnerability from the protostar examples,
+but had it compiled on a modern system with
+ASLR and 64bit.
+At first I thought we couldn’t solve it
+but explored some tricks and played around
+with it, but then actually figured out a reliable
+technique.
+So let’s explore some more of the format
+levels.
+Format1, at first, looks very simple.
+Remember last time we just failed because
+it required that we write to target the exact
+value 0xdeadbeef, and here we just have to
+write..
+Something?
+Let’s have quick look if our trick still
+works.
+So this level also takes an argument, but
+passes it directly to printf.
+No sprintf and buffer involved.
+Anyway.
+we compile it again on our 64bit ubuntu version
+and open it in gdb.
+Then we set a breakpoint at the if compare
+of target, run it and as arguments we use
+AAAAAAAAAA.
+Then we have a look at the stack.
+See how our As don’t show up?
+Where are they?
+Let’s keep looking further down.
+Oh wow.
+They are all the way down there.
+And what’s all this stuff again?
+Well so.
+See, we didn’t copy our string input to
+a local variable like buffer did in the last
+challenge.
+We directly print the arguments.
+And the arguments are placed, along with the
+environment variables all the way at the start
+of the stack.
+So these are the environment variables.
+And you see, there is no stack address we
+could overwrite and abuse like we did last
+level.
+That sucks.
+But actually it’s still solveable, we don’t
+need the trick from last video at all.
+It’s simpler than you might think.
+But let’s explore that with the next challenge,
+format2, that one we haven’t looked at yet
+and boils down to the same thing.
+Looks a bit more promising, right?
+It does read data into a local variable on
+the stack.
+But it doesn’t look like we can overflow
+the buffer.
+This program gets the input from standard
+input instead of an argument.
+And then later target is checked if it’s
+64.
+Ok.
+So let’s compile it and open it in gdb.
+Again we look for the if-compare, seems to
+be here, 0x40 is 64.
+And set a breakpoint then run it.
+This time it’s waiting for input, so enter
+some As and Bs.
+Now we hit the breakpoint and let’s have
+a look at the stack.
+Mh, we know that our buffer has 512 bytes,
+and looks like there are a loot of stack addresses
+in range.
+But why is that, isn’t the 512 bytes buffer
+unallocated or empty?
+Well no not really.
+You see it’s a local variable on the stack,
+which means it simply moved the stack pointer
+further up to make space for it, but doesn’t
+clear it.
+So these are leftover values from other functions
+that ran before and had a stack there, which
+then got destroyed again when they returned,
+but their values always remain there.
+For regular program execution that doesn’t
+really matter, except that you must not expect
+a variable to be initialised with zeros, because
+you can have bad luck and something was in
+it’s place before.
+Anyway.
+Let’s see where our target variable is.
+We can use print and then ampercant target
+to get a pointer, so basically the address
+of target.
+But what is that?
+That doesn’t look like a stack address?
+Somebody who has some experience with exploitation
+on 64bit knows already what that is.
+It’s a very recognisable address.
+With vmmap you can check the virtual memory
+and see that it’s part of our binary?
+Look at the permissions for this memory region.
+It is read and writeable, not executable.
+So it’s not where code is.
+It’s in a data segment.
+And when we look at the code we see that target
+isn’t defined in a function as local variable.
+It’s a global variable, so it’s placed
+in a data segment.
+Now if you have some experience with exploitation
+64bit targets, you also know that that means,
+this address is not affected by ASLR by default.
+Lets add another printf here, like we did
+last video to print the address of target.
+And when we run it a few times, you see target
+doesn’t change.
+Awesome!
+So it should be fairly straight forward.
+Step 1: let’s find our input on the stack.
+We enter some As followed by %x to print stack
+values.
+And here we are.
+1, 2, 3, 4, 5, 6.
+At offset 6 we have our input.
+So we could place our address there instead
+of the As, and then replace the 6th %x with
+the %n to write to it.
+Let’s try it.
+So we should now enter our input via echo,
+so we can encode raw characters in hex.
+Then pipe the input into format2.
+So let’s enter the address of target.
+Ah see, there it is, but it’s 4 bytes, so
+there is also a space still included.
+This has to be a zero, because the address
+is only 3 bytes.
+So we add that, but now we don’t see any
+output anymore.
+What happened?
+Well, printf prints strings.
+And strings are null-terminated in C. So printf
+stops when it reahed the 0.
+So we never reach our %x format modifiers.
+This means, we should move our address to
+the end, so we can have format stuff before.
+Now let’s try to find again our address.
+This time I’m using the dollar syntax to
+enter an offset directly.
+So we know our start was at offset 6, so the
+address has to be further down.
+Also don’t forget to escape the dollar here
+on the commandline, because dollar is a special
+charachter for the shell.
+If we keep going with the offsets, we can
+find the As.
+Now sometimes the offset might not be right,
+so maybe you have to add or remove a few characters
+as padding to align it perfectly.
+Ok now looks good.
+Let’s change it to a %n.
+Segmentation fault.
+Well that didn’t work.
+Weird.
+Let’s write our input to a file, open gdb,
+and use that file as input to investigate
+the crash.
+So here we are at a move.
+It tries to move whatever is in r15d into
+the address in rax.
+And so rax appears to be an invalid address.
+It’s not our target.
+There is a 0xa.
+And that is obviously a newline.
+So that’s the issue.
+We are on 64bit, so we have 64bit addresses.
+But we only entered 4 bytes, and after the
+echo is a newline.
+So we just have to add 4 more nullbytes.
+Ok we don’t get a crash now.
+But target is still 0.
+How is that?
+Let’s make it crash again by making the
+address invalid again.
+This way we should be able to investigate
+if our address would be correct and what is
+written to it.
+So we see, rax looks good.
+It only is invalid because of what we changed.
+Otherwise it would be great.
+And so it tries to write r15d to it, and that
+is, 0?
+What?
+Shouldn’t %n write the amount of characters
+already printed?
+Let’s think for a second.
+Ohhhhhh.
+Of course it’s 0.
+Because we didn’t pint anything yet.
+Before we do the %n we obviously have to print
+something first.
+So let’s add %64d, to print 64 characters.
+Now that’s 4 characters long, this means
+we shifted everything by 4, and in order to
+lign up everything again, that the address
+is at the correct offset, we have to subtract
+4 characters somewhere.
+But luckily we made the padding earlier large
+enough and so that’s simple.
+And here we go, it’s “you modified the
+target”.
+FINALLYYY finally we managed to exploit a
+simple example on a modern system without
+much hassle.
+Goddamit.
+So maybe now you wonder, but the system has
+ASLR, why is this address fixed.
+Well, the system has aslr, and the system
+libraries like libc are affected by aslr,
+you can see that when you use ldd to print
+the library dependencies of the binary, it
+keeps changing.
+But the binary itself is not affected by ASLR.
+Unless we specifically compile it to be position
+independent code.
+And wie can do that with the -pie flag for
+position independent executable and -fPIC
+for position independent code.
+If we now execute format2 and check the address
+of target, then we see it keeps changing a
+lot.
+Now it’s going to be much harder.
+Maybe with some strategies from the last video
+it’s doable.
+I leave that as an exercise to you watching.

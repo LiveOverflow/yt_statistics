@@ -1,0 +1,667 @@
+In today’s video I want to talk about how
+I approach creativity.
+Especially in the context of creating the
+two games Follow the White Rabbit and Maze,
+for our hacking competition.
+Two games intended to be hacked.
+I already made a video where I talked about
+how I started to learn about game development,
+and today I wanted to focus more on the game
+design.
+I wouldn’t say I’m a super creative person,
+I don’t think I’m particularly special
+in that area, but I enjoy being creative and
+I enjoy seeing other people’s creativity.
+That’s why I enjoy the Demo Scene a lot,
+but also CTFs because they are often creative
+and I think creativity is pretty important
+in IT security, or at least if you are interested
+in security research.
+Chapter 1 - Making a Plan
+Oftentimes when people want to work on any
+kind of project.
+Be it renovating a kitchen, building a website,
+or making a game, it seems reasonable to first
+make a plan to then execute the steps.
+And so it’s very common to see that people
+start making design documents where they plan
+out all the features of the game and envision
+what it is supposed to be.
+Possibly spending weeks or months just on
+that step and making the game more complex
+and complex and adding more and more.
+It’s much easier to imagine and fantasise
+over your game, than it is to actually build
+it.
+So I didn’t do anything like that.
+Making a plan is incredibly important when
+there is money on the line, when there are
+risks associated and when you work with multiple
+people.
+If I would have wanted to make an actual game,
+and I quit my job for it, or I have to manage
+a team - a plan is essential for the success.
+But there are two reasons why I didn’t make
+a plan.
+First of all I’m still in the learning process.
+I still don’t know enough about the tool
+Unity, it’s capabilities and what is easy
+and difficult to implement.
+I’m lacking too much experience to make
+a reasonable plan.
+I still consider myself to be in the “play
+around” and gathering experience phase.
+The second reason has to do with creativity.
+Making a plan and brainstorming with notes
+is a creative process, but it has a major
+disadvantage for me.
+The mind is limitless.
+You could imagine anything.
+Just like that *snap* you can dream up a game
+in the size of World of Warcaft, with the
+graphics of Call of Duty and the skill tree
+of Path of Exile.
+But that’s not realistic.
+Chapter 2 - Being Creative
+I’m a huge fan of “Creative limitation”
+- the concept of purposely limiting yourself,
+to actually drive creativity.
+And so by working with Unity and playing around
+more, I’m creating a limited environment
+for myself.
+While using Unity I notice things that are
+easy, and things that are difficult or not
+possible, and then that guides a creative
+process.
+I like to imagine this like wandering around
+in fog in a forest with multiple paths.
+I always see a bit of path ahead, but it only
+slowly uncovers as I move forward.
+And once in a while I see a crossroad and
+I peek into the directions and choose the
+one that looks enticing.
+So I don’t need a big map of that forest
+to walk in it.
+I don’t need a step by step plan.
+I just need to make sure I have my eyes open
+so I can always see the next few steps and
+I’m open to divert from the current path.
+So... after I did a lot of playing around
+with Unity, the stuff I talked about in the
+last video, I thought I’m ready to try out
+making that game.
+Whatever it’s gonna be.
+So what were my next steps to ignite the creative
+process?
+Chapter 3 - Kickstart Creativity
+If you look at the names of the project I
+started next, it was called blocky.
+The reason for that was that I didn’t really
+have a plan yet, but I thought as good practice,
+I could reimplement something - for example
+the blocky challenge from Pwn Adventure 3.
+That was a crazy challenge, you find a link
+to my solution for it in the description.
+You had 32 input switches and then a huge
+network of connections, and you had to enter
+the correct combination of switches to open
+the door and get to the flag.
+Anyway.
+Sometimes it makes sense to “copy” something
+but make it your own.
+Be transformative.
+Have a twist to it, do it differently.
+I wasn’t sure yet what my version would
+look like, but I don’t worry about that.
+I just get started with something.
+I also realized that the amazing islands that
+I built during testing were wayyy too big
+for me.
+I would love to have a big island, but I think
+it takes too much time to populate.
+So I created this new blocky project and of
+course I had to start by making a new island
+with Gaia and tried to create some interesting
+landscape.
+But before I could really get into the blocky
+idea, I got to one of those crossroads in
+the forest and had a “creative” inspiration.
+Chapter 4 - Fall Damage
+Remember the experiments with my character
+controller? at some point I realized, maybe
+I should implement that the player dies, when
+falling from too high up.
+And I so realized, that could be used as the
+first challenge.
+What if I make a map, where a player is forced
+to jump down and die.
+And the flag is on the island.
+So you need to hack the game to survive this
+jump.
+Either teleport, or make yourself invulnerable.
+So I had a first idea to pursue.
+At this point I was still more thinking towards
+a fantasy style game, like PwnAdventure.
+I thought maybe we are an apprentice in a
+wizards tower, and the wizard tells us to
+jump down to find a powerful spell.
+And the “magic spells” are basically the
+hacking stuff.
+So you need to learn to hack the game to reach
+the goal.
+And then when you succeed, the wizard would
+be super proud that you broke through the
+layers of the universe.
+Or something like that.
+But while I was building I also realized that
+I didn’t really have a lot of fantasy assets,
+and had more of futuristic stuff.
+So instead I decided to have a floating spaceship
+instead.
+I also play Apex Legends a lot, and of course
+I’m familiar with other battle royal games,
+like Fortnite.
+And so I thought it would be funny if the
+game starts like a Fortnite game.
+You fly in the battle bus over the island.
+Then you drop out,....
+You drop and drop…
+But you don’t have a glider.
+So boom.
+you die….
+I thought that would be funny.
+I looked up how the battle bus looks like
+and tried to make one with the assets I had.
+You know I didn’t want to get into 3d modelling
+myself.
+But figured out quickly that I couldn’t
+get a cool balloon.
+So instead I made some kind of spaceship.
+If you have played Maze, and you found the
+Hangar, you might have even seen this ship.
+I spent so much time building it, that after
+I abandoned this map, I didn’t want it to
+go to waste.
+So I included it there.
+Here is the first test map and it started
+with this flying camera.
+Uhhh looks cool, right? you start in the ship,
+then you walk to the door.
+It opens.
+But you see no other choice than to jump….
+u ded.
+But if you manage to hack and manipulate the
+game, then you could follow the path, into
+this cave and around this corner, there you
+can find the first flag.
+Chapter 5 - Flags in Offline Games
+When I added this first test flag, I realized
+how difficult it is to make a hackable game
+and hide those flags.
+Especially in an offline game.
+Note that at this point in time I had NO PLANS
+on making an online game like Maze ended up
+to be.
+I thought I NEVER have time for that.
+So I was stuck with hiding flags in a local
+game.
+And so something you have to keep in mind
+when you add a flag like this, it’s a texture,
+an image, which can easily be extracted with
+any Unity game hacking tool.
+You would not even have to launch the game
+to get it.
+Even if you write code that draws this flag,
+people will still reverse engineer that code
+and then it’s a code reversing challenge
+not a game hacking challenge.
+So for making challenges it’s just important
+to understand this limitation and work around
+it.
+Also I thought as a game hacking introduction
+challenge, this is actually not bad!
+Now there are multiple ways to solve this
+first flag.
+Make yourself immortal by patching out the
+death functions, teleport around with Cheat
+Engine, or use static tools to find the texture.
+Cool!
+Of course I wanted to have more flags.
+A whole Island full of flags to discover.
+And had no real idea how to do that yet.
+But I figured I just keep going and maybe
+I get another inspiration.
+Chapter 6 - 3D Modelling
+hile working on my character controller I
+was wondering which model to use.
+I had a nice selection from Synty, but couldn’t
+decide.
+An obvious goto, which you can also see in
+the first episode of my Pwn Adventure Playlist,
+the casual Let’s Play, I picked a character
+with a stereotypical black hoodie.
+So I wanted a character with a black hoodie.
+Unfortunately Synty didn’t have a good one.
+It did have a hoodie character, but wasn’t
+a black hoodie and also a not fitting head.
+I was more leaning towards this head, I think
+that kinda looks like me.
+So I used this opportunity to learn a bit
+of blender and 3d modelling.
+My goal was to stitch these two models together.
+As well as changing the color of the hoodie.
+Now this was a mess, and it’s not perfect.
+Some of the details are kinda botched, but
+I succeeded.
+I had a character with a black hoodie now!
+Awesome!
+But what do I do with it now?
+Chapter 7 - Alternative Story
+I already mentioned my ideas of the Wizard
+theme and the Fortnite Battle Royal theme,
+but then I made this stereotypical Hacker
+character.
+And so I have to do something with that.
+While continuing building islands and fixing
+code I tried to think of some interesting
+story with that, or at least a theme I could
+build from.
+And you know, I don’t want to do the stereotypical
+hacking shit.
+I don’t want to just have another kind of
+Anonymous or secret hacker bunker.
+I don’t want to make Mr Robot or something.
+I enjoy the hacking stereotype, but I don’t
+need to overdo it and if I put something out,
+maybe it’s a bit more thoughtful.
+And then at some point I was thinking.
+Mhmhm…
+This character just looks like a stereotypical
+white dude, in brown pants and a black hoodie.
+You already watch one here in this video.
+Do you really need one in another game to
+identify with.
+What if I turn the stereotypes around?
+So I thought “fuck gamergater” and we
+make the player character a badass women hacker,
+who has to save this helpless nerd sitting
+infront of his computer, and he is getting
+jealous that she is better at hacking than
+him.
+I thought that would be a cool idea and even
+started making a dark room with the guy typing
+there on the computer.
+Eventually I scrapped that idea, because I
+realized, I have no time to make a story.
+And this robot character has no gender anyway.
+Maybe someday.
+Chapter 9 - Technical Issues
+I split the videos in parts.
+Basically the video where I share how I learned
+game development with Unity and it’s more
+technical, and then this one, which is more
+about the game design.
+But of course this game development process
+still has TONS of technical issues and it’s
+a continuous learning process.
+I just wanted to emphasize that.
+I didn’t magically become a professional
+here.
+I learn more and more about Unity.
+I just felt I know enough to try making a
+first game myself.
+Which could be the hacking game.
+I want to highlight one example issue that
+I ran into when making this cave with the
+first flag.
+When I dug into the terrain, and then later
+added the water, I realized the cave was underwater.
+Of course you could solve this problem by
+simply making a design decision.
+Any cave just happens to be above water.
+And that’s a totally fine solution.
+But I also tried to see if I could somehow
+solve it.
+I was using Crest for water and there were
+existed great tutorials as well as a very
+helpful Discord.
+And there I learned that Crest has a feature
+where you can define a water input and basically
+force the water up and down.
+And so here I just made a flat surface and
+forced the water down.
+There are too many issues to mention that
+continuously popped up, I just wanted to make
+clear that this is still part of making a
+game.
+Chapter 10 - A new island
+I’m not really sure what prompted me to
+abandon this island, because I did like what
+I made there.
+But I think it was just the size of it.
+It was also still a big playground because
+I learned here how to use digger to dig the
+cave, crest with the water inputs, lighting
+inside the cave, and also using nature rendere.
+So eventually I created a new island, a smaller
+one and called it FlagLand.
+And this eventually became the first hackable
+game I made.
+At the start I still called it FlagLand, but
+later I renamed it to “Follow the White
+Rabbit”.
+So first of all, the island is smaller, and
+I didn’t use the spaceship for the player
+to fall down.
+The main reason was that when you are high
+up, you already see the entire map.
+It would kinda spoil it.
+I wanted the player to discover and explore
+the island.
+The same feelings I had when I started Pwn
+Adventure in the cave and came out and found
+this big island to explore.
+So on this new map I moved the fall-damage
+challenge into this pit.
+You jump down, and at the bottom you find
+this cave, which leads you to the flag.
+Cool!
+I decided the player starts here on this bridge,
+just arrived here with a small spaceship.
+And then has the choice to go right or left.
+But this fall damage challenge is very easy
+and so I wanted the player to go there first.
+But how to do that.
+And this is where I had another inspiration.
+I saw these Polygon animals and there was
+a white rabbit.
+And I though the white rabbit could guide
+the player to the flag, this way the player
+also doesn’t have to guess where the flags
+are hidden.
+The white rabbit is obviously a cool reference.
+Many people know it from Matrix, but it’s
+coming from Alice's Adventures in Wonderland
+where Alice follows the white rabbit into
+a hole to enter this amazing world.
+And isn’t this a beautiful fit here?
+Follow the white rabbit into the hole, learn
+hacking and enter this wonderful world of
+It Security?
+Chapter 11 - Making NPCs
+With the white rabbits I also faced a new
+development challenge.
+How do you make a NPC character to move when
+you get close, and move on a specific path
+and also have the fitting animations.
+It really took me a while to solve this.
+And I’m not sure if I did it in a good way.
+In the end I bought a tool called Spline Plus
+which you can use to draw waypoints and then
+have a game object follow it.
+But the terrain is bumpy and there are stones.
+But this tool has a Projection feature, whre
+it would simply place the game object on any
+ground it finds under the selected path.
+I was also thinking of developing something
+like that myself, or I would have hoped this
+exists within Unity, but I had to balance
+time and the cost and I just found being able
+to place waypoints like this very useful.
+However it did not solve all my problems and
+I did write some more code for it.
+Which I think would be an awesome feature
+if it was added to Spline Plus.
+I basically created an Event system.
+Because I wanted the bunny to start running
+when the player gets close.
+Then stop again.
+Sit and clean itself.
+waiting for the player to get closer again.
+And then also trigger the jump animation at
+the right point.
+So in this Rabbit Controller that I wrote,
+you can add events to a list.
+An event simply defines WHEN it fires, that’s
+the progress value, how far on the path the
+game object travelled, and a Unity Event to
+trigger.
+And so when the player gets close, the spline
+following gets activated and the bunny starts
+running.
+It runs until a distance of 59.2 and then
+it executes the function state2_first_pause.
+This sets the animation of the rabbit to idle,
+so it doesn’t run anymore and sits down,
+and it disables the path following for the
+object.
+It also activates a trigger feature which
+means when the player gets close again, the
+rabbit starts running following the path again.
+Anyway, that was my solution to that problem.
+I like the event system I thought of, but
+of course still had to buy an asset.
+I would be really curious how other people
+make scripted events with NPCs.
+I tried to look for videos about that topic,
+but couldn’t really find any.
+Chapter 12 - The Second Flag
+At this point in time I still only had the
+first and I was unsure what the next flag
+could be.
+The main issue for me was the texture, because
+I didn’t want the second flag to be solved
+by simply extracting the image.
+So I had to force players to do it dynamically
+ingame.
+And for that reason I had to create the flag
+at runtime, and hide the parts so well, that
+static analysis makes no sense.
+This is the flag and it is assembled out of
+various different pieces.
+The CSCG string is from the first flag, but
+the other texts are taken from Synty assets.
+And I layered them in a way to create new
+words.
+And one last component was regular text rendered,
+but also generated from code, by doing a simple
+XOR decryption.
+I called this class PartialFlag2 because I
+knew that the names for classes and functions
+are still inside the compiled game and can
+easily be decompiled.
+Players will discover this class.
+So I wanted to make sure that players don’t
+try to solve this challenge statically, and
+that they have to hack ingame, and I attempted
+this by telling them, the flag is probably
+hard to get statically, so maybe try a dynamic
+approach.
+And the name of this integer is “it’s
+only part of the flag, try a different approach”.
+Just to make this very clear, I don’t players
+to get frustrated here.
+Here is how this function looks like decompiled.
+some of my messages got lost, I guess optimized
+out, but the important function name still
+exists.
+Hopefully this is enough guidance for the
+players.
+And so I simply had the flag hidden inside
+this house, but no way to get in.
+I also attempted to make a cool branchy jumping
+path, inspired by movies or other games.
+But I kinda failed.
+I am not good at level design, it really looks
+shitty.
+But doesn’t matter.
+Also I added the bunnies to guide the player
+to this second flag and the storyline was
+basically.
+The player nnow walks the other direction,
+find another bunny and follows it.
+But reaches this closed gate.
+Now here you have to do a teleport hack, or
+you are clever and you find a way to jump
+in.
+I actually found this during testing, because
+I also got annoyed at the closed gate.
+But also know other people found that too.
+Then you walk up the path.
+Very much fun.
+And you see that the bunny slips through the
+gate and you know where to go.
+Now you would simply teleport yourself inside,
+and you find the flag.
+And so basically you have the easy flag you
+can find with static analysis.
+Or the flag where you actually need to hack
+something.
+Cool!
+Chapter 13 - Playtesting
+Now that I have my first two flags of the
+game hacking challenge ready I created a first
+test release and gave it to some of the other
+hacking competition organizers.
+Just to see how they do it.
+And of course they solved it, all fine.
+It wasn’t a hard challenge.
+Also got a few bug reports and recommendations
+that I wanted to add.
+But there was one issue.
+Flag 1 and 2 are both solvable with simply
+using CheatEngine to teleport around.
+So if somebody used it to solve the first
+flag, the second flag is the same.
+That’s a bit boring.
+Chapter 14 - Out of ideas
+I tried to think of other challenges, but
+I kinda got stuck.
+So let’s recap the limitations.
+Game hacking tooling on Windows is really
+crazy.
+First of all there is this tool Cheat Engine,
+which I have used several times before on
+this channel, and it is awesome at dynamically
+searching memory for interesting variables.
+And that can be used in basically any game
+to modify anything.
+So modifying player position, essentially
+teleportation is easy, but also anything else
+like owning specific items, or having a certain
+amount of gold, it’s all easy to manipulate.
+On top of that, Unity games are written in
+C# and that makes it very very trivial to
+decompile and EVEN modify with tools like
+dnSpy.
+So I knew any kind of code I write is immediately
+found, read and modified in case it helps
+the players.
+So I can’t really hide much in it.
+In games that are written in something like
+C++ it requires a bit more effort because
+you have to use disassemblers to read the
+code.
+That still doesn’t protect from cheaters,
+but for a challenge it would make it a bit
+more challenging.
+But we are stuck with C#.
+I also know that there are plenty of Unity
+specific tools that make reverse engineering
+Unity games very easy.
+They can even kinda reverse a whole project
+so you can open it up in Unity again.
+It’s insane.
+By the way that’s also the reason why I
+released this game for the competition only
+on Windows.
+Even though I could have compiled it for Linux
+and Mac as well.
+The tooling, so the Unity reverse engineering
+tools, on Windows are just sooo good, that
+anybody who would try to solve the challenges
+on Linux or Mac would have it 10x harder.
+So by only releasing Windows, it might suck
+for a few players who have to install a VM,
+but this way I can force them to explore the
+crazy tooling on Windows and make their lives
+actually easier.
+Anyway…
+I didn’t really see a lot of options for
+more challenges.
+I felt like any other challenge I would make
+would turn into a shitty guessing obfuscation
+challenge.
+But if I had an online game, where a server
+is responsible for handing out the flags,
+that code is fully in my control and I could
+implement a lot more.
+So… it slowly dawned on me.
+FUCK… maybe I should make an online game.
+Chapter 15 - Finalizing Follow The White Rabbit
+At some point I had another inspiration how
+I could change the second flag.
+The idea basically comes from what people
+call “datamining”.
+Everytime when a popular game releases an
+update, people “datamine” the game and
+try to find hints or leaks of upcoming content.
+And so I thought, “that could be turned
+into a challenge”.
+Unity games are divided up into multiple scenes.
+Typically each level would be it’s own scene.
+And when you compile your Unity game, you
+need to add the scenes you want to include.
+Which means, maybe you accidentally include
+the scene of an update that is not actually
+playable yet.
+Unity can also load multiple scenes at once,
+and so I basically removed the house and put
+it into it’s own empty scene.
+On the island I then transformed the area
+into a construction site.
+Hinting that a future game update would add
+something here.
+So in order to solve this challenge now, players
+need to figure out that there is another scene
+in this game and somehow load it.
+For example by modifying the game to force
+loading this scene.
+In order to minimize the guessing and provide
+a bit more direction what players have to
+look for, I also created an epic trailer of
+this game, hinting about this update and showing
+the house.
+I was hoping it would make people wonder:
+“if the flag is in this house, added in
+a future update, and in the version I have
+here it’s not there yet, then maybe this
+update leaked into this release”.
+And then maybe you research how levels can
+be structured in Unity and you learn about
+scenes.
+So these two flags, the falling down and the
+datamining one, became the Game Hacking Introduction
+challenge for our competition.
+That’s Follow The White Rabbit.
+I’m actually pretty proud of this.
+This is my first game.
+It still had some bugs I later found out.
+Like the audio volume is broken.
+But whatever, I’m not selling it, so I don’t
+really care.
+Like I already said, I realized that I might
+want to make an online game after all.
+Now I also had a bit more confidence that
+I would be able to do this, because at this
+point I have the basic Unity knowledge and
+can make simple 3D games.
+All I would need now is some kind of server
+and networking component to have clients interact
+with each other.
+I started on this new game, what would later
+become “Maze” even before I finalized
+this challenge.
+But I decided to include that step here already,
+so the next video will be about making this
+online game.

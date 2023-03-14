@@ -1,0 +1,307 @@
+Let’s have a look at recent kernel root exploit. 
+Here is the source code of it, and as you can see,
+we have to scroll a bit, so it’s not the shortest. 
+but don’t worry, we will go over it together.
+In my opinion it’s very interesting and you can 
+learn a lot about the Kernel with this. But let me
+first show off the exploit to proof that it works. 
+First we are the anon user, then we execute it,
+now we have to wait a little bit. I will fast 
+forward. And then we should drop into a root
+shell. With id I can confirm I am root.
+So let’s check out how it works.
+This exploit is actually a race-condition, 
+so it makes sense to carefully take notes
+about the order of operations. 
+So get out your pen and paper.
+This exploit program, which I call `hxp`, 
+obviously starts in main(). And there it
+immediately calls prepare_shellcode(). 
+We know from the name “shellcode”,
+that it’s probably a very short code snippet 
+that executes something useful for our exploit.
+And so here we can already see 
+some payload looking bytes.
+This pointer magic, in the function, might 
+look confusing, but here is an assignment. So
+this value on the right, is written into this 
+here on the left. The value is the address of
+the execve function, so this address here, but 
+subtract from it the address of the entry point,
+plus the static offset 12, and 4. So basically you 
+subtract the address of entry from the address of
+execve, which gives you the offset, or distance, 
+from the entry point to execve. So why do we want
+to know this offset? Well this calculated 
+offset is written to payload + offset. And
+payload points to those bytes here. And the static 
+offset is 12. So 0,1,2,3,4,5,6,7,8,9,10,11,12.
+So this points at this byte. And so we write 
+into here the calculated offset. And looking
+at the comments of those bytes, we see that this 
+is actually the raw bytes of some assembly code.
+And those 5 bytes here are part of the assembly 
+code for a call instruction. So a function call.
+And the call instruction uses relative 
+offsets, and not absolute addresses. So
+when you want to call the function execve, 
+you have to know the memory offset from your
+current point of execution to the target 
+function. And so that was calculated here.
+LONG STORY SHORT. Here we just create an execve 
+shellcode that calls setuid(0), trying to become
+root, pushing the arguments for the execve 
+function, and then calling execve. Anyway...
+Next we get a shared memory area with mmap. 
+“mmap() creates a new mapping in the virtual
+address space of the calling process.” SHARED 
+means, that two processes could read and write
+this same memory area. We then places the address 
+from this new memory into a pointer we call
+ready. So when writing, or reading, 
+the address of ready, we interact with
+the shared memory. This can be used by two 
+different processes to share a ready value.
+And after that we create those 
+two processes, by callingl fork().
+“fork() creates a new process by 
+duplicating the calling process.
+The new process is referred to as the child 
+process. The calling process is referred to
+as the parent process.The child process and the 
+parent process run in separate memory spaces.“
+Because the child and parent get their own 
+separate memory, that’s why we created the
+SHARED memory area before, because 
+that memory will actually be shared.
+So after the fork, the exploit 
+execution branches into a new process.
+We have now the child and parent process.
+So what does our parent do?
+Well it seems to wait for the child. It does this 
+by having a while loop checking if ready is a 1.
+We set it to 0 before, so the child should at 
+some point write a 1 into the shared memory,
+to signal to the parent, that it’s ready.
+So what does the child do? The child creates
+a lot of strings in a loop, some path 
+pointing to something in the tmp folder.
+You can see this very well when you execute 
+the exploit because it prints the progress
+of the paths. And for each path it 
+calls unveil(). So what does that do?
+“The first call to unveil() removes 
+visibility of the entire filesystem from
+all other filesystem-related system calls (such 
+as open, chmod and rename). [...] additional
+calls can set permissions at other 
+points in the filesystem hierarchy.”
+So this is like a defense-in-depth security 
+feature. A process can basically block access
+to any files the process shouldn’t have access 
+to. And so here it just blocks access to TOOOONS
+of files. Now these temp files don’t exist, but 
+it doesn’t matter. The kernel has to keep track
+of the files you don’t have access to. Mhmhhh.. 
+I wonder why this is done. But let’s move on.
+So when the child is ready, it writes 
+the expected 1 into the shared memory.
+And now the child waits for the parent, with 
+a while loop, checking if the memory is 2..
+So let’s go back to the parent.
+The parent now calls ptrace(attach). “The ptrace()
+system call provides a means by 
+which one process (the "tracer")
+may observe and control the execution of 
+another process (the "tracee"), and examine
+and change the tracee's memory and registers.”
+So the parent attaches with ptrace to the child.
+And then calls POKE, to “Copy the data 
+to the address in the tracee's memory”.
+So this writes the data cccccccc, to the 
+entry_point address of the child process.
+Then we change the scheduling priority 
+of the child and parent process,
+that probably helps with winning the race 
+condition. But it’s not that important for us.
+Now the parent writes 2 into the shared memory, 
+which means the child drops out of the while loop,
+and continues. But this time the parent 
+doesn’t wait. Now child and parent execute
+stuff at the same time.
+So what does the child do?
+The child sleeps for a moment and then prepares 
+a call to execve, executing passwd. And passwd
+is a setuid binary, so that binary will run as 
+root. Alright. So it simply executes passwd. But
+how does this help us? This of course is not an 
+exploit yet, it simply executes a root setuid
+binary. And btw, exec means also that the full 
+current process is replaced by this new program.
+So the child process BECOMES passwd. Anything 
+that would come after execve in the child,
+would basically never execute. From this point 
+on the child should be the new program passwd.
+So the magic of this exploit is 
+probably in the parent. Let’s
+check out what the parent does in parallel.
+Here we see a big endless while loop. And
+it starts with a peek into the child process 
+at the entry point. PEEK “Read a word at the
+address in the tracee's memory”. So we read the 
+value at the entry point, which we have written
+previously to be this sentinel value ccccccc.
+We also print once in a while the value we have
+read. For example when the value changes, is 
+different to the last_v, then we print it,
+along with the current loop counter.
+And we expect the value we read to be the
+value of the sentinel. If that’s the case 
+we simply keep executing this while loop,
+we don’t really do anything. But every 1000 loop 
+iterations we also call CONTINUE on the child
+process. For example PT_ATTACH earlier should 
+have stopped the child process. So we signal
+here the child process that it can continue.
+We keep doing this in a loop, but if the value
+we read from the child changes, we suddenly read 
+a different value, then this code here happens.
+Let’s have a look at how this looks 
+like when executing it. Because we
+have here those printfs(). But let me 
+change some stuff for better visuals.
+So after we unveiled all those paths as before, 
+we will eventually reach that interesting while
+loop. BOOM! And now here we see many of the PEEK 
+attempts. It kept reading from the child memory
+the expected sentinel. ccccc. But after a while we 
+did call PT_CONTINUE, to wake up the child again,
+let it continue execute, and then suddenly we 
+see the printf from the child, that the child
+is about to call exec. That’s the exec of passwd. 
+After which we see a change in the value read from
+the entry point. And now that the value changed, 
+the parent will drop into this code here, where it
+now loops over the prepared payload/shellcode, and 
+write it right to the entry point. And that’s it.
+The parent breaks out of the while 
+loop and simply waits for the child.
+So… uhm… where did we get the shell? Well, you can 
+kinda take some educated guesses without really
+understanding what happened. We did write the 
+prepared payload to the entry point of the child,
+but only AFTER, we see that the code at the 
+entry point changed. And how would it change?
+Well the client called execve to execute passwd. 
+And execve replaces the complete current process,
+loading the new binary. And this also loaded new 
+code at the entry point. And apparently as soon
+as the new entry point code was written, the 
+parent noticed that, and quickly OVERWROTE it
+with this shellcode. And this shellcode now 
+tries to make itself root, with setuid(0),
+takes the prepared arguments and environment 
+variables from the original execve by pushing them
+on the stack. There argv[0] was /bin/sh. So we 
+execute /bin/sh as root. Giving us a root shell.
+As a regular user process you obviously 
+can’t just call setuid(0) to become
+root, but that’s the reason why we 
+executed a setuid binary like passwd.
+The kernel sees that this new binary 
+executed by the child is a setuid
+binary, and then the payload the 
+parent writes into the new process,
+RUNS IN THE NEW PROCESS which is a setuid process, 
+thus allowing the code to become fully root.
+So to summarize the exploit here, 
+it seems to allow an unprivileged
+user process to modify the CODE of a setuid 
+binary just after it was loaded into memory.
+Obviously that should be impossible. 
+That’s why this is a vulnerability.
+Normally this is not possible. But here we 
+exploit a race condition in the Kernel with
+PTRACE and EXECVE. Apparently there is a small 
+window right after executing a setuid binary,
+where we CAN modify the process with ptrace. 
+That’s a very cool and serious root exploit…
+So… If you have paid very very close 
+attention, you might have noticed that
+I did not say which kernel this is. Maybe you 
+immediately thought it’s the Linux kernel,
+because this looks like Linux, right? 
+We have syscalls like ptrace and execve.
+But we also have the unveil syscall. And if 
+you are an even bigger nerd you might know
+that Linux doesn’t have unveil(). But OpenBSD 
+does?! So is this an OpenBSD Kernel exploit?
+No it’s not. This is a root exploit for 
+SerenityOS. SerenityOS is a Graphical
+Unix-like operating system for x86 computers.
+And now maybe you will groan “urgh”. Why would
+I be interested in this obscure operating system 
+NOBODY USES. Let me tell you why you think that.
+It’s true, this root exploit is not useful 
+to any script kiddy who is looking to copy
+privilege escalation exploits for their OSCP 
+certification. Sorry if you were hoping for one.
+Let me tell you the reason why YOU SHOULD CARE 
+if you are interested in security research.
+There exist several UNIX like operating systems, 
+or kernels, that are widely used. You have of
+course Linux, XNU (the macOS kernel), FreeBSD 
+or OpenBSD. And as a regular user, they feel
+very similar. You have a shell. You can type cd 
+and ls into it. Most of the programs you know
+can be compiled and run on those operating 
+systems. But they all use different Kernels.
+You can see that for example when 
+you look at the available syscalls.
+All of them share the typical POSIX syscalls. Like 
+open(), close(), even ptrace(), but they might
+also have differences in syscalls. For example 
+the mentioned unveil() syscall. But that’s not
+the only difference. Because of course they all 
+have their own implementation of those syscalls!
+It’s not copy and pasted code. I mean historically 
+you can trace influences and similarities,
+but basically every kernel has to write 
+their own code to implement the same
+system calls. And that’s why a Linux kernel 
+root exploit shouldn’t work on Mac or FreeBSD.
+Thus also this Serenity Kernel exploit doesn’t 
+work on Linux. BUT! If you are interested in
+security research, interested in operating 
+systems and kernels. Would you have thought to
+look for this kind of vulnerability in Linux?
+This Serenity kernel exploit is still an
+absolutely VALID ATTACK IDEA!, that you could 
+check on linux or the operating systems. Posing
+the research question: “Can you somehow PTRACE 
+a setuid binary from an unprivileged process?”
+Hell, there is even a windows equivalent 
+of that. Can you debug a SYSTEM process
+from a regular user process? If you could, 
+you would have found a local root exploit.
+So yes “SerenityOS” is not an operating system 
+anybody seriously runs in production. This
+particular root exploit is “not useful”. But the 
+attack idea is useful. And you who watched this
+video, you just learned about this idea. And if 
+you ever try to do security research into Kernels
+or anything else where this is a separation of 
+privileges, you hopefully remember this Serenity
+OS root exploit and you ask yourself: “is there 
+a race condition where an unprivileged component
+can influence a privileged component. And 
+could this lead to a privileged escalation?”
+In the next video we will have a closer look at 
+the kernel and why this race condition happens.
+But if you can’t wait, go watch the actual 
+developer of Serenity OS going over this exploit,
+I link it below. It’s awesome.
+And by the way, for all the CTF haters,
+this was a CTF challenge called wisdom2 from the
+excellent hxp CTF. Another great 
+example why CTFs are awesome.

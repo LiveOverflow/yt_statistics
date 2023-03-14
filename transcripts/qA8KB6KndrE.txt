@@ -1,0 +1,484 @@
+Desperate Cat was a hard java web hacking capture 
+the flag challenge from the Real World CTF.
+In the end only two teams solved it. Wreck 
+The Line and Sauercloud. And Sauercloud
+was the team I was playing with. So let 
+me tell you the story how we solved it.
+Desperate Cat. web. Difficulty: hard.
+What kind of bad thoughts can kittens have?
+We get an ip address to connect, 
+as well as an attachment with the
+required files for a local setup.
+When you connect to it with netcat,
+it will tell you to solve a proof of work first. 
+Enter a string whose md5 hash starts with those
+random 5 hex characters. So this is basically 
+intended as a captcha. Each team has to have
+their own isolated instance, and to handle the 
+scheduling and prevent denial of service attacks,
+they ask you to solve a computationally 
+expensive task. A proof of work. Like
+bitcoin mining. Or a captcha. But what I didn’t 
+realize immediately, one in our team noticed it,
+this method for proof of work is inherently 
+flawed. There are essentially only 0xfffff
+possible combinations. So there are only a little 
+bit over 1 million possible hashes. And we can
+write a simple python script to bruteforce all of 
+them. Just throw random input in it, and remember
+the input based on the first 5 hex characters. 
+This runs for like 2 minutes and in the end
+you have a huge dictionary with precalculated 
+solutions! So when we connect, and it challenges
+us with the 5 hex characters, we simply query the 
+dict, and we get our precalculated input that will
+generate the md5hash that starts with these 5 hex 
+characters. This is a bit like how rainbow tables
+work, if you ever wondered. Anyway we get in.
+With this port we now have access to our unique
+instance. And if we had the solution, we could 
+hack this site and get the flag. But we don’t
+have that yet and the instance only lives for 
+180 seconds. So let’s get a local setup going..
+
+I love CTF challenges where you get the whole 
+setup. There is no blackbox guessing involved
+to solve it. All you need is here.
+So in the desperate cat archive you
+can find a Dockerfile, a specific 
+jdk and the apache tomcat version.
+ROOT.war file. Jdk. tomcat. we immediately 
+know we have a java web hacking challenge here.
+Besides that we have test flag. And a 
+C program that simply reads this flag.
+the permissions will be setup so that you 
+have to execute that program to read the flag.
+This is done so you MUST get remote code 
+execution , and not just reading a local file.
+Anyway, the Dockerfile will help 
+us to get a local test setup going,
+so we first build the docker image with 
+docker build and I give it the name dcat.
+With docker run we can run the image in a 
+container. I run it detached. Give it the name
+dcat as well. Expose the web port to port 8888 
+on my local machine. And select the image dcat.
+Now we see that the container is running 
+and we can access localhost on port 8888
+to interact with the challenge. Cool!
+So where do we start? This website looks
+pretty empty. But we don’t have to bruteforce or 
+guess. We can simply look at the page sources. The
+ROOT.war file is an archive that you can extract. 
+And it contains the important server files.
+A good start is the web.xml file which tells 
+you how the website is configured. And in there
+we can see we have an /export URL route that 
+is mapped to a servlet named ExportServlet.
+In the WEB-INF folder we can find 
+this servlet class ExportServlet.
+And two utils classes. So this class is executed 
+when somebody tries to access a /export URL.
+.class files are compiled 
+java code, so not clear code,
+but we can use something like JD-GUI to easily 
+decompile this class and have a look at the code.
+And in there we see a handler for 
+a POST request and it requires
+three parameters. Dir filename and content.
+So let’s start interacting with 
+this website using these parameters.
+We could also read the code to figure out what 
+happens, but lets just dynamically test at this
+point. To do that we could write some code 
+to send requests, or use a tool like burp.
+By the way, don’t forget the content-type 
+for url encoded post variables. Okay…
+You will quickly notice that you can upload a file 
+with this content to this directory in the web
+root. It even tells you the full path where the 
+file is uploaded to. And you might notice that you
+can control the file extension as well! In this 
+case we uploaded a .jsp file with the content just
+being xx. This file should be now in the web root.
+So when we go to the URL, starting from the web
+ROOT, we can access this file! But there is also 
+some garbage text before and after the xx content.
+The source for that is clear when you 
+look into the code. This is prepended
+and appended to the content. And yes… It’s 
+there to make the challenge more annoying.
+Now we just uploaded a .jsp file, so you might 
+think we can just try out a basic .jsp web shell
+and get remote code execution! EASY!. But see what 
+happens when we upload that. when we browse to
+that file. We see just text. The evil characters 
+were HTML encoded. And looking at the sources
+again, we can see that these evil characters 
+are replaced. We cannot use pointy brackets,
+and even if we could, we cannot use parentheses 
+for function calls. Or even quotes for strings.
+Does this mean, JSP injection 
+is not possible at all?
+Well, besides the typical JSP 
+tags with direct code execution,
+there also exists the JSP expression 
+language. And that uses curly braces!
+It’s less known I guess because usually 
+you just do the basic JSP shell.
+But even if you didn’t know about the 
+expression language, you might even
+just stumble over this when you are trying out 
+typical template injection strings or fuzz inputs.
+In this case this multiplication 5*5 works. The 
+output is 25. And when you provoke an error,
+the stacktrace also tells you about 
+the EL, expression language feature.
+Alright. Up until this point I haven’t even 
+started working on this challenge. I didn’t
+figure out any of that. with very hard CTFs you 
+typically do not solve a challenge alone. And for
+this challenge, we were multiple people hanging 
+out on Discord to brainstorm. And so when I joined
+for this challenge, others already documented all 
+of this. When I joined, I was told we can inject
+jsp expression languages and somehow we need to 
+get remote code execution to execute /readfalg.
+And this is the actual start 
+of the challenge anyway.
+So after I couldn’t find basic expression 
+language shells without the forbidden characters,
+I started playing around and READING 
+documentation about the expression language.
+For example this article explains that there are 
+implicit objects. For example applicationScope,
+param or pageContex. Also when you have a GET 
+param, it will show up here and you can access it.
+To easier work with this challenge, 
+somebody started writing a testing script,
+and then I took that and modified it 
+to my liking. It’s not that important,
+it’s a bit hacky. It simply sends the two 
+required requests. First it uploads the file
+with some content, and then accesses the .jsp file 
+to execute the EL expression and print the output.
+I also set the proxy so I can see all 
+the requests in burp for debugging.
+Let’s do an example with param. it uploads 
+a .jsp file with this EL expression,
+and here is the output. An empty dictionary.
+Let’s try pageContext. This is a lot more
+interesting. If you have programmed with 
+java before this @number indicates that
+we tried to print an object of the class 
+apache.jasper.runtime.PageContextImpl.
+Implementation. mh.
+If we look at the applicationScope we get
+a lot of information. Cleaning that up and listing 
+the key-value pairs. We can easily see for example
+there is a servlet.context.tempdir configured. Or 
+some catalina.jsp_classpath sounds interesting.
+But we also have more objects like 
+the apache.tomcat.InstanceManager.
+I have written my small script in a way, 
+so that I can easily explore this further.
+So these are all keys on the applicationScope and 
+by executing my script like this. ApplicationScope
+followed by another argument. It automatically 
+constructs an EL expression with applicationScope
+accessing the dict, using the key param.a. So it 
+tries to access a value based on the parameter.a,
+and it adds a GET parameter to the URL with this 
+value. Because we cannot use quotes to add strings
+into the expression itself due to the filter, this 
+is a trick to get strings we want into there. So
+param.a will be the javax.servlet.context.tempdir, 
+and we can now print that value.
+With that testing became a lot easier. 
+But what do we do with this now?
+How can we find anything useful?
+We decided to look at tomcat
+by going to the github repository. And 
+instead of clining it I justpress the .dot
+on the keyboard to open up an editor in the 
+browser. And a good starting point might be
+to look for one of the classes. Here is one.
+And that’s something I started doing,
+I was just exploring what kind of objects can 
+I reach from within this expression language.
+But we still didn’t have any 
+idea how to exploit this.
+The biggest problem was that we couldn’t execute 
+functions. Because parentheses were not allowed…
+However one of us noticed that you can perform 
+assignments. So for example the jsp_classpath.
+When I write =param.a my script creates 
+this expression language. we try to assign
+1337 to the classpath. And when we query it 
+again, we actually permanently overwrote it!
+So we figured out that the expression 
+language generally allows us to access
+getters and setters of any object. That’s 
+pretty powerfu , but still far away from RCE.
+But we didn’t seem to have any other choice. All 
+we can do is walk objects, access their properties
+via getters and sometimes assign values if they 
+have setters. But that still does not allow us
+to execute a typical jsp shell. And as far as we 
+could tell, there is no publicly available example
+of a JSP shell without these forbidden characters.
+Well…
+We had a lot of ideas. Some more dumb than others. 
+For example we were wondering if we could modify
+the characters in the ParamUtils class. Because 
+when their length is different, the string would
+not be sanitized. if we could somehow overwrite 
+them, we could maybe upload a proper .jsp shell.
+But the problem was we couldn’t find a reference 
+to this object and it was private static final
+anyway. Which lead me to exploring the 
+possibilities for java reflections.
+I knew we could access class! And get the declared 
+fields! But I couldn’t figure out a way to change
+stuff without executing other functions.
+A completely other idea I was exploring was
+maybe the stringutils replace function. Maybe the 
+challenge had nothing to do with EL expressions
+and there was a bug in the custom replace code. 
+So I used the java fuzzer jazzer, which I learned
+about from the new log4j video I made recently. 
+Here I fuzzed the replace function. Maybe we can
+figure out how to get parentheses into a file.
+Yeah… You can imagine, all of these tests
+take a lot of time to develop. 
+And still no luck. No finding.
+So I guess back to looking for 
+objects and values to overwrite.
+I’m not exaggerating. I have sat there for 
+hours and hours just looking at the kind of
+objects I can access, and then looking at 
+the tomcat source code of that class to see
+what other objects I can access. Or if there are 
+interesting properties to overwrite. It’s really
+laborious. But then I had a little 
+breakthrough. On Discord I wrote this.
+“Is this useful? Failed to load or 
+instantiate StringInterpreter class [hax]”.
+that sounded interesting.
+I found this when I looked
+at this StringInterpreter Object on the 
+applicationScope and I overwrote it.
+Here I used a get parameter pwn to set it 
+to a string. And when I did that, and tried
+to send another request the server crashed. 
+I got the following backtrace and it says:”
+“Failed to load or instantiate 
+StringInterpreter class [pwn]”.
+Huh, did I just try to load a class? Having 
+a look into the source code we can see what
+happened. This StringInterpreterFactory checks 
+the STRING_INTERPRETER_CLASS_NAME on the context.
+If it’s of the type StringInterpreter, it assumes 
+it already created one and returns that object.
+But if it’s of type string, it thinks it still 
+has to load it, so it calls createInstance
+which gets a configured classloader from 
+the context, and then executes loadClass!
+That is crazy. We can load classes.
+And spoilers, this is going to be the
+core technique of our exploit and I found this 
+at 2am in the night. But let me put this into
+perspective. 24HOURS later, 2am the next day, 
+we still haven’t solved the challenge. But we
+had our plan for exploitation, we were just 
+struggling with some details. It took until
+8am in the morning, when pspaul finally 
+solved it. But I’m getting ahead of myself,
+I just wanted to highlight HOW MUCH TIME this 
+challenge took us. As I said, this is the core
+primitive for our exploit and still took us 
+dozens of hours after that until we solved it.
+So the problem with this class loading is, 
+that we didn’t know what class to instantiate.
+And right afterwards it would try to cast it to 
+a StringInterpreter object and crash anyway. we
+cannot interact with that class, so cannot get 
+arbitrary objects to play around. so I wasn’t
+too excited at that time. But as I said, that 
+was an important puzzle piece for our exploit.
+Through another object path I found 
+the classLoader instance used here.
+​​applicationScope apache.catalina.resources. 
+Then context. loader. And classLoader. This
+way we get access the paths where the 
+classLoader is looking for classes. And
+there is only one path. A file path to the 
+WEB-INF classes folder. And I was thinking.
+If we could overwrite this path, for 
+example a HTTP URL, we could maybe get
+remote class loading. The problem was, the path 
+is not a string object. When I tried to assign
+the string “pwn” I got the following error. 
+Cannot convert [pwn] of type [String] to [class
+java.net.URL]. So we need a URL object instead.
+I was still hopeful though. Maybe we can just
+modify the protocol of the 
+existing classloader URL?
+Unfortunately the URL class has GETTERS to get 
+the protocol. But I cannot set it. Property
+[protocol] not writable on type [java.net.URL].
+But maybe there is some other class and object
+that returns a URL object. For example maybe the 
+headers can have a host URL header. Or referrer
+header. But turns out they are all just strings. 
+So I spent HOURS scouring through the sources
+for objects that have methods and properties 
+with URLs. Because then I could take those
+and overwrite a classpath entry with them.
+But eventually I was really losing hope for that.
+Now maybe you are thinking, just upload a 
+.class file and put it into the class folder,
+and then load the class. But the problem is, 
+.class files have to start with the famous
+java magic value hex cafebabe. And our file 
+upload puts gargabe at the start of the file.
+So we cannot upload a .class file.
+However I was wondering, could we upload
+a .jar file instead. I was looking up how I 
+can load a class from a .jar file in tomcat
+and I learned about the WEB-INF/lib folder. So 
+could we get a .jar file uploaded into there?
+You might think we will have the same problem 
+like with .class files, but I know that jar
+files are basically just zip files. And the zip 
+file format is awesome for file format trickery,
+zip files don’t have to START with a magic. I was 
+sure that we could create a valid .jar file that
+has the garbage at the start and end, and still 
+work. So I tested the general theory. I created a
+small proof of concept Pwn class with static code. 
+This code simply executes a system command to call
+readflag and write the output to a .txt file into 
+the webroot. If this works, we should then get the
+flag. So I compiled it with the java version from 
+the challenge container and put it inside a jar
+file. Pwn.jar. As a first test I copied the jar 
+into the docker container with docker cp Pwn.jar,
+the container name colon and the path. But I 
+noticed the lib folder doesn’t exist, so had
+to create that one. Then copy the file. And tried 
+loading this pwn class. But it didn’t work? mh… I
+was playing around with it more. Modified my code. 
+Also tried to prepend the garbage stuff. And with
+a later test, IT WORKED! I got another error and 
+I noticed the code was executed. We got the flag
+into the web root and read it from the browser.
+I was confused. When looking at the class
+loader urls, I saw, indeed, the jars are 
+now in the path. Including the .jar where
+I added the garbage. It was able to load it.
+But what I didn’t immediately realize was that
+I made a mistake. You see, I used docker restart 
+to restart the container. And this didn’t remove
+the .jars I copied into the libs folder. it 
+turned out, that the .jars are only added to the
+classloader paths when the server starts. So my 
+malicious .jar was only loaded because I restarted
+the server. Which means, on a fresh new challenge 
+server, my uploaded jar would not be loaded. Damn!
+Of course immediatly we were 
+brainstorming how to reload the server.
+Somebody was wondering if we could crash DoS it 
+to force a reload. But then one of us figured out
+that writing to the web.xml config file would 
+trigger a reload of the server. Problem was,
+if we would be able to write to it with our file 
+upload, it probably wouldn’t be a valid xml.
+Why that? Well if we would have the capabilities 
+to write a valid .xml file, we probably could
+then also write an actual jsp shell. So 
+yeah, this avenue for Reload didn’t work.
+But when I was playing around with this 
+I stumbled over a trick. I was looking
+for different config files or folders that we 
+could write to that would not crash the server,
+but trigger a reload. And I 
+found this tomcat-web.xml file.
+But look at this, in my sleepless brain I thought 
+I was creating this file. But later I realized I
+was just creating a folder with that name. But 
+that was a happy accident. Because the creation
+of this folder triggered the reload of the 
+server, but it didn’t cause the server to break.
+So now we have a way to reload the server 
+and load .jars into the class loader path,
+and then load a malicious class from it 
+with our StringInterpreter primitive.
+The solution seemed simple now.
+One issue though. Remember, we have these
+forbidden characters that would get replaced. 
+Remember, .jar files are basically .zip files
+with binary data. So If the .jar contains one 
+of the disallowed characters, it would overwrite
+them and corrupt the .jar. Which means we have to 
+create a .jar that does not contain these bytes.
+And to make matters worse, it turned out that the 
+upload encoding is f’ed up too. Here on the left
+is the original .jar. And on the right is the 
+.jar how it arrives when you upload it. You see
+the added garbage text. That is not bad. But see 
+these bytes. These non-ascii values are replaced
+with the infamous “REPLACEMENT CHARACTER”. 
+The .jar is completly corrupted… daaaaamn….
+So what’s the solution? we had to create a 
+malicious .jar that is completely valid ascii.
+So we could only use bytes under 0x7f AND also do 
+not contain the characters that are not allowed.
+And yes. That works. But to be honest, 
+I was not really involved in that part.
+Others in the team solved this. All I can tell 
+you is that they based their work on ascii-zip,
+which is a tool that can compress data so the 
+result is valid ascii. But you still needed some
+work by hand to the result of this tool to craft a 
+final valid .jar file with the class and manifest.
+So it’s not simple plug and play in this case.
+here is the final .jar they shared. It contained
+a Pwn.class. Now let’s do the whole thing. Let’s 
+get a new instance using our md5 proof of work
+trick. And then we can adjust the URLs in my 
+scripts. I use this upload python script which
+will upload the .jar and trigger the reload. 
+Executing that. Then we can look if the server
+reloaded and if the .jar is now part of the 
+class path. Let’s see. There is. Now we can
+trigger the StringInterpreter primitive. This 
+should look for the Pwn.class inside the .jar
+and, execute the static code on load.
+No apparent errors. This looks good,
+let’s check if we have the file. 
+And there it is! We have the flag.
+What a crazy challenge. As you can 
+tell by the time I spent on this,
+it was actually fun to look for useful objects 
+and properties to overwrite. I knew there must
+be a way to get remote code execution, so that 
+was a really motivating “puzzle” challenge.
+But it’s not unrealistic. I think through this 
+challenge we managed to show what is possible,
+even if the uploaded file is heavily santizied 
+and how to craft a malicious .jar as valid ascii.
+Hopefully knowing this, it can be 
+helpful to somebody in the future,
+when you can do .jsp file upload, 
+but your charset is limited.
+Btw also take a look at the intended 
+solution. They found a very different
+strategy to the one we found. And I 
+love that. totally different strategy.
+They managed to write an arbitrary .jsp file with 
+a full jsp shell.It’s soooo creative. Anyway.
+Really fun challenge. Felt really good 
+to solve it in the end. And don’t forget,
+it was a big team effort, it’s normal 
+to not solve something like this alone.

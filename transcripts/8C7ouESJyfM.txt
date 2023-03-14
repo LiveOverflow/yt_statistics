@@ -1,0 +1,586 @@
+“Every Computer Can Be Hacked!”
+Is an expression you probably have heard before.
+But is it true?
+Should we be scared about that?
+Or is it false and just fear mongering?
+In this video I want to explore the 0day industry
+and state-of-the-art exploitation.
+For that I talked to several researchers who
+I believe could actually do it.
+So I hope you are as excited as I am, to hear
+what they have to say.
+As you can see on my channel, I have quite
+a bit of experience in basically every area
+of hacking.
+But I feel VERY VERY far away from being able
+to hack something like an iPhone or a Browser.
+So I do believe I have a good intuition about
+this topic, but I think it’s better to hear
+from people who actually have done this kind
+of vulnerability research.
+So I asked several people I know on twitter,
+but unfortunately many couldn’t say anything,
+because they actively work in this area and
+their partners didn’t like that.
+But I did get a few responses.
+Steve or Mr. me, Pwn2Own winner - Hey LiveOverflow,
+steve seely here.
+Aka mr.me
+S1guza, very well known in the iOS jailbreak
+scene.
+Itszn, or amy, from ret2, she is very experienced
+in browser exploitation.
+Hey my name is amy burnett.
+I’m the lead on the browser exploitation
+training at ret2systems.
+I do research specifically into browser exploits.
+Xerub.
+A very experienced researcher, also into iOS.
+And there was just recently a phrack prophile
+about him.
+If you want to check his credentials, read
+that.
+And steven, cts.
+He also did iOS
+Hey I’m Steven and I’m a security researcher.
+In the past I worked at an iOS exploit shop.
+Now I’d be happy to provide some of my opinions
+or general insights on the so called “exploit
+industry”
+Oh and btw you should checkout his YouTube
+channel.
+Amazing content.
+So all of them are extremely skilled and have
+participated in top competitions such as Pwn2Own,
+worked in companies developing exploits or
+just did it for fun.
+I think their thoughts about this topic are
+more relevant than mine.
+And I guess more convincing than what I would
+have to say too.
+But before we head into some of their insights.
+I want to establish a few base facts.
+First, there is this “law of security”
+which says, that the more complexity a system
+has, the more security relevant bugs it contains.
+And when you look at a modern browsers or
+a whole device like an iPhone or android.
+They include an incredible amount of very
+complex software.
+So based on this chart, there will be bugs.
+BUT they also invest a lot into fixing those
+bugs.
+So they bring that curve down.
+Though the real issue is, there are always
+new features implemented, so complexity keeps
+growing, thus new bugs will also be introduced.
+As amy says about this:
+Browsers are definitely one of the scariest
+remote attack vectors to me.
+But that might be partly because of the amount
+of research I have done in them.
+The attack surface is really pretty scary.
+And probably something that most people don’t
+consider when they go and click on a link.
+Now let’s have a look at Zerodium for a
+moment.
+They are a company that buys certain vulnerabilities
+(and re-sell them for even more money).
+You all know the fake hollywood style hacking,
+where somebody just pushes a button and remotely
+hacks into a computer or phone.
+Well, that’s kinda true for these kind of
+vulnerabilities, but we talk about those kind
+of prices as well.
+And keep in mind, for the actual end-customer
+it will be even more expensive.
+This is only what is paid at the end of the
+chain to the researcher.
+So for a Windows remote zero click exploit
+they pay 1 million dollars.
+For a Chrome exploit + escalating to become
+admin, where the victim just has to visit
+a malicious website, they pay 500.000$.
+But it gets crazy with mobile payments, because
+an iOS or Android zero click exploit, with
+persistence, so with installing a trojan.
+Just by maybe knowing your phone number, BOOM,
+you got hacked.
+They pay 2 to 2.5 million dollars for those
+vulnerabilities
+But if you don’t need persistence, because
+who reboots their phone anyway, and you can
+just hack it again when it got rebooted, they
+pay around 1 to 1.5 million dollars.
+Anyway, what’s important to keep in mind.
+these exploits listed here, are not theoretical.
+You can absolutely assume, that all of those
+vulnerabilities exist and they are getting
+sold and used.
+But I didn’t show this list to impress you
+with the dollar amounts.
+The reason why I show this is because, when
+I look at my phone, this list reminds me,
+that I know FOR A FACT, that there are these
+kinds of vulnerabilities in there.
+If you are sceptical about that.
+And you don’t trust my assumptions on this
+Zerodium list, just go to any phone vendor.
+They will confirm this fact.
+just think about the previous phone version,
+and look at the security advisories from the
+vendors.
+Here for example iOS.
+And just last version:
+There was an issue in IOMobileFrameBuffer.
+“An application may be able to execute arbitrary
+code with kernel privileges.
+Apple is aware of a report that this issue
+may have been actively exploited.”
+In real life.
+And oh.
+I just noticed I haven’t updated my phone
+yet…..
+Let’s do that right now.
+You should too!
+And I have more proof that there are vulnerabilities
+in your device right now.
+There are competitions such as Pwn2Own or
+the chinese Tianfu Cup.
+Where at the day of the competition there
+will be a completely new and fully patched
+device.
+And here are just the results of 2021:
+Apple Safari, Microsoft Exchange, Ubuntu,
+Chrome, Zoom.
+And more.
+Or here Tianfu Cup, iOS15, Docker, qemu, Adobe
+PDF.
+Basically everything gets owned and that every
+year.
+Anyway… it’s absolutely certain that there
+are people who have access to these kind of
+unknown exploits.
+Or 0days.
+AND there are of course also the people who
+have the skills and experience to find them.
+No doubts about that…
+So now that we have established that.
+let’s hear some thoughts from the researchers
+themselves.
+I hope that gives you some idea of how “special”
+these vulnerabilities are.
+And maybe a good start is to ask about, is
+it possible to find and exploit these vulnerabilities
+alone?
+I would say I can if I put enough energy into
+it.
+In the most humblest way I would say “I
+probably could”, if I really focus on it.
+I initially started doing the research mostly
+on my own.
+But after starting ret2, I found that a team,
+even a small team, can be a huge help when
+it comes to building out different parts of
+the exploit chain in parallel, or building
+a fuzzing system, or a system to test your
+exploit against different versions of your
+target.
+Eitherway the research is definitely doable
+by individuals.
+Although it may take more time or a good amount
+of luck.
+As you just heard for developing exploits
+it makes sense to have a team.
+There is a huge part that is similar to software
+development.
+You need debug or testing tools.
+And doing that alone is just an insane amount
+of work.
+Maybe it’s like a developer who says “yeah
+I could develop facebook on my own”.
+In theory that is true, every web developer
+could do that, but in reality it’s WAYYY
+too much work.
+Dividing the problem and doing stuff in parallel
+just makes it much more realistic.
+Most of the exploits nowadays are part of
+a full-chain.
+A full-chain is basically a series of exploits
+that are necessary to ensure a full compromised
+of the system.
+10 years ago a full chain might have been
+possible by a single guy.
+So maybe 10 years ago a full-chain might be
+doable by a single researcher.
+But nowadays that requires an immense amount
+of skill and dedication to make a full-chain
+by yourself.
+And these targets get harder every year.
+Nowadays researchers tend to specialize a
+lot as well.
+That's why most of the 0day industry operates
+in teams.
+So for example you might focus on like “oh
+I do the linux kernel”, oh I do webkit,
+I do safari, I do v8.
+As steven said, to compromise a modern iPhone
+or even a browser, you need several vulnerabilities
+that you have to combine to break through
+the individual layers.
+And these layers are so complex, that researchers
+often have to specialize.
+I think nowadays a single researcher, if they
+are dedicated enough, they can still make
+a weaponized exploit.
+If you look at ian beers research on bluetooth
+on iOS.
+You can see that just a single guy, to be
+fair he is one of the best in the world, he
+can still make like a fully wormable iOS bug.
+Right.
+And all I have to do is just be near their
+phone and their phone is compromised.
+So that type of thing is still possible in
+2021.
+But I’d say that type of thing is extremely
+difficult.
+Xerub also said about this:
+“I work alone most of the time, but I do
+occasionally chat -- and take input from -- a
+few select friends.
+It is certainly possible to do it alone, but
+I guess it's somewhat easier in a team.
+I say somewhat, because even in a team, usually
+only one or two people bear the brunt of the
+exploit per se, while the others are working
+to polish.
+I am not trying to minimise the importance
+of the extra work, it just happens that I
+don't usually need, nor release 'easy-to-use'
+one-click solutions for any client, less more
+so for the masses.”
+And here is an important detail.
+Xerub used the word “weaponized-exploit”
+which I think, when talking within our industry
+it’s kinda clear what it means.
+But outside of our industry, this term is
+also very loaded.
+“Weapon”.
+Weapons are used in war and directly kill
+people.
+Exploits, and the intelligence gathered through
+implants can of course be reason for a military
+strike or other violent actions.
+But I do think there is a big difference between
+the violence of “real” weapons and exploits.
+So many in our industry prefer the term “production-grade”
+or “operationalized” exploits.
+So these terms refer to an exploit that is
+very easy, usable, and very stable.
+So basically a customer, who has no idea about
+iOS exploitation, they can just enter a phone
+number on a graphical interface, press a button
+and a phone gets hacked.
+And that requires a lot of additional work
+put into the exploit.
+So now we kinda understand the industry.
+At the start of the chain you have researches
+who find vulnerabilities and create a very
+basic proof of concept exploit.
+Then they maybe sell it to a company specialized
+in operationalizing it, and this company takes
+the exploit, doing all the Q&A, maybe improves
+the exploit so the target doesn’t crash
+and confirms which phones and versions it
+really works against.
+And they probably also develop their own trojan,
+or usually called an “agent”, which makes
+remote access to the phone and the data very
+comfortable for a customer.
+They then package this all together into a
+software solution, sell access to this tool,
+to for example intelligence agencies around
+the world.
+And the customer then get basically a Hollywood
+style button to hack any iPhone.
+So you get a whole value chain.
+you have a cost and risk for the researcher
+to find an exploit.
+You have a demand from customers wanting certain
+hacking capabilities.
+And you have companies in the middle that
+balances the price into both directions, while
+also having their own cost for operationalizing
+everything.
+Which determines their profits.
+So now that we have established that there
+is a 99.9% certainty that there are vulnerabilities
+in the devices you use.
+And it’s probably still possible for individuals
+to find and exploit those vulnerabilities.
+but most likely it will be done by a team.
+It becomes clear that the original question
+about whether “every computer can be hacked”,
+is uninteresting.
+It doesn’t help us in real life.
+Every human could be killed, doesn’t mean
+every human gets killed.
+Is that a bad comparison?
+Anyway.
+Complex devices will probably always be hackable,
+as long as they keep adding features and making
+them more and more complex.
+So the real question we should ask ourselves
+is not whether your device can be hacked.
+The question must be, how likely is it going
+to happen to you.
+Will your device be hacked?
+This of course is a very complex and very
+subjective question about risk.
+Everybody has a different risk feeling.
+But who else would be better to help us understand
+this risk, than the people who actually have
+the ability to find such vulnerabilities.
+How scared should you be?
+I would say it doesn’t make sense to live
+in fear of 0day.
+Because I would say, you know, using technology
+is just a very small part of my life, I not
+gonna let that dominate my life, right.
+S1guza says about this:
+I think it’s highly unlikely that I’m
+becoming a target because there’s just a
+lot more smarter people out there with a lot
+more important information on their hands.
+And
+I feel like burning a 0day to target me would
+be kind of a waste.
+But each of their own.
+And xerub says about this:
+“I am certainly worried about using browsers.
+Both because of my own work, but mostly because
+I have seen the work of people way more talented
+than me, and I can tell you it's scary!
+[...] Besides the browser, the rest of the
+phone as a whole, I am less worried about.
+I mean, Apple is doing a decent job, especially
+with the hardware mitigations.
+It is a common misconception that 0days are
+expensive.
+Yes, they are, but it really depends on ROI.
+[...] Say you catch 50 targets with a 0day
+you don't care much about.
+It eventually gets discovered, sure, but in
+present terms: $500k for 50 targets is $10k
+per target.
+which is not that much for a serious actor.”
+But in the end, I guess, if someone really
+wanted to target me, like a serious adversary,
+who are persistent and relentless.
+Then I likely fall prey.
+But there is a point in time where you just
+make peace with that and accept what it is.
+So I think the best way to approach this type
+of problem is to think in terms of the economics
+for the attacker.
+So imagine you are the attacker and you have
+a business to run.
+So how much does the attack, and how much
+would the attack generate in revenue for me.
+The cost of mounting this attack is very high.
+So you need a very high return for this investment
+to make it worthwhile.
+So for example if I’m some random crime
+guy, I’m not going to take this chrome 0day
+and pay a bazillion dollars on it.
+And then try to use that on random users.
+For example let’s say I hack your computer.
+What can I get out of your computer.
+I can use it for I guess cryptomining I could
+do ransomewhere, I could harvest your cookies
+or autofill and so on.
+But how much is that really worth?
+It’s probably only worth a few bucks per
+a system.
+Maybe a bit more in ransomware.
+But it’s hard to say.
+And that initial investment is extremely high.
+And the thing is once you started your campaign
+it’s a race against the time because all
+these browsers all auto-update.
+Assuming that people have the auto-update
+on.
+Which is like most people.
+Because that’s the default.
+So as you can see, they respect the technology
+and know that there is a risk, but also they
+don’t really worry that much.
+Especially 99% of the people watching this
+video on YouTube, you really shouldn’t worry
+too much.
+But of course there are people who should
+maybe worry a bit more.
+There are groups of people we know who get
+attacked with those exploits.
+Citizenlab has several great reports about
+that.
+Now on the other hand, people of interest
+should worry about their security.
+And those would be like journalists, dissidents,
+government officials, politicians, executives,
+and so on.
+Or exploit developers.
+Yes you heard right.
+There is also incentive for attackers to target
+security researchers, as researchers often
+have access to privileged information, or
+maybe other vulnerabilities or exploits that
+they produced themselves.
+And we have seen this happened earlier this
+year with the twitter and linkedin campaigns.
+Which were using a chrome 0day to target security
+researchers, which they had tricked into going
+to their blog page.
+This happened for example to cts
+some hackers from north korea actually slid
+into my twitter DMs, and also the DMs of a
+bunch of other security researchers.
+And they tried to basically use a chromium
+0day on us.
+So they were like “come checkout my blog
+it got my new research on it, what do you
+think about it.” and then the blogpost had
+a chromium drive-by zeroday.
+So that was pretty sketch.
+So what can you do if you are a journalist
+or in some other high-risk group?
+I think there is not much that you can do
+to completely rule out the possibility of
+0day used against you.
+I think a few things can help, but nothing
+can guarantee your security against 0day.
+I think that security by isolation also helps,
+for example you know like, I don’t keep
+my exploit on my personal device.
+In terms of reducing attack surface ,a big
+thing is disabling javascript by default.
+This has gotten harder with the modern web,
+which requires a lot of javascript which gives
+you anything besides a blank white page.
+There are extensions like umatrix which give
+you a good amount of control over this, and
+can make it a bit easier to manage your javascript
+usage.
+If you want to go even further, you can usually
+disable specific web features using either
+browsing flags or commandline arguments.
+And this helps cuts down the attack surface
+even when javascript is enabled for a site.
+For example one thing I do is disabl;e the
+just-in-time compiler, and also web assembly
+as part of chrome.
+And this will help cut down on attacks targeting
+the compiler or the webassemply system.
+Now this is not gonna stop all attacks potentially,
+but it will cut down on the attack surface.
+On a device like an iphone it might be a little
+bit harder to have such granular control.
+But something that I have done in the past
+is having two browsers, one of which, lets
+say is safari which has javascript disabled.
+And then if I decide I need to run it, we
+can move it into the other environment.
+I just try to follow best practices as much
+as possible, right?
+So using Universal two-factor auth, password
+managers, I don’t click stupid links, all
+that kind of stuff really plays into it a
+lot.
+As long as you can make it harder for the
+attacker, right?
+And that is what defens ein depth theory goe
+sinto.
+Just making it harder for the attacker.
+Now if you notice you got exploited and a
+trojan, or so called agent, is running on
+your device, I guess the best thing is to
+immediately disconnect from the internet,
+and I guess reinstall the device.
+But if you don’t know if you got infected,
+there is maybe one very small, but possibly
+effective, trick.
+Checkout the recent amnesty international
+report about the Pegasus malware:
+“Pegasus is no longer maintaining persistence
+on iOS devices.”
+And here is what Bill from Citiznelab is saying
+about that:
+“The NSO Group's Pegasus spyware delivered
+via 0-click exploits is no longer "persistent"
+in the strict sense of the word (it doesn't
+come back when you reboot).
+“Persistence” is achieved via firing the
+0-click again.
+the lack of traditional "persistence" is a
+feature.
+It makes the spyware more nimble, and prevents
+recovery of the the spyware and exploits from
+forensic analysis.
+And steven also said the same:
+If you have a phone rebooting it every now
+and then can help mitigate the impact of an
+implant.
+Because not all implants have good persistence
+capabilities
+So kids remember, always reboot your phone.
+I hope this gave you a good overview about
+the threat of 0days.
+And now let’s come back to the question.
+Can every device be hacked?
+We established that for complex devices such
+as phones and computers that is like 99% true.
+But at the same time it’s so complex that
+it requires a huge amount of time and experience
+to do that.
+And nowadays to get an actual full-chain “weaponized”
+or rather “production-grade” or “operationalized”
+exploit ready for use, it’s really only
+possible to do that with a team of people.
+Which means it’s very costly to do so and
+usually only worth it if there is a considerable
+return for that investment.
+Which means it’s almost exclusively used
+today in state-level hacking by intelligence
+agencies gathering, well, intelligence on
+various people of interest, regimes to go
+against journalists and activists, and probably
+corporate espionage.
+So if you are not belonging to such a group,
+you should not worry about 0days.
+And I can with high confidence tell you, that
+your bragging friend or ex partner, does not
+have this kind of capability.
+they will use other much much simpler tricks
+like phishing to get to you.
+Those are the kinds of attacks you should
+worry about, and I recently made a video about
+protecting yourself against phishing, that’s
+like 1000x more important for your security
+than thinking about 0days.
+And lastly, 0days are only expensive because
+they use unknown vulnerabilities, it’s a
+premium you pay for that.
+And they have a limited lifetime until they
+are patched.
+But there are many many more KNOWN vulnerabilities,
+we call them n-days, with exploits that are
+much much cheaper.
+So it might be totally feasible to attack
+you with those.
+Luckily every important device and software
+has auto updates by default enabled.
+I know they are annoying.
+But please don’t disable them.
+This keeps the bar high enough for you, so
+you don’t have to worry.

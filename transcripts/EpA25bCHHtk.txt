@@ -1,0 +1,290 @@
+Last video we learned from the official documentation
+of ledger about JTAG. that sounds really cool
+so let’s investigate that more.
+On the STM32 description page, you can scroll
+down and find resources about Development
+Tools, specifically to an ST-Link In-circuit
+debugger and programmer for STM8 and STM32
+MCUs.
+This device can do JTAG/SWD stuff.
+SWD stands for Serial Wire Debug.
+So very similar to JTAG but something ARM
+specific.
+It basically has only two wires for data.
+we also don’t really need to buy that device.
+Because I got a cool tip from Thomas.
+He told me I should just get a development
+board for the STM32.
+A development board is like an arduino, it’s
+a board with the chip you want to build something
+with, and all the pins are exposed and you
+can build a proof of concept, before actually
+designing your product with a PCB.
+And this STM32 has to be programmed and possibly
+debugged as well, so these boards might come
+with a built in ST-Link.
+So here I have an official Nucleo board from
+STMicroelectronics with an STM32.
+Now I have a different STM32 on here, the
+F446RE, but that doesn’t matter because
+we are interested in this part of the PCB.
+See this gap here, they are here because you
+could even just break it off.
+That part basically is the ST-Link component.
+And you see here that the ST-Link is connected
+to the Nucleo with some jumpers.
+A jumper just connects two pins together.
+So if you take out those jumpers, then you
+just have a bare ST-LINK here and the Serial
+Wire Debug pin headers are exposed here.
+And on there it also says SWD.
+In the general user manual documentation for
+the nucleo board you can also find some details
+about this SWD debug connector.
+So that CN4 connector has 6 pins, but the
+sixth one is reserved and not used right now.
+Usually the first pin is also marked by something
+like a dot.
+Next we have to somehow connect this to the
+ledger.
+First is VDD, that’s the +5V of the target,
+the second one is the SWD clock signal, the
+third just connects to ground, then we have
+the SWD IO pin, that one is the actual data
+carrying pin, and we have an exposed reset
+line that can be used by the st-link to reset
+the target chip.
+So how do we connect this to the ledger?
+Let’s assume we haven’t seen this convenient
+line of pins on the bottom side of the ledger
+pcb and let’s look at the STM32F042 datasheet.
+So we are looking for Power, Ground, SWD IO,
+SWD Clock and reset.
+In the pinout table we can find them.
+SWDIO is Pin PA13, and SWD Clock is Pin PA14.
+And every chip also has a reset pin.
+In this case it appears to be called NRST.
+Here is the package pinout how the chip looks
+from the top.
+And PA13 and PA14 are over here and reset
+is here.
+Now how do you know which way you have to
+look at the chip.
+The text is a bit misleading because what
+you need to look for is a symbol like this
+dot.
+This indicates the top left corner.
+So these two pins that disappear into the
+PCB should be SWD IO and SWD CLK.
+And to verify that we have the correct orientation
+we can also check these two pins.
+These go directly to the USB and in the pin
+definitions table we see that PA12 and PA11,
+so the two pins right below PA13 and PA14
+are in fact for USB.
+So theoretically we could just hook up the
+ST-Link board to those pins, but luckily,
+when we follow those two pins on the backside
+of the PCB, we see that they connect to these
+two pads.
+The center is connected to the ground plane,
+so that is GND and this one seems to connect
+to the other side of the chip, where reset
+is located, so that should be RESET and then
+this must be VDD, the +5V power supply.
+So this matches exactly our SWD connector
+pinout.
+So let me solder some cables to it so we can
+easily connect it to the board.
+Here is how I did it.
+I have some small generic holed perfboards
+that can be used for prototyping pcbs.
+I got them in different formats and there
+is this long one that could fit nicely.
+I noticed that the pad spacing matches exactly
+the 2.54mm or 0.1inch hole grid.
+So my plan, not sure if that works is just
+to lay the ledger pcb on it like this, put
+a lot of solder on this side and hope it flows
+down onto the pcb and connects the whole thing.
+Not sure if that’s a good idea, but it seemed
+reasonable to me at the moment.
+So I get my soldering iron and all the equipment
+I might need ready.
+Probably should use a different solder tip
+and then let’s make a plan.
+To keep it in place I thought maybe using
+some electrical tape, but that kinda failed…
+my second idea was to apply a bit of solder
+and make the solder spiking up a bit, so I
+can just stick those into the holes.
+You can see here barely the pointy end.
+And then I tried electrical tape again, but
+fail… just always slips off a bit… then
+I thought I could use a piece of wire to make
+kind of like a pin sticking up and then putting
+it on the pcb, but unfortunately the only
+wire I had was way too thick.
+So in the end, I just carefully laid it on
+top and applied solder and crossed my fingers…
+and to my surprise, that worked!
+It seems to hold and has flow down onto the
+pad… so I do it on all five holes and here
+is the result.
+You can clearly see the solder being on the
+pcb.
+Next I would like to add some nice pins to
+the PCB so I can connect some wires to the
+ST-Link. let’s quickly check my electronics
+supply.
+There are some pins.
+I think I will take some 90 degree ones so
+they stick out to the side.
+And the whole thing stays flat.
+Something like this would be cool.
+So now I just have to connect these solder
+spots with these pins.
+And that sounds easier than it is because
+solder is really like sticking to pads and
+make them cross over the solder protection
+layer, the green stuff is tricky.
+As you can see I just splash a bunch of sodler
+on those three pins and I just can’t get
+them connected, and thanks to gravity it just
+accumulates on the other side.
+So I gotta remove some of the solder with
+this copper mesh.
+That acts like a sponch and just sucks up
+liquid solder.
+Then I decided to use some short snippets
+of the wire from earlier and use that as a
+simple bridge connection.
+And that works really well.
+Cool.
+Before I connect it I wanna do a small sanity
+check and make sure that I didn’t accidentally
+cause a short.
+So I use a continuity tester to check if two
+points are electrically connected.
+And it looks all pretty good, none of them
+are shorted… but… then… this is the
+moment I realized something else… do you
+see it?
+I give you a second to notice it while I’m
+just looking at it and trying to process how
+that happened.
+You see, I scrwed up and soldered the connecter
+one pin off…
+see that dot there, that is the spike of the
+solder pin we did earlier.
+That is supposed to be the first pin.
+And this back there, there is no pin below
+at all.
+Godammit!...
+I’m an idiot… so that was annoying but
+I fixed it… so here we go… this looks
+good now.
+Next let’s get the Nucleo board and hook
+up the cables.
+I’m checking again that I got the order
+of the cables right but looks all good.
+Moment of truth, plugging in the USB cable,
+will it still turn on or did I screw up soldering?
+Ehm… well…
+I didn’t expect that…
+So I disconnected the board from the nucleo
+again and tried it… and then the screen
+turned on… puh..
+Ok so it just didn’t work because of the
+debug connection, but then I reconnected the
+nucleo again to just to reproduce that and
+suddenly the screen turned on as well.
+What is going on?
+Well… in any way we can now connect the
+nucleo via USB and then we can try out the
+debugging interface.
+But immediately when the USB plug touched
+the usb connector the ledger reset.
+I’m sure that’s not any reason to be concerned,
+it’s probably what is supposed to happen?
+Also let’s take some electrical tape and
+secure the ledger and the screen on the PCB.
+Looks pretty neat.
+I have to say I like how that worked out.
+So let’s connect everything to the laptop
+and try the tools.
+I will show those tools in a second but it
+didn’t work…
+I was staring at the setup and realized…
+ooooops…
+I had those wires connected wrong… goosh…
+I’m so happy I haven’t destroyed the ledger
+yet, but if we keep going like that it won’t
+work for much longer.
+Awesome…
+Now let’s try this.
+I have stlink installed on my mac and then
+we can for example run st-info to get some
+chip description.
+AND IT ANSWERS.
+IT’S a F04 device.
+STMf04…
+Let’s try the real thing.
+St-util.
+It finds a device, also prints the sram and
+flash size and now the gdb-server is listening
+on port 4242.
+WOHOOO...
+Ok… now we need a special gdb to debug this
+arm code.
+This is pretty simple.
+just search for arm-none-eabi download, and
+you will find the official arm embedded toolchain
+and you can grab the tools for your system.
+In my case Mac OS X.
+Once you got that you just start the arm-non-eabi-gdb
+and connect to a remote target.
+Localhost port 4242.
+BOOM!
+It worked.
+We can no continue and with CTRL+C just break
+at any point, inspect the registers and even
+disassemble some instructions.
+But this disassembly looks wrong.
+Unlike intel assembler, where instructions
+can have different byte lengths, arm instructions
+are always 32bit long.
+But there are also THUMB instructions and
+they are 16bit long.
+And this case this runs Thumb code.
+And to tell gdb to disassemble this as Thumb
+instead, we ask it to disassemble at address
++1.
+So an odd address.
+Because of this instruction alignment you
+always have instructions at even numbers,
+right?
+Instructions are either 2 or 4 bytes long.
+So you shouldn’t think of this +1 as an
+odd address, but rather an address that has
+the last bit set.
+And this is convention to tell you this is
+now Thumb code.
+You might also see this when disassembling
+arm and there is a jump or branch instruction
+to an odd address, it’s not an odd address,
+it’s an address that has the last bit set
+and that means its switching to thumb instructions
+from here on out.
+Anyway, this way gdb will also interpret this
+as thumb and show us now the real instructions.
+Now we can use gdb to debug the device, cool,
+huh?
+One last thing, we can use st-flash to read
+the whole flash and create a backup dump of
+the whole flash.
+We start to dump the memory from 0x80000000
+that’s the start of the flash and then we
+read 32768 bytes, which is 0x8000, the size
+of the flash.
+And this memory dump contains the whole firmware.

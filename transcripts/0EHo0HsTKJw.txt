@@ -1,0 +1,232 @@
+Last episode we did our first networking challenge
+were we first reverse engineered how the server
+is listening on a port and then we connected
+to it with netcat.
+This video we want to go one layer deeper
+and have a look at the TCP protocol.
+This will be the first time that we have a
+look at what it means to send a packet over
+the network.
+We have used netcat now multiple times.
+We used it in CTFs and last video to connect
+to challenges.
+And in the web security series we used it
+to talk to a real webserver.
+So you know that netcat is a very handy tool
+to send tcp packets over the network.
+So I suggest we download wireshark to analyse
+packets we send with netcat.
+When we open wireshark we select the network
+interface we want to capture packets.
+In this case our traffic doesn’t leave the
+machine thus we can select the loopback interface.
+Loopback is more like a virtual network interface,
+it’s not a real physical network card stuck
+in your PC.
+Through this interface will go all our traffic
+that we send around on our local machine.
+And as you may know, the own machine is always
+identified as localhost or IP 127.0.0.1.
+Now let’s use two terminal windows and in
+one window we start netcat in listening mode
+and we select a port.
+In the other window we can then execute netstat,
+like in the last video, and we can list all
+processes that are currently listening on
+a port.
+And here is our netcat process.
+You know what, let’s execute our netcat
+server with strace, so we can see all the
+syscalls that netcat uses to establish a server.
+So it will first create a socket, set some
+options, then bind the port 1234, is now listening
+on that port and is now waiting for a connection
+to be established with accept.
+It’s basically exactly what we reverse engineered
+in last video.
+We can also quickly check wireshark, and we
+don’t see any packet being sent over the
+network yet.
+Ok.
+Now let’s use the second window to connect
+to this netcat server.
+You can see on the server that accept now
+returned, because a client conencted to the
+port.
+And now, we see three entries in wireshark.
+We see a SYN, SYNACK and ACK.
+packet.
+Let’s quickly have a look at those.
+As you can see in the lowest window, a packet
+is just some binary data.
+And that binary data has meaning which wireshark
+can parse and display us nicely.
+So above it we can see the decoded packet
+and it’s divided by layers.
+Because this packet didn’t leave our machine
+the ethernet layer is just all zeroes.
+Usually you would find here your mac address
+and the mac address from your switch or router.
+So that layer is only used between two direct
+connections.
+Besides the Mac addresses, this layer also
+contains a TYPE.
+And the type is set to hex 800, which indicates
+that the next layer is an IPv4 layer.
+Wireshark sees that and knows now how to decode
+the next bytes.
+When you click on the next layer, wireshark
+will highlight which bytes of the packet belong
+to that layer.
+And you can then see how it is decided that
+it is an IP v4, version 4 layer, because the
+first 4 bits of this byte is 4.
+You can also see here the source and destination
+IP, which in this case is the same.
+So while the ethernet layer with mac addresses
+was about direct connections, the IP layer
+can contain an address very far away on the
+internet, and the switches will make sure
+that this packet is forwarded until you reach
+that machine.
+This layer also contains information about
+the layer afterwards, and that is the protocol
+identifier.
+In this case it’s 6, which means the content
+of this IP layer is a TCP header.
+IP and TCP are usually always together, it’s
+very common, thus you have probably heard
+of TCP/IP before, which just says that there
+is a TCP layer over an IP layer.
+So the ethernet layer helped to get from machine
+to machine, the IP layer helped to identify
+which machine is the real destination of this,
+the TCP layer will now help identify which
+program or process on this machine should
+handle this packet.
+And that is identified with the port number.
+You can see here that the destination port
+is set to 1234.
+You can also see here a source port, which
+is required so you can receive answers from
+this server.
+So when the server responds with a packet,
+it will use this port, so that the client
+machine knows which process gets this response.
+And that’s usually a random high port number.
+Anyhow, now we understand how a full TCP packet
+is constructed, now let’s have a look at
+the protocol.
+A Protocol just refers to a set of rules on
+how to talk to another computer.
+If a client and server agree on how to send
+data back and forth, it will work.
+So What we will see now is just what somebody
+came up with in order to create a data connection.
+Just remember, at the moment we have not sent
+any data with netcat, so far we only established
+a connection.
+Ok, so we see that 3 packets were exchanged.
+First the client sent a so called SYN packet,
+a synchronize packet.
+And then the server responded with an SYN,ACK
+packet.
+Meaning I acknowledge that I received it.
+This is important because maybe the initial
+packet didn’t arrive.
+So when you as a client get a response, you
+know that the server got your message.
+This means the client knows now that the connection
+works.
+But from the perspective of the server the
+server doesn’t know yet if the sending the
+packet was successful.
+Maybe the server can only receive but not
+send packets.
+Thus the client will respond to the SYN,ACK
+packet with an ACK packet, acknowledging that
+it got the servers answer and now both parties
+are sure, YES I successfully exchanged packets
+with this other machine, now we can talk data.
+And this is all done transparently.
+You didn’t have to construct these packets
+yourself.
+You simply opened a socket and waited for
+a connection.
+Ok.
+Now let’s send some data from the client
+to the server.
+You can see that immediately the server was
+able to read the line you sent.
+How does that look in wireshark.
+We see two new packets.
+A PSH packet from the client to the server,
+and an ack packet back.
+The packet from the client also now has an
+additional DATA layer.
+And that data layer just contains the raw
+bytes we sent.
+And the server responds with an ack, to inform
+the client that the packet was succesfully
+received.
+Now let’s send a response from the server.
+You see, the server simply wrote the text
+to the filedescriptor 4, which is the filedescriptor
+that accept returned.
+As you can see, an application simply writes
+to that paseudo file, that socket, and the
+magic below sent that over the network.
+Now let’s have a look what it did,
+It also just sent a PSH packet and the client
+acknwoledged the arrival with an ack packet
+back.
+One more more thing.
+Obviously the size of a packet is limited.
+So what happens when you send a lot of data,
+let’s say you upload a huge file somewhere,
+how will that work?
+Let’s just copy a bunch of characters and
+send them.
+Ahhh, see, now there are more than just two
+packets.
+You don’t see it when you develop an application,
+but somwhere in the kernel, network card or
+driver, I don’t really know, it got split
+up.
+You can also see that the second packet was
+not sent along with the first one, the second
+packet was only sent out once the server acknowledges
+the first one.
+Let’s see what happens when you kill the
+client.
+Even though we just ctrl+c netcat, we can
+see in wireshark, that FIN packet was sent
+out, do indicate we are done with this channel.
+You can free up your resources and you don’t
+have to expect more packets from this connection.
+And like during setup, there are 3 packets
+exchanged.
+The server acknowledges the fin by the client,
+now the client knows, that the server knows
+that it is done.
+but the server doesn’t know yet if the client
+knows that it knows it’s done, so it also
+responds with an ack.
+Now both now that it’s over.
+Now this whole exchange is referred to as
+a TCP stream.
+We established a connection, then exchanged
+data back and forth, and then quit the connection.
+And wireshark allows us to investigate this
+stream, for example with Follow TCP stream.
+Here only the data is visible and color coded
+who sent what.
+And now you should watch my HTTP protocol
+video from the web security series because
+you will understand now much better what it
+means to have a server and client.
+And that HTTP is just data sent over TCP,
+exactly how we sent these messages.
+A browser and a webserver are just special
+programs that do special things with special
+messages received over TCP.

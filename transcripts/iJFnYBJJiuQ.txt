@@ -1,0 +1,286 @@
+Have you ever looked at the chip of a credit
+card and a mobile phone sim card and thought,
+wait... they look quite similar?
+And would you like to know what makes these
+two old phones, a nokia and motorola, so special,
+even in 2018?
+In this series I want to talk about mobile
+networks and mobile network security.
+And by that I don’t mean android or iOS
+apps.
+I mean the networks.
+SIM Cards, Baseband and Basestations.
+Most of us know how the internet works.
+It’s so easy to setup a lab and use wireshark
+to look at the traffic.
+But we basically don’t really learn about
+how mobile networks work.
+You can’t just wireshark the radio network.
+I only learned about this a few years ago
+in university, where I took a course on telecommunication
+security.
+And that was a great foundation that I will
+obviously use for these video, but it’s
+really hard to do anything practical with
+mobile networks for reasons you will see soon.
+But then Vadim Yanitskiy, @axilirator on twitter,
+contacted me, if I would want to see some
+GSM osmocom demos and I could record it for
+some videos.
+And of course I took this opportunity and
+met up with him, and that was so awesome.
+So thanks to him I finally got some real hands-on
+practical experience with this topic and I’m
+so excited to try to pass this on to you.
+I hope over the course of several videos you
+will have a great basic understanding of how
+the mobile network works and you know where
+to go to, in case you want to learn more.
+So I started this video showing you a credit
+card and a sim card.
+And the reason why they look so similar, is
+because both are so called smart cards.
+A smart card, or chip card, is any pocket-sized
+card that has embedded integrated circuits.
+Many smart cards include a pattern of metal
+contacts to electrically connect to the internal
+chip.
+Here on wikipedia you can see some great images.
+The actual chip is smaller than the gold connectors,
+and they just connect with tiny bond wires
+to there.
+And all the outer stuff is just plastic.
+Here you see how they are connected, crazy
+right?
+So when you look at your phone, and I would
+ask you, how many computers are in there?
+What would you answer.
+That was actually an opening question in the
+university class I had, and I think it’s
+a great question.
+Maybe some people would respond with one,
+it’s a single small smartphone computer.
+But maybe you knew, that the sim card is actually
+a tiny computer itself.
+Your phone computer communicates with the
+tiny embedded sim card computer.
+And that computer can’t do much, but it
+can do a lot more than some of you might think.
+In a very simple way you can imagine this
+small computer just contains a private key.
+And with public-private key cryptography you
+can use it to authenticate to something.
+And the idea is that it’s super hard to
+extract that private key from the smart card.
+Not comparable to the simple magnetic strip
+on a credit card.
+The private key never leaves the chip.
+If you want to do some crypto, your phone
+will communicate with the sim card and ask
+it to do it.
+In the same way a credit card reader, using
+the chip, will do so.
+Nobody can clone a sim card or credit card
+that way.
+There are attacks on smart cards which I have
+touched on before with power analysis and
+other crazy hardware hacks.
+But generally the cost is pretty high to do
+that.
+But in theory if you could extract the private
+key from it, you could clone a sim card or
+clone a credit card chip.
+So you can’t clone a sim card that easily,
+but what if you just steal a sim card?
+Can you just use it?
+And that is why you need a pin for your credit
+card when you use the chip or sim card.
+The small computer inside the sim card refuses
+to do the crypto stuff you want, if you wont
+tell it the secret pin.
+That’s another protection.
+So how does this look like in practice?
+Vadim showed me SIMtrace.
+So Osmocom SIMtrace or SIMtrace 2 is a software
+and hardware system for passively tracing
+the SIM mobile equipment communication.
+As you can see here, you have this basically
+fake sim card that is connected with a flat
+flexi-pcb cable and connects to this board.
+And this is where you put the real SIM card.
+So basically the phone is still using the
+real sim card, it’s just forwarded through
+that.
+But because the sim card is not inside the
+phone anymore, you can now intercept and record
+that communication and forward that via USB
+to your PC.
+And then you can observe all the messages
+and commands the phone sends to the SIM card
+and see how the sim card responds.
+So when you turn on the phone, the phone asks
+you to enter the PIN.
+Let’s enter the pin and then look what happened.
+Here is wireshark… wireshark you ask?
+How what?
+Okay… so wireshark is a convenient tool
+to analyze packet based communication.
+And in this case you can see here the protocol
+is GSM SIM.
+And wireshark is listening on localhost.
+So the simtrace software actually records
+the SIM communication and then puts them into
+a UDP packet and send them onto localhost.
+That’s why you can use wireshark to then
+collect all these packets.
+And it looks like they have an ethernet layer,
+and an IP layer and the UDP layer.
+But that’s just to transport the data.
+The actual interesting payload is the GSM
+SIM protocol.
+Somebody wrote a payload decoder for wireshark
+to analyse that data.
+So ignore all the references to IPs and MAC
+addresses, that’s not what is sent between
+the SIM card and the phone.
+You only focus on the GSM SIM layer.
+Anyway.
+When we look at the packets that were collected
+after the pin was entered, we can see what
+the sim and phone did.
+The first important packet here is the VERIFY
+CHV.
+The info also says something about ISO/IEC
+7816-4.
+And when you look that up, you will learn
+that this is a prtocol stadard.
+ISO 7816 is an international standard related
+to electronic identification cards with contacts,
+especially smart cards.
+And sspecifically section 4 is about Organization,
+security and commands for interchange.
+It was created in 1995 and According to its
+abstract, it specifies things such as “contents
+of command-response pairs”, “access methods
+to files and data in the card” (remember
+the sim card is a small computer, so the sim
+card also has files).
+And also defines “access methods to the
+algorithms processed by the card.”.
+So what does VERIFY CHV mean.
+Let’s peek into the GSM standard.
+Here CHV is described as “Card Holder Verification
+information”; access condition used by the
+SIM for the
+verification of the identity of the user.
+Can you guess what that is?
+That’s a fancy description for your pin.
+The user who knows the pin can verify that
+they are the user, by presenting the pin to
+the simcard.
+And we can also check what VERIFY does.
+This function verifies the CHV (so the pin)
+presented by the ME (the mobile equipment,
+the phone) by comparing it with the relevant
+one stored in the SIM.
+The verification process is subject to the
+following conditions being fulfilled:
+- CHV is not disabled;
+- CHV is not blocked
+So either your pin is blocked because you
+entered it too much.
+Or you had disabled the pin.
+And further we can read.
+If the CHV presented is false, the number
+of remaining CHV attempts for that CHV shall
+be decremented.
+After 3 consecutive false CHV presentations,
+not necessarily in the same card session,
+the respective CHV shall be blocked and the
+access condition can never be fulfilled until
+the UNBLOCK CHV function has been
+successfully performed on the respective CHV.
+So this is all fancy documentation language.
+But here is basically defined that you have
+three attempts for your pin.
+And if you fail, the sim is locked, until
+you use that other special longer code to
+unblock it again.
+Interesting, right?
+Anyway… after that we can see some SELECT
+FILE commands.
+So the phone requested the content of files
+stored on the SIM card.
+One file contains the IMSI. the international
+mobile subscriber identity, which uniquely
+identifies this sim card.
+Also remember that you can store some contacts
+on your sim card?
+W ell here you can see how the phone requested
+the phonebook on the SIM card.
+There is one other cool thing.
+Vadim looked at the wireshark trace and saw
+this.
+“Oh also very interesting thing, I will
+show you.
+It is related to the sim card menu.”
+And I was like, sim card menu?
+I have never seen a sim card menu.
+“you will, for example menu Vodafone services.”...
+ohhh that’s what this menu always was.
+It’s like a thing I never used.
+So this is a menu running on the simcard?
+“Exactly.
+it’s Probably java application.”.
+You heard right.
+Usually there is JAVA running on SIM cards.
+Java Card refers to a software technology
+that allows Java-based applications to be
+run securely on smart cards.
+It is widely used in SIM cards (used in GSM
+mobile phones) and ATM cards.
+Crazy right.
+And when we click around on that menu, the
+phone obviously has to forward whatever we
+did in the menu to the sim card, and the sim
+card has to respond what kind of text to show
+on the screen.
+“We can choose one.
+It’s in german I think.
+“
+For example here.
+TERMINAL RESPONSE SELECT ITEM. we select an
+item in the menu.
+And then the sim card responds with a new
+text for the menu.
+FETCH.
+DISPLAY TEXT.
+“Simcard said, please display text.
+I’m not sure if wireshark is powerful..
+OH OK. it is here.”.
+So Vadim wasn’t sure if that weird part
+of the SIM protocol was actually implemented
+in wireshark, but it was.
+Here it shows the text “MMS-InfoServices
+koennen nur mit MMS faehigen Handys empfangen
+werden”.
+So that’s german, its a german sim card,
+so the menu was german and it translates to:
+“MMS infoServices can only be received with
+phones that support MMS.”
+And I had pressed the back button on the phone.
+So the terminal response.
+So the response WE gave and the phone forwarded
+to the SIM card was hex 11.
+Which stands for “backward move requested
+by user”.
+Isn’t that awesome.
+We use these mobile phones every day, but
+we have almost no understanding and insight
+into how they work.
+I hope you found this interesting, thanks
+so much to Vadim and all the others in the
+OSMOCOM project for creating all those tools.
+stay tuned for the next videos.
+We will soon learn what makes these phones
+so special.

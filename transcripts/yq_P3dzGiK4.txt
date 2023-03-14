@@ -1,0 +1,233 @@
+After last video about how masato found the
+HTML sanitizer bypass, I thought we could
+talk a bit more about fuzzing.
+Because fuzzing is actually a typical technique
+to do XSS and weird browser research.
+Luckily gareth recently shared this tweet
+with a new interesting firefox parsing issue.
+So et’s first explore what is this tweet
+about, and then, how did he find it?
+So what’s special about it?
+Of course we have again a weird parsing thing.
+Imagine you implement an HTML parser to sanitize
+HTML on the server.
+And so at some point you have to implement
+HTML comments.
+So in order to do this correctly, you look
+into the HTML specification and try to follow
+the rules.
+Comments must have the following format: First
+it starts with the string "<!--"
+Then comes optionally, the comment text, with
+the additional restriction that the text must
+not start with this string ">", nor start
+with this string "->", nor contain those strings
+blahblah, or blah, nor end with this string
+blahhh.
+And then the end of the comment is this string
+"-->".
+Okay…
+But what do you do when you encounter one
+of those strings you are not allowed to?
+This one would be the start of a comment.
+Do you then nest comments?
+Meaning you need two closing tags, or do you
+ignore it?
+What do you do?
+The second one is clearly just the closing
+one.
+So parsing that is fine.
+But what about the --!>?
+That is not defined to be the end of a comment.
+However you will find that this is actually
+typically interpreted as a closing comment
+in the browsers.
+So if you would implement a parser that ignores
+the exclamation-mark version, then you could
+use this XSS vector to bypass the sanitizer:
+Because on your server you would ignore this
+one, and the whole thing would be a safe HTML
+comment.
+However when you actually let the browser
+render it, it will encounter the --!> and
+end the comment.
+Rendering the script tag and triggering the
+XSS.
+But let’s say you were smart, you tested
+your parser and the browser parser, and so
+you also implemented the closing comment.
+Which means your HTML sanitizer parser on
+the server would close the comment here and
+then it would find the actual script tag.
+So it would find the XSS and clean it up or
+reject the input.
+But. this is where now a researcher like gareth
+comes in.
+As a researcher you might have exactly the
+mental thought experiment we just did, but
+now you try to attack this idea.
+You see we don’t really have an actual target
+or implementation.
+We just wonder if the browsers is more permissive
+in the input to parse, and could we then bypass
+our theoretically perfect sanitizer?
+Gareth sent me the snippet what he did.
+Let’s have a look.
+He creates a div element.
+Then he loops through all numbers from 0 to
+hex 0x10ffff and then assigns an HTML string
+to innerHTML.
+The HTML string he constructs is exactly what
+we just explored.
+We have an open comment, then comes the closing
+comment with exclamation mark, however between
+the ! and the > you can find a String.fromCodePoint.
+Which takes the for loop i.
+So this dynamically creates single characters
+from the current number.
+So it creates any ascii character as well
+as unicode characters!
+After that we have an image tag.
+So basically if the character we have created
+makes the closing-comment invalid, then the
+image tag would be inside an HTML comment
+closed back here.
+But if there are characters that are allowed
+to appear between the ! and >, then we would
+end the comment and the image tag would become
+a real free HTML element.
+And then we would find that with the querySelector.
+So in that case we add the character to the
+log.
+So let’s copy it to Chrome and let it run.
+It goes pretty fast and it finds only a single
+character.
+And if we look at what this character is,
+it’s the closing-bracket.
+So no suprise.
+So this fuzzing didn’t find anything.
+Our HTML sanitizer would be safe for Chrome.
+BUT then gareth also tried the same on Firefox,
+and there we find a few characters that are
+allowed to appear inside the end-comment.
+It turns out that newlines are allowed.
+WHYYY!!?
+No clue why Firefox parses this so weird.
+And interestingly it only works with the ! version,
+not the plain one without.
+But this means we could bypass our server
+sanitizer with the tweet from gareth.
+Simply add some newlines here.
+Our sanitizer would start parsing, find the
+start of a comment, continue… this looks
+all safe…
+So the potential XSS is safe inside the HTML
+comment.
+However if rendered by firefox, the XSS will
+trigger.
+Because firefox seems to ignore the newlines
+in between.
+Pretty simple, right?
+You just have to come up with a test and then
+fuzz, or enumerate possibilities.
+Let’s do another example.
+Have you ever wondered what kind of characters
+or bytes are allowed to appear after an attribute
+before the equal sign?
+For example for an onerror event handler?
+Maybe it could help you bypass some kind of
+sanitizer or Web Application Firewall that
+looks for “onerror=”.
+So let’s write a fuzzer for it.
+We can just take gareth’s snippet and modify
+it a bit.
+We inject the character here, and then test
+if the attribute survived.
+Run it.
+And apparently the characters with these ascii
+or unicode number are valid.
+including again newlines.
+Another example.
+Ever wondered if you can have some kind of
+weird characters between the open bracket
+and the tag name?
+That would be a crazy bypass for a lot of
+WAFs, right?
+Well let’s try it.
+Chrome and Firefox.
+But nooope…
+We only find character 60, which is the opening
+angle bracket.
+So of course this is still a valid image tag.
+We didn’t find any other possible character.
+And do you realize what we just did here?
+We posed a research question, and just went
+out and explored it.
+And by doing this a lot, and taking a hot
+shower and getting new ideas what to test,
+it can be quite fun to explore what is possible
+or not.
+Try it yourself.
+This is what a security professional would
+do if they encounter a new filter and try
+to bypass it.
+And people like masato and gareth know a lot
+of these weird cases.
+But of course they don’t know or remember
+all, but they know exactly what to fuzz and
+how to fuzz in case they look for something
+in particular.
+Actually gareth had developed several years
+ago a whole distributed fuzzing platform for
+exactly this kind of research - called shazzer.
+The idea is that anybody can help fuzzing
+with different browsers and versions.
+Login or registration is broken.
+It’s quite old at this point.
+But you can still click around and look at
+the kind of test-cases they were interested
+in and what they were fuzzing for.
+insertScript, his name is alex, is the top
+fuzzer and used it more than gareth.
+so let’s have a look at what he was fuzzing.
+This test-case caught my eye.
+It is called “lt (less-than) eating char”.
+And we can have a look at the fuzz vector.
+So he was wondering, are there characters
+that you can place in front of a greater-than
+(closing angle bracket), and does it “eat
+it”.
+Yaha. insertScript obviously has failed math
+in school.
+Called this greater than sign a less than
+sign.
+But it’s fine.
+He is a noob.
+So he was wondering, is there any character
+that could be palced there, that causes the
+browser HTML parser to ignore that the tag
+is closing here.
+That would be crazy because then suddenly
+the whole thing would be the tag.
+In that case the onerror event would execute.
+So let’s hit fuzz, and fuzz this in chrome…
+It tests different charsets and different
+characters in parallel on multiple iframes.
+It takes a while.
+And it will also not find anything on Chrome.
+But we can see the past results here.
+And apparently on a certain Internet Explorer
+10 version, it found several characters where
+it actually worked.
+I asked alex about it and he told me that
+this was indeed a bug in the Internet Explorer.
+He found a browser bug.
+A parsing bug.
+He also added that it was “more luck than
+judgement”, but I disagree.
+He might have thought it wouldn’t find anything.
+But he did fuzz for it!
+So if you ever wonder how weird browser bugs
+and crazy WAF bypasses are often found.
+And how professional researchers work.
+This is an example how it can look like.

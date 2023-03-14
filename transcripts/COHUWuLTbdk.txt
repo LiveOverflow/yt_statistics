@@ -1,0 +1,322 @@
+We are on the journey of discovering, 
+analysing and exploiting the sudo vulnerability
+CVE-2021-3156. Last video laid the groundwork, 
+by trying to setup fuzzing with american fuzzing
+lop - afl. The idea is to use fuzzing, to 
+rediscover the sudo bug. It was not how it
+was actually found, but by creating this discovery 
+fiction, we can learn a lot about fuzzing and bug
+hunting. Unfortunately when we tried to instrument 
+sudo by building it with afl-gcc, the resulting
+binary crashed in the __afl_setup_first function. 
+And so now we need to solve this problem.
+
+As always with computer stuff, maybe other people 
+had the same issue with afl before. Just literally
+google the error message. But I couldn’t find a 
+solution, and when I tried my own quick checks
+with gdb, I also had no idea what’s going on. 
+SO maybe it’s already time to “cheat” a bit and
+look up if anybody else tried to fuzz sudo after 
+the vulnerability was released. And so I stumbled
+over milek7’s blog article “How long it would have 
+taken to fuzz recent buffer overflow in sudo?”.
+They go into all the small steps to set this 
+up, including using the argv-fuzz-inline.header
+that we also found out about last time.
+But even more importantly they write
+“For some reason afl-gcc instrumentation 
+didn’t work”, which sounds exactly like our
+problem. And “so I used LLVM-based one. We 
+just need to override CC for ./configure”.
+CC=afl-clang-fast ./configure
+I know this blog post mentions a
+few more small required sudo code changes, to 
+make it work, but I purposely want to ignore
+that. I only wanted to fix the afl problem. 
+I want to figure out these problems myself.
+but the cool thing is, I can always come back to 
+this text when I get frustrated or stuck. This is
+our advantage. We can try to do stuff ourselves, 
+because this is when you really learn, but when it
+gets too frustrating or too time consuming, we 
+can always “cheat” and look up the “solution”.
+Also, spoiler alert from liveoverflow 
+in the future: this issue would have
+not happened if I had used AFL++ instead. 
+AFL++ is an actively developed fork of AFL,
+and I will switch to that soon. But for now I 
+keep trying regular AFL. I could skip this part,
+but it’s important to me to share, because it 
+highlights that it’s not always a smooth path.
+There are hiccups. And this is ultimately 
+the story how I learned more about fuzzing.
+And now you can learn from it to.
+Anyway. Back to the actual video.
+Ok. So now we want to compile and instrument sudo 
+with clang. “Clang is a compiler front end for the
+C, programming languages. It uses the LLVM 
+compiler infrastructure as its back end.
+It is designed to act as a drop-in replacement 
+for the GNU Compiler Collection (GCC)”
+So clang can be used like gcc to compile 
+c code. it’s an alternative compiler.
+In the AFL readme we can find this:
+“clang users may also opt to leverage
+a higher-performance instrumentation mode,
+as described in llvm_mode/README.llvm.”
+So we go into the folder llvm_mode. 
+And in that README we can read:
+“To build the instrumentation itself, 
+type 'make'. This will generate binaries
+called afl-clang-fast and 
+afl-clang-fast++ in the parent directory”.
+I have extended the dockerfile for 
+episode 2 with building AFL clang as well.
+And now we can configure, and then make to 
+compile and instrument sudo with afl-clang-fast.
+If you started with this episode, just 
+make sure the code you compile has the
+changes from last video, where we added 
+the AFL_INIT_ARGV() at the start of main().
+When the compilation is done, 
+we can now test if sudo works.
+And it looks like this time it doesn’t 
+crash. AND it waits for user input.
+Quick reminder from last video, we can give it 
+data via standard input, and AFL_INIT_ARGV() is
+what then turns this data into fake arguments. 
+This is so that afl can fuzz the arguments.
+So if we would want to execute sudo -l, instead 
+we can use echo, to construct a null-seperated
+list of arguments, in this case just -l, and 
+pipe this into the input of our fuzzing binary,
+and you can see the output is the same, as if I 
+regular sudo was called with -l in the argument.
+Now the binary should be fuzzable with afl. 
+For that we need to create an input folder with
+testcases, and an output folder for the results.
+As a simple testcase we can use the data we
+just experimented with. So write the 
+data into a file in the input folder.
+And then we can start afl-fuzz, with the 
+directories, and the target binary to fuzz.
+AFL will now take the testcase we specified, 
+send it as input to the sudo binary, and then
+mutate the data, trying to 
+find interesting inputs.
+But what does this mean?
+AFL is a guided fuzzer,
+that’s why we had to compile sudo with the 
+special afl-compiler. It added small code
+snippets everywhere inside the code, to help 
+collect coverage information when executing.
+So afl can throw input at the sudo binary, 
+and then the sudo binary will report back
+which functions were executed. That is coverage 
+information. Actually afl does not look at what
+functions were executed, but that is easier to 
+imagine. There are lots of different strategies
+what data, fuzzers collect to understand 
+“coverage”. But in general, it is some
+metric data that represents information about what 
+code was executed, which can be used to compare
+multiple executions, and detect if your 
+input executed different functionality.
+And in the case of AFL, it will collect 
+information about the executed edges.
+If you ever looked at a binary in a 
+disassembler using the graph view,
+then you know that the assembly 
+code can be though of as basic
+blocks connected through those edges.
+This jump equal can go over here, or here.
+If we look at the same code, just instrumented 
+with AFL, we can see that it’s the same jump
+equal, but at the destination of each branch, 
+AFL inserted a call to __afl_maybe_log.
+And the parameter to that cal is a different 
+value. So when this instrumented code is executed,
+AFL can now log which branch was taken. And 
+if for example most executions go to the left,
+but suddenly we find an input that ends up to 
+the right, we know we reached new functionality.
+And so when AFL is throwing input at sudo, 
+the sudo binary, instrumented with AFL,
+will now collect information about the 
+edges that were executed, or visited.
+And then give that information back to the AFL 
+fuzzer. AFL can then mutate and change the input,
+throw it again at sudo, and see if 
+that improved coverage. And then
+basically a genetic algorithm kicks in. Input 
+mutations that discover new edges are favored.
+Inputs that end up executing the same stuff, can 
+be ignored. Pretty, simple but very effective.
+Now let’s think about this in the context of our 
+sudo project. Our input to sudo is basically a
+set of arguments. And the question is, CAN 
+AFL now find the vulnerable arguments that
+result in a the crash? If so, we would 
+expect here AFL to report a crash. So
+let’s look at the beautiful screen and just wait.
+mhhh... I think some of you might already yell 
+at the screen and want to tell me, that this
+can’t work! Because what we haven’t really talked 
+about yet was that the vulnerability is not
+exactly with sudo and some arguments. It’s with 
+sudoedit. And right now our fuzzer just fuzzes
+arguments of sudo. I mean maybe we find another 
+vulnerability, but we won’t find CVE-2021-3156.
+To explain, sudoedit is just a symlink 
+to sudo. Inside the sourcecode of sudo,
+there is a check if the name of the program is 
+sudo, or sudoedit. Or in fact it can be a any name
+ending in edit. So Pwnedit works too.
+And so based on the program name,
+different functionality is executed. And our ARGV 
+wrapper function, does not set argv[0]. Our fuzzer
+could never reach the vulnerable functionality. 
+It’s a classic example of a bad fuzzing harness.
+So the code that is responsible for setting 
+up and executing the target for fuzzing, is
+missing crucial data that should be include 
+in fuzzing. But we will fix that soon.
+Before we continue with sudo, I briefly wanted to 
+make a small detour, in case you think it’s weird
+that sudo has different functionality 
+based on the program name in argv[0].
+Have you heard of busybox? “BusyBox is a software 
+suite that provides several Unix utilities in
+a single executable file.”. BusyBox is very 
+very widely used in embedded linux devices.
+So in a lot of IoT stuff. And busybox is a 
+single binary, but contains the code of tons
+of basic linux commands. So for example cd 
+or ls. When you look at these commands on an
+embedded linux with busybox, you will see 
+that they are symlinks to the same binary.
+Let’s have a quick peek into 
+the sourcecode of busybox.
+In appletlib.c you can find the main() function. 
+And like any main function, it gets passed the
+argv arguments. And further down in main, you 
+can see that it takes argv[0] as the applet
+name. And then it calls run_applet_and_exit.
+If you have been doing some c programming,
+you know that the arguments you use starts at 
+argv[1]. Because argv[0] is always the program
+name. Usually the name and path of the binary. So 
+of course you can write code that does something
+else based on what the name in argv[0] was. 
+And so when you execute the symlink ls on an
+embedded linux with busybox, it symlinks to the 
+busybox binary, but the argv[0] name will be ls,
+thus it will end up executing ls_main().
+And that’s what sudo also does. Internally it
+checks if you run the symlink sudoedit, instead 
+of just sudo. At like the busybox example. when
+you look up the location of sudoedit, 
+you can see that it’s a symlink to sudo.
+And so executing sudo and sudoedit will 
+result in different stuff being displayed.
+So let’s come back to our discovery fiction. 
+I wanted to explain why I purposely ignored
+sudoedit. We know with hindsight that the 
+bug is with the sudoedit functionality,
+but we don’t know this from the start. This 
+is the goal, but how do we get there? This
+whole exercise is to imagine how we could 
+have done this research entirely ourselves
+and find the bug. And we started last video 
+with picking sudo as an interesting target.
+So at this point in time we might not know that 
+sudoedit exists. We first have to “discover” it.
+But this is a great example of where general linux 
+experience could help you with your research.
+In that case you might remembered looking 
+into the sudo manpage, where it is listed.
+Or you even know that sudoedit is a symlink to 
+sudo. In that case you know, argv[0] should be
+included in our fuzzing attempts. But if you 
+don’t know all that, you might be blind to it.
+And that’s why I decided to act as if I 
+didn’t know about sudoedit, and I just
+look at sudo as if it were any other program.
+And so I was very curious, if AFL could find
+the special sudedit functionality, if we extend 
+the argv fuzzing harness to include argv[0].
+Because of AFL’s genetic coverage guided 
+algorithm, alf can even find valid complex
+filetypes. For example if you fuzz a JPEG parser, 
+afl eventually will find valid images to test.
+These images here, were magically 
+generated through the fuzzing process.
+This is super fascinating.
+And so maybe afl will also
+find sudoedit as argv[0], if we of 
+course allow afl to fuzz argv[0].
+Our fuzzer right now does not fuzz 
+argv[0]. I showed you the testcase
+and it just includes the actual argument.
+The reasons for that can be found in the
+argv-fuzz-inline.header. There is a small comment 
+saying “/* start after argv[0] */”. rc is the
+counter for the array of fake arguments, and it 
+starts at 1. Not at 0. So if we want to include
+the program name argv[0] in our fuzzing 
+attempts, we need to change the 1 to a 0.
+If you compile that, your testcases now change. 
+Now you have to specify the program name too.
+So for example echo sudo, vs echo sudoedit. But 
+it doesn’t work. In both cases we seem to execute
+sudo. Well… when I found milek7’s blog 
+post regarding the afl- compilation issues,
+I did get spoilered on this issue. I also read on 
+there that “for some reason it uses __progname”,
+and not argv[0] to determine the program name.
+At the start of main() there is a call to
+initprogname(). And you can see that it passes 
+in argv[0]. And that function is defined in
+progname.c. There you can find that sudo checks 
+during compilation if it has the get_progname()
+function available, or if it has the compiler 
+specific __progname value. So only if GET_PROGNAME
+and __PROGNAME doesn’t exist, only then it takes 
+the passed in name from argv[0]. Which means we
+need to modify the code. We can just throw out the 
+offending code, so that it ALWAYS takes argv[0].
+Let’s compile it again, so 
+we can test if it now works.
+Let’s echo the different program names - sudo and 
+sudoedit again. And you can see, it prints the
+sudo help and here the sudoedit help. it works.
+So now, theoretically, AFL should be able to find
+the sudoedit functionality, 
+and eventually find the crash.
+So I was very excited and 
+setup fuzzing again. first,
+let’s change our single testcase to 
+include sudo before the actual argument.
+And then this time let’s run multiple afl fuzzers 
+in parallel - checkout the parallel-fuzzing.txt in
+the AFL documents. You can start one fuzzer 
+as the master with -M and give it a name,
+and then start multiple children with 
+-S. And give them a name as well.
+Let’s goooo! The afl output is just soooo 
+cool. It always is so much fun seeing it.
+But I want you to keep in mind, that our testcase 
+does not include sudoedit. I only used sudo.
+Again doing this on purpose. I want to see if 
+afl can actually find sudoedit by itself. And
+then eventually find the vulnerable argument. My 
+suspicion is that afl won’t find it, or won’t find
+it quickly. AFL does a lot of bit flips and a 
+string like sudoedit is like multiple bytes.
+But let’s see. It’s an experiment, I 
+don’t have much experience with this.
+Anyway. I put on my Pyjama to watch AFL fuzzing 
+magic, because we will be stuck fuzzing for a bit,
+there will be so many technical 
+issues we need to solve. So… get cozy.

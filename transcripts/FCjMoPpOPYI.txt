@@ -1,0 +1,461 @@
+“Screenshotter is a novel web app to 
+quickly take notes and screenshots.
+To make screenshots, simply enter the URL of a 
+website and the app will store a screenshot of it.
+The site is currently in beta, so 
+only cscg.de screenshots are allowed.”
+This is a web hacking CTF challenge that I 
+created for the Cyber Security Challenge Germany.
+And for all those people who scoff at 
+CTF challenges for being unrealistic,
+well this is a completely realistic challenge. 
+I found this vulnerability in a web app at work,
+which felt like a CTF challenge, so I got inspired 
+to create a challenge with the same vulnerability.
+Of course I adapted it for the CTF, but believe 
+me, the steps for discovery and exploitation are
+very close to what I found in real life.
+So if you want to try it yourself,
+you can find the files on GitHub. I think this 
+challenge can be a really good exercise for doing
+real-world security audits of webapps. So 
+why not give it a try and practice with it?
+When you look at the provided files, you can see 
+it’s based on docker-compose, so if you have that
+installed, you can just type “docker-compose up” 
+and wait for the containers to build, and then it
+should be available on localhost port 5000.
+And yes, all of these files are part of the
+challenge, so we can read any code and really dig 
+deep into the app to find the vulnerabilities.
+Of course the DO_NOT_ACCESS 
+folder contains the solution.
+So that is not part of the challenge.. So now 
+you have a few more seconds to pause the video,
+otherwise I will go ahead and tell 
+you how to approach and solve this.
+Like with every challenge, the first 
+step should be to get an overview of
+the functionality. Apparently you can login 
+or register, and this is a demo version which
+can only create screenshots of http://cscg.de.
+There is also this activity tab showing you what’s
+going on on the app. And this is here to show you, 
+that there is a user flagger which added a note,
+and requested a screenshot via a worker 
+service chrome, and we see the screenshot
+also got successfully processed. This base64 value 
+is obviously interesting, and this can be decoded
+to an IP address. Sometimes base64 values are 
+stripped of the paddings, and then it doesn’t
+decode nicely, so adding some equal signs here at 
+the end makes the output correct. So no clue yet
+what this is for, but we obviously remember it.
+Now let’s try to register and login with a user.
+Here simply a test user. And now we can add 
+a note! But the special feature is obviously
+screenshots, so let’s try to add one by using 
+the test URL. http://cscg.de. It’s processing now
+and when we wait a moment, we should 
+get a screenshot of the website.
+Awesome! If we now look at the 
+activity log, we can see that now we
+also appear here. Test user added a note. 
+And test user requested a screenshot. Cool.
+Pretty basic web app, not much functionality. 
+But where is the flag? We will see that soon.
+Let’s head into the source code of the app. The 
+docker-compose file is always great to start with.
+Because it describes the high-level architecture 
+or setup of this web application. And here we
+have three services. We have a chrome service, 
+a screenshotter service and an admin service.
+Each of these services are built from dockerfiles 
+contained in the respective folders. Screenshotter
+appears to be the main app, it’s the one exposed 
+to port 5000. The other services have no ports
+exposed. Depends_on is a field that ensures 
+that docker-compose first setup chrome service,
+THEN the web app, and at the end the admin. 
+So let’s look at the services in this order.
+First the chrome service. The chrome service is 
+a simple docker file. It basically only installs
+chrome browser stable version, and then starts 
+chrome in headless mode. So no actual browser
+window is opened. Also you can see here that 
+it enables the remote debugging port of chrome
+9222. But this port is not actually 
+exposed, so we cannot connect to it.
+Ok so this simply started chrome in 
+headless mode with remote debugging enabled.
+Now let’s checkout the main app. It’s written in 
+python and more specifically the flask framework.
+Before running the flask 
+server it executes init.py.
+And here it seems to just initialize the sqlite 
+database. It creates a database with commands
+from schema.sql. Checking that we can see that we 
+have user table, a notes table and a logs table.
+And after setting up the SQLite database 
+it will also create a random secret.
+No clue yet what this is used for.
+Next we have the main app
+and right at the top we see that it tries to 
+find the IP address of the “chrome” service.
+If we cannot get the IP dynamically, 
+it will fallback to localhost.
+This IP will then be used in the screenshot 
+function to connect to the chrome debug port 9222.
+And in this other place, it is base64 encoded 
+and added to the public log, so the activity log,
+with the text “username requested a screenshot 
+via worker chrome”, and the IP address. So cool!
+This means with this output we can get the 
+IP address of the internal chrome service.
+Now just to give a bit of context, this 
+IP exposure was not part of the real app
+this was inspired from. I know from 
+my experience with docker, that there
+are default IP ranges for docker containers. 
+Usually starting with 172..., so I don’t need an
+IP disclosure to know what a docker service 
+internal IP could be, but I thought I could
+make the challenge a bit easier, by adding this 
+basic IP exposure to make it a bit less guessy.
+Also because I was not sure how the 
+challenge was going to be hosted,
+I wanted to make sure that there is an easy way 
+to find the internal IP of the chrome worker,
+in case it would not be the default docker 
+IP range. And it turns out on my windows PC
+here the IP is not the expected 172. IP. 
+So I guess it was good that I added this.
+If this were not here, you would have to take 
+educated guesses or scan the IPs if possible.
+Anyway. Just after we get the Chrome IP, we also 
+get the secret! And this secret is used in an
+hmac function to create a signature of some 
+data. And this signature function is called
+in before request, which acts as a “session 
+middleware.”. It checks if we have a valid
+session in the cookie. So if we are logged in or 
+not. Feel free to read this code more closely to
+better understand it, but it should all be safe. 
+I just implemented some basic user authentication
+that is good enough for this challenge. So 
+spoiler alert: this should not be important.
+But how do we approach this now. It’s not a 
+huge web app, but it’s also not really short.
+Still quite a bit of code. Actually when hunting 
+for bugs in web applications, I like to go for
+the unique interesting functionality. You know 
+every app has to implement user authentication,
+and stuff like creating notes, that’s all boring. 
+But this app is interesting because it can create
+screenshots. And I like to go after these kind 
+of weird features, because this is where often
+the really fun vulnerabilities hide. So let’s 
+checkout the API call that creates a note.
+We can easily find that by looking at 
+burp or the browser developer tools
+when we submit the cscg.de URL to request 
+a screenshot. So we simply call add_note,
+and the body contains the URL. Ok so here is 
+the route handler for add_note in python. here
+we get the request body and right after you can 
+see a check if the requested URL is a cscg.de.
+If not we just add a regular note 
+by inserting it into the database.
+But if we have a cscg.de URL, we 
+are starting a new screenshot task.
+This will be executed in parallel in a thread. So 
+let’s look at this thread. This screenshot_task
+thread takes the new note_id. this was generated 
+at the start of the function, and is also used
+to create this placeholder note, “processing 
+screenshot”. So we are just passing the note_id
+as a reference to the placeholder note. And we 
+also pass in the body, so the URL that we are
+requesting. Inside this thread we are now calling 
+the async function screenshot. And this function
+now connects to the chrome service!
+It is using pyppeteer for that.
+“Unofficial Python port of puppeteer 
+[which is a] JavaScript (headless)
+chrome browser automation library.”. So 
+this is just a python library to automate
+and control chrome. And it controls 
+chrome via the chrome debug port 9222.
+And I think this code is pretty self explanatory. 
+We first create a new incognito browser window.
+Then we create a new page. We navigate to 
+that URL. We sleep for 10 seconds to wait
+for the page to be fully loaded, we extract 
+the title, and we also create a screenshot!.
+And then we close the browser window again.
+This image is then stored in the database,
+by updating the note we created 
+before as a placeholder.
+So far it looks pretty solid, right? Where is 
+the vulnerability now? Maybe you already noticed
+a first issue. But first let’s checkout 
+to the third service. The admin service.
+And here we can also find the flag.txt 
+file. So the admin has the flag.
+The dockerfile starts similarly to the 
+chrome service, it also installs chrome,
+but then doesn’t start a headless 
+browser. It simply executes admin.py.
+This script opens the flag and then wants 
+the IP of the main webapp and creates a
+flagger password. A random value.
+The main code then starts in main.
+Where we execute an endless loop. So here 
+we also use pypeteer, but this time we do
+not connect to a remote chrome service, but just 
+access the locally installed chrome. We create a
+new browser and are now simulating a user.
+So this admin service is just simulating
+another user using the screenshotter app. A user 
+who has the flag. So what does this user do?
+The user opens a new page and 
+navigates to the screenshotter site.
+It then waits for 2 seconds and then enters 
+the login credentials of the flagger account,
+using the random and secure flagger password. 
+So we probably cannot bruteforce that.
+After the login it will then add the flag note! 
+This admin user creates a note with the flag!
+And after that it also requests a screenshot 
+from cscg.de. So now we know the goal. We need
+to get access to the notes of the flagger user!
+After waiting for a bit. Sleeping for 10 seconds
+and reloading the page, it will eventually 
+lookup all notes and then delete the notes that
+were created. After that the page is closed, 
+and the next user simulation loop starts.
+cool! To summarize, this is a simulated user, 
+who owns the flag, which means we need to somehow
+attack this user. And given that this user is 
+using an actual browser to perform actions is a
+big hint that the attack has to be browser-client 
+based. So we need something like a XSS or CSRF.
+Btw, if you are now inspired by this challenge 
+to find the vulnerabilities yourself,
+now is your last change to pause. Because next I 
+will tell you about all the puzzle pieces. 3.2.1.
+So we just learned from reading 
+the code what the target user does,
+and that we need some kind of client-side 
+attack to leak the notes of flagger.
+Those notes contain the flag. So how can 
+we do that? Well an XSS is probably the
+most typical and most powerful way to leak 
+information. So let’s try to find a XSS.
+Feel free to try to find it yourself, 
+because I will just show you where it is.
+This web app is using flask templates. I think 
+it’s using jinja2 templates under the hood. And
+generally they are secure. When you use 
+curly braces to output user controlled data,
+it is properly HTML encoded and safe. But 
+there is one exception. And it is here.
+When you have a note that is an image, so a 
+screenshot, then the alt text of the image is
+set to the title. But it’s missing the quotes. And 
+template engines like this are not context aware.
+The encoding doesn’t know if this is 
+just an HTML context or an attribute.
+But the encoding is generally safe, just not in 
+this particular context. Because if an attribute
+is missing quotes, there are no special characters 
+needed to get a XSS here. If the screenshot title
+contains a space, we can break out of the alt 
+attribute. We can add additional attributes.
+For example “onload”, which is executed 
+once the image is loaded. Boom XSS!
+Okay, so this is a XSS you can easily 
+find by basic static code review,
+if you have the experience about the typical 
+pitfalls of template engines like this.
+If you didn’t know that, now you now.
+Okay the XSS is great, but once you think about
+how it could be used, you realize it 
+seems useless. You need to be able to
+control the title of a website requested 
+as screenshots. And the flagger user
+is requesting cscg.de. So how would you influence 
+the title of that page. It seems impossible
+to XSS the flagger user this way.
+But who knows. This is just one puzzle
+piece that we can put into our pockets. And 
+maybe it can become useful later. Let’s see.
+Now we cannot attack the flagger user, but could 
+we just as a proof of concept attack ourselves? A
+self-xss? Well… if we could make screenshots of 
+arbitrary websites, then we could just create a
+website with a malicious title. And here is 
+another puzzle piece you might have noticed
+earlier. The check for the allowed URLs is 
+done with .startswith. This means we can
+fully bypass the domain check. We could just use 
+our own domain and use it as a subdomain. So for
+example http://cscg.de.liveoverflow.com. This URL 
+would be allowed! But there is one more trick,
+actually you don’t need your own domain, 
+you can also use @. @ separates the URL
+into a username part and the actual domain. So 
+http://cscg.de@liveoverflow.com would simply
+point to liveoverflow.com, and cscg.de would be 
+a username that is just ignored. Let’s try it!
+Submit the test URL, and requesting 
+screenshot - It seems to work! Let’s
+give this a moment. And here we go! We 
+got a screenshot from liveoverflow.com.
+Okay with this bypass we can now test the XSS.
+To do that I first create a test HTML page
+with the XSS payload in the title, then I start a 
+local test server using python, which will listen
+on port 8000. But locally accessible doesn’t help 
+us. The chrome service needs to reach it. So then
+I’m using ngrok to get a public domain that is 
+tunneled to my local test server. So by requesting
+cscg.de and the ngrok tunnel URL, I can make the 
+chrome service request my test index.html page.
+And of course processing the screenshot takes 
+a moment, but BOOM! Here we go. We got a XSS.
+But unfortunately we still don’t know how 
+we could XSS the flagger user with that,
+because right now it’s just a self-xss. But let’s 
+see. More puzzle pieces. More is always better.
+So what else could we do with 
+the domain bypass. Any ideas?
+Well… now we have a pretty much unrestricted 
+SSRF (server-side request forgery) to request
+screenshots from arbitrary websites. Is 
+there any internal service we could try
+to make screenshots of? Maybe the chrome 
+service? Let’s try it and see what happens.
+We just have to take the exposed chrome IP 
+and the port 9222. Let’s submit and wait…
+as always takes a moment. And here we go. We 
+got a screenshot. “Inspectable WebContents”! Mh…
+So this is maybe where a bit of research has 
+to start. Probably many of you don’t know the
+chrome devtools protocol but you can find a lot 
+of resources about it online. Or you can also play
+with it yourself. To do that you could change the 
+docker-compose file to expose this port, and then
+restart the whole service, now you have direct 
+test access to it in the browser for testing.
+So here it is. Port 9222. Inspectable WEbContents. 
+And it takes a moment but then shows about:blank.
+And in the devtools we can see that it 
+accesses an API endpoint json/list. Here it is.
+Title about:blank. And a websocket debug URL 
+for it. As well as a devtools frontend url.
+And when you refresh it a few times, for example 
+when you request a screenshot, or when flagger
+requests a screenshot, another entry appears. 
+Here is suddenly a page requesting cscg.de!
+So you can use the domain check bypass, 
+to request a screenshot of this json data,
+and it will leak some information about what 
+pages the chrome service currently has open.
+Let’s do another test. We can wait for flagger 
+to request a screenshot of cscg.de and once we
+see the message in the activity log, we can 
+quickly submit our URL to the list of pages.
+We wait for the screenshot, and here it 
+is. Here is the page where we requested
+the list of pages and here we have 
+flagger requesting the cscg.de.
+But what exactly could we do with the 
+webSocketDebuggerURL? This requires a bit of
+research, but if you for example google that field 
+name, you might find references to puppeteer.
+And we learned earlier that puppeteer is a 
+library to automate and control chrome. So
+could we maybe use this debugger URL to control 
+chrome? Like we also did in python with pypeteer?
+That is exactly what we can do. This protocol 
+is used by for example the chrome devtools,
+so with this you can do EVERYTHING the 
+chrome devtools can do. Including for example
+redirecting the page to a different site. A 
+site maybe with a XSS payload in the title.
+So here is a rough attack idea. We could request 
+a screenshot from the chrome debugger list,
+to get the secret debug URL of the page flagger 
+is requesting. We can then probably use this
+debug protocol, to redirect the page away from 
+cscg.de to a site with a XSS payload. When the
+screenshot is done processing, the XSS payload 
+will be placed into the list of notes for flagger,
+and when flagger then looks at the notes, it will 
+be executed. And this XSS payload then just has
+to steal the private notes. This sounds like 
+a really good plan. Except there is one issue.
+If flagger requests a screenshot, and then we 
+request a screenshot of the debug list, the chrome
+service will load the list fine. But it will wait 
+10 seconds before actually taking the screenshot.
+So after 10 seconds, the service takes a 
+screenshot of cscg.de, and then it will take a
+screnshot of the page list. Now we have the secret 
+debug URL, BUT also the service is done processing
+it and this page doesn’t exist anymore. So is 
+this useless? we cannot do anything with that?
+Well, now you need a bit of creativity. Can you 
+think of a way to still make this attack work?
+There is a small trick. And it actually took me 
+a bit to come up with this myself. So pause if
+you want to think about this. Otherwise, I 
+will share how my exploit works. 3.2.1. Ok
+First we get the CHROME_IP from the activity log. 
+And then we wait until flagger deleted a note.
+This is needed to get the right 
+timing. This message means,
+soon flagger will request a screenshot. 
+And here is the trick. We are timing our
+screenshot now to be started BEFORE flagger 
+requests cscg.de. But we are not requesting
+the page list. We request this index.html 
+site. And this site simply has a timeout,
+so it’s waiting for 7 seconds, and THEN redirects 
+to the endpoint leaking the debugger URLs.
+So we request our screenshot, the index.html 
+is loaded. Flagger requests cscg.de.
+After 7 seconds we redirect to the debugger port 
+list, and after 10 seconds the service takes a
+screenshot of it. AND THIS WILL now contain 
+the flagger cscg.de debug URL. But thanks
+to our precise timing, the chrome service still 
+hasn’t completed the screenshot for cscg.de yet.
+Now we need to be fast! very quickly we need to 
+get the debug URL. And I’m using OCR for this,
+specifically tessarect. This can extract text, or 
+the URL from the image. And once we got the secret
+debug URL, we can now launch our actual attack. 
+We request another screenshot with our attack.html
+page. And this now creates a new websocket 
+connection to the debug URL and executes a
+Page.navigate. So we force the browser to navigate 
+to this XSS page. Now this page does not show
+cscg.de anymore. Which means after the 10 seconds 
+are over for the flagger screenshot request, the
+screenshot is created of the xss.html page and we 
+successfully got a XSS into the notes of flagger.
+This XSS payload is simple. It just takes the 
+whole document.body text, so the complete text
+of the website, and sends it with a GET request 
+to a webserver of mine. Leaking the flag!
+That’s it. This was the challenge screenshotter.
+Let me know what you think. I really like 
+this challenge, because it is based on
+an attack I found on a real web app. There is 
+no guessing, it’s not blackbox, you have the
+complete code available, so I think it’s a great 
+challenge to practice doing security audits.
+I hope you enjoyed this challenge, and 
+congratulations to everybody who solved it.

@@ -1,0 +1,226 @@
+Last video we had a lame virtual lockpicking
+challenge, but there was also a physical lockpicking
+challenge.
+On the table of the organizers was a sealed
+package with a basic padlock that you had
+to open.
+The only tools available were paperclips - that’s
+like how it is done in the movies.
+I’m not explaining to you how basic lockpicking
+works, I also don’t really know much about
+it, and failed the challenge at first.
+I didn’t know that I had turned the lock
+in the wrong direction and I thought paperclips
+are just too weak.
+But I wanted to tell you a short cool story
+about it.
+So the guy who is filming right now, is in
+fact int0x80 from Dual Core who makes nerdcore
+music.
+But he is not only a musician, but plays CTF
+and even held a talk at BruCON about Forensics.
+He was super nice and happy to lend me his
+lock-picking set, and also told me I had to
+turn the lock clockwise.
+But it turns out the lock was a bit too small
+for the picking set, so he showed me how,
+I can use two coins to twirl the wire and
+make the paperclip tools stronger.
+And then I tried it again and succeeded.
+It’s just so cool what kind of people you
+can meet at conferences, and despite him clearly
+being famous, doesn’t talk down to you,
+helps you and just wants to play some CTF
+with you.
+So thanks int0x80, you are awesome.
+Let’s have a look at a challenge I didn’t
+solve.
+OSINT.
+The description says, “you have been associated
+with this case!
+Apparently a cybercriminal is planning a new
+attack with a partner, we have a file with
+an email header sent by the criminal.
+This header was sent by the former investigator
+on previous week to his disappearance.”
+So the first reason I wanna talk about this
+challenge, it’s a good example for how not
+to design a challenge.
+I have no idea what to do.
+Apparently it’s about forensics, recon,
+open source intelligence whatever, which probably
+means I simply have to look around and try
+to find something that looks like a flag.
+But there is no goal.
+Nothing to aim for, I can’t tell if I make
+progress or not.
+That challenge was very frustrating because
+of this and eventually gave it up.
+So when I had a first look at the provided
+email, I wanted to know what the content says.
+So I had to translate the subject and content.
+Didn’t tell me much.
+From the email headers I saw, that the email
+was sent from this anonymous mail service
+5ymail.
+So the second reason why I wanted to show
+you this challenge is, that because of this
+task, I had a look at 5ymail and learned,
+what an awful anonymous email service that
+is.
+That thing is rubbish.
+The first thing I did was to send myself an
+email with this service to have a look at
+the headers.
+When you send the anonymous email, it will
+generate a username and password for you.
+And now hold your hat, let’s have a look
+at the email headers of that email.
+The email listed in reply-to looks very similar.
+Infact it contains the auto-generated username
+and password.
+What the fuck?!
+At this moment I thought, WHOA this challenge
+is cool, we are abusing this real service.
+The plan was clear, I extract the password
+and username from the header, log into that
+servie and probably find the flag there.
+But it turns out, you can’t login with those
+credentials.
+I asked one of the organizers if he can check
+if the challenge still works.
+Because somebody else could have changed the
+password to block other players.
+But he verified that it still works and I’m
+on the wrong track… oh well…
+Another small thing I learned about this service
+is this weird endpoint that tells you the
+subject of the last received emails.
+WHAT THE FRKN HELL?
+Isn’t this supposed to be like a private
+anonymous mailer or whatever.
+And to make things even worse, you can inject
+XSS into the email subject.
+What?
+What?
+I…
+I.. don’t even understand.
+Who?
+What?
+Whyyyyy?
+The only good thing about this service is,
+that based on the leak of this endpoint, I
+learned, that this email service is not used
+much.
+Which makes me very happy.
+So yeah, after all this I gave up on this
+OSINT challenge.
+To this day I have no idea what I have to
+do.
+If you know the solution, or if you figure
+it out, please tell me.
+This challenge makes me crazy.
+Ok move on to another challenge.
+This challenge is called “Selected Access”
+and the description says, that the site only
+allows entry to horses.
+And we have to show that we are a horse.
+There is also a hint saying that we should
+have a look at index.bk.
+So let’s get started.
+This is the challenge url.
+It says this is a test to verify if we are
+a horse.
+Okay, well then.
+I started by looking into the HTML source,
+to get a better feeling for what functionality
+the page might have.
+But turns out there is not much, besides this
+picture in an html comment.
+The picture is a decision graph that we can
+follow to check if we are a horse.
+And apparently there is no way for reaching
+that conclusion, we will always be human.
+Now when we look into the index.bk hint, we
+can find some php code.
+So that might be the source code of the other
+page.
+I copy the code into sublime to have some
+syntax highlighting.
+Let’s have a look at the code.
+The code checks the question parameter, and
+then the answer parameter, and then there
+is a switch-case, that sets a certain URL
+to be fetched with curl.
+And the response will be embedded in this
+page.
+So I immediately thought I should go for the
+“impossibru.php”.
+I mean what other goal would there be other
+than going for the impossible script?
+This means I want question 5 with answer ‘no’.
+Ok interesting.
+We get an L-mayo and that horses don’t cheat.
+That confused me.
+And I even tried to use this sentence as a
+flag.
+But obviously that would have been too easy.
+So what else could it be?
+Always when I see a curl, I’m hunting for
+Server-Side-Request-Forgery, or similar bugs.
+Because if we could control the whole URL,
+we could try to access some other service
+only available from localhost.
+Or maybe even a file from the system.
+But that didn’t really work because we can
+only append values to the urls.
+We do control basically what we append, because
+it takes the question number, for example
+5, which would result in r5=, and then it
+would append the answer to that, and we could
+set the answer to anything we want.
+But that doesn’t help us much.
+I then started to head into the wrong direction
+and I tried to figure out if there is a curl
+bug that I’m not familiar with.
+Turns out it’s really annoying to search
+for php, curl, exploit, or similar searchterms,
+because so many small exploits scripts are
+written in php with curl, and that doesn’t
+help me.
+But after I put this challenge aside, I realized
+I have been obsessed with the wrong strategy.
+I don’t know why I had the revelation, but
+at some point I realized, “The goal is to
+not get impossibru, but pass the correct answer
+to the 5.php script.
+Duh…”
+And that is fairly easy.
+First of all, we have to make sure, that the
+question will be 5, but the answer not “no”.
+So what we can do is, we can simply inject
+more parameters via the answer variable.
+So I simply set the answer to yes, but followed
+it up with another ampercant URL-encoded,
+followed by the r5=no.
+Now when the string is built, it will do r5=yes
+& r5=no.
+And that will be appended to the 5.php for
+the curl request.
+And yeah, the r5 parameter is there twice,
+but that doesn’t matter, because the script
+will only see the last one.
+And this way we load the 5.php script that
+gives us the flag: “I’m a beauty horse”.
+Also while editing I realized, that a simpler
+solution would have been to simply use r5=no
+followed by an encoded ampercant.
+Because then the answer would still be not
+no, because it would be no&.
+But the 5.php script requested via curl would
+then only see the “no”.
+That’s it for this video.
+I think there will be one more brucon ctf
+video write-up.
+There was a challenge I really liked and I
+wanted to show it.

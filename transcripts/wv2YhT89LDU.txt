@@ -1,0 +1,165 @@
+Do you need to know how to program, in order 
+to get into hacking, or having a career in
+IT security? My personal opinion and short answer 
+is “yes”, but there is more I want to talk about.
+Reality is a bit messy and the 
+long answer is “it depends”.
+So let’s explore a few thoughts about this.
+As you hopefully know, recently I made videos 
+about SerenityOS, specifically looking at kernel
+security issues. And if you follow me on twitter, 
+you might have seen me retweeting several videos
+Andreas Kling made about other vulnerabilities 
+in SerenityOS where he even develops exploits for
+them. They are amazing, check them out. So Andreas 
+Kling clearly has the knowledge and skills to find
+kernel vulnerabilities AND write exploits 
+for them. It seems even very easy for him.
+So if YOU want to get to that same 
+level, you might ask yourself:
+“how can I get there?! How to learn all 
+those skills?! Are there courses I can buy?!”
+I mean, you might want to watch more 
+liveoverflow videos and checkout
+the binary exploitation playlist and 
+CTF writeups. Sure… that might help.
+But let’s specifically look at Andreas' 
+experience and try to figure out how he
+got those skills - maybe you can copy it. If 
+you map Andreas’s experience on a timeline,
+then for basically all his life he was doing 
+programming. He worked as a developer for Nokia
+and Apple. He worked on WebKit, the browser 
+engine. Here a random webkit blogpost from 2013,
+and see the author? It’s andreas! Then in 2018, 
+he started programming his own operating system
+Serenity OS, and now just here at the end, 
+he did vulnerability and exploitation stuff.
+Without specifically learning it. His many 
+years of programming lover level code,
+which of course also means tons of time spent 
+debugging weird functionality bugs, investigating
+crashes, understanding how memory and assembly 
+works, and so forth. Through programming he
+acquired ALL THE SKILLS needed to just switch 
+over to do some hacking. Just like that.
+And I think if you want to do this kind of system 
+exploitation, If you are aiming for understanding
+or even creating jailbreaks, browser exploits, 
+and all that other cool exploitation stuff,
+I don’t think you get away without 
+programming. You either already have
+programming experience in your past, or 
+you have to acquire it along the way.
+And that makes sense, right? 
+If you want to exploit a C++
+program, it makes sense that you 
+need to know the C++ language.
+Mh... okay... But then there is this 
+curious case of web security. If you
+listen to various bug hunter interviews, 
+there are quite a few successful hackers,
+who say they don’t have programming experience. 
+And while I cannot fully understand that,
+because I do come from a programming 
+background, I can see why that can work.
+There are a lot of tools to perform web 
+hacking and you don’t really need coding.
+You can use Burp to manipulate HTTP requests. You 
+can use SQLmap to exploit a SQL Injection without
+knowing the SQL language. You can bruteforce 
+parameters and API paths with stuff like ffuf.
+You can copy & paste XSS payloads and hope to 
+see an alert() popup. And then there are even
+full vulnerability scanners 
+like Burp or Acunetix or so,
+where you just press a button, and then you take 
+the result and sell it as an overpriced pentest
+report. You can do a ton of web hacking 
+without actually knowing programming.
+And being “successful” in it. At least in 
+the financial success sense. To me that
+is not very satisfying and boring. It’s not 
+how I measure “success”. But doesn’t matter.
+So I was wondering. If system exploitation 
+clearly requires programming knowledge. And
+web hacking does not necessarily 
+need it. What is the difference?
+Usually I say, if you want to exploit 
+a C program, you should know C. If you
+exploit a php website, you should know 
+php. In some abstract way you can say:
+“you need to know the language of your target”.
+But web apps have one big difference to a local
+C program. The web has a standardized protocol. A 
+standard language EACH web app speaks. It doesn’t
+matter if the web app is developed in php, python, 
+java or even C, in the end they all have to speak
+HTTP. But that’s not all. Every USER of 
+webapps uses a standardized tool to access
+those apps - namely the browser. So different 
+languages can cause the same kind of issue,
+and you can write tools to look for those issues. 
+Regardless if it’s server-side attacks like SQL
+injections or logic flaws, or client-side 
+attacks like CSRF or XSS. Those issues have
+all one thing in common. And that is they exist 
+in the standardized ecosystem of the web. So a
+web hacker doesn’t necessarily have to understand 
+the programming languages behind it. It’s enough
+to speak the first layer of languages, the web 
+protocols and understanding the web ecosystem.
+For system exploitation or binary 
+exploitation this is what is different.
+Every program written is different and has 
+a different way of interacting with it.
+Exploiting sudo is different 
+than exploiting the kernel.
+But does that also mean, if you want to 
+do web hacking programming is useless?
+No. Absolutely not. There will always be issues 
+that depend on the language or frameworks used.
+And so understanding how a website is built 
+will always expand the possible issues you
+might think or know about. I also think 
+it helps with the creativity of hacking,
+because programming is in my opinion a creative 
+thing. And of course if you know programming,
+you can also write your own tools and 
+scanners to help you do a better job.
+But everything I talked about until now, is a 
+very specific area of IT security. It’s really the
+industry of bug bounty, vulnerability research, 
+code audits, application security and so forth.
+But IT security is much larger than that. There 
+are TONS of jobs, maybe even the majority of jobs,
+that do not require this deep technical 
+knowledge. Doing like Network,
+firewall and VPN installations, working in a SOC 
+(security operations center), triaging reports,
+doing security awareness against phishing, doing 
+checklist ISO certifications, or even classical
+pentest where you scan networks with tools. All 
+that stuff doesn’t require programming knowledge.
+But you know this channel, this channel is not 
+about this weird enterprise world of “security”,
+I wanna make videos about “hacking” 
+in the classical sense. I want to
+explore systems and understand 
+everything on a deeper level.
+That’s what makes me excited. And 
+I think that area of IT security
+does require programming experience.
+And that’s why for me IT security is
+never an entry level position. For me IT security 
+is a specialization in IT and builds on top of a
+general broader IT foundation. That’s also why I 
+am sceptical about IT security bachelor degrees.
+Anyway. One last call to action. I think for 
+anybody who doesn’t know programming yet,
+if they can read tons of different examples why 
+people got into programming and what others can
+recommend, that is super helpful. So please share 
+your programming motivation and experience in the
+comments. I’m sure it will help a lot of people 
+to find a cool project to start programming.

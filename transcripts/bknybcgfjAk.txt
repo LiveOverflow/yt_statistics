@@ -1,0 +1,305 @@
+Some math YouTubers started a project called
+MegaFavNumbers where they talk about their
+favorite number over 1,000,000.
+I thought that’s a neat idea and I watched
+a few of them.
+But then it clicked, “I also have a favorite
+number over 1 million”.
+there is actually a reason why I didn’t
+realize that at first, which I will also tell
+you about.
+But for now here it is: 1,094,795,585
+This number has a special meaning to many
+computer hackers.
+And I want show you, why.
+To understand what is special about my number,
+let’s first look at the rule of this YouTube
+trend.
+A favorite number over 1,000,000.
+We are quickly drawn to this kind of number.
+There are shows like “who wants to be a
+millionaire” or we say things like "not
+in a million years".
+It’s a nice number and we seem to gravitate
+to it.
+one of the reasons is probably because it
+is quite aesthetic.
+It’s very simple.
+A one with six zeroes.
+Every child can write it.
+But.
+It only looks this neat because our numbers
+are decimal numbers, written with ten symbols
+going from 0 to 9.
+We also have other number systems such as
+binary, only using two symbols, zero and one.
+Or hex, which uses 16 symbols, using 0-9 and
+adding the letters a,b,c,d,e,f to it.
+1,000,000 in binary looks not special.
+In hex it’s also quite ugly.
+F42F0.
+There is nothing special about this number
+anymore.
+It looks random.
+The same way my favorite number looks random
+in decimal.
+So let’s look at my number in hex representation
+instead.
+Huh!
+That looks a lot more aesthetic: 41414141.
+A nice pattern we immediately would say “yeah
+that’s pretty neat”.
+So.
+let me first try to make you appreciate hex
+numbers, why they are useful, and thus why
+programmers, hackers and other people interested
+in lower level computing stuff love hex so
+much.
+hex is a number system where we represent
+values with symbols from 0-9 a-f.
+So let’s count, 0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f
+and like in decimal, when we reach the highest
+symbol we have available, we start to combine
+symbols.
+10, 11,12 and so forth until 1f.
+And then like a decimal 19, that would wrap
+over to a 20, after a 1f we roll over to a
+20.
+By the way.
+I’m intentionally not saying “twenty”
+when I refer to the hex number, instead I
+say two zero, because I want to make it clear,
+this is not a decimal twenty.
+The value of a hex 2 0 is actually a decimal
+32.
+This might seem unnecessarily confusing.
+Why would we want to use hex, if it means
+we have to get used to a different number
+system.
+Why would anybody do this?
+What makes it so incredibly useful?
+Well.
+Let’s look at the relationship between hex
+and binary.
+As probably everybody knows, computers use
+zeros and ones.
+The CPU you most likely have inside of the
+device you watch this video on, has tiny memory
+cells we call “registers” which store
+32bit or 64bit binary values.
+And the CPU can use these registers to perform
+calculations.
+So you might think if we want to deep dive
+into a computer, and want to observe exactly
+what the CPU does, it might make sense to
+look at the binary values.
+But a 32bit or even a 64bit binary value is
+LOOONG.
+It takes up a lot of space and it’s very
+hard to quickly understand what is written
+there.
+But what if we could group up binary values.
+To safe space.
+For example take them as a package of four
+bits.
+Let’s list all possible values.
+0000, 0001, 0010, 0011 and so forth, up to
+1111.
+Directly translating them to decimal would
+be 0, 1, 2, 3, 4, 5, 6, 7, 8, 9.
+But now we have a problem.
+In decimal we don’t have any symbols left
+to represent the remaining 6 bit groups.
+Mh?!
+Let’s see how these binary values converted
+to hex would look like.
+0, 1, 2, 3, 4, 5, 6, 7, 8, 9, a, b, c, d,
+e, f.
+four bits nicely match to a single hex digit!
+huh!
+You might also know that a byte consists of
+8 bit.
+So a byte can easily be represented by two
+hex digits.
+Let’s do an example 1010 0101.
+We split the 8 bit into two 4bit groups.This
+is an A, and this is a 5.
+A5.
+And in reverse it works the same way.
+What would be a hex FF in binary?
+Well F was the highest value, so 1111.Which
+means the byte FF is in binary 1111 1111.
+We also have a name for this sub group of
+4 bit inside a byte.
+We typically call this a nibble. this is pretty
+neat, right?
+A single hex digit is a nibble (4 bits).
+Two hex digits make up a byte (8 bits).
+And 8 hex digits, or let’s better say, 4
+times 2 hex digits, are 4 bytes, or 32 bits.
+So my favorite number is actually a 4 byte
+value.
+And in fact it's 4 individual bytes put together.
+Looking at my number in decimal again we can
+clearly see there is no pattern here.
+simply by looking at it, it doesn’t tell
+us anything meaningful about its underlaying
+structure of bits.
+So hex is just so much nicer.
+We know it’s repeating the bits represented
+by 41.
+But what is special about the hex value 41?!
+Well.
+There is a character encoding standard called,
+ascii, “American Standard Code for Information
+Interchange”, and it is basically a big
+table that we just agreed on to use, and it
+tells us if we have a series of bytes, and
+we want to interpret that as a text, how do
+we map those bytes to actual letters and symbols
+and numbers.
+And 0x41, or decimal 65, maps to the capital
+letter “A”.
+So my number is actually the string “AAAA”.
+And that’s also why I didn’t immediately
+realize that this is a number over one million.
+When I read the hex value 41414141 I’m not
+thinking of an amount.
+But when I see 1,000,000 in decimal I think
+of 1,000,000 of something.
+1,000,000 dollars.
+1,000,000 lighyears.
+1,000,000 views.
+But I’m not thinking of 0x41414141 as 1
+billion of something.
+When I see that number, I see 4 bytes.
+I see the characters “AAAA”.
+Okay.
+Now you know why hex values are useful for
+computer science and why we like to use hex.
+It’s just so much easier and nicer to represent
+anything that has to do with bytes and bits.
+But what is special about my “AAAA” sequence.
+41414141.
+What does it mean to me?
+What does it mean to hackers?
+Let me show Phrack.
+“Phrack is an ezine written by and for hackers,
+first published in 1985.
+"the best, and by far the longest running
+hacker zine," the magazine is open for contributions
+by anyone who desires to publish remarkable
+works or express original ideas [...]. It
+has a wide circulation which includes both
+hackers and computer security professionals”
+And let me pull up one of the most famous
+articles in here.
+It’s in issue #49 from 1996.
+Here it is.
+“Smashing The Stack For Fun And Profit”,
+by a hacker named “Aleph One”.
+When I read this I actually get a bit emotional.
+Because it is a very impactful article in
+the history of hacking as it summarized and
+publicized the intricate details of “buffer
+overflows”.
+And how you can use them to create exploits.
+“On many C implementations it is possible
+to corrupt the execution stack by writing
+past the end of an array.
+[...]. This can produce some of the most insidious
+data-dependent bugs known to mankind.”
+This articles explains very detailed how programs
+written in the programming language C are
+being executed by the CPU.
+And further down it then introduces what happens
+if you have a buffer overflow vulnerability.
+“A buffer overflow is the result of stuffing
+more data into a buffer than it can handle.
+How can this often found programming error
+be taken advantage of to execute arbitrary
+code?”
+This example C program has a loop where it
+executes this line over and over, and this
+builds a huuge string of “A”s.
+It keeps appending AAAAAAA.
+And then it copies this 256 long AAAA string
+into a very small memory area of only size
+16.
+Which causes the AAAA to write beyond what
+was intended.
+And in this process it will overwrite other
+values in the computers memory.
+"If you run this program you will get a segmentation
+violation.”
+If we analyze this with a so called debugger,
+that is a program that can help us to observe
+instruction by instruction how the CPU executes
+this program, we can see that we reach a segmentation
+fault because the instruction pointer got
+overwritten by 0x41414141.
+The instruction pointer is a very small memory
+cell, a register, inside the CPU that contains
+the memory address of the next instruction
+to be executed.
+And our buffer overflow apparently overwrote
+a value in the computer’s memory that caused
+the instruction pointer to be overwritten.
+With a value we control.
+We created this long string of AAAAA.
+Which means if we carefully change a specific
+part in this long string, we can cause the
+instruction pointer to be set to any address
+WE WANT, and redirect the code execution by
+the CPU to memory WE WANT!
+We can hijack this process and execute our
+code!
+This is very complicated when you do or see
+this the first time.
+But it feels incredibly magical to pull this
+off.
+So if you are interested to learn more in
+detail how buffer overflows work, I have actually
+a playlist called “binary exploitation”
+where I use a test environment from exploit.education
+to walk you through various stages of learning
+buffer overflows.
+But just FYI, the course is mostly intended
+for people that already have some programming
+knowledge.
+But if you just want to see some crazy example
+how to analyze, find, debug and exploit a
+buffer overflow, I also link some videos of
+mine from participating in Capture-The-Flag
+hacking competitions.
+Anyway.
+In this phrack article you can see this 0x41414141
+showing up.
+I’m not sure if this is the first occurrence
+of this.
+But all I know is, since then it has somewhat
+become a symbol in itself for buffer overflows
+and binary exploitation.
+Just google for 0x41414141.
+All you will find is buffer overflow examples.
+It is used in the book “Hacking, the art
+of exploitation”, a famous german hacker
+going by the name fx uses 41414141 as a handle.
+In presentations at security conferences where
+they show off vulnerabilities they found in
+software, they use 0x41414141.
+Every security professional who sees this
+number understands that this is attacker controlled
+input, and they were able to control a critical
+memory value and set it to any value of their
+choice.
+AAAA is a stereotypical input somebody uses
+to showcase buffer overflows.
+It was the input I have used the very first
+time I tried to learn and understand buffer
+overflows.
+And that’s why it is my favorite number
+over one million.
+I connect with this number a very emotional
+memory, this magical moment when I did my
+first buffer overflow.

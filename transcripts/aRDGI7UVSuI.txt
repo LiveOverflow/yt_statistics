@@ -1,0 +1,351 @@
+In the previous video I showed you a dumb
+design decision of a Guild Wars 2 Trading
+Bot author, who decided it was a good idea
+to leak the API keys from all bot users.
+These API keys can be used with the Guild
+Wars 2 API to get all character information.
+I have written a small script that has collected
+data on all active bot users along with their
+wealth, for the past three months.
+And so I wanna have a look at this data and
+also talk about the threat model of botting
+in MMORPGs
+Before we get into the data, let’s talk
+about botting itself.
+I try to approach this topic as if I would
+design an MMORPG and I’m well aware of the
+threat that somebody could hack the client
+or automate and bot certain aspects of the
+game.
+For me MMORPGs have two major concerns they
+need to control in order to have a healthy
+game.
+One is the player satisfaction.
+This is purely subjective, it’s about feelings
+players have that are often completely separate
+from reality.
+And the other one is keeping inflation of
+the ingame currency under control.
+If you ever played a game with rapid inflation,
+it’s basically unplayable as a new player
+and it’s just a terrible experience.
+And there are many many game design decisions
+that you can make that affect these things.
+For example a very typical thing games do
+is to have a gold sink.
+That means there are very expensive luxury
+items that just pull out masses of currency
+or items to fight against inflation.
+Items can become character bound so they are
+removed from the economy and much more.
+So what does this have to do with botting.
+So when most people imagine botting in an
+MMORPG game, they imagine bots that run around,
+kill monsters to level or collect items and
+gold.
+So why is this bad for agame?
+First, with each kill, gold or items are generated
+out of thin air.
+More gold available in the economy, can lead
+to a higher inflation.
+And because botting can be scaled to hundreds,
+thousands or even way more, this can really
+destroy the economy.
+This is the main reason why botting is so
+bad for a game.
+Another issue is, that when regular players
+encounter botters, it has a negative emotional
+effect on them.
+They feel cheated, maybe even their kills
+get snatched away, they can’t buy stuff
+anymore because of inflation and they can’t
+find real players to chat and go on adventures
+together.
+So if we design a game to defend against this
+threat, what can we do?
+Should we invest into obfuscating the client,
+making the network protocol super complex,
+implement or buy scanning solutions that behave
+like anti-virus software trying to identify
+bots or hacking tools through heuristics?
+But those are all terrible solutions, because
+they are expensive and ineffective.
+A dedicated botter can always bypass those
+locally running scanning tools.
+It just slows them down and maybe prevents
+simple people from doing it, but professionals,
+that earn money from botting, they will find
+ways around it.
+Much more elegant solutions are solving this
+through game design.
+For example Guild Wars 2 doesn’t have a
+concept of kill, experience, loot or resource
+stealing.
+Everything is shared.
+So players wont have a bad experience with
+bots stealing their kills.
+You can also design your game and server logic
+in a way that you completly don’t trust
+the client.
+For example let’s say you have a dungeon
+and at the end is a reward.
+Instead of spawning the reward chest at the
+start and having closed doors preventing access,
+you can have a mission timer or different
+checks before the server spawns it at the
+end.
+Thus if sb has a client-side wallhack or even
+control over the communication protocol they
+can’t just access the chest rightaway.
+You can also implement more complicated boss
+fight mechanics that require dodging and positioning,
+so that bots have to be really really smart
+in order to farm it.
+You can also make a lot of resources account
+bound, so that a lot of the good loot can’t
+even be traded or sold by the bot owners.
+You can also have instanced MMOs, because
+then bots can do everything without ever being
+seen from players, thus it helps against a
+bad perception of the game.
+It’s kind of fun trying to think of systems
+that make bots less effective to protect the
+game, isn’t it?
+But what about a trading bot.
+Because this is a little bit different.
+I claimed earlier that the ingame economy,
+mainly the inflation is a crucial part to
+keep a game healthy.
+So how does a Guild Wars 2 Trading bot affect
+the game?
+First I have to explain how the tradingpost
+works.
+When you have an item you can list it for
+a price.
+Listing an item costs 5% of the price you
+choose.
+That is paid right away.
+Then if somebody buys the item, another 10%
+of the gold is taken away.
+Basically you have a 15% sales tax on each
+trade.
+And placing a buy order does not cost anything.
+So this means that a trading bot instead of
+printing ingame money.
+It actually removes gold from the economy.
+15% at a time.
+So a trading bot is in a weird way actually
+HELPING to fight inflation.
+Also I would claim, that the casual regular
+player, likes to buy items when they need
+it from the trading post, and sell items right
+away to sb who offered to buy it.
+That’s not the most efficient way, but the
+most comfortable way.
+And so a bot, who is constantly trying to
+overbid on items so they get buy orders filled
+raise the price a casual player can sell an
+item for right away, and at the same time
+try to undercut when listing the item, so
+their sell listing is sold quicker.
+Which pushes the price down for casual players
+that just want to buy an item.
+So it even has another positive effect.
+However there are also two major negative
+points.
+A trading bpt is competing with all the players
+who would like to maximize their profits,
+or engage in trading too.
+The undercutting and overbidding minimizes
+the profit a regular player can have.
+It also lowers the bots own profit, but a
+bot can obviously do a lot more trades than
+a human and can thus justify lower profit
+margins.
+And another issue is, that if players feel
+like there are bots trading it can have a
+very negative emotional effect.
+A feeling of unfairness and so forth - even
+though maybe objectively a trading bot is
+not bad, regular players will not see it that
+way.
+So I believe a trading bot is unfair, though
+it’s not bad or dangerous for the game,
+as long as players don’t see them.
+So let’s have a look at the data I have
+collected.
+I’m using a jupyter notebook to work with
+the data and used it to create all the graphs.
+The code is terrible, please ignore it.
+I have not included the API keys so you can’t
+find out which players were doing this, but
+you can find all graphs in the description
+below and so you can have a look yourself.
+First of all, over the roughly three months
+of collecting data, I have seen 94 unique
+Guild Wars 2 API keys.
+So I guess almost 100 people have downloaded
+the bot, executed it and entered their API
+key.
+However when you look at the graphs you will
+see that many have not actively used the bot.
+Next let’s look at the activity graph.
+At the bottom you can see the time span of
+the data collection.
+It started on 12 of november and went up to
+the 7th of februrary.
+My crawler checked the API every hour, so
+each point represents a bot being registered
+online and having some sell or buy data.
+You might wonder why there are only 76 bots
+and not 94.
+That’s because 18 people basically didn’t
+do ANYTHING.
+These 76 however started the bot for a brief
+period.
+But even though they used it, there are still
+several that were basically never reallya
+ctive.
+So for example user number 72 downloaded and
+ran the bot for a couple of hours on the 23.
+November.
+After after that, never again.
+In contrast to that user 25 has basically
+a bot running 24/7 for the whole period.
+BTW this gap over here was my fault, my crawler
+died and I didn’t realize it quickly enough.
+And then there is user 55, who used it fairly
+actively, but then stopped in december, maybe
+went home for christmas without their PC and
+then restarted the bot again when they returned
+in january.
+These graphs tell a lot of interesting stories.
+Now let’s have a look at individual bot
+graphs.
+I think number 25 is awesome, it’s a really
+active bot.
+I think it’s actually the most active one
+that I have recorded.
+So You can see here dots with several colors.
+Orange is the gold they have in their wallet
+or inventory.
+Blue is the gold trapped in items they have
+listed for sale.
+So blue is a theoretic gold value they would
+get if they would sell the items.
+But now that I think about it again, I think
+I forgot to deduct the 10% trading post tax
+from that.
+Anyway, blue should be a bit lower overall.
+Red are the buy orders they have, so that’s
+money that is waiting in the tradingpost for
+somebody who sells the item for this price.
+And black is the “net worth”, basically
+it’s just the sum of gold, value of the
+items listed for sale and the buy orders.
+It’s the theoretic gold wealth of this account
+at that moment in time.
+So if we look at the start of this graph we
+can see that the bot has constantly 400 to
+1300 with up to 1700g in buy orders.
+So hoping to get cheap items.
+And blue are the items being sold.
+So these items wait for a buyer.
+And as you can see their price is always going
+up and down meaning that new items are being
+listed for sale and that people buy items.
+Now I think that there is always a dip down
+on weekends?
+Which could mean that because on the weekend
+more players are playing, more items are being
+bought from this player.
+So the money in listed items goes down.
+But I can’t really explain myself those
+big jumps.
+So black is the overall “net worth” and
+I think there are clear upward trends visible
+here, with around maybe 750 to almost 1000g
+per week?
+But remember a lot of the wealth is kept in
+items that might never get sold, so it’s
+not all just raw gold.
+But here with those big jumps I think maybe
+my calculation fails a bit and actually the
+user cancelled all buy orders and so forth
+and then moved gold away.
+Also there is a fairly sudden drop in value
+of listed items, so maybe the person even
+cancelled a lot of listed items and relisted
+them lower or just outright sold them to the
+highest bidder?
+Maybe?
+Well i don’t know, speculating here.
+This trend here I think is awesome.
+The listed items are slowly being sold off,
+which increases the available gold.
+However the gold is immediatly put back into
+ordering new items, so more and more gold
+is now in the ordered items.
+Overall, because by selling those items and
+ordering new ones, the bot made a profit and
+thus the overall net worth is slowly increasing.
+But the trading strategy during this time
+is also ineffective, because ideally the listings
+wouldn’t go down, they should be at least
+stable or rising with the wealth.
+But like I said, that’s a very active bot
+and probably the most successful one.
+We can also use gw2efficiency with the API
+key to spy a little bit what this player traded.
+So here they are, these are the secret items
+that apparently are very profitable to trade.
+The most money was apparently made with the
+black Poly-luminescent trinket.
+The War God skins are also good.
+BTW if you are wondering why the listings
+are flatlining starting around the 9th of
+january, this can be seen also on other graphs.
+Unfortunately this is an issue with the guild
+wars 2 API.
+The listings are not updated, so the data
+there is faulty.
+Another very active bot, number 3, seems to
+be less successful.
+Here the networth is pretty constant.
+So kinda useless to let the bot run.
+Bot 30 looks awesome, but don’t get fooled
+by the slope and look at the y axis steps.
+Here the bot started with around 200g and
+made maybe 500g in about 3 weeks.
+That’s also not very great.
+And those drops look really like the person
+pulled out winnings into another account.
+Unfortunately this user’s API key is invalid.
+Maybe they got banned?
+Or maybe they just removed the API key because
+they stopped using the bot.
+So is this bot worth it?
+I’d say clearly no.
+A lot of the graphs are pretty much just a
+flat line, so they users don’t choose good
+items to trade.
+And you have to include the electricity cost,
+hardware cost and game key cost PLUS the subscription
+for the bot.
+I think it’s a complete waste of money and
+is better spent on buying gem cards.
+Also should the average Guild Wars 2 player
+be outraged over these unfair bots?
+No, absolute not.
+Those are small fish, they don’t really
+make a lot of gold, always risk getting banned
+and it’s just a handful of people.
+This is not a problem you should worry about
+and like I outlined earlier I don’t think
+it has any negative effects on to the game.
+And as long as you don’t cause an unjustified
+player uprising, this is just fine.
+Btw.
+if sb from ArenaNet wants the API keys to
+hand out some 7 day warning bans, send me
+an email.

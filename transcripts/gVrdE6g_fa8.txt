@@ -1,0 +1,259 @@
+Wow, the video about masato’s Google Search
+XSS, was the most shared video I have ever
+made.
+I’m really happy that so many people appreciate
+the ingenuity in it, even though many people
+would say “it’s just a XSS”.
+So I thought we could talk about how masato
+found this XSS and use it as an example for
+how security research can look like.
+Maybe you can also start doing some research
+yourself.
+Let’s first start with a tweet gareth shared
+in 2017, about a very similar weird behaviour
+he noticed, which basically looks like Masato’s
+XSS, just with noembed - At that time mikewest
+also responded that noscript works too.
+You should know that mike west is heavily
+involved in the World Wide Web Consortium
+(W3C).
+So he is a person who has real influence on
+the web.
+And so he wrote about noscript that
+This is what the spec says should happen but
+I wonder if we should change that.
+:/
+So mike west and gareth found this kind of
+behaviour interesting back in 2017.
+gareth actually found that noembed mutation
+when researching Cloudflare’s HTML parser.
+You can read more in that blog post over at
+portswigger.
+And then also responded to gareth’s tweet
+saying:
+I often use this trick when I attack any server
+side sanitizer.
+That’s what I was saying last video about
+server side sanitization.
+The problem is that there could be parser
+differentials between a server side parser
+versus what the browser actually parses.
+And by the way, the idea of attacking different
+parser behaviours is a fundamental idea in
+IT security research.
+I have even made a video in 2016 introducing
+that concept as part of the binary exploitation
+playlist.
+So that kind of thinking during research is
+not uncommon.
+But masato also added that:
+I didn't know that the inconsistante state
+happens via "JS APIs" until recently.
+Did you know that?
+:)
+So even though he is super experienced, he
+apparently didn’t realize that parsing with
+javascript functions can also be different.
+So masato has seen the browser and HTML parsers
+doing weird stuff all the time.
+And he told me that there were two behaviours
+that he observed that ultimately lead him
+to the discovery of the XSS.
+The first observation had to do with iframes.
+He said that a FEW YEARS AGO he was testing
+and playing around with iframe sandboxing
+and the HTML noscript tag.
+The Sandbox applies extra restrictions to
+the content in the frame.
+The value of the attribute can be empty to
+apply all restrictions.
+And you can see in the sandbox options.
+You could allow javascript in the iframe with
+“allow-script”.
+Or if you didn’t use the sandbox attribute
+at all.
+Which means in this case, with an empty sandbox
+attribute, the iframe content cannot execute
+javascript.
+As you can also see there is a “srcdoc”
+attribute.
+Which is Inline HTML to embed
+So this simply creates an iframe with this
+content.
+Let’s copy that iframe and also allow-scripts.
+And then we have a look at it in the browser.
+So here we have the two worlds.
+A world with javascript enabled and a world
+with javascript disabled.
+As we know since last video, this is what
+we expect the behaviour of  to be.
+If scripting is disabled, it parses HTML children
+nodes.
+If scripting is enabled, it will ignore anything
+in it, it’s just unimportant text in this
+case.
+Why did he test that a few years ago?
+No clue, that’s probably just the curiosity
+of a researcher.
+Asking himself: “how does noscript behave
+in a sandboxed iframe when scripting is disabled
+but the browser itself would support scripting”.
+Anyway, we have one clue of the puzzle.
+The second puzzle piece is about something
+he observed in different HTML parsers.
+It turns out that there are many different
+ways you can let the browser parse HTML.
+One example would be the template element
+we learned about last episode.
+But there is also DOMParser.
+The DOMParser interface provides the ability
+to parse XML or HTML source code from a string
+into a DOM Document.
+And here you can see the function parseFromString,
+to create a html document from a string.
+And there is also DOMImplementation.createHTMLDocument
+which creates a new HTML Document.
+And he told me he was fuzzing the following
+pattern.
+tagA open, tagB open, tagB close and tagA
+close.
+And in between just some text so the HTML
+elements are not empty.
+Here is the actual test .html site he wrote
+to fuzz this.
+When you go there you see an iframe and it
+seems to cycle through different tag combinations
+for that pattern.
+While this is running let’s peek into the
+code.
+Here is a huge list of possible tags.
+And here it creates the iframe.
+In the function test() he then creates dynamically
+a HTML document with createHTMLDocument, and
+prepares the html content with the fuzzing
+tags.
+And then he extracts the HTML from the document
+as dom1.
+After that he loads an iframe url, which basically
+just returns a document with whatever charset
+and content he wants.
+When the iframe is loaded and the onload triggers,
+he then extracts the HTML from the iframe
+and compares it to the previous dom1.
+If they are different, he will print that.
+And when you let that run in chrome, which
+takes a bit, eventually you will get some
+results.
+You will find noembed and noscript to behave
+weirdly.
+Interestingly if you run this in firefox you
+will find that math and the svg element parse
+differently.
+Masato actually also checked if that leads
+to a bypass of the Dompurify sanitizer, but
+this behaviour was apparently already known
+and mitigated.
+Just to practice I also creatred a fuzzer
+to test the same pattern, but using the DOMParser
+API instead and overwriting my own document
+HTML.
+I won’t go over all the details of it, the
+idea is the same.
+You find the code in the description as well.
+Anyway, that runs super fast and it also finds
+a parser differential between DOMParser and
+the regular HTML document innerHTML parser.
+So we also found that parsers inside of the
+browsers can parse things differently.
+That’s the second puzzle piece masato needed.
+masato knows very well how dompurify works.
+And he has a lot of general experience with
+this stuff.
+And so both observations together lead him
+to realize that he might be able to abuse
+this different parsing to bypass the sanitization
+in dompurify.
+Here is another tweet I wanted to show.
+Koto from Google responded on twitter to my
+video about Msato’s XSS and wrote:
+The funny thing is - we knew about that.
+It's an mutation xss variant and we coded
+the sanitizer to block that vector.
+A crucial line of code was later removed during
+refactoring, and we didn't catch this.
+Sirdarckat, the google who fixed the XSS also
+admitted shamefully.
+Maybe some unit tests would have prevented
+that regression.
+And finally, what was unique is that masato
+found bypasses for 2 different sanitizers
+but with the exact same payload (ours and
+DOMpurify with different root causes - dompurify
+does mxss protection differently,.
+That blew our mind :) Kudos!
+So you see, other researchers actually knew
+about this particular behaviour already.
+There are a lot of experienced browser and
+XSS researchers that could have found this
+XSS.
+But masato happened to take a hot shower in
+the right moment and his brain neurons fired
+and lead to those thoughts.
+I have no clue why.
+He probably also doesn’t really know.
+This is how creativity works.
+Maybe a good analogy would be like asking
+a musician how they came up with a certain
+melody.
+A musician also has to spend thousands of
+hours practicing and gaining experience in
+music, creating hundreds of shitty songs,
+before they come up with an amazing song.
+Masato’s finding is also a result of YEARS
+of experience and practice.
+So don’t get frustrated that having done
+some XSS for a few months or even a handfull
+of years that you don’t come up with that.
+You also have the ability given the time and
+persistence.
+Or wait… is there maybe a conspiracy?
+Is there maybe a secret I didn’t tell you?
+If you dig deeper.
+You will find connections.
+What connects mario from dompurify, with gareth
+who tweets awesome research, to sirdarckat
+who works at google and fixed the Google Search
+XSS, to Albinowax who is the head of Research
+at Portswigger aka.
+Burp suite who wrote about the noembed thing
+gareth found…
+This conspiracy goes deep.
+Let me tell you a secret.
+They have all been part of an old hacker forum
+called slackers.
+Obviously joking, but it’s true.
+They all have been active on slackers.
+That forum doesn’t exist anymore.
+But you can still browse it through the web
+archive, and it’s fascinating to read their
+old conversations.
+This was a forum where they shared and exchanged
+exactly this kind of weird javascript stuff
+and challenged each other with short payloads
+or weird XSS vectors.
+The reason why all of them are so knowledgeable
+and able to do this great research, and why
+they have those specific weird ideas to test
+certain things, it all comes down to having
+over a decade of experience.
+They have all joined that forum in 2007, and
+now it’s 2019, so they were at the forefront
+of exploring XSS when the world hasn’t quite
+realized that XSS is even a thing.
+So don’t feel bad you don’t find that
+stuff.
+They are all professionals with over a decade
+of experience in this specific field.
+So don’t try to rush anything.
+To get to that level, it requires real dedication
+and a lot of time.

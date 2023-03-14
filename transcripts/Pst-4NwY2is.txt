@@ -1,0 +1,430 @@
+Let’s have a look at some windows game hacking
+by revisiting Pwn Adventure 3 - the game that
+was made to teach game developers about what
+can go wrrong.
+We have solved all available challenges already
+on Linux and you can find the whole walkthrough
+as a playlist in the description.
+I didn’t do the hacks on Windows because
+I only have a basic knowledge about it.
+For example I know about DLL injection, tools
+like Cheat Engine and some of the Windows
+API, but that’s about it.
+And especially the tooling and the process,
+is very different on Windows and Linux.
+But because Linux and Windows run on the same
+PC architecture, we have of course some similarities.
+I know how C and C++ programs work.
+I know about memory and pointers.
+I can read assembly.
+I understand structs and classes in memory.
+But once you get into other process details
+like DLLs, shared libraries, the heap, threads,
+and so forth, it gets very different.
+So given my Linux experience I will have a
+good foundation, but I will also have to learn
+a lot.
+Also one sidenote, a lot of people scoff at
+Windows and Windows users when it comes to
+hacking.
+“Real hackers use Arch Linux”.
+But in reality, the game hacking community,
+has created some incredible debugging and
+analysis tools for windows.
+Going really deep.
+I’m not sure but I would lean so far out
+of the window (heh, pun) to say, that the
+tooling on Windows for analysing software
+or in particular games, especially software
+without source code, is much more advanced
+than on Linux.
+And I think a tool that immediately jumps
+to mind is Cheat Engine.
+So let’s check it out
+I remember playing around with Cheat Engine
+when I was a teenager and didn’t understand
+a thing about memory, assembly and other lower
+level stuff about programs.
+But already then it felt intuitive and logical
+to use.
+At least the basics.
+I think that just shows how great of a tool
+it is.
+So what is it?
+This is Cheat Engine.
+The basic idea of this tool is to find the
+address of certain values in the game’s
+memory.
+And you do this by repeatedly eliminating,
+or separating, or sorting out values.
+To do this CheatEngine offers various Scan
+Types and Value Types.
+At the top you can see that I have attached
+with this button to the Pwn Adventure process.
+So Cheat Engine searches through the game’s
+process memory.
+Let’s try it out.
+Let’s take the health, which right now is
+at 100.
+We search the value 100.
+We assume health is stored as a 4 byte value.
+First Scan.
+But we find thousands of values.
+However you can already see a few values now
+updated.
+This is the current value in memory, and this
+is what it was when the search was done.
+So with the next scan we can filter, or search,
+on those results and we could just search
+again for 100, or we could say that the value
+has not changed.
+No difference in this case, just wanted to
+show a different scan type.
+And we sort out a few memory locations, but
+we are still at over 9000!
+Mhmh… we can also go into the game and move
+and jump around hoping that that could affect
+any of those values.
+Nothing directly visible here, but when we
+redo the scan we are now in the 8000s.
+So it helped.
+But you see, it will be tough to find now
+the right health value.
+So that’s why you want a value that you
+can somehow affect.
+You could affect the health by taking damage,
+but unfortunately we are just at the start
+of the game, so we can’t do this right now.
+Instead let’s look for something else.
+Let’s start over and do a new scan.
+I want to find the address in memory that
+stores the current selected skill or weapon.
+1,2,3,4,5,6,7,8,9 or 0.
+We have selected 1, and we could now search
+for the value 1.
+But if you have experience with programming
+and you imagine this to be an array, we actually
+don’t not know if this is stored as a 1
+or maybe as an array index of 0.
+And if you think this further, it could also
+be a linked list, which would mean the current
+selected skill could also be a pointer, just
+pointing to that object that represents that
+skill in memory.
+So it’s perfectly valid to make an assumption
+that it is 1, and then start searching like
+that.
+And maybe that works or you restart and try
+0.
+But you could also try to go with an unkown
+initital value.
+First scan.
+It takes a bit.
+Because it now indexed over 168 MILLION addresses.
+This is what Cheat Engine makes such a great
+tool.
+It’s not difficult to read a processes memory.
+We have done that on linux with GDB aaaaalll
+the time.
+Examining memory.
+And of course we could write scripts or tools
+to automate such a search.
+But the software engineering along the algorithm-,
+and memory-, optimization to make this as
+efficient and usable as Cheat Engine does
+it, is not trivial.
+That’s why this is an awesome tool.
+Anyway, let’s continue.
+So we haven’t changed the selected skill
+yet, but we move around a bit, and so we can
+now filter out ALL the dynamic memory values
+by searching for unchanged value.
+Ooof… still 167 million.
+That didn’t help much…
+But that makes sense.
+We searched for an unkown value and then filtered
+for all the unchanged valkues.
+And all the assembly code of the binaries,
+the pwn adventure binary, all the loaded dlls,
+all the loaded resources and 3D objects are
+all unchanged data in memory, right?
+So we want to get rid of those.
+Which means we should somehow change and affect
+the skill selection by switching the skill
+around.
+Ok we clearly changed the value now and we
+can search for a changed value.
+BOOM!
+From 167 million down to 291 thousand.
+And you can already see some red colored values
+that updated and changed.
+So let’s quickly scan for unchanged values.
+Down to 229 thousand.
+Just repeat the same search a bit.
+Down to 203 thousand.
+Let’s walk around a bit and pay attention
+to the values.
+As soon as we moved, those all changed!
+But we didn’t change the skill.
+So now we can filter again for unchanged values.
+100k left.
+Now switching some skills.
+Moving around.
+But back to skill 2.
+So it’s unchanged.
+Doesn’t help much.
+Well, let’s change it again and select skill
+3 and search for a changed value.
+WOW!
+Down to 262.
+WE could now almost look through that by hand.
+We changed to the second skill and immediately
+those values updated here.
+Going back to 3, it’s 0.
+So it seems to be directly affected by the
+selected skill.
+However going to the 5th skill, we notice
+the value stays 0, like when we had skill
+3 selected.
+Which means we should search now for changed
+values.
+Down ti 94.
+Let’s keep doing that, switch to skill 6.
+Changed value scan.
+Down to 10!
+Skill 7, scan for changed value.
+Skill 8.
+Changed value.
+Skill 1, change value.
+But looks like nothing happens anymore.
+And there it is!
+So switching the skill we can see the numbers
+update.
+And the idea to imagine this value we look
+for to be an array index seems true!
+Because skill 1 is a zero.
+Skill 2 is a 1.
+And so forth.
+The other value here I’m not sure.
+It doesn’t look like a pointer, because
+a pointer should move by the pointer size.
+On 32bit it should move by 4 bytes, so +4.
+But it’s also always just +1.
+So no clue.
+But whatever.
+We can also now add this address to the address
+list here.
+So at this address in memory, we have apparently
+the value stored that indicates the selected
+skill.
+This went pretty well.
+But sometimes when you search for values,
+the same value shows up in multiple places
+in memory and they could just be updated,
+but are not the real source variable.
+But when we change it, we see that the game
+also updates the selected skill.
+This means that this is the real root value.
+Beyond this cheat engine offers a lot of other
+interesting tools to explore this further.
+For example “we can find out what writes
+to this address”.
+“This will attach the debugger of Cheat
+Engine to the current process.
+Continue?”
+Yes.
+There we go.
+Now let’s go to the game and once we change
+the skill, we see an entry in our list appearing,
+counting how often this instruction was executed
+and wrote this address.
+So this move instruction moved a value from
+edx into the memory refrenced by ESI + hex
+0x180.
+Here we can also see a few of the surrounding
+assembler code and here the register values.
+We said EDX is the value that is written,
+so it in this case it was the number 1.
+And ESI is an address.
+And the value was written at the offset hex
+0x180.
+Now I’m not a 100% sure if this is the case
+here, but most likely this means that ESI
+is the pointer to some object in memory.
+Maybe the player class.
+And this player object might have a variable
+to indicate the current selected skill, and
+it is at offset 0x180.
+assembly is hardcoded fixed data, right?
+So that can tell you a lot.
+For example we could imagine this to be a
+function in C++ like, set_selected_skill,
+and it takes a number, and assigns it to the
+player’s member variable.
+The compiler of course knows how the Player
+object looks like.
+It knows that at offset 0x180 is the player’s
+selected skill.
+So it simply compiles a move based on the
+players object start address.
+Does that make sense?
+And you can explore this assumption by looking
+at the memory.
+We can see here Cheat Engine’s Memory View.
+We go to the address of ESI, and so here it
+is.
+And now look at what comes after that start
+address.
+We see my player name and my team name.
+LiveOverflow and PwnSquad.
+We can apparently also see the location we
+are at.
+LostCave.
+We can also see here a value that seems to
+rapidly count up.
+So this could be a timer of some sorts.
+The other highlighted value here is the address
+we have stored in our address list.
+So this is the selected skill.
+We can see it change when we change it ingame.
+But we don’t see anything update when we
+look around or walk around.
+So the player’s position doesn’t seem
+to be stored right there.
+We can also look at the Memory Regions to
+find out where the code that accessed this
+memory belongs to.
+It staretd with hex 0x618….
+Something.
+And there are a lot of memory regions for
+a game.
+But here it is.
+It seems to belong to the GameLogic.dll.
+And if you have watched my PwnAdventure series
+on linux, you know that the GameLogic is a
+very important part for the game.
+You can also use this information to kickstart
+static analysis.
+Let’s try to find this function that wrote
+the skill number in a disassembler.
+Here I have loaded the GameLogic.dll into
+Ghidra.
+The free reverse engineering tool from the
+NSA.
+And when loaded it loads the dll at a certain
+address.
+So we can’t simply go to the address that
+cheat engine told us.because of ASLR on windows,
+the dll was loaded somewhere else in memory.
+But we saw which address in the memory view
+of Cheat Engine.
+Here is the the Memory Map as shown by Ghidra.
+And with this house symbol, representing the
+BASE, you can actually move the whole dll
+around.
+So we can now enter the real base address
+in memory, and Ghidra will relocate the binary.
+And now compare the memory map of Ghidra to
+the real process memory map.
+You can see how all the sections of the .dll
+where really loaded into the memory of the
+game.
+Anyway.
+Now we can be lazy and simply go to the address
+Cheat Engine told us.
+So here it is!
+I have deliberately renamed the GameLogic.dll
+to game.dll, just because the PwnAdventure
+game shipped with debug symbols in the .pdb
+file.
+This way we can have more the experience of
+reverse engineering a closed source game without
+symbols.
+So here is the function.
+Ghidra also comes with a decompiler so you
+can see here that this line writes the skill
+number.
+So like I said, there is a good chance that
+ESI was somehow the pointer to some kind of
+Player object.
+So we could just assume that iVar1 is a player
+object.
+iVar1 + 0x180 is the selected skill.
+And so we can also ask Ghidra to automatically
+generate a structure - a struct.
+Like in C. Basically automatically create
+a class.
+Now of course ghidra doesn’t know how this
+class looks like, but based on the decompilation
+it can assume that this offset 0x180 was actually
+a variable inside that Player struct.
+So you see the code changed from this addition,
+to accessing a member variable of Player.
+And then we can rename that field, and for
+example call it skillId or itemSlot.
+This is cool right?
+I have to make it clear.
+I’m not 100% sure that this is really a
+player object, and I don’t know how really
+that variable is called.
+These are just assumptions based on the evidence
+we have collected.
+But in the process of reverse engineering,
+we might also invalidate this assumption because
+we learned even more details.
+Doesn’t this almost feel like investigating
+a crime scene or doing science.
+And you need quite a bit of creativity too.
+You try to come up with a gooddiea to collect
+data and evidence and you come up with assumptions,
+that are for example based on your programming
+experience, and create a mental model, and
+then you collect more data that either confirms
+your assumptions or you adjust your model.
+And you keep repeating that.
+You can see that some people can find this
+to be really fun.
+Like a puzzle or a point and click adventure
+game.
+But this is basically how reverse engineering
+of a game or some program can look like.
+If this process seems fun to you, checkout
+the YouTube channel GuidedHacking and Stephen
+Chapman.
+They make a lot of videos about various games
+and show you how they approach it.
+Also… just a small PSA.
+Please don’t become an asshole game hacker.
+With that I mean, 1st. don’t ruin online
+games.
+Even cheat engine officially says don’t
+ask about hacking online games (and typically
+they have anti debugging and detections in
+place that stop this easily anyway).
+There are of course always tricks to get around
+stuff, but don’t bother asking people about
+that.
+If you play around with that alone, fine.
+With enough experience you can do that yourself.
+But selling hacks is shitty.
+And don’t ask for online game hacks.
+You can have enough fun and learn enough with
+normal non-online games.
+Or stuff like Pwn Adventure.
+And 2nd.
+Like I said I explored these tools when I
+was a teenager and eager to learn.
+And I found these game hacking forums.
+But they were full of entitled pricks and
+elitists who didn’t want to share anything.
+If that was you, and now you watch my videos
+for other hacking content, screw you!
+I’m branded by you!
+But that’s why I appreciate Guided Hacking
+and Stephen Chapman so much.
+Because their videos are exactly the videos
+I wish I had found when I was a teenager.
+And I can only imagine the impact they have
+on the new generation.
+Because many security researchers have had
+their origin in game hacking.

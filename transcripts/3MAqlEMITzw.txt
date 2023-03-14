@@ -1,0 +1,212 @@
+In my early videos I used the slogan “don’t
+be a script kiddie” in the intro. And quite
+some time ago I got the following YouTube
+comment about it:
+“Don’t be a script kiddie, is a reference
+to Mr. Robot? Or is it already a thing in
+general?
+Well… mhmh... I think it would be interesting
+to look for the origin of the term “script
+kiddie” and at the same time get a glimpse
+into some hacker culture history. I think
+this is interesting because it gives us an
+excuse to look into the past, to better understand
+on what our community is built upon and somewhat
+honor and remember it. I wish I was old enough
+to have experienced that time myself to tell
+you first-hand stories, but unfortunately
+I’m born in the early 90s and so I’m merely
+an observer and explorer of the publicly available
+historical records. But there is fascinating
+stuff out there that I want to share with
+you.
+The first resource I wanted to check is phrack.
+I have referenced phrack many times before,
+because it is I think the longest running
+ezine with quality content. And the cool thing
+is that these issues started in 1985 by Taran
+King and Knight Lightning. So it has been
+part of hacking history from pretty early
+on, and I highly encourage you to just randomly
+click around those old issues and read some
+articles. You will find stuff about operating
+systems and various technologies you might
+have never heard about, because they basically
+don’t exist anymore. But you also find traces
+of the humans behind all this through the
+phrack-prophiles and other articles. Maybe
+checkout the famous hacker manifesto from
+1986 - The Conscience of a Hacker. It was
+written by a teenager, calling himself The
+Mentor, who probably never thought that his
+rage induced philosophical writing would go
+on to influence a whole generation of hackers.
+But it becomes even more fascinating with
+the privilege of being here in the future,
+right now, and looking back. I found this
+talk from 2002 by The Mentor, he is now a
+grown man reflecting on his experience about
+this. It’s emotional and human. And in the
+end this is what the hacker culture is. It’s
+full of humans with complex emotions, we shouldn't
+forget that.
+Anyway, I’m getting really distracted here,
+but there are not enough opportunities to
+expose people to this stuff.
+Back to script kiddie research.
+We can simply wget the archive from phrack.org.
+-r, recursive crawling. -l only two layers
+deep and -np for no parent folders. This takes
+a moment to download.
+And then we can grep. Let’s start with simply
+script kiddie.
+The oldest occurrence of “script kiddie”
+we can find is from issue 54, released in
+1998, article 9 and 11.
+when someone posts (say) a root hole in Sun's
+comsat daemon, our little cracker could grep
+his list for 'UDP/512' and 'Solaris 2.6' and
+he immediately has pages and pages of rootable
+boxes. It should be noted that this is SCRIPT
+KIDDIE behavior.
+Mh! And the other is a sarcastic comment about
+Rootshell.com being hacked and then them handing
+over data to law enforcement:
+Lets give out scripts that help every clueless
+script kiddie break into thousands of sites
+worldwide. then narc off the one that breaks
+into us.
+But this issue is from 1998. Still the 90s,
+but I’m sure there have to be earlier occurrences.
+And we should maybe start looking for slight
+variations that I think are still valid.
+For example “script kiddy” with a y, but
+there is not much.
+So I was searching for just “kiddie”,
+which might help us find other variations
+including skript with a k or skiddie or script-kiddie
+with a dash.
+But the only earlier occurrences than what
+we have is of just “kiddies” - for example
+in issue 12 from 87.
+I have been phreaking since these kiddies
+were still messing their diaper
+But that’s not quite the “script kiddie”
+terminology. I think we have to expand and
+look somewhere else.
+Wikipedia is often pretty good with information
+and references, but unfortunately there are
+only links going back to the 2000s.
+While looking for more textfiles to search
+through, I stumbled over this repository by
+fdiskyou with a larger collection of Zines.
+However there was not really anything much
+older than our 1998 phrack article.
+Then I also looked at the textfiles.com archive,
+which is ran by Jason Scott. And he has a
+huuuge archive of old zines and bulletin boards,
+mailing lists, and more. And so I started
+to search through that and indeed I found
+some interesting traces from around 1993/1994
+in a BBS called yabbs - yet another bulletin
+board system created by alex wetmore in 1991
+at carnegie mellon.
+The first interesting find is from october
+1993 “Enjoy your K-Rad elite kodez kiddies”.
+the term kiddie is not prefixed with “script-kiddie”,
+and I’m not sure if it’s “elite code
+(comma) kiddies”. Or elite “code kiddies”.
+Code and script is almost synonymous and it
+seems to be used in a very similar derogatory
+way as the modern terminology.
+In december 1993 the term kiddie is also used
+in relation to “rip them off”, which is
+also a typical meaning of “script kiddies”
+nowadays - they just steal and take other
+people’s work.
+And then in June 1994 there is this. “Codez
+kiddies just don’t seem to understand that
+those scripts had to come from somwhere. Hacking
+has fizzled down to kids running scripts to
+show off at a 2600 meet.”
+there is again a reference to “codez kiddies”
+but now the term “script” also starts
+to appear in the same sentence.
+And then in July 1994 it got combined to “Even
+99% of the wanker script codez kiddies knows
+enough to not run scripts on the Department
+of Defense”.
+Isn’t that fascinating. I start to believe
+that 1994 is the year where the term “script
+kiddie” started to appear. But this example
+is still not 100% the modern term. And so
+the earliest usage of literally “script
+kiddie” I was only able to find in an exploit
+from 1996.
+Crontab has a bug. You run crontab -e, then
+you goto a shell, relink the
+temp file that crontab is having you edit,
+and presto, it is now your
+property. This bug has been confirmed on various
+versions of OSF/1, Digital
+UNIX 3.x, and AIX 3.x
+If, while running my script, you somehow manage
+to mangle up your whole
+system, or perhaps do something stupid that
+will place you in jail, then
+neither I, nor sirsyko, nor the other fine
+folks of r00t are responsible.
+Personally, I hope my script eats your cat
+and causes swarms of locuses to
+decend down upon you, but I am not responsible
+if they do.
+(signed) --kmem.
+[-- Script kiddies cut here -- ]
+THERE IT IS!
+This bug was discovered by sirsyko on Thursday
+21st Mar of 1996, just after midnight. I guess
+nothing has changed with hacking into the
+night.
+And this exploit script was written by kmem.
+You know what’s cool? With a bit of digging
+I actually found party pictures from around
+96/97 from kmem and sirsyko. I find it fascinating
+to look at these. And I’m so grateful that
+there was some record keeping with pictures
+from that time, that takes away some of the
+mysticism that surrounds these early hackers.
+They look like normal dudes!
+But anyway, is this really the first time
+that somebody used the term script kiddie?
+Is this where it all started?
+Well… When I was asking around, somebody
+reminded me of Cunningham's Law:
+"the best way to get the right answer on the
+internet is not to ask a question; it's to
+post the wrong answer."
+SO
+I
+DECLARE
+THIS EXPLOIT
+TO BE THE FIRST! USAGE OF THE TERM SCRIPT
+KIDDIE!
+IT’S. A. FACT!
+Mh! Let’s see if that works.
+I’m aware that a lot of the hacking culture
+happened in private boards, forums and chat
+rooms. But maybe somebody out there has old
+non-public IRC logs and can grep over it for
+us. I think it would be really cool to trace
+this further.
+Also I would LOVE to hear the story behind
+any exploit from the 90s. How did you find
+it, did you share it, how did you learn it,
+what kind of research did you do yourself,
+who was influential to you, did anybody steal
+it, were there bug collisions, what was it
+like to experience a buffer overflow for the
+first time and so forth. I think there are
+many fascinating stories hidden behind those
+zines and exploits from that time that haven’t
+been told and I don’t want them to be forgotten.
+Please share your story

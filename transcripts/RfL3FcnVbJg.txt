@@ -1,0 +1,496 @@
+In the first video I talked about how I approached
+this challenge and some of the thoughts and
+ideas I had.
+I’d like to emphasize again that I worked
+on this for both days of the CTF, so I cannot
+include every small detail and struggle I
+had, but I hope I showed the important steps.
+At some point I was looking closer at the
+deployed contracts bytecode and transactions
+and noticed that the hardcoded logger address
+of the game contract was wrong.
+And so early on the second day I went to the
+organizers and told them that.
+I thought all my attack ideas didn’t work
+because of that.
+However the author then kinda dropped a hint
+because he said:”oh, but it doesn’t really
+matter.
+The exploit doesn’t need the logger contract”.
+And I was like WHAT THE F’’’’’.
+This is all just distraction?
+All the function signature collision, all
+the delegate call stuff here?
+All just unimportant.
+F’ my life…
+He then also announced this hint publicly
+over the microphone, so that the competition
+stays fair and everybody knew about that as
+well.
+But for me this meant, back to square one.
+I was so lost…
+Out of desperation, also because I knew the
+trick must be here in the game contract, I
+decided to reverse engineer the deployed game
+contract binary code more closely, which I
+got through calling getCode when attached
+to the web3 API.
+Together with a teammate we were looking over
+the opcodes and stumbled over a backdoor in
+the TheAnswerIs function.
+Oh ship.
+So here is the call graph of this contract
+in Binary ninja using the etherplay plugin
+from trailofbits.
+If you go into the TheAnswerIsFfunction, follow
+it down, you find the first check.
+This is the isHuman check where it looks at
+the codesize.
+Following further the execution you reach
+some code that contains a SHA3 opcode, so
+that’s the keccak256 call.
+So here it calculates the hash of your supplied
+answer and compares to the stored hash.
+After that we find another condition where
+the callvalue, so the ether you sent along
+the transaction, is compared to 0xde0b-blahblah,
+so this checks if you sent 1 Ether.
+So far so good.
+It’s exactly what you see in the contract
+code.
+But then we find a check on the calldatasize,
+so this is the input data you send with your
+transaction.
+This input contains the function signature
+you want to call including the parameters,
+serialized.
+And that size has to be 0xa0.
+If that is not the case, which is the normal
+case for this function, then you see here
+how the hardcoded address of the logger is
+loaded, it checks the extcodesize of the logger
+and either reverts (this is btw what happened
+last video when we played with the remix debugger),
+or everything is fine.
+But there are two weird things.
+First of all this code DOES NOT include the
+transfer of the ether if you win.
+It’s simply not there in the bytecode.
+And instead we have this check of the input
+size which was not in the solidity source.
+So if the codesize is 0xa0, the caller address,
+so our address if you get to here, is loaded
+onto the stack, ffff is pushed onto the stack.
+Then a binary AND is executed, which leaves
+only the last 2 bytes of the address, and
+then it uses that value and performs a JUMP.
+This is the backdoor.
+You have here an arbitrary jump that you can
+control with the last 2 bytes of your address.
+The question is just, where do you to jump
+to now?
+And this is what I basically spent most my
+time on during the second day.
+In ethereum you can’t just jump anywhere,
+you can only jump to addresses where there
+is a JUMPDEST instruction, which you see all
+over the place.
+So while there are a limited amount of places
+you can jump to, it’s still a lot.
+And I just knew it wouldn’t be one single
+jump, it probably must mean you have to CHAIN
+multiple jumpgadgets together.
+It’s like ROP, or more like JOP, Jump Oriented
+Programming, but in an ethereum smart contract.
+So this means you have to find and reuse code
+that is already there, to send away the ether
+to your account.
+But the only transfer we know about from the
+original source, was missing in the backdoored
+binary code.
+You can only send ether away with something
+like a CALL instruction, so opcode f1, or
+with a DELEGATECALL opcode f4.
+While there were a few f1 calls, nothing looked
+good.
+But during this research I also found this
+“bzz” string.
+And when you disassemble that then there is
+a JUMPDEST, so you can jump here AND there
+is a DELEGATECALL.
+WHAT THE F”?
+Through a bit of research about the bzz string,
+I learned that this belongs to metadata the
+solidity compiler appends at the end of smart
+contracts.
+Encoding of the Metadata Hash in the Bytecode.
+And the challenge author made it so that the
+32 bytes swarm hash contains a jumpdest and
+delagate call.
+This cannot be a coincidence.
+I swear this was done on purpose to hide a
+gadget.
+Problem was though, that jumping here right
+away, doesn’t work, because the parameters
+that are needed on the stack for the delegate
+call don’t match.
+It will run into an error.
+So we need to jump somewhere else first, but
+I’m SURE we must jump here at SOME point.
+One other small thing I found out was from
+disassembling the contract creation code which
+is sent along the contract creation transaction,
+and is different from the actual deployed
+contract on the blockchain.
+It contains the constructor code.
+So all this code actually deploys the backdoored
+contract but at the end we reach this jump
+relative to the program counter.
+And so we can calculate where it jumps to
+and disassemble the code there and it’s
+very short.
+It simply pushes these 4 bytes on the stack,
+pushes another byte identifier on the stack
+and then stores this 4byte value in the contract
+storage at this key.
+For whatever reason I looked up these 4 bytes
+in a big database of solidity function signatures
+and it turns out this matches the function
+signature for withdraw().
+Again, must not be a coincidence.
+One other thin I also remembered, were those
+weird characters in this one string.
+I also assumed, these must have purpose.
+And because these hardcoded strings are just
+in regular code of the smart contract, I assumed
+it contains ethereum bytecode.
+And there was actually a JUMPTDEST!
+The opening bracket is 5b, the opcode for
+JUMPDEST.
+So I thought we could jump there.
+I assumed that also MUST be a gadget.
+And this is as far as I got during the CTF.
+The last struggle I had was fighting with
+that I just couldn’t jump there.
+It would always fail, even though there was
+a JUMPDEST!
+I was sad but also learned SO MUCH more about
+reversing.
+I later realized the problem was that the
+ethereum VM saw this as part of a large PUSH32.
+The 5b is in there, and the EVM doesn’t
+allow to jump into the middle of an instruction.
+But after the CTF I really wanted to talked
+to the challenge author.
+Because I wanted to understand how to solve
+it.
+So let me introduce you to him.
+But don’t be fooled by his good looks.
+THIS IS THE FACE OF PURE EVIL, HE IS A MANIAC,
+WHO MADE ME SPEND PROBABLY 50 HOURS or more
+ON THIS CHALLENGE.
+He answered some of my questions, which was
+really nice and he was really happy that I
+enjoyed the challenge so far.
+He told me it took him a week to create it,
+and that it was the hardest challenge he could
+come up with.
+Yeah I believe that.
+One of the things he told me, and I didn’t
+notice that, that the weird string appeared
+twice.
+In the backdoored contract further down.
+There a few bytes different and so here there
+were invalid commands and so the JUMPDEST
+was in the clear and reachable.
+Dangit!
+Well.. after the CTF was over, after I talked
+to the challenge creator I also talked to
+the only team that solved it.
+217.
+But unfortunately the person who solved it
+was not on-site, and they only knew that there
+was a backdoor, which I also already knew.
+The small technical details were what I was
+struggling with.
+So I was still SO obsessed for not having
+solved this challenge, that back in hotel
+after the CTF, during our over 24h trip back
+to Germany, in the train home and then more
+hours at home, I just had to PWN THIS DAMN
+CONTRACT!
+At this point it wasn’t about fun anymore.
+It was pure self-loathing.
+Driven by the hate about my stupid little
+brain who just can’t solve this damn challenge.
+My own obsession and owing it to my team members
+for having spent all my time on this, did
+not allow me to give up.
+Anyway…
+I solved...
+Finally…
+About a week after the CTF the challenge finally
+fell…
+I’m free again.
+Before I walk you through that, I just want
+to mention a share a few notes on my experience
+testing and debugging smart contracts.
+I never really had to debug smart contracts
+beyond simple debugging with remix.
+So this complex setup of this backdoored contract
+and stuff like that was new to me.
+For most of the time during the CTF I was
+using this evm program to run the code and
+debug it, but there were a lot of these checks
+like answering the question correctly, which
+I couldn’t figure out how to do.
+So I actually always patched the binary bytecode
+to ignore those checks.
+So that was very cumbersome.
+Eventually I realized I need more of a dynamic
+debugging environment and that’s when I
+went through the trouble and used geth to
+run my own local environment and deployed
+the contracts there.
+I will link all my deploy and setup scripts
+in the description so you can just do the
+same.
+This is very cleaned up code but it was obviously
+VERY messy during the CTF.
+I basically just replay all the contract creation
+inputs that I extracted with my simple transaction
+logger.
+However because I don’t have the private
+key of the real admin, my contract addresses
+will be different.
+So a lot of the hardcoded values, like the
+logger address, and the function calls had
+to be adjusted.
+Oh, and I also added a few different accounts
+in the genesis block, so we have ether there
+to deploy the contracts.
+By having this local ethereum chain running
+with geth, we can also expose the debug api,
+which allows us to retrieve a detailed execution
+trace of transactions.
+So I could try to trigger the backdoor and
+then request a trace and look through what
+happened.
+I also wrote a small python script to just
+filter and more nicely display the important
+checkpoints of the trace.
+I really wish remix would support that.
+One other detail that is important is, that
+I forgot about the a() contrct which calls
+Start() on b.
+Which is a bit distraction because the real
+address for b is passed in dynamically, and
+I knew already that it passes in the address
+of the game contract.
+So it calls Start() on AcoraidaMonicaGame.
+So I forgot that in my local deployment script,
+and only had the second transaction that calls
+start() directly, but that one used a longer
+answer.
+And the problem was, that this long answer
+was then the correct one for my local test,
+and the way the backdoor worked meant that
+the answer reached into one address used as
+another jump gadget.
+Blah blah.
+I just got stuck there.
+theoretically I knew that the a() contract
+was there which also called Start, but I forgot
+about it.
+And that contract was actually using the same
+question, but just used a single character
+as an answer.
+And it was executed first.
+So that meant to answer the question correctly
+to trigger the backdoor, the answer was short,
+and in reality there was never a problem with
+the long answer.
+But that little mistake cost me probably another
+8-16h of running in circle, trying to find
+another backdoor, or using the existing backdoor
+to somehow set a short new answer.
+And then in a second stage do the actual exploit.
+But that was wrong because like I said, I’m
+so dumb and forgot about the a contract.
+So the purpose of the a contract was another
+obfuscation trick used by the author, because
+this transaction doesn’t immediatly look
+on first sight like it would call Start(),
+but it actually does, in the constructor.
+Long story short, the real answer for the
+question is just a single character “r”.
+And the second call to start was just distraction
+and at the same time a way to transfer the
+ether we have to steal to the contract.
+Anyway… this is the final payload.
+The whole attack actually requires an additional
+contract, an attack contract that I have to
+deploy first, but let’s look at that contract
+once we reach that step.
+Now just lean back and enjoy the ride of what
+this input does.
+This sends one transaction with 1 Ether, using
+this payload as input, to the AcoraidaMonicaGame
+contract.
+So first of all we see the function signature
+that is being used.
+0x46a3ec67 So that’s just calling the TheAsnwerIs()
+function.
+We can follow this here in binary ninja.
+Then comes the isHuman check.
+But this is a normal transaction, no contract,
+so perfectly fine.
+After that we get the SHA3 calculation again
+and the equal, and we know now from the obfuscated
+Start() call, that our answer is just one
+byte long.
+A single ‘r’.
+After that it checks the call value, so if
+we sent one ether, and that is also fine.
+Next we check the calldatasize.
+It has to be 0xa0, so 160 bytes long.
+And yes, I made the payload exactly 160 bytes
+long.
+That’s why there is a bit of padding.
+And now we enter the backdoor code.
+It takes my address, apply the FFFF and, leaves
+the last two bytes of my carefully chosen
+address.
+0x5e6.
+I wanted to jump there because we identified
+that as an interesting gadget earlier inside
+of that weird string here.
+And so I wrote a small script to bruteforce
+a private key until I get these two last bytes.
+So this private key that we use for this transaction
+has this public address.
+Anyway, this means we continue execution in
+our first JUMP gadget at 0x5e6.
+This gadget was carefully created by the author
+and it prepares the parameters for the delegatecall
+gadget, I showed you earlier.
+So for example this will actually load a function
+signature from the contract’s storage at
+262a, which if you remember was set at the
+injected constructor code.
+So this actually loads the function signature
+of withdraw().
+It also calls CALLDATALOAD to load the address
+of the target contract from your input and
+puts it onto the stack.
+So the address here in my input is actually
+the contract that is being called if we execute
+a delegatecall.
+And this is how the stack in the end looks
+like, this whole gadget inside this string
+is just to prepare the stack carefully.
+So this is the GAS for the transaction, the
+target address, and then some parameters that
+define the input data.
+So the withdraw() function signature.
+And the other calldataload loads the next
+jump address, also from the input.
+It’s this value here, and this is also where
+the error happened that caused me to run in
+circles.
+If the answer would be super long, the answer
+would reach into here.
+And because the ethereum VM works on these
+32byte values, that JUMP address was obviously
+completely wrong.
+But now it’s fine.
+And this address for this jump here, points
+at the delegate call gadget, we found in the
+contract metadata which the compiler placed
+there.
+we jump there, and execute delegatecall.
+So this will call now into the contract I
+defined here.
+Now let me show you this attack contract I
+mentioned at the beginning.
+this is how it looks like.
+I simply define here the player and the game
+contract address.
+And then we have the withdraw function that
+it wants to call.
+So this will be called.
+And it’s simple, it just performs a transfer
+with the balance of the game contract, so
+all the ether from the game contract, and
+transfers it to our player account.
+This works because of delegatecall.
+A delegatecall is a special call which basically
+means you still operate in the environment
+of the original contract, but execute the
+code of the other contract.
+And so if we delgatecall this withdraw function,
+and do a transfer, it’s as if the game contract
+would have done the transfer directly.
+So that allows us to send ether away.
+But to make sure this transaction actually
+happens, we have to ensure that the code doesn’t
+run into an error and reverts.
+So you probably wonder what that weird huge
+return value is, but it’s also carefully
+chosen.
+So when we return from the delegatecall it
+will load another jump destination onto the
+stack, which when debugging we can see jumps
+to 0x49d.
+And there we see a load which actually loads
+the return value from the delegatecall and
+then performs an ADD.
+If we hadn’t returned a value, or for example
+when you do a selfdestruct instead of a transfer,
+which I originally tried, this would be 0,
+and we would perform 0x4b1 + 0 and jump to
+0x4b1.
+And that would then continue in the original
+execution flow, with the logger contract and
+eventually it will run into a revert.
+So to avoid that we have to return a value
+from the call, so that when it adds the return
+value on 0x4b1, it will actually jump somewhere
+where the contract gracefully stops and commits
+all the transactions.
+So like a clean exit in a ROP chain.
+And so here we just do an integer overflow
+with the add of ffffbe7, or more like a subtraction
+of -0x419, and the result is 0x98.
+Jumping there means it leads to 0x99, and
+this is where it STOPs.
+BOOM!
+Now the blockchain recorded the transfer of
+all the ether from the game contract to the
+player contract.
+Here I queried the balance of the game contract
+before, and here afterwards.
+F’ YEAH!
+The game contract is empty.
+And we won.
+This was probably the hardest CTF challenge
+I have solved in a long time.
+And some of you might think that it was a
+waste of time to spend dozens of hours on
+this.
+I can’t really show everything in these
+videos, but you have to remember that I didn’t
+know all what I explained before, and I gained
+SO MUCH practical experience and insight into
+the ethereum VM.
+I kinda understood smart contracts before,
+but now I really understand them - down to
+the opcode level and I got very comfortable
+reading evm bytecode and working with it.
+This was incredibly helpful to me. as I mentioned
+somewhere else briefly, because I do some
+smart contract audits professionally, this
+also me to do an even better job.
+This challenge was the perfect example how
+I use CTFs to help me advance my professional
+career on the technical level.

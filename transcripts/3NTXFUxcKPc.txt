@@ -1,0 +1,302 @@
+In this video we will revisit the license
+check program from last time.
+You can get the same compiled 64bit binary
+from github and you can also watch the last
+video where I went into more detail how to
+crack this simple program.
+I will show now different simple tools and
+techniques that exist to analyse a program
+like that to circumvent the license check.
+This should show you that there are a variety
+of different ways how to solve this challenge.
+The file command is very useful to check what
+kind of files you have.
+So ‘file’ on our binary says it’s a
+ELF 64-bit executable for Linux.
+You can also do ‘file *’ to get the information
+on all files in the directory.
+And it then also finds the C source code here.
+So that’s very useful.
+Let’s open the program in a text editor
+like vim.
+As you can see it looks very weird.
+I have introduced ASCII before, so you know
+that every character has assigned a number.
+But there are numbers that don’t have a
+printable character assigned.
+If you look at the man page of ascii, you
+see that for example value 0 to hex 1f are
+not a normal characters.
+And ascii is also only defined up to hex 7F
+or 127.
+But because our computer works with bytes,
+so 8 bit, this number can range from 0 to
+255, And ascii only uses half of them.
+So all those weird blue values in vim are
+such numbers that don’t have a printable
+character assigned.
+You can also do a hexdump of the file, to
+get the actual values.
+‘hexdump -C license_1’ and you can see
+that there are many many 0s in the file.
+hexdump displays them as dots, but in vim
+they are the blue stuff.
+But when you look closely there are quite
+a few meaningful strings in there.
+For example right at the beginning “ELF”,
+which is a magic value, hinting that this
+file is an executables.
+You also can find some strings to libraries
+such as libc, which defines functions such
+as printf and strcmp.
+And here we also see strings we know, the
+“Checking License”, “Access Granted”,
+“WRONG!” and “Usage” message.
+And also this weird looking “AAAA-ZION-42-OK”
+string.
+hmmhmh…
+Remember from last video that there was a
+string compare in it?
+Might get the license key we enter compared
+to this string?
+Let’s try it!
+Access Granted.
+Indeed!
+The license key of this program was in there
+all along.
+There is a great tool called ‘strings’
+that is doing what we just did, just nicer.
+It will scan a file and prints out all printable
+character sequences with at least a certain
+length.
+So let’s try it with ‘strings license_1’.
+And there are our strings.
+Last time we used gdb to read the disassembly
+and also debug the program.
+This time let’s just use objdump for the
+disassembly.
+‘objdump -d license_1’.
+You notice that this file has a lot of more
+code than just the ‘main’ function.
+That is because the compiler puts a bit more
+stuff into the actual binary.
+You know, computers are a little bit more
+complex than they seem at first.
+But all of this is just standard stuff you
+basically find in any gcc compiled binary.
+And usually only the user created functions
+like main are interesting to us.
+Objdump can be used to get a looot of more
+information about this program.
+Let’s print everything with ‘objdump -c
+license_1’ and pipe it into less for easier
+navigation.
+So first it says the file is a elf binary
+for the x86-64 architecture.
+The stack is not executable, indicated by
+the missing ‘x’, which is interesting
+once we will look at classic buffer overflows.
+And maybe the last interesting info are the
+sections.
+We can see here where certain data will later
+end up in memory.
+Interesting for us are the .text section.
+This section holds our code and it starts
+at address 4004d0 and is hex 1e2 big.
+And if you check the address where the main
+function was, you will notice that it’s
+in there.
+The other interesting section is .rodata,
+which is the read only data section.
+So our strings can be found in there.
+If you open up gdb and break at the strcmp,
+you can check the registers.
+And one of the registers will have an address
+in from this .rodata section.
+You can print this address with x/s, and voila,
+there is our key again.
+Let’s have a look at another active tool.
+It’s called strace and it can trace system
+calls and signals.
+When I introduced programming in C, we used
+printf to print text.
+That was a nice function that we added to
+our program from the libc library.
+But printf is just a wrapper around a function
+that the linux system itself provides us.
+Linux itself offers many different kind of
+functions called syscalls.
+You can read more about them in the man page
+to syscalls.
+One of those functions is ‘write’.
+And write can be used to write text to the
+standard output, which we can read on the
+console.
+So let’s execute the license program with
+strace.
+The first line is execve, which is the function
+that tells the linux kernel to now execute
+this program license_1.
+And then a lot of magic happens that we ignore
+from now.
+And somewhere all the way at the bottom here,
+the code that I have written starts.
+And you can here see the write syscalls that
+were executed with the text that we know.
+Interesting, huh?
+There is another cool tool called ltrace.
+Similar to strace it traces certain functions.
+But this time it traces library functions.
+Functions like printf or strcmp come from
+the libc library.
+So ltrace can show us their occurrence.
+So first you can see the printf.
+And then comes the strcmp.
+And it shows us the actual strings it compares.
+So that also tells us how the license check
+works in a cool way.
+Let’s thow this file into a graphical user
+interface.
+I will use hopper on mac.
+As you may know IDAPro is very expensive.
+But hopper is a great alternative which is
+actually affordable.
+Hopper sees that it is a ELF executable and
+it can automatically analyse it for us.
+It places our curser at a function called
+start.
+And not main.
+Like we have seen with objdump before, there
+are a few more functions created by the compiler
+and this here is the real entry point of the
+program.
+But what those functions are doing is not
+important right now.
+We are only interested in the main functionality.
+So we can look for the main function in the
+list of labels.
+So here is our main function, like in gdb.
+Just a bit more colorful and hopper can also
+show us with those arrows where branches are
+going to.
+At the end of the last video I have already
+showed the control flow graph which you can
+access at the top right.
+And a very cool feauter from hopper is the
+decompiler.
+Decompiling sounds like it would reverse assembler
+code back to C code.
+But that is not easy.
+The compiler changes and optimises stuff and
+you just cannot simply reverse it.
+But hopper can guess how it might have looked
+like.
+Sometimes it makes mistakes, but often it
+looks pretty good.
+So it shows us here how it checks if we have
+supplied a license key, and then it does the
+strcmp and prints either ‘Access Granted’
+or ‘WRONG!’.
+So that’s pretty cool.
+To the left you can also find a button to
+display all strings.
+And as you can see it also found the key.
+When you click on it it will jump to the address
+where the key is located.
+And XREF stands for cross reference, that
+means this address is referenced somewhere.
+We can follow that xref, and we can see that
+this is the assembler code where the address
+of the key is moved into the esi register.
+This prepares the function parameters for
+the strcmp.
+Some kids may have the opinion that mac users
+suck.
+To please them we will install now radare2
+by cloning the radare2 repository with git.
+You might have to install git with sudo apt-get
+install git.
+To install radare run sys/install.sh and wait.
+Once it’s installed you can go to the license_1
+program and open it in radare with ‘r2 license_1’.
+You may remember this address from objdump
+earlier, this is the start of the text segment
+that contains our code.
+first run ‘aaa’, to automatically analyse
+an autoname functions.
+Then use ‘afl’ to print all functions
+that radare found.
+Each character in radare means something.
+And with ? you always get information about
+what characters you can use.
+So ‘a’ performs analysis of code.
+‘a?’ shows us that we can append ‘f’
+to analyse functions.
+And ‘afl’ lists those functions.
+Makes sense, right?
+ok so afl shows us that it found a main function.
+Let’s change our current location with ‘s’
+to seek to the location of the function main.
+You can also use tab-completion here.
+Now the location in those brackets changed.
+With ‘pdf’ we can print the disassembly
+of the current function.
+Like hopper it shows us the disassembly with
+nice arrows where branches go to.
+And it created comments for us with strings
+that are referenced in there.
+You can also type capital VV to enter visual
+mode.
+This shows you a control-graph view of this
+function.
+You can move it around with arrow keys.
+The blue border indicates that we currently
+select this box.
+With Tab and Shift Tab you can select other
+blocks.
+When you have a block selected you can move
+the block with Shift + hjkl.
+With ‘p’ you can cycle through different
+representations.
+For example with our without the address in
+the beginning.
+Or this minimalistic view, which is useful
+if you have a damn huge function.
+And with ? you can display a help.
+This help tells you that capital R is the
+most important shortcut you will ever learn
+for radare…
+So press Shift+R and be happy.
+You can also use radare2 like gdb to debug
+this program.
+To do that start radare with -d flag.
+Seek to the main function, analyse all with
+‘aaa’ and display the disassembly with
+pdf.
+Now place a breakpoint at the start with ‘db’.
+Now go into Visual View with “VV” again.
+Like with vim you can enter command mode with
+‘:’, where you type ‘:dc’ to run the
+program.
+Now we hit breakpoint 1.
+And if you look closely you notice rip in
+the first box.
+This shows us where the instruction pointer
+currently points to.
+With s you can step instructions.
+But we should use capital S, otherwise we
+follow functions which we don’t want to.
+So Shift+S to step further.
+Ah damn.
+We didn’t supply a license key.
+But you get the idea.
+I hope this helps you to explore more tools
+and techniques.
+And remember that no tool is better than the
+other.
+They all have different features and representations
+of information.
+It makes sense to master them all.
+Except radare.
+Some say radare is the best.
+But nobody ever masters radare.

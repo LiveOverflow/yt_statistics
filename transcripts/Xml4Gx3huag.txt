@@ -1,0 +1,96 @@
+Google offers a ton of services.
+There is google search, youtube, gmail, drive,
+but they also offer a cloud platform.
+And one of the services there is BigQuery.
+BigQuery is a fast, fully managed enterprise
+data warehouse for large-scale data analytics.
+BigQuery can scan Terabytes in Seconds and
+Peta Bytes in minutes.
+A lot of buzzwords but what is it good for?
+So it basically is a big data platform and
+service anybody can use.
+This is something nobody can do on their personal
+computer and BigQuery allows you to do stuff,
+that generally would require some big machines.
+So here is how it works.
+You have a question you are looking to answer
+and so you write an SQL query for a big dataset.
+You let it run and get the result back.
+It’s not much different from your phpmyadmin
+or your small school exercises, the difference
+is just, this can run on Terabytes of data.
+And the other cool thing is, BigQuery comes
+already with public datasets that you can
+use.
+There are huge databases with data on baseball
+games, census data, crimes and so forth.
+You can find some really cool examples to
+play with out of curiosity, or even use it
+for a research project.
+I got really excited when I saw that BigQuery
+had a public github dataset.
+For example somebody ran a query to check
+how many files use spaces or tabs for indentation.
+So i thought about what I could do, and I
+was thinking, people leak their passwords
+and ssh private keys on github, maybe they
+also fail with bitcoin wallets, their private
+keys.
+Maybe that’s my way into a luxurious life!
+So I checked again how a bitcoin address looks
+like and built a regular expression for it.
+Basically they all start with a 5 followed
+by a HJ or K and then followed by other base58
+valid characters.
+And to not match this in random text, I made
+sure that before this match there is either
+the start of a line or NOT a regular character.
+So spaces or quotes or colons would be fine.
+Same thing for after the key, just with line
+ending.
+Then I looked up some examples that people
+have done, because I’m doing it for the
+first time.
+And so I just modified this here a bit.
+You can also investigate how the datasets
+look like you want to query.
+The fields they have, some details like the
+size, this is important for what the query
+will cost, and you can also preview the data
+to get an idea what you will get.
+So here is what I came up with, we first query
+all contents, so all file contents where this
+regex matches, and return those matches together
+with an id.
+And then we join this resulting table with
+the files database, which contains the repository
+name, and the file name or actually file path.
+The result will be a table with hopefully
+bitcoin wallet keys and where they were from.
+It takes a few seconds to run those 2TB of
+data, but returns very quickly a result with
+over 10.000 matches.
+Isn’t this crazy, we just queried over 2TB
+of data in a matter of seconds with a regex.
+TWO TERABYTES.
+Anyway.
+I took the result, downloaded it as CSV, wrote
+a simple script using a python module to get
+the bitcoin address for the wallet private
+key, if it was actually a valid private key,
+and then we use the blockchain.info api to
+see if there are any funds available.
+Buuut.
+As it turns out, they are mostly empty.
+Some had some movements in the past, and there
+was even one with around 5 $ cents on it,
+but when you look where they are from, they
+are well known public private keys, they are
+like examples from projects and so forth.
+So unfortunately, my luxuries life has to
+wait.
+And actually this cost me around 5$, because
+while the first terabyte is free, each additional
+terabytes costs 5$ and this dataset had 2
+Terabytes.
+Oh well.

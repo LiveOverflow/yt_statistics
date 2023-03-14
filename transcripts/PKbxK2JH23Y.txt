@@ -1,0 +1,227 @@
+Let’s have a look at list0r.
+It’s a 400 point web challenge so it should
+be really really hard.
+Though we got lucky, because as far as I know
+all web challenges were broken in various
+ways and had way easier solutions than planned.
+The description doesn’t give us a lot of
+information, just that its some webapp to
+manage lists.
+So let’s have a look at it.
+Generally for web testing it’s a good idea
+to use an http proxy to analyze the requests.
+Using browser developer tools also works,
+but programs like fiddler for windows or burp
+offer a lot of convinience.
+So I setup firefox to use a proxy and start
+burp.
+Now we see all browser requests in there.
+So here is the landing page.
+“Bored in life?
+Create some lists” whooop ok.
+First we need an account to login, so we register
+one.
+And you can check the burp history to see
+the HTTP requests, like the register POST
+request that sent the form data.
+We can already see that generally the page
+seems to not use single .php files, but uses
+a GET parameter page to decide the functionality.
+So let’s login, and we can create some lists
+here.
+Like with the hohoho challenge before, I didn’t
+work on this at this point.
+So other from the team started to analyse
+the functionality.
+Played around with the forms.
+Maybe tried some XSS or SQL injection.
+One interesting functionality seems to be
+the profile edit page.
+Because here you can supply a URL to upload
+a picture.
+That smells like server side request forgery.
+You can use a service like requestbin to see
+the HTTP request issued by the web application.
+So we use the requestbin tracking URL and
+enter it into the avatar URL field, and then
+we can see the HTTP request.
+But nothing special here, no flag sent along
+the request or anything.
+But we know, that there might be a Sever Side
+request forgery.
+We can also now use burp to explore that a
+little bit more.
+We can do a rightclick->send to repeater,
+and now we can modify the raw HTTP request
+and resend it.
+This allows us to play with the request that
+will trigger the Server side request forgery.
+You can for example try if you can use the
+file protocol to leak local files, but it
+doesn’t work.
+You can try to bypass the check for a host.
+But nothing really yields, but we keep that
+part in mind.
+It’s probably here for a reason.
+Next up was to test the page parameter.
+Maybe it uses the parameter to include arbitrary
+files.
+We don’t specify the .php at the end, so
+if it’s a simple include it would append
+.php to it.
+And a nullbyte to bypass that is not a thing
+anymore in 2017.
+Nullbytes only work in old php versions.
+So whatever we inlcude must end in .php.
+A common thing to check for are php filter
+wrappers.
+It’s a snippet you can keep around.
+You can research the exact features of that
+yourself, but what we will use is a php filter,
+to convert something to base64.
+And what file is converted is specified by
+the resource parameter.
+So if this works, it should open the index.php
+file, convert it to base64, and pass that
+to the include.
+And that works.
+See this big base64 chunk.
+We can decode it and get the php code from
+index.php.
+And here you can also see the vulnerable include.
+Now we can start to dump more code.
+For example the functions.php and header.php
+file.
+In the functions.php file we find this get_contents
+function, which takes a url and is probably
+the part that fetches the image in the profile.
+While some were exploring the sources, another
+guy realized that the login is broken.
+You can simply login as any user without a
+password.
+We thought that was part of the challenge,
+but turns out it was also a mistake.
+You shouldn’t have been able to login as
+admin this way.
+But this quickly revealed a secret URL, which
+is only accessible from localhost.
+And this is where now the server side request
+forgery comes into play.
+If we can abuse the image URL upload and request
+that path, we get the url.
+So let’s review the php code again.
+We can see here several URL checks.
+First it decocdes the url and checks for a
+host.
+If you used a domain it will query the dns
+server for the IP, and verify that you don’t
+try to access stuff like localhost.
+Dangit.
+And then it uses curl to perform the request.
+For us it was very suspicious to see the option
+to enable ALL protocols except file and scp.
+File would obviously allow to load local files,
+and scp can also be used to work with local
+and possibly remote files.
+The list of obscure protocols supported is
+long, but we didn’t have much experience
+with them but we had a hunch that the trick
+lies in there.
+Though while that turned out to be part of
+the intended solution, we found (like many
+other teams) a much easier one.
+And the issue lies in the last option line.
+The comment says, no dns rebinding plz.
+The option should enable that a certain domain
+resolves to a specific IP.
+Remember that up here the domain was resolved
+to an IP and then verified that it’s not
+localhost.
+In a DNS rebinding attack you would abuse
+a time of check time of use race.
+Where this check would resolve the domain
+to a valid IP, and then you quickly change
+the DNS record and when curl then tries to
+open the URL further down, it now points to
+localhost.
+And that option is supposed to prevent that.
+It would force the domain to be resolved to
+the original IP from earlier, and ignore any
+DNS server changes.
+I joined the challenge around this time here
+and helped testing.
+I extracted the part that requests the image
+and put it in a simple test script.
+Added some additional debugging output and
+so forth.
+So that I can quickly test stuff.
+And we can play around with it now.
+For example when we try to query localhost,
+php will parse the URL and then perform this
+in_cidr test and eventually stops.
+But I noticed that when I try to query my
+website, that the dns entry for my domain
+returns 2 entries.
+The DNS server advertises two IPs for this
+domain.
+And the php code just uses the first entry.
+This will come in handy in a second, but first
+another idea.
+We also played around with parser differentials
+in curl and php.
+For example we found this here: when we place
+ip and port in front of the domain with a
+questionmark and @ , parse_url from php will
+think that the IP is a username and port-questionmark
+is a password.
+Because those are seperated by a colon infornt
+of the domain with @. And thus the dns query
+will interpret liveoverflow.com to be the
+host name.
+But curl on the other hand sees the questionmark
+and thinks that here the GET parameters will
+start and the host is obviously then localhost
+127.0.0.1.
+And it really does query now localhost.
+We bypassed it.
+But the issue is, that we can’t specify
+any path.
+We can only get a request out for the top
+root path, so no luck for getting the flag.
+Though I’m pretty sure if you spend more
+time on this, you figure out a better bypass.
+Anyway, I trusted the challenge author that
+the dns rebinding was implemented properly.
+EVENTHOUGH I saw the warning that it couldn’t
+parse the resolve option.
+I’m such a naiv idiot.
+After an hour or so of playing with this,
+a friend reminded me again: “hey, did you
+see that the dns rebinding option doesn’t
+work?
+The syntax is wrong?”
+And I was like.
+Eh fuck….
+Why did I ignore this for so long.
+And yeah, it turned out to be another unintended
+bug which allows an easier solution.
+And here is where we get back to the fact
+that a DNS entry can return two IPs.
+I setup a domain, densrebind.com to return
+2 IPs. 8.8.8.8 and localhost.
+In the same way how liveoverflow is setup.
+So when we now use that domain and request
+the image from that domain, it might get the
+localhost as a response and give you an error,
+but when you try it again it might now get
+the valid IP first, and curl will use localhost.
+And this will successfully request that path
+and provide us with the flag.
+Lessons learned for me, don’t ignore warnings.
+And look into the gopher protocol.
+Because that was apparently the way to fake
+an HTTP request and query the flag.
+No idea how to get access to the admin list
+entry with the secret path though.
+I have to read some writeups.
+I hope you will do the same.

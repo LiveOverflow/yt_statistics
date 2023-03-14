@@ -1,0 +1,405 @@
+I don’t like pop-under ads and as a Chrome
+user I’m happy that Google agrees with me.
+They consider them to be bugs in their popup
+blocker.
+I made a few videos a few months back where
+we have reverse engineered one particular
+obfuscated JavaScript library, used and sold
+to advertisers, in order to figure out the
+trick they use.
+And then reported it to Google to get the
+bugs fixed.
+Back then it has also motivated Masato Kinugawa
+to research a few more techniques and overall
+we killed quite a few bugs that allowed pop-unders.
+And I think we were quite successful.
+For a long time the popunder library did not
+have a working popunder technique for Chrome
+and had to resort to a tab-under.
+which was awesome, for a while we are the
+reason why a lot of advertisers that use this
+script couldn’t create terrible pop-under
+ads on Chrome.
+But now I was made aware by SilentHammer on
+the subreddit, that the popunderjs library
+has been updated and ships now with a working
+pop-under for the current Chrome version 65
+up to the current development version 68.
+And indeed, the demo works.
+There is a pop-under.
+So let’s figure out how it is done and then
+report it as well.
+The first few steps that I’m doing now are
+the same I did in the previous videos.
+I essentially want a local mirror of the scripts
+so I can modify them and play around with
+it.
+So I use the Chrome developer tools to get
+all the script files loaded by this site and
+save them.
+And because of the licensing, and this being
+the demo, and I don’t know how the license
+check works (It might check the hostname)
+I do not only download all the files, but
+I also change the /etc/hosts file so that
+the domain points to localhost.
+Then I use php to launch a local webserver
+and serve the files with the same folder structure
+as the server.
+Now I have all the files locally and can change
+them however I want.
+For example I can clean them up and beautify
+the scripts.
+The files are loaded locally now.
+And a quick test, yep the popuner still works.
+Ok…
+So let’s have a first look.
+The javascript code is clearly still super
+obfuscated.
+So nothing we really want to work through
+statically.
+And trying to look at the script dynamically,
+with the chrome developer tools is also still
+super annoying, because the script constantly
+traps the debugger with the debugger keyword.
+We can disable the debugger and still run
+it, but then we can’t set any breakpoints
+if we do want to pause.
+Goign up in the callstack we can see where
+this debugger call is coming from and it’s
+coming from this function a().
+And here we can see that a() is always repeatedly
+called with setTimeout.
+So we can try to overwrite setTimeout with
+our own function, which also logs some information
+about the call.
+This hopefully disables the debugger traps.
+When we now reload the page it looks really
+good, we don’t break, but we also don’t
+see anything in the console.
+But that’s because the code constnatly clears
+the console.
+Luckily the developer tools are cool and just
+tell us the line where this clear is called.
+So we can go there, set a breakpoint by clicking
+the line number and BOOM, the debugger breaks
+here.
+Now we can analyse the code.
+Capital I is the window object.
+The Kn variable is the string console, and
+hn is the string clear.
+So this simply calls window.console.clear().
+Perfect!
+We can also find this line in our script and
+can just comment it out.
+Now when we reload the page we see exactly
+the outputs.
+And as you can see, some stuff tried to call
+setTimeout, however also the popunder is not
+working anymore.
+So i guess just overwriting it didn’t help
+us.
+Let’s revert it back.
+Another thing we used was the performance
+tab.
+This one can be used to record every javascript
+function call.
+So we can hit record, trigger the popunder,
+aaand hit stop again.
+Now it takes a moment to gather everything.
+And here we have it.
+This is the timeline, and all of these colorful
+bars are function calls.
+So here is clearly our start, this is the
+mousedown event.
+Later in here we also see a onBeforeOpen,
+which is actually a call into the demo.js…
+So this is a library sold for advertisers,
+and so the library creator offers here functionality
+that you can run code just before and after
+the popunder was opened.
+This means our pop-under createn should happen
+after this one here.
+Interestingly the whole function graph stops
+here now.
+Not everything happens down in the hierarchy
+from the mousedown event.
+There is a weird Function call later, which
+at some point results in open.
+The orange functions are generally regular
+javascript stuff, like events, and all the
+javascript functions, and the pink ones are
+custom ones.
+So these are all the obfuscated functions
+as you can see from the name.
+And actually there are two of these blocks
+starting from a weird arbitrary function call
+which result in open.
+And open is the function to create a new popup
+or tab.
+So it does it twice.
+I have actually no clue what triggers this
+initial function.
+If it would have been directly called from
+the mousedown event it would be part of that
+block.
+So that’s weird.
+But looking at this I don’t see anything
+special.
+There are no calls to create new HTML elements,
+nothing external is loaded, it’s just these
+open calls.
+So that’s super wierd.
+We can also look at from where open is called,
+by looking here at the call stack and following
+that link.
+So this apparently calls open.
+And these should be the parameters of open.
+Let’s search for this snipped in the script.js
+file we have and then add some console.log
+outputs to print the parameters passed to
+open.
+We save the new script, reload the page, trigger
+a popunder and look at the console.
+So we see two opens.
+Both have the first parameter about:blank
+and the second one _blank.
+A look into the API reference for open we
+can see that that is the URL and this is the
+name.
+But the first open has additional optional
+windowFeatures.
+It defines width, height, and stuff like that.
+The second open didn’t have that.
+Okay, nothing too special here either.
+WHile playing around I also noticed that the
+anti-debugger trapping is not that aggressive,
+so we can actually add our own debugger statement
+here at the open call, reload the page, disable
+the breakpoints and then prepare to be super
+fast.
+Because we can very quickly reactivate the
+breakpoints, quickly switch to the browser
+window, HOPE that the anti-debugging traps
+don’t trigger first, click somewhere to
+create a popunder and hope that our breakpoint
+at the open is hit.
+And that worked.
+Here we are.
+Now we can see the state of the variables
+which we already know.
+We can also see the callstack and have a look
+at where this call is coming from.
+Notice how it says here postMessage async,
+that will explain a lot later but when I looked
+at it the first time, I was just a bit confused.
+And looking at this function here, we see
+a variable i, which is a MessageEvent object
+with a data attribute containing our window.open
+parameters…
+mhmhm...
+At this point I got a bit frustrated.
+If you have watched the previous videos you
+know what kind of crazy techniques were used
+to pull off a pop-under.
+I didn’t fully trust the developer tools
+to be honest, because maybe there are tricks
+to hide stuff from it.
+I was expecting something really really crazy
+and I decided to get out the big guns.
+I wanted to directly look at the native functions
+being called from javascript, so nobody can
+hide anything.
+I went to the Chromium sources and followed
+the “Checking out and building Chromium
+for Mac” instructions.
+If you want to follow along and build Chromium
+as well, make sure you have enough disk space.
+Not only did it take me over night to build
+it, in the end I also needed almost 80GB disk
+space for it.
+So be warned.
+But that’s not too bad, because with minimal
+changes you don’t have to rebuild the whole
+thing again, it only has to rebuild the part
+you modified.
+So that’s cool.
+I also have to give my kudos to the build
+team, or whoever is responsible for this,
+these instructions just worked.
+I had no issues at all, it just worked which
+I did not expect.
+Anyway… so…
+I want to log important javascript function
+calls.
+For example the open call.
+But also things like createElement or any
+other API call.
+All these calls somehow have to be executed
+by the underlying Browser so you can’t fake
+or hide anything.
+In the end these native functions have to
+be called.
+It’s the first time for me looking at these
+sources, so I have no clue what I am doing.
+But let’s maybe think about this for a second.
+Maybe you have heard of V8 - Chrome uses the
+V8 JavaScript Engine.
+And there is a sub directory for the v8 engine
+with the sources.
+So maybe this is a good point to start?
+Well, maybe, but probably not.
+V8 is just JavaScript, but we are not really
+interested in logging when something creates
+an Array or so.
+We want the APIs that glue together the Browser
+and the JavaScript, and that is mostly the
+DOM.
+The Document Object Model is what we can use
+from JavaScript to interact with the Browser
+and the HTML.
+However Chrome also has a lot of other APIs,
+like the Notification.requestPermissions and
+these are probably not included in the DOM,
+but we deal with that when we need to.
+Let’s start with something easy and look
+for the document.createElement function.
+In previous popunder videos that was a crucial
+part in the trick so it would be awesome to
+log that.
+And so the DOM is most likely part of the
+actual browser engine and in case of Chrome
+that would be blink.
+I looked around in the huge codebase for a
+bit and then I found it in /chromium/src/third_party/blink/renderer/core/dom.
+So I open that folder in sublime and then
+let’s start searching for createElement.
+Oh we find something in a .h header file,
+let’s actually restrict it to only c++ source
+code files.
+So here we go.
+We find some functions in document.cc.
+Which I think is awesome.
+Because the javascript function would be document.createElement.
+So here we definitely find a lot of important
+APIs.
+Soo.. createElement…
+There we go “Entry point of "create an element".”
+That sounds perfect.
+So I guess this is the native C++ function
+being called when you call document.createElement
+in Javascript.
+Let’s test that.
+Let’s add a simple recognizable printf()
+here, just so we know if this is being executed.
+Then we rebuild chrome and as you can see
+it goes pretty fast now.
+Only had to build the change we made.
+And then let’s execute our own Chromium
+build.
+I also wrote a short test create script, that
+will call createElement whenever we click
+the link here.
+But it doesn’t seem to work.
+Damn.
+no output.
+It also links here the specification of the
+HTML living standard that defines these kind
+of things.
+And it says here “concept create element”,
+so not really sure what that mens.
+But when I searched a bit more in the document.cc
+source code, I found the CreateElementForBinding
+function which links to the dom-document-createelement
+specification.
+OK this one actually sounds like the correct
+function.
+So let’s add a printf, here.
+Then we compile Chromium again, open the test
+webpage and click the button.
+And awesome!
+Our printf works.
+Now we have all the power to log every function
+we want.
+It might just be a bit tedious to add these
+printfs everywhere.
+I played around with it a bit more.
+Added printfs to different kind of functions
+like getElementsByTagName and stuff like that
+but.
+It didn’t reveal anything new.
+It just didn’t seem to do anything weird...
+mhmh...
+At this point I decided to sit down and started
+to implement what I already know.
+I know 100% that there are two open calls
+and we know their parameters.
+We also know that it somehow is all triggered
+from a onmousedown event, so let’s do that
+as well.
+And then we try that.
+It opens a popup, but as expected it only
+opens ONE.
+The second open call is blocked by the pop-up
+blocker.
+The browser allows one user interaction, the
+click, to open one window, because if the
+user clicked, then one window is fine.
+But not a second one.
+However let’s just for testing disable the
+popup-blocker and allow this page to create
+any popups it wants.
+When we now try it again, the second open
+call actually creates a new tab.
+And the tab gains focus.
+See, the popup at this point is in the backrgound.
+Let’s add a setTimeout to our script, to
+close the new tab after 1 second again and
+try that.
+We click the link, it opens the popup and
+tab, the main window gains focus and then
+the tab is closed when the timeout hits.
+BOOM… we have a successful popunder.
+Holy crap.
+This was damn simple.
+As long as we can open two windows, one popup
+and one tab, we can get focus back to the
+main window.
+But with activated pop-up blocker, which is
+the default, this doesn’t work.
+So the creator of this pop-under script actually
+found a technique to bypass the pop-up blocker
+and open multiple windows.
+And this is where the postMessage comes into
+play from earlier.
+While looking around a bit more, looking at
+call stacks and stuff, at some point I stumbled
+over it again and it clicked.
+WAIT.
+postMessage and here is the message data?
+Maybe the reason why the two open calls were
+shown in their own function block is because
+they were onMessage events, triggered from
+an asynchronous postMessage.
+That totally makes sense, why didn’t I understand
+that earlier?
+So I quickly implemented this.
+I create an onMessage handler, which looks
+at the data and either creates a new popup
+for data 1 or a new tab, which is also closed
+again with 2.
+And then I simply trigger a postMessage with
+1 and 2 in the popunder function.
+This should create both the popup and the
+tab.
+Let’s try that in the browser, clicking
+the link, it creates both.
+Amazing.
+We bypassed the pop-up blocker.
+This also means we can spam popups now.
+If we just keep sending postMessages in a
+loop.
+Look here.
+So, now we are done here.
+I have reported this issue to Chromium and
+hopefully it gets fixed soon.

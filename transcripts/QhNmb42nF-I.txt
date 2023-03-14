@@ -1,0 +1,696 @@
+Yo!
+Welcome back to minecraft hacked.
+As you can see I got started on my villager
+trading area and I already got some nice enchanted
+tools from trading enchanted books.
+But let me tell you a bit more about this
+project.
+First of all, in a hermitcraft episode I heard
+that placing magma blocks in front of villagers
+will stop their pathfinding algorithm, and
+that could avoid some lag, so I wanted to
+use that.
+AND I have actually never done the whole villager
+zombification and healing thing, to reduce
+the trading prices, and that’s why I placed
+these levers and pistons under them.
+When dropping the villagers down they can
+be expose to a zombie in the cave behind them.
+But I haven’t done that yet, because, this
+trading area has been a real pain to get started.
+Let me tell you what happened.
+
+In a previous episode I showed you my illegal
+villager breeding and collection area.
+I brought them over there because this is
+where I wanted to have the general trading
+area.
+And so I got started on that by building a
+first few test chambers.
+I had to experiment a bit on how best to place
+the levers and redstone.
+And eventually ended up with this kind of
+basic design which I thought looks okay.
+Hope you enjoy this little timelapse.
+But I didn’t want to spend too much time
+yet to build the whole area, because I wanted
+to enchant some tools quickly.
+And for that we only need a few traders.
+So I decided, let’s actually get some villagers
+now.
+Luckily they are all in boats so it was easy
+to bring them over and drop them in from above.
+That was easy.
+But my problem was, the villagers would just
+not take a job.
+usually when you place a job site near them,
+in this case a book lectern, the villager
+should become a librarian selling books.
+If they don’t sell the book you want, usually
+you keep destroying the lectern, and replacing
+it.
+Which causes them to loose their job, and
+regain it again, with new random items.
+But as you can see, it just never worked.
+The damn villagers would just not take the
+job.
+I even tweeted about this because it’s so
+frustrating to debug what is going on.
+Did you ever get annoyed at Compiler or Runtime
+errors being unclear about the cause?
+Try figuring out why the villagers wont take
+the job...
+This is driving me crazy!
+Any ideas?
+1.18.2 Java.
+There were some people saying that maybe the
+magma block is the reason, because it is stopping
+the pathfinding, so maybe they never discover
+the lectern.
+Or maybe a bed is missing.
+But I created this enclosed area to test and
+this villager just never took this job.
+I don't think it's a bed or pathfinding.
+Here villager is free, has bed and no magma
+block under the lectern
+Still doesn’t work.
+And so
+The best theory I have is that they became
+sentient and are mad at me for storing them
+in this condition.
+But as you can see, the villagers finally
+got their job and I think I kinda know now
+why.
+After getting frustrated about it not working,
+I started to fly a lot of them further away
+out of range because I had the feeling the
+masses of villagers were the issue.
+But that took a lot of time and I wasn’t
+sure it would work.
+I never actually finished taking them all
+away, because while doing that I wanted to
+test something else.
+Instead of having them in boats I actually
+walled off the area, destroyed the boats and
+let them walk around.
+I also placed a bed in the area which they
+all tried to pile up on when it got dark.
+But more importantly this change seemed to
+improve the villagers taking their jobs.
+As you can see, sometimes they became a librarian.
+But still, trying to destory and placing the
+lectern again, most of the time, it didn’t
+give them their job back.
+Sometimes it worked.
+But still mostly it didn’t.
+This was not good enough for brute forcing
+good trades.
+Oh man.
+So annoying.
+But the whole thing made me experiment in
+the villager area above.
+I started to place lecterns in there.
+Which made a random villager become a librarian.
+And so I just tried to get a librarian with
+a good trade in here.
+And then just kidnap them with a boat.
+This was also annoying, but it kinda worked.
+But soon after I realized, this seems to have
+fixed the original issue.
+Suddenly the villagers in the trading area
+would become librarians when a lectern is
+placed in front of them.
+And so now I believe the issue really was
+the area up there.
+I’m not an expert here at all, but based
+on my observations and experiments I feel
+like when they were sitting in boats and I
+placed a lectern, some random villager in
+a boat tried to claim it.
+Blocking the villager down here from taking
+it.
+And so after walling off the area, which I
+guess makes them not path find anymore outside
+of it, and maybe the bed and a lectern placed
+in their area as well, kinda “resettet”
+them - I don’t know.
+I would love to have a better technical explanation
+of this.
+But anyway, finally everything worked.
+I was able to search for enchanted books that
+I wanted.
+Like Mending.
+Unbreaking.
+Feather Falling.
+And Fortune.
+Amazing.
+So this is how I got here.
+Finally some nice tools.
+And this means I could also now expand the
+area a bit further and add a few more traders.
+Nice.
+Now we still haven’t done the zombification
+and healing method, but for that we need a
+few more ingredients.
+For example spider eyes.
+Which can be turned into weakness potions
+for the healing process.
+Also it would be nice to have some XP farm,
+so that we can repair our tools with mending.
+And that’s why I decided to build a spider
+farm next.
+In an earlier episode when we were flying
+around there was this spider spawner nearby
+in a cave.
+It turns out it was actually a double spawner.
+And like with the iron farm before I actually
+planned this built in creative mode before
+and now use the imported schematic to build
+this farm in survival.
+And while I collect the wood for it and start
+building the farm, I wanted to tell you about
+something that happened when I did my internet
+wide scan for minecraft servers from last
+episode.
+If you paid attention to last video you might
+have noticed something about log4shell.
+Or, maybe if you are on my subreddit you saw
+this post, or if you have your own minecraft
+server maybe you saw these chat messages.
+Yeah.
+So I did not only scan for open minecraft
+servers, I actually wanted to do some research
+on the state of log4shell patching of minecraft
+servers.
+But before I tell you about the results of
+this project I wanted to mention a few other
+things.
+A lot of people did not like me scanning their
+servers and testing for log4shell.
+I have received, I believe, three abuse reports
+sent to my server hoster.
+On the reddit thread you can see people complain
+and I also got tons of emails and DMs about
+it.
+Now people were able to write me emails or
+DMs because I was transparent about my project.
+Theoretically you could do all of this anonymously
+and never bother about anything, but I left
+my name so people can contact me.
+And this had good reasons.
+Because I had no malicious intentions.
+For me this was a project to practice more
+programming and software architecture, and
+at the same time doing research on the current
+state of the log4shell vulnerability.
+By the way I don’t want to explain log4shell,
+there is more than enough content out there
+already, including videos I made myself, but
+also john hammond who covered it related to
+minecraft.
+So check out these videos if you don’t know
+what I’m talking about.
+Anyway this vulnerability is serious and it
+could be used to take over minecraft servers
+or even install cryptominers and other malware.
+But that, of course, is not my motivation.
+I don’t want to do anything unethical and
+so I wanted to somehow proof my good intentions.
+Now depending on the country you are from,
+a vulnerability scan like this could already
+be illegal, It’s very compliacted.
+And even if it is legal in your country, doing
+an internet wide scan you might target a server
+from somebody in a place where it is illegal,
+and they could still sue you in their country.
+It’s unrealistic, and as long as you never
+travel to that country nothing probably happens,
+but theoretically you could still break some
+countries' laws.
+This is a bit of the unfortunate reality of
+doing actual real-life security research.
+it's a real problem for academia as well.
+And so that’s why it was important for me,
+to make it as clear as possible that my intentions
+are for research purposes only.
+I hope it’s clear that I cannot actually
+backdoor minecraft servers and dump databases
+or whatever and in the end claim “oh this
+was just research”.
+If somebody would take me to court for this
+I want to have objective proof that this was
+a research project.
+This is often very difficult to do in practice
+and ethics is a very blurry line.
+I know there are people who have the opinion
+that what I did was not ethical at all.
+And that is totally fair and understandable.
+But for my own conscience I believe it was
+fine.
+So here is what I did to proof my intentions.
+First of all I left my name and I’m a very
+public person.
+Clearly I’m putting my professional reputation
+on the line.
+If I would do something very criminal, this
+could really hurt me and my career.
+So I think this is clear evidence that I don’t
+have any malicious intent.
+But I did more than just that.
+Let’s talk about log4shell specifically.
+minecraft versions before 1.18.1 were vulnerable
+to log4shell, but it’s not enough to just
+look at the reported versions of servers to
+determine if it’s still vulnerable, because
+server admins could mitigate it in different
+ways.
+So to actually collect data on how many servers
+are still vulnerable, you have to actually
+trigger the vulnerability.
+And because log4shell can be used to get remote
+code execution, I wanted to have technical
+barriers in place, to not exploit it too far.
+And here is how I did it.
+My jndi ldap endpoint was an actual server,
+but not a server that responds with a serialized
+java object to trigger the code execution.
+I intentionally used a basic TCP server, which
+I found on github.
+This way I could ensure I would never actually
+exploit the full capability of vulnerability.
+Only the first part, the pingback including
+some information, is executed.
+some people find that too much already.
+I did try to get the java version, operating
+system, as well as username and PWD, but actually
+the username lookup failed.
+Also I think some people got scared from the
+PWD.
+But I want to make it clear, PWD does not
+mean PASSWORD.
+I did not extract any passwords.
+PWD stands for “print working directory”,
+so it’s the folder name where minecraft
+is running.
+Some pointed out that this could contain the
+name of somebody, if its their user home folder.
+And sure that is a bit of private data.
+But I believe it’s useful for the research
+to learn more about what this server is running
+on.
+Is it running in docker, on a raspberry pi,
+on a local PC and so forth.
+Anyway.
+I do understand that people felt this project
+maybe overstepped a line, and of course I’m
+sorry for that.
+I really didn’t want to scare anybody and
+I was hoping by being open, transparent and
+approachable about it, nobody would worry.
+But in the end lots of people still got spooked.
+And so after engaging in various conversations
+I decided to stop the scan.
+Also i think I had enough data already to
+see a general trend.
+Alright.
+I know what I talk about is soooo interesting,
+so you probably didn’t pay attention to
+the minecraft footage.
+But we finally prepared enough materials to
+build the double spider farm that I promised
+you earlier.
+As I mentioned, I prepared the blueprint in
+creative mode before.
+So we can now easily build it.
+I started by lighting the mine shafts to disable
+the spawners and prevent other mobs from spawning.
+With the fly hack this is very easy of course.
+And then we can start placing the blocks.
+While I work on that there is one more conversation
+I had because of this log4shell scanning,
+that I really wanted to share.
+One day on twitter, I got a DM from a verified
+account saying.
+“Hey Fabian!
+Just saw that you're scanning Minecraft servers
+for a project.
+We love your channel!
+If there's anything we can do to help just
+let us know!
+- Mitch Smith (Managing Director)“
+Turns out my scan was going over lots of minecraft
+servers from shockbyte customers.
+Shockbyte offers Minecraft Server Hosting.
+Some concerned customers contacted support
+and then they they wrote me.
+I hope it’s clear, this is not a sponsored
+video, and this is not an ad for their service.
+I have not tried their service.
+I don’t know how if they have good or bad
+customer service, I don’t know if their
+minecraft hosting is terrible or whatever,
+I only know they are one of the few who were
+positive about the project and shared with
+me lots of interesting information.
+And so I used this opportunity to ask them
+about security related challenges around offering
+minecraft server hosting and if they have
+any other interesting stories to tell.
+And this was very fascinating.
+So let me share what mitch wrote me.
+Early Multicraft Vulnerabilities
+Multicraft is the most common control panel
+used by server hosts.
+Originally servers running under Multicraft
+would by default run as the same user.
+This meant [as a customer] it was possible
+to install a [minecraft] plugin that would
+run some code to read the Multicraft config
+files, which included database credentials.
+In the early days of Minecraft server hosting,
+there were several hosters who did not patch
+this correctly and were hacked and ended up
+shutting down as a result.
+Fascinating.
+So multicraft is a software some minecraft
+hosting companies use.
+I always thought these hosters developed their
+own server management software, but turns
+out the reason why there are so many hosting
+companies, you can just buy this very cheap
+license of multicraft, rent some servers and
+start your minecraft server business.
+And as mitch told us, in the past, multicraft
+had some vulnerabilities, that could be used
+to hack a lot of these small minecraft server
+businesses.
+Of course these are old vulnerabilities, nowadays
+they are probably pretty secure having been
+exploited a lot in the past.
+Also nowadays there is actually an open source
+alternative for that.
+Pterodactyl.
+It’s a free, open-source game server management
+panel built with PHP, React, and Go.
+Designed with security in mind, Pterodactyl
+runs all game servers in isolated Docker containers
+while exposing a beautiful and intuitive UI
+to end users.
+So yeah, lots of newer minecraft hosting businesses
+probably run on this here.
+Or maybe they became so mature that they even
+implemented their own solutions.
+fascinating.
+Anyway.
+Next topic.
+Malicious Plugins & Mods
+There are many malicious plugins posted to
+websites such as Spigot and Bukkit, which
+are the main places to download Minecraft
+plugins.
+They are often posted as new plugins, but
+also, popular plugin author accounts get hacked
+and genuine plugins are replaced with malicious
+versions.
+Yeah this sounds very typical.
+Malicious apps exist in every area.
+For example malicious apps in the android
+play store.
+Or malicious browser extensions being distributed
+in the extension store.
+Sometimes legitimate extension developers
+sell their extension and the buyer then injects
+some malicious stuff.
+So of course this also happens with minecraft
+plugins.
+The types of malicious plugins range from
+mining cryptocurrency to sending DDoS attacks.
+And apparently they built a system that tries
+to automatically detect and block malicious
+plugins.
+And of course when a plugin is known to be
+bad, the hash or checksum can be used to block
+it in the future as well.
+Suddenly a company like shockbyte, or all
+the other minecraft hosters, face the same
+issues like malware on normal PCs.
+And now they have to reimplement, reinvent
+something like antivirus.
+In part they have to become an antivirus company..
+Antivirus specifically to detect malicious
+minecraft plugins.
+And of course that’s a kind of impossible
+cat and mouse game.
+It’s so interesting.
+Next topic, that one is actually very interesting.
+When you rent a minecraft server you often
+pay depending on how much ram you want.
+And apparently in the past there were Unlimited
+RAM Hacks for some minecraft hosters.
+Most hosts let customers upload their own
+server executable (a Custom JAR).
+around 2015 a “RAM Hack” was distributed
+on HackForums which would allow users to create
+a server with as much RAM as they want, even
+if the plan they purchased had less RAM.
+The way it worked was, the host would launch
+the “RAM Hack” JAR on for example a 256MB
+RAM server, but the RAM Hack JAR would simply
+spawn a new Java process, running the actual
+Minecraft server with any amount of RAM.
+It’s so dumb and clever.
+When you look up how to run your own minecraft
+server, you might come across the command
+line to execute the server jar, and here you
+can also chante the RAM used for java.
+It’s a commandline argument.
+And some minecraft hopsters relied on that
+to limit the customer’s ram.
+So this custom RAM hack JAR would simply launch
+a new java process with a much higher memory
+allocation.
+Boom.
+unlimited ram for your cheap server.
+Nice.
+And now we come to log4shell.
+The main topic of this video.
+Both the Minecraft client and server software
+use the Log4j library, and were vulnerable
+to Log4Shell.
+Minecraft is by far the largest game we host,
+so this was immediately a very serious issue
+for us.
+Both because we need to protect our customers,
+but also a concern for the health of the game
+in general.
+Our system will update all versions of each
+server type every 15 mins, so as soon as the
+developers of each server type patched this
+issue it was available immediately to our
+customers.
+However, in the meantime for a more immediate
+solution we modified the Log4j config with
+startup parameters.
+For 1.17 we could disable message pattern
+lookups with the parameter below.
+-Dlog4j2.formatMsgNoLookups=true
+For 1.16.5 and below this was not available
+so we defined a Log4j config that uses %msg{nolookups}
+on all message patterns.
+Makes sense, if you are a minecraft hoster
+business.
+Log4shell is a scary vulnerability and you
+have the responsibility to fix or mitigate
+the issue.
+Okay.
+The spider farm is basically done.
+Here is an epic timelapse building it.
+Originally I had planned a big sorting and
+collecting system below, but I was running
+low on materials and I was a bit too lazy
+to build that part.
+I was just happy that it was finally operational
+for at least some spider eyes and more importantly
+the XP.
+Anyway.
+You waited long enough now.
+I guess it’s time to have a look at the
+results from my log4shell minecraft server
+research.
+I have gathered the most interesting data
+in this google sheet.
+I started my scanner around the 17th of Februrary.
+So over two months after the very public disclosure
+of the log4shell vulnerability.
+In total, until mid April, I found roughly
+60.000 minecraft servers, but that’s not
+the whole internet.
+For reference, copenheimer, the infamous minecraft
+server scanner, apparently knows about 210.000
+active servers.
+I’m just a small player here.
+Also I mentioned earlier that I stopped the
+log4shell scans at some point, so this only
+ran until the end of february.
+And in that time range I only had scanned
+15.000 servers.
+But 826 of them triggered a log4shell pingback.
+Which means, at the end of february, basically
+at the start of march.
+Over two months after the vulnerability was
+officially fixed.
+Around 5.5% of all minecraft servers were
+still vulnerable.
+But the number is not very precise.
+First of all the number also includes vulnerable
+clients that were connected to servers at
+the time of the test.
+But I know from the data that most servers
+had no active players at the time of the test,
+so clients should be a small number of it.
+But nevertheless it would lover the number
+of vulnerable servers a bit.
+However, I triggered the test with a chat
+message, so If I cannot join, if the server
+is whitelisted, I cannot test.
+So there might be other more hidden and silent
+ways to get a payload into the log, maybe
+even despite the whitelist.
+So my guess is, this number is really a lower
+bound.
+Likely there is a lot more.
+Now I wanted to know who is hosting these
+vulnerable servers.
+I tried to figure out if these are private
+servers from individuals hosting it on their
+own rented servers, or if they paid for a
+hosting service.
+I tried to figure that out through the IP
+address looking at whois entries to see which
+company or organisation owns this IP.
+And to my shock I found 83 vulnerable servers
+by a big minecraft server hoster.
+A professional minecraft server hoster was
+not able to mitigate the issue for their customers.
+Sorry for censoring the name, I know public
+shaming can be useful to get security issues
+fixed, especially serious ones like this.
+But I think I have two good reasons why I
+don’t tell you.
+First of all I have evidence that they don’t
+care about security issues, and companies
+who don’t care about security issues, often
+care a lot about PR and legal stuff.
+And I don’t want to take any chances.
+But the second reason, and more important
+one, is, I did not scan the whole internet.
+Maybe they just got unlucky and there could
+be lots of other vulnerable minecraft hosters
+out there.
+Also you see here for example hetzner, Linode,
+OVH, microsoft and amazon, these are general
+purpose server hosters.
+And here it’s not possible to say if these
+are individual private customers who run their
+own minecraft servers, or if a company like
+shockbyte is a business customer of that infrastructure.
+So while I have proof that this censored company
+didn’t care, I have no way of associating
+these kind of servers with business.
+And so for example, I cannot verify that shockbyte
+really fixed and mitigated the issue.
+And so I find it somewhat unfair to single
+out that company just because they got maybe
+unlucky.
+Anyway.
+I don’t know.
+Also some of these companies are ISPs which
+indicates that some people are hosting servers
+at home.
+And by the way, the other redacted names,
+“redacted for privacy” or “Whois Privacy
+Protection”, I didn’t censor that, these
+IPs are just using a whois privacy service
+to hide the real owner of it.
+And lastly, do you notice this virus column
+here?
+I actually used the virus total API, to check
+if the IP addresses were flagged for being
+malicious.
+I only included scan results from after the
+time log4shell was publicly known.
+The theory being that malware could have been
+installed through the vulnerable minecraft
+service.
+It’s just a theory, but you see here the
+numbers.
+And there were not that many cases.
+But virus total only flaggs IPs for example
+if they are serving malware, this doesn’t
+mean these servers werent hacked and had cryptominers
+or so installed.
+Anyway, I have some more statistics for you.
+So like the previous list all of that data
+relates to the servers that were vulnerable.
+And using the log4shell payload we could figure
+out the operating system version.
+So the large majority of vulnerable instances
+were linux servers.
+Generic linux servers, but some linux versions
+were specifically tagged by the cloud providers.
+So 19 were linux aws instances.
+16 were by OVH. 9 from linode.
+There is also some raspberry pi in there.
+But the Windows 10 one is probably the most
+interesting, because it’s very likely these
+are desktop PCs from people.
+So either they were hosting servers at home
+on their desktop PC, or these are actual clients
+and players.
+Now next we can have a look at the home directory
+of where minecraft is running.
+This is only resolved on linux hosts, so I
+guess 385 vulnerable servers were maybe windows.
+But it could also be a container environment
+or another stripped down linux environment
+that just didn’t have that environment variable
+set.
+But here it is interesting that we find a
+lot of servers running in /data.
+And I believe this is because these servers
+use the popular docker-minecraft-server project.
+This docker container is loading all the data
+into /data.
+Similarly the root path here indicates that
+this is also probably a container environment,
+but here a custom one.
+And lastly here are the reported java versions.
+But I don’t know.
+Not super interesting.
+Yeah, and that’s it.
+These are the results from my minecraft server
+scanning projects.
+Sorry again for eneverybody who got scared
+by the chat messages.
+Sorry for all the companies who had to deal
+with scared customers writing support.
+But thanks to everybody who reached out and
+asked questions, and especially thanks to
+shockbyte for providing a lot of insights
+into the minecraft server business.
+Cool.
+While we talked so much I also gathered a
+few levels here at the spider farm.
+So let’s head back to base because I want
+to build a creeper farm next.
+OH WAIT!
+What happened over there…
+do you see those trees?
+Why are they missing leaves.
+That is weird.
+It only seemed to be on this island here.
+Oh look on this side over here.
+There seems to be a cave entrance.
+And some zombies are trying to defend it.
+I wonder what’s inside.
+Let’s explore this next time.

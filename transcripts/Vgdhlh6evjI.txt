@@ -1,0 +1,319 @@
+Software Update was a crypto challenge from
+the 34c3 ctf, where you had a signed firmware
+update and your goal was it to find a flaw
+in the update process that would allow you
+to somehow exploit the process.
+In this first part I would like to go over
+the source code and tell you about the thoughts
+and weird ideas we had and how we approached
+the challenge.
+The actual solution shows what a blockhead
+I am, and quite embarrassingly involved fairly
+simple math that I should have known but my
+intuition was completely off.
+And I would like to explain the solution in
+a bit more detail, because it kinda blew my
+mind, It’s an awesome practical example
+of, what is usually abstract, math.
+Anyway.
+Let’s head in.
+Software update.
+In the end 23 teams solved it.
+Always remember to keep your router firmware
+up to date!
+Connect with telnet to port 2023
+And files to download…
+Difficulty: easy-mid
+When you connect via telnet you are presented
+with a “Proof of work” request.
+This is not part of the challenge and can
+be ignored.
+It’s just a way to ratelimit the actual
+challenge server so people can’t easily
+DoS it.
+Like a captcha.
+You can download the python script, call it
+like that and then wait for a few seconds
+or minutes, depending on how powerful your
+machine is.
+Then enter the “Proof of work” solution,
+now you have access to the actual challenge.
+Welcome to SuperSecureRouter Ltd.'s super
+secure router Telnet interface!
+You can upload a software update here.
+This is where the actual challenge starts.
+In the downloaded source code you can find
+a challenge.py file that contains this part.
+You can see that it loads a public key from
+somewhere and then expects an input, which
+is then base64 decoded, and then saved as
+a temporary file.
+So basically it expects a firmware update
+as a base64 encoded .zip file string.
+Then it will call verify_and_install_software_update
+from the installer module with the zipfile
+path and the public key.
+In there it will check the size of the zipfile,
+if ok, read the information of all the files
+in the zip.
+Then looping over this information and check
+for each file the file size.
+If everything is safe here as well it will
+unpack the .zip into a temporary directory
+and call check_signature.
+And if the signature check was valid, it will
+call do_install.
+One example firmware update .zip was also
+provided.
+If we unpack it we find the following directory
+structure.
+A signature, as well as signed data folder
+with a post and pre-copy script, some Patch
+notes and a new file for /bin
+If we look into do_install, we can see how
+the actual firmware update works.
+first the pre-copy.py script in the firmware
+update is executed, then all the files are
+copied into the root of the filesystem, so
+the some_router_stuff would be copied into
+/bin,
+And then the post-copy script is executed.
+But the install only happens if the check_signature
+call was successful.
+let’s see what’s going on there.
+This function will call compute hash on the
+unpacked firmware .zip.
+Then the signature file inside the firmware
+image is read.
+Then this hash is checked against the signature
+with PKCS1_PSS, which is a signature scheme
+based on RSA.
+And the public key used is also known to us.
+But we obviously don’t have the private
+key, so we can’t generate a valid signature
+for an arbitrary other hash.
+Next let’s have a look at the compute_hash
+function.
+This one gets all files and folder paths with
+glob and then loops over all of them.
+If the path was a file, it will create a sha256
+hash from the file_path, a null byte seperator,
+and the file content.
+If it was only a directory, a slash is appended
+to the path and then sha256 hash is created
+with an additional nullbyte at the end.
+The resulting hash is then xored with the
+previous hash round.
+So all those hashes generated from files and
+folders are xored together.
+And the final xor result is then what is returned
+by this function compute hash and checked
+if it matches the signature signed with the
+private key that matches the public key we
+know.
+Let’s try this out.
+When we connect via netcat to the port I first
+have to execute the “proof of work” script
+and then I can send over the base64 encoded
+.zip file.
+So I can do `cat sw_update.zip` and pipe it
+into base64.
+Be careful, some base64 tools add newlines,
+but on mac it’s default just one long line.
+Then I can also pipe it into pbcopy on mac,
+which places it into the clipboard.
+So now I can just paste it into the netcat
+session.
+But some kind of buffering of my terminal
+is f’ed up, so it always stops.
+No clue how to fix that.
+To get around that I can do it this way.
+I can first do a `cat -`, which simply echoes
+whatever I enter.
+Because first I want to enter the “proof
+of work” solution.
+And then I want to cat the software update
+and base64 encode it and pipe it into the
+input of the netcat session.
+So I place both commands into parentheses
+and pipe both into netcat.
+So the first command executed is the `cat
+-`, so I can simply execute the pow script
+and send the solution.
+Now to stop `cat -` I can press CTRL+D, which
+will indicate an end of transmission and `cat
+-` terminates.
+Next the cat of the software update zip is
+executed, which is base64 encoded and then
+piped into netcat.
+This will apply the update, but we get an
+error.
+Preparing to copy data…
+Processing your update…
+There was an error installing the update:
+"Permission denied” for '/bin/some_router_stuff’.
+But based on this output we can also see that
+it mostly worked.
+Preparing to copy data… was printed by the
+execution of the pre-copy script from inside
+our .zip.
+And the permission denied was likely caused
+by the attempt to copy the files into the
+filesystem root.
+Which means the copytree call failed and post-copy
+was never executed.
+This might seem odd, but it’s fine.
+It probably means that the actual update,
+replacing and copying new files is not really
+part of the challenge.
+AND the pre-copy script was executed.
+So if we could control that one, we would
+have code execution.
+Butttt... where is the vulnerability here?
+So we knew it was a crypto challenge, so we
+of course thought we had to focus on the crypto
+part - which is the hashes and the signature
+verification.
+We spent quite some time looking for weaknesses
+in the RSA signature scheme.
+For example we checked if the RSA public key
+was weak.
+But the public exponent was large and the
+modulus we can extract from the key had no
+entry on factor db and was really large too.
+So bruteforcing was not realistic.
+We also tried to look for crypto papers on
+this topic, because sometimes there are weak
+edgecases that could happen, but the signature
+scheme looked pretty solid.
+So after a lot of time spent on this research
+we explored other ideas.
+In the do_install function we also noticed
+the symlinks flag, which we thought was odd.
+So we were wondering if we could do anything
+with symlinks.
+The zip file format standard does support
+symlinks.
+So maybe we could symlink something that could
+result in a RCE, or maybe overwrite some important
+system files after a copy.
+But the copy was also the part that failed
+and we still probably had to figure out how
+to break the hashing and signature verification
+to get a symlink into it in the first place.
+But we were still just trying to come up with
+creative ideas, so it seemed like a valid
+path to investigate.
+To play around with this we can write a simple
+python script that uses the functions of the
+installer to test the verification locally.
+You have to make sure to get all the dependencies
+installed, like pycrypto, but then we can
+add debug prints into various places.
+So I added a print in each condition for file,
+directory or else.
+If you run this script now you can see all
+the files that are being hashed.
+Now let’s add a symlink, to for example
+/etc/passwd.
+You can see that it is recognized as a file
+and verification fails.
+But while playing around with that we noticed
+a few interesting things.
+First, when the symlink did not point to a
+valid file, it would not be recognized as
+a file.
+Which means no hash is calculated for it.I
+thought we could maybe combine that with the
+file copy part.
+We could let the symlink point to a non existing
+file, then the verification succeeds, and
+then the copytree happens, that could fix
+the symlink to point to a valid file.
+Not sure where that would get us, but sounded
+like a creative idea.
+BUT then we noticed verification fails, even
+though the invalid symlink didn’t get hashed.
+This uncovered another small bug.
+the hash of the previous loop iteration is
+XORed again.
+Which means the previous hash cancelled itself
+out.
+Which means with a second invalid symlink
+the hash is xored a third time, restoring
+the original valid value.
+We really thought we were on to something
+here.
+Because this bug would allow us to create
+any other file in the firmware update, and
+cancel the XOR hash with an invalid symlink.
+We didn’t really know what we could do with
+arbitrary files, but we can figure that out
+in another step.
+So we wanted to try that….
+But then we quickly realized, that python
+Zipfile extraction doesn’t care about symlinks.
+It will not unpack them.
+So symlinks wont work.
+Oh man…
+But still.
+With this XOR cancel out bug I really thought
+this would be the trick and I looked for other
+supported types in zipfiles.
+I read something about device nodes, but it
+all lead nowhere.
+And the fact that it’s supposed to be a
+crypto challenge also kept bugging me.
+One other thought somebody had, was, what
+if we somehow can control the hashes or the
+XOR result.
+But controlling hashes is unlikely, because
+there are no known sha256 collisions or similar
+attacks.
+And then I was thinking, how could we control
+the XORs if we can’t even control the SHA256
+hashes.
+But still I was googling a bit about XORing
+hashes and their cryptographic or randomness
+properties.
+But it didn’t lead much to anything.
+Hashes are random data.
+And the intuition I had also told me, this
+is not possible.
+The only think I could think of, and what
+we also found online, was that the same hash
+would cancel itself out again.
+And so one last idea I tied to think about
+was if we somehow can get two files to generate
+the same hash.
+The hash of a file is generated by the file
+path and the content, so the basic idea I
+had was if we could move parts of the file
+path into the file, then we would have two
+different files, but it would result in the
+same hash.
+Let’s ignore the nullbyte for a second,
+for example a file with the name ABC would
+have the same hash as a file with the name
+A and the content BC.
+But this doesn’t work here because of the
+nullbyte.
+You can’t get a nullbyte into a filepath.
+So while I thought the idea was clever, it
+just didn’t work out.
+So you can see we really tried a lot of different
+things.
+But luckily some other team members were a
+bit more persistent and had a better mathematical
+intuition than I had.
+The trick here was in fact exploiting the
+XORing of the hashes.
+And it was actually fairly simple math that
+I should have known.
+But for some reason I just didn’t realize
+that what we are looking at is a simple math
+problem.
+It really blew my mind.
+But I wanna dedicate it’s own episode about
+the math in detail.
+So see you next time.

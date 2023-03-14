@@ -1,0 +1,244 @@
+I can tell you a secret as a place on
+the Internet
+most of the big names that you know of
+they are all there and they are all
+communicating there you can all interact
+and you see also the interactions
+between all these amazing researchers
+it's like a secret place for only the
+best of the best and this is also where
+I learned a lot and today I'm telling
+you how you can find this place
+now you can navigate around what
+interesting things you can find there
+and I give you the permission to join
+you can sign up yourself and then curate
+the list of researchers that you're
+interested in but don't tell anybody
+[Music]
+let's open Twitter discussion about
+responsible disclosure I've been there
+but might be interesting to you this is
+a pretty fun Twitter account by a friend
+of mine
+the board is constantly scraping paste
+bins I mean there are tons of tools and
+people are doing it it's just happened
+to be a friend of mine and so you can
+see here links to paste bins that
+contain some credentials entice a
+youtube channel of another youtuber
+advertised here it's ash
+my stroke ego it's it's a channel about
+malware reverse engineering check it out
+if you always want to see our decompile
+in action but we're afraid to ask you
+can play with it now we offer a demo
+decompiler 4 X 64 wait this is new the
+demo version of IDA now comes with X 64
+decompiler let's check this out ok so
+I've already requested the evaluation
+version and it does say here the demo
+version of Ida comes with X 64
+decompiler so here it is at 64 let's
+execute that by the way there's a demo
+for Windows Linux and Mac so that's
+pretty neat just a small test binary
+it's from from a format string
+exploitation challenge so let's check
+out the D compiler and 5 the D
+compilation functionality is provided by
+a decompiler plugin this plugin is not
+part of Ida is a separate product the
+decompile has limited functionality the
+decompile is working holy crap it works
+that's nice it's a it's a standard D
+compiler
+I mean it's just 64-bit binaries but
+this is already really really helpful
+for CTFs because I guess like the most
+dinner like Ponyville binaries nowadays
+are 64-bit I mean we know the reason why
+I - doing this I didn't share a demo for
+64-bit for a long time and now a
+decompiler tool I think they are really
+feeling the pressure that giedrius
+putting on them just a quick reminder
+deidre is completely free and also has a
+pretty good decompiler well Ida is still
+probably stronger in all places the fact
+that it's free and pretty mature
+it's definitely usable
+it's really usable it's a tough
+competitor for Ida especially long term
+if now all the kids are coming up on
+Ghidorah and all the tools that will be
+developed in the next five to ten years
+foggy dry if Deidre remains maintained
+and and the community is forming around
+this Deidre has the potential to surpass
+Ida it's great to see competition in in
+this market because now you also get an
+idea a demo version with with decompiler
+that's pretty cool it's another day no
+and I realized I wasn't properly dressed
+for the heck are underground forum that
+we are exploring so let's head in again
+looks like the discussion today about
+responsible disclosure is continuing a
+little bit here's the docket as weighing
+in and marwah tech my gosh this blew up
+ribs also trying some marketing here can
+you spot the vulnerability let's have a
+quick look at this okay if the password
+is set if you have a post request with
+the password then it will set the cookie
+to the md5 hash of that passport oh and
+we have a password to your hard coded
+and I immediately noticed the 0e
+followed by only numbers this is a
+classic PHP issue this part here now
+checks the cookies so if you don't have
+a cookie set yet then it shows you the
+login prompt but if the md5 hash
+generated from your cookie input is
+equal to the password then the lock in
+look then the look in succeeds that's a
+very typical PHP challenge issue kind of
+thing that you should be aware of I
+believe I have also shown this in a
+video before life overflow here editing
+this video I just realized a completely
+forgot to explain what exactly the issue
+is but I also dug up the video where I'm
+explaining this it was in this other PHP
+challenge so let me just play it really
+quick PHP has type juggling which means
+that variables type is determined by the
+context in which the variable is used
+and so for example these two different
+strings evaluate to true because based
+on the context they are automatically
+converted to numbers and so those are
+both 0 and what can happen now is that
+if for some reason two different hash
+strings start with 0
+II followed by only numbers they would
+evaluate to true this is a very typical
+CTF PHP challenge so I thought maybe we
+have here a similar issue because equal
+equal and PHP means equal after type
+juggling while equal equal equal means
+identical and the type has to match too
+there we go
+educational YouTube channel but I also
+forgot to mention that obviously people
+were responding to that tweet with the
+solutions so that's again another
+example of what you can learn if you are
+just browsing Twitter and coming across
+something like this if you didn't know
+about PHP type juggling you would have
+found the explanation and the solution
+in their responses
+I guess just some weird interesting fun
+facts 95% ATM swipes run google code-in
+80% of transactions run on mainframe and
+there are I don't know this kind of
+number we write 220 billion lines of
+code only in COBOL well that sounds
+crazy but I'm sure a lot of the
+financial stuff is running on mainframes
+and COBOL that's like IBM stuff I guess
+something like this is also always
+interesting and fascinating it's about
+power law the man who bought hacking
+team and it's here new marketing
+material of the company that is building
+surveillance tools and sells this
+product and service to agencies around
+the world
+stuff like this might always feel weird
+but it's just reality ok so this kind of
+stuff exists it would be naive to
+believe that there wouldn't be implants
+that you don't know about for various
+operating systems and probably they have
+exploits or other means of delivery for
+all of them - yeah yeah the real world
+sucks I guess so nighty you either know
+something or you don't and everything
+you know it seems trivial and easy and
+you feel like everybody else should know
+it so here for example is somebody who I
+guess has never heard of Nicolo pinochle
+before and I guess this person is
+surprised that there's a feature to run
+C and C++ code and browsers in some kind
+of sandbox that might sound weird but
+yeah stuff like this exists there was
+also a CTF challenge at from the Google
+CTF related to pinochle so maybe check
+that out so the street is a good example
+why sharing something you found out can
+be useful other people might have also
+not heard about this before and now you
+learn it oh I also remember that hex
+backswing is working on a curated list
+of researchers or hackers to follow on
+Twitter and she is categorizing them in
+all the different categories they are
+like kind of tweeting about or the area
+they are working in it's unfortunately
+currently not available but there's a
+talk about it by her that you can find
+on YouTube and you can see it being
+split up in all the different categories
+I talked to her unfortunately the
+project right now is offline but she's
+still working on it and she's very busy
+right now but keep an eye out on her
+Twitter she's hoping to release it in a
+couple of months maybe so if you see
+this video long time in the future maybe
+search for 133 seven lists I'll check
+out her Twitter and if you see this
+video earlier and you can't find it then
+just follow her on Twitter I'm sure she
+will tweet about it once she got it to a
+state to publish it I mean there's a lot
+of crap on Twitter tool there are meme
+jokes people talk about other stuff and
+private stuff people talk about politics
+I just want to say it all has a place
+there it's a social place with humans
+and I enjoy these social interactions as
+well so please don't be one of those
+sticks that goes on there and then
+complaints about people I only followed
+you for technical stuff stop talking
+politics or [ __ ] like this like stop it
+okay if you don't care and follow
+silently you don't need to be a dick
+about it I think it's nice that people
+have a platform here to just share and
+talk with each other stuff that is also
+unrelated to IT security if you are
+wondering how to start I guess I would
+recommend just look at the people I
+follow not all of them are just about IT
+security but most of them are it might
+be a good place if you have zero people
+you follow and then over time you build
+and curate your own list you just keep
+reading Twitter you look at replies and
+maybe you find interesting people that
+have good responses and then you follow
+them and then over time you slowly build
+up a nice Twitter following with a lot
+of relevant information that you care
+about so like I said please keep
+hacking forum secret Shh but I believe
+it's one of the best places to interact
+and stay up-to-date with IT security
+[Music]

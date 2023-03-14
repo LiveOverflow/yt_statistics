@@ -1,0 +1,175 @@
+This is the first video of the web security
+series. Like with the binary exploitation
+stuff we have to start by establishing some
+basics. When I started as a teenager with
+programming and web development I did not
+quite understand how this whole browser, server,
+tcp, http, headers, cookies whatever work.
+So I try to introduce those things slowly
+and move more and more into the security aspects.
+I will try and keep this series a little bit
+more highlevel, but I certainly will dig more
+into the lower level networking parts in the
+binary series at some point.
+Ok let’s get started. For now we will stay
+on our local machine and won’t make any
+connections to a server. We start with the
+displaying or rendering websites in the browser.
+So. You already know that browsers can render
+html files. So let’s start by constructing
+a simple one.
+The first line is the doctype. In previous
+html versions this was more important, because
+it included important render informations
+for different modes for the browsers in the
+past. But nowadays mostly irrelevant.
+Then comes the standard html skeleton. HTML
+tag. Including a Head and a body. Oh and if
+it wasn’t really clear, HTML is hirarchical.
+A html tag always opens and closes again.
+And inside you can have more tags. So you
+should read html always in like the pairs
+of tags. And think of it in a hierarchical
+order. Indentation helps doing that.
+Let’s add a heading with h1. And some text
+in paragraphs with p. Let’s also add an
+image with the img tag.
+And while we are on it a link to another site.
+There are a lot of different html tags that
+provide different user interface features.
+Some are for styling text stuff like headers
+or images. Others provide input elements for
+formulars. So mh. Let’s maybe add a formular
+too. A simple textbox and a submit button.
+Generally the syntax for tags is like this.
+Less-than sign, followed by the tag name without
+a space. After that you can have multiple
+key and value pairs divided by spaces. These
+are called the attributes of an html tag.
+The values should be quoted - but they don’t
+have to. Another small thing that is helpful
+for certain kind of attacks.
+Now we can open this file in the browser.
+The browser parses now the html code and starts
+drawing the elements to the screen. When you
+do a rightclick somewhere you can select “inspect
+element”. Which opens up the Chrome developer
+tools. Other modern browser offer similar
+tools. In the first tab called “elements”
+you can see all the html document elements.
+It has this nice hierarchical display where
+you can open and collapse tags. You can also
+go in there and change the html. This is obviously
+just changing what the browser currently displays,
+and when you refresh you obviously see the
+original file again. You are not modifying
+the actual file on your hard drive. Depending
+on your humor, that might already be enough
+to have fun by faking the content of a website,
+make a screenshot and post it to facebook,
+claiming that it was real.
+Browser are also very good at something else.
+Html is kinda like a programming language.
+But when you write some weird html code the
+page doesn’t break like a python or c program
+would. Browsers are very good at “fixing”
+the crappy html code we write. Fixing is maybe
+the wrong word. - let’s say they are very
+liberal in what they accept. Here you see
+some examples. We put the form inside of a
+paragraph p tag which is a violation of the
+standard. But in the inspect view you can
+see how the browser fixed that, by making
+a p tag before and after the form. Or they
+don’t care if you forget to close your tags.
+It doesn’t complain if you use weird characters
+in weird places. It doesn’t complain about
+IDs that are supposed to be unique being used
+multiple times. You can imagine that this
+might aid in exploitation if you are able
+to modify (or generally inject new html code
+into the) html of a site. You can use this
+to get around certain resitrictions. For example
+if you cannot use slashes for some reason,
+then simply don’t close the tag.
+Anyhow, besides HTML there are a few other
+very common technologies used. One is CSS.
+CSS is another type of language that allows
+you to style the html page. For example changing
+colors. You have multiple options to do that.
+You can give each html element a style attribute.
+You can use a style tag, or you can reference
+a seperate css file.
+Css syntax is also super easy. You start with
+an identifier, called selector. So first you
+have to decide which html tags you want to
+style. You can define styles for all tags
+of a certain kind. Or all tags with a certain
+class using a dot before the class name. Or
+only the tag with this ID using a hash symbol.
+You can also combine these. Input DOT classname
+references all input elements that have this
+classname. Or comma seperate if you want to
+give different selectors the same style. Or
+hirarchical, only style this paragraph if
+inside of a div.
+Inside of curly braces you define again key
+and values, this time semicolon seperated.
+There are many different styling features.
+Such as text colors, fonts, margins and paddings.
+And again, you can play with these things
+in the browser developer tools. Just click
+on an element and on the right you can make
+changes. It’s awesome. You can immediately
+see the results. Really cool for learning…
+Now let’s give this an awful background-color.
+The third important technology, is javascript.
+Again you can write javascript inside of attributes,
+or us a script tag, or reference an external
+javascript file.
+Javascript is a real full blown programming
+language allowing you to define functions,
+loops, ifs and all this kind of stuff. A common
+exmple and proof of javascript execution is
+to use something like alert() or prompt(),
+which will trigger a small popup alert box.
+So we can for example define a useless function
+that calls alert(). To have javascript interact
+with html there are two major ways.
+One are events. They can trigger javascript
+execution. So for example we can add an onclick
+event handler on an html tag, and if the user
+clicks on that tag, it will execute the javascript
+function.
+The other one is accessing html from javascript.
+You can access the html elements through an
+hierarchical object model called the DOM.
+Javascript knows objects. Like other programming
+languages. And the DOM is simply an object
+representation of the html page, so that javascript
+can access it nicely. You can use the developer
+tools again to play with javascript on the
+current site. So for example you can take
+the document, then its html body and its children.
+And then access and change some text.
+Again, all you do here is in the browser.
+Opening a website in the browser is like opening
+a picture in photoshop. photoshop renders
+the image, but also offers you tools to play
+with that image. And the browser also opens,
+and renders, a file. And provides tools to
+play with the displayed paged.
+Now currently this resource is loaded from
+the local filesystem, you can see that that
+it has the URL scheme file, colon, slash,slash.
+Followed by it’s path. Usually websites
+are loaded from a remote server via the http
+protocol. But more about HTTP in the next
+video.
+If you want to learn mroe about html, css
+javascript and generally web development I
+highly recommend you sites like codecademy
+or check out https://code.org/. Getting into
+web development is super easy, there are endless
+of resources available and you can quickly
+see results and create your own personal website.

@@ -1,0 +1,174 @@
+Mindreader had more solves than any other
+challenge and was considered easy.
+And still, I failed to solve it.
+In the end I had solved two medium and one
+hard challenge, so what was my issue with
+mindreader?
+Well.
+Let me tell you about how I approached this
+challenge and what went wrong.
+Mindreader.
+Can you read my mind?
+I was wondering what that could mean.
+Reading your mind.
+I thought maybe it could be related to reading
+a processes memory.
+Well.
+Challenge is running at mindreader.web.ctfcompetition.com
+When we visit this site we find a very easy
+form with a text input.
+If you write something it passes a GET variable
+f with your input but returns a Not Found
+error.
+Well that already smells bad.
+So a natural first thing to do is to try local
+file inclusion.
+And sure, /etc/passwd works.
+So what do we do now, where can we find the
+flag.
+Usually when I work with a web challenge I
+use a web proxy like Burp.
+My firefox has already the proxy server configured
+so I just have to start burp and then can
+visit the site.
+Disable the request interception, visit the
+page and look for the request in the HTTP
+history.
+And there it is.
+When you highlight it you see the request
+and response details of the HTTP request down
+here.
+Then I hand over this request to the repeater,
+which is a neat feature of burp where you
+can repeat those requests.
+So it becomes really easy to change the f
+GET parameter and see the result on the right.
+So now I wonder what I could be looking for.
+I remember a few interesting files on linux,
+but obviously I don’t know everything.
+And one of the first things I noticed was
+the Server nginx in the response.
+Which made me start to google for the default
+config and log locations because I was hoping
+to learn something about the web app running
+there.
+So for example /var/log/nginx/error.log.
+Or /etc/nginx/nginx.conf.
+But nothing worked… mhmh
+At some point I opened up a terminal and connected
+to a linux VM I had running somewhere to find
+interesting files.
+Especially because I wanted to check the /proc
+filesystem.
+There is a lot of information about your own
+process there.
+So I tried to access a few things like /proc/self/environ
+which should print the environment variables
+of your current process.
+But it didn’t work.
+Here is the first mistake I made.
+I wonder if you notice it.
+I will come back to it in a second.
+I then went on and looked for other interesting
+files, maybe there is something in /dev/.
+I started to continue trying out different
+interesting /dev/ files and there was this
+fd folder.
+Fildescriptors.
+And it’s actually a symlink to /proc/self/fd,
+so pointing at your own fildescriptors.
+You can see that fd 0 returns OK, and fd 1
+and fd 2 just keep hanging, but no error.
+And there seem to be even more open filedescriptors;
+not only the standard stdin, stdout and stderr.
+That’s interesting but didn’t give me
+anything.
+Anyway.
+This was my second mistake.
+Do you notice my mistake here?
+I didn’t so I thought this is going nowhere.
+So I started to work on another challenge
+and procrastinated checking twitter.
+And there was an unread message.
+This guy had some problems with Joe and asked
+me about it.
+Had a short chat about the CTF and because
+he saw I didn’t solve mindreader yet, he
+told me I could easily do it.
+Well… yeah I assume because it’s an easy
+challenge that I should be able to do it,
+but so far I’m stuck.
+And then the worst thing happened.
+He sent me a spoiler for the challenge.
+Please don’t do this.
+If I don’t solve a challenge I don’t mind
+and I will seek out writeups after the event.
+But in the moment you deprive me of a valuable
+learning experience.
+Because even when I’m stuck with a challenge
+I start researching.
+And the bits of information I read and pick
+up left and right makes me more knowledgeable
+in general.
+And next CTF I will be better.
+I tried to stay away from mindreader after
+that, but it was bugging me and for my own
+curiosity and because I was failing with another
+challenge I just had to look what the hint
+is.
+I just can’t ignore this, it’s in my head.
+And the code revealed that the flag is in
+the environment variables, which I already
+had a hunch for as the possible place, but
+now I know the goal.
+And it also shows why /proc/ didn’t work.
+There is a filter.
+And it hit me in the face.
+I realized the two major mistakes I made and
+how I could have solved it on my own.
+This right here has turned into a valuable
+lesson for me.
+Ok let’s have a look at my first mistake.
+When I tried to access something in /proc
+and get the error, it’s actually a different
+error then when I try to access some random
+other file.
+I did not notice that.
+The second mistake I made was when I checked
+/dev/fd/.
+Because I knew it was a symlink to /proc/self/fd
+from my example linux system, and while I
+did wonder for a second why that works, I
+filed it away as a small oddity.
+If I had made notes of the weirdness that
+I see with accessing /proc and that apparently
+the symlink works I could have combined those
+two things and figured it out myself.
+But I didn’t.
+I was sloppy, I didn’t take proper notes,
+and most importantly I didn’t pay attention
+to the details.
+Oftentimes when it comes to hunting for bugs
+it’s the small oddities you must not ignore.
+A hacker who can focus on details, will discover
+great vulnerabilities.
+So when I saw that proc was filtered and returned
+another error, and that I had to access the
+processes environment variables, I immediately
+knew what to do and tried to use the symlink
+to /proc/self/environ through /dev/fd/..
+One directory up ../environ and get the flag.
+Solved.
+Well not really.
+I got a spoiler.
+I’m not sure if I had solved it without.
+Maybe, maybe not.
+It was certainly not hard, but I made mistakes.
+And while it was a good lesson for myself,
+I hope it will also show you that, if you
+allow me this arrogance, that even I can fail
+easy challenges.
+Sometimes knowledge and experience is missing,
+but oftentimes the issue is just not paying
+attention to all the information you have
+been given.

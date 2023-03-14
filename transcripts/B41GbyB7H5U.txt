@@ -1,0 +1,342 @@
+Flare-On is a series of reverse engineering
+challenges by FireEye because they want to
+find and hire smart individuals interested
+in reverse engineering.
+So if you need a job, just contact me and
+I sell you the solutions.
+Just kidding.
+I don’t know yet how far I will get as reverse
+engineering can be quite time consuming and
+I believe many challenges are based on Windows,
+which is not really my world.
+Anyway.
+The game is simple.
+Analyze the sample, find the key.
+Each key looks like an email address and ends
+with @flare-on.com.
+Enter the key for each challenge in the Flare-On
+CTF app to unlock the next challenge.
+And OHHH BOY did I get mad at this browser
+terminal.
+../ didn’t work.
+LS which is supposed to list files just showed
+text and even having moved with cd into a
+directory, you could just move away.
+LITERALLY UNPLAYABLE.
+So let’s look at the first challenge.
+Minesweeper Championship Registration.
+Welcome to the fifth annual flare-on challenge!
+The minesweeper world championship is coming
+soon and we found the registration app.
+You weren’t officially invited, but if you
+can figure out what the code is you can probably
+get in anyway.
+Good luck.
+And here we can download the file.
+When you unpack the 7zip archive with the
+password infected you will get a .jar file.
+I’m 100% sure that the first challenge will
+be just the most basic thing ever.
+So I just immediatly used jd-gui, which is
+a java decompiler and right here in the main
+method you find that a string is compared
+to the email goldenticket2018@flare-on.com.
+So this is our first flag.
+Let’s copy into the form and submit the
+flag.
+Correct.
+COOL!
+We solved the first challenge.
+So let’s not waste any time and move on
+to the next one.
+Ultimate Minesweeper.
+You hacked your way into the Minesweeper Championship,
+good job.
+Now it’s time to compete.
+Here is the Ultimate Minesweeper binary.
+Beat it, win the championship, and we’ll
+move you on to greater challenges.
+Again we get a 7zip archive with the binary
+to download.
+This time we got an .exe file.
+I assumed because it’s still just the second
+challenge that it’s still super simple.
+So I immediately opened the disassembler IDA,
+I’m using the version 7 freeware here, to
+analyze the .exe.
+But right here when we select how to load
+the file, IDA saw that the binary seems to
+be a .net assembly binary.
+And if you would instruct ida to assume it’s
+just a regular PE compiled binary, then it
+looks empty.
+That’s because this is a .net binary.
+Like I said I’m really not that experience
+with Windows, though of course over the years
+you pick up stuff here and there.
+So I know that .net programs are not compiled
+down to regular x86 intel CPU machine code,
+but it’s compiled to an intermediate language
+and the decompilation of that is super nice
+with tools like ILSpy.
+So we can open the binary in there.
+Ultimate Minesweeper.
+At first I was just clicking around.
+I didn’t even execute the binary yet, I
+have no clue if we actually have to play something.
+But the code doesn’t look to large and I
+was just trying to get a feeling for what
+is implemented here.
+And of course you quickly see names such as
+SuccessPopup or FailurePopup and the MineField,
+and so forth.
+And I immediately went for the SuccessPopup.
+What else would I look at.
+So this class has some texts as labels, a
+picture and a textbox.
+The initialize component initializes those….
+Compontents.
+But also things like the text.
+Congratulations, You have won the Ultimate
+Minesweeper Championship.
+And nobody cares.
+Here is your price:.
+But no flag here.
+Hmmhm…
+Is it maybe displayed as an image?
+Does the image contain the flag?
+So I was looking for that image resource,
+but I only found these balloons..
+Mhhh… also the other pictures do not have
+a flag.
+But when checking the success PopupConstructor
+, which takes a key as parameter, we can see
+that it’s assigned to the textBox1.
+And that happens after the other components
+were initialized.
+So that key is very likely the flag.
+So where does the key come from?
+With right click on the method name we can
+select Analyze which opens up this tree structure
+below.
+And here we can check where this function
+is used.
+So it’s used inside the SquaredRevealedCallback
+of the main Form.
+This method takes a column and row integer
+and checks if a bomb was revealed.
+So sounds like typcal minesweeper.
+In case a bomb was revealed we would get the
+failure popup and exit.
+But if that didn’t happen, then we see that
+a number is calculated based on the row and
+column and then added to I guess a list or
+array of Revealed Cells.
+So everytime you didn’t uncover a bomb,
+the number of the cell, which can be calcualted
+by the row times VALLOC_NODE_LIMIT + column?
+Well so that variable name is weird.
+The calculation would make sense if it were
+row * amount of cells per row + the column.
+This way you just number each cell.
+So the fact that the cells per row value appears
+to be called VALLOC_NODE_LIMIT, seems a bit
+odd and thus I think it’s meant to add a
+little bit of obfuscation or confusion.
+So in any way we add the correct revealed
+cells to this array and if there are non unrevealed
+left, we create the successPopup with the
+key generated by getKey, which gets the revealed
+cells array.
+So let’s check out that method.
+First of all we sort the array of revealed
+cells.
+Then a random is initialized with an integer
+calculated based on the, first ,second, third,
+based on the first 3 revealed cell numbers.
+And initializing random like that means this
+is setting the seed value of the random number
+generator.
+In case you don’t know, pseudo number generators
+require a seed, basically an initial value.
+And based on that the random numbers are generated.
+So using the same seed, produces the SAME
+random values.
+So the creator of this challenge knows exactly
+which cells are the correct cells.
+And thus the integer that is calculated here
+will always be the same.
+So the random number generator will always
+generate the same numbers.
+At least as long as you revealed the correct
+cells.
+This randomness can be easily attacked, but
+I explain in a second.
+Let’s quickly finish that code first.
+So here a big byte array is initialized with
+seemingly random data and then a second byte
+array is filled with random bytes from the
+random generator.
+After that we find a for loop that is XORing
+both these arrays together.
+And these bytes encoded as ascii, is returned.
+So that XOR decryption should reveal the key.
+So basically we have here an encrypted flag
+and the key is dynamically generated through
+a pseudo random number generator that requires
+the correct seed.
+And the correct seed requires the correct
+revealed cells.
+But!
+There is a weakness.
+First of all the seed definetly is a 32bit
+integer.
+And 32bit integer are not that huge.
+They go from about - 2billion to = 2 billion.
+So only 4 billion options that are possible
+here.
+Which means we can just bruteforce all 4 billion
+options until we decrypt this byte array to
+the flag, which we know ens with @flare-on.com.
+But we can even optimize the bruteforce further,
+because we know that the seed is calculated
+based on three revealed cells.
+Which are also sorted right before.
+So this means the first cell must be the smallest
+number, the second cell must be larger than
+that, and the third even larger.
+So these are already good constraints.
+And on top of that, based on the calculation
+we have seen before, we can try to find what
+the maximum amount for a cell even is.
+This VALLOC_NODE_LIMIT number appears to be
+30.
+Also the MineField is initialized with a size
+is also the VALLOC_NODE_LIMIT.
+So that means that the maximum number for
+row and column is like 30 or 31?
+Or 29?
+You know… ehm… computer science is complicated
+and I’m not exactly sure if the first cell
+is here started with 0 or 1 in the callback
+handler of the click.
+Whatever.
+It doesn’t make the bruteforce worse.
+So now we have even more constraints.
+This means we can now just copy and paste
+the getKey function and wrap it into some
+loops to try out all possible numebrs for
+first, second and third cell.
+And here is the code.
+We have three loops, each loop is responsible
+for one cell.
+So a is the first, b the second and c the
+third possible revealed cell.
+And the max value for each of them is 30*30.
+That’s the minesweeper grid size.
+And also because the revealedCells are sorted,
+we know that b must be larger than a, always,
+so we can always start b being one larger
+than a.
+And the same is true for c.
+c being at least one larger than b.
+And so that bruteforce, checking if the decrypted
+byte string contains flare-on.com, takes maybe
+5 minutes.
+Super quick….
+Easy peasy… but then I was surprised when
+the bruteforce reached the end and didn’t
+find anything… what the heck?
+That doesn’t make any sense… that really
+confused me.
+So at some point I even just bruteforced all
+possible 4 billion integer values for the
+seed, and it still didn’t find it.
+That was so weird.
+So I went back into the decompiler and tried
+to find what the correct cells are.
+So I looked a bit around and found this two
+dimensional array, so the minesweeper grid
+called MinesPresent.
+It’s boolean true or false, so that probably
+tells us if there is a mine or not.
+And with the analyze feature we can again
+look for where this is used.
+Let’s see where the get method is used,
+so what reads this value.
+And there is this GarbageCollect array?
+Which also has minesPresent boolean true or
+false, and that one is used by AllocateMemory,
+which gets passed in a MineField?
+And that one has two loops going from 0 to
+VALLOC_NODE_LIMIT, which we know is the grid
+size 30.
+So just because these names like allocate
+memory, garbage collect, valloc, node_limit,
+blah blah mean something, it’s really confusing
+to read the code.
+They refer to very different concepts in computer
+science.
+But the names are fooling us.
+We know that the two dimensional array variable
+GarbageCollect also hase mine present.
+And this flag can be true or false and is
+assigned to it.
+So this loop goes over the whole 30x30 grid
+and decides based on this obscure if-statment,
+using deriveVallocType, if a particilar cell
+has a mine or not.
+And that weird function takes r and c, which
+is just row and cell obviously and does a
+calculation on it and flipping the bits.
+And then checks if that result is contained
+in VALLOC_TYPES.
+So it’s just to throw us off and obfuscate
+the cells that have and don’t have a mine,
+but we won’t get fooled!
+We also don’t really have to invert those
+VALLOC_TYPES and figure out the row column,
+we can just copy and paste the whole code
+again, make sure that we get all important
+numbers and then we simply print when we would
+set false.
+So when a mine is not present.
+And when we run that we find 3 cells where
+there shouldn’t be a mine.
+And now we can execute the game, here it is
+and count the cells and rows and find the
+cells.
+One, two and three.
+And we WIN!
+Here is the flag.
+Ch3aters_Alw4ys_W1in@flare-on.com.
+But I’m still confused why our bruteforce
+didn’t work.
+But now that we know the exact three cells
+that are correct, we can test our code.
+We can just hardcode a, b and c based on the
+rows and cols we got.
+And otherwise the code is the same.
+Seed the random number generator, generate
+the xor key, xor the bytes and print the flag….
+Ohhhhhh….
+I get it…
+I’m so dumb……..
+Okay so I had this whole ending prepared where
+I showed that even hardcoding the seed in
+a loop didn’t really work and it was altenrating
+the flag and garbage.
+And I didn’t find my bug when I did the
+challenge.
+I also didn’t find it when I prepared the
+script for the video and didn’t see it when
+I edited this part.
+ONLY NOW in my second round of editing where
+I draw my overlays it clicked.
+I’m soooo dumb… the encrypted flag array2
+is initialized once, and the XOR operation
+is modyfying those bytes!!!
+So in the next loop round we now have garbage
+in that array2 and it’s not the encrypted
+flag anymore.
+Thus my bruteforce failed… now it works.

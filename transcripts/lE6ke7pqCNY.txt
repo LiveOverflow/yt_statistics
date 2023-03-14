@@ -1,0 +1,339 @@
+readme_revenge was a pwnable challenge at
+the 34c3ctf and in the end 30 teams solved
+it. Difficulty: easy-ish? “You can't own
+me if I don't use a libc! Right? Right?”.
+We can download the binary here and this was
+the IP and port to interact with the challenge.
+When I read the title I knew immediately I
+had to try it.
+You see two years ago at the 32c3ctf there
+was a challenge called just “readme”.
+Back then I tried to solve it but failed.
+After the CTF was over I looked at writeups
+from other people and tried to understand
+it and even made a video about it. Two years
+ago I did not have the skill, knowledge or
+experience to solve it. So when I saw that
+there is a readme_revenge at the 34c3ctf I
+just felt like, I had to solve it. It was
+my personal challenge and in some way it was
+very close to my heart. It was a challenge
+I failed two years ago, and now I can proof
+to myself that I improved. So let’s have
+a look at it.
+Like I said, the challenge reminded me of
+this older challenge and I assumed it was
+pretty similar. And it was easy to verify.
+For that challenge you didn’t have to get
+code execution, but the flag was actually
+embedded in the file. And if you look at the
+strings of the binary you can see a placeholder
+flag. So the binary running on the server
+contains the real flag instead. And that is
+also where the name comes from “readme”.
+Your task is to read or leak this flag from
+the target binary. The solution of the original
+readme challenge was super creative and really
+blew my mind at the time. So I encourage you
+to watch it because I had that knowledge in
+the back of my mind when approaching this
+challenge. So while it was obviously not the
+same challenge, it was a “revenge” of
+the readme challenge, it was similar in many
+ways. So i had a pretty good idea already.
+But let’s check it out.
+When we run it the program waits for input
+and then greets us with “Hi, liveoverflow,
+bye”. So it just reflects what we write.
+I immediately checked for format string vulnerability
+and entered a format string modifier like
+%x, but it didn’t do anything. I also just
+tried a long input and to my surprise I immediately
+got a segfault. Well that’s a good start.
+Let’s look at it in gdb. So I run the binary
+with the long input.
+FYI, If you don’t know why my gdb looks
+so colorful, it’s because I use the pwndbg
+gdb extension.
+But here was my second surprise, the binary
+had all the symbols still included, so we
+get all the function names. That’s neat.
+So where did we crash? we got a segfault in
+printf? Inside of libc? To be more precise
+in __parse_one_secmb. That’s weird. The
+instruction that caused the segfault is a
+compare where it calculates an address based
+on rax and rdx. And rax is clearly overwritten
+with As. So it tried to access bad memory.
+But in libc? Does this mean printf of libc
+has a buffer overflow vulnerability? Well.
+we will see. Let’s have a look at main.
+Disassemble main. It’s super short. We have
+a scanf, to read in a variable called “name”.
+And then we call printf with that name. There
+is a small but important detail here with
+the variable name. Usually local variables
+are placed on the stack, so they are referenced
+as offsets from the stack pointer. Makes sense,
+right? But in this case the variable is stored
+at an offset from the instruction pointer
+rip. This means it’s not on the stack, if
+it’s an offset of the instruction pointer,
+so an offset to the binary itself. This means
+it’s a global variable stored in a data
+segment. You can see here gdb has already
+calculated or resolved this address for us.
+RIP at this point would be this address +
+this offset here. So 6b73e0. And if we look
+at the virtual memory map of this process,
+we see that this address is in here. It says
+it would be “heap”, but I’m not sure
+why it says that. Because I’m pretty sure
+that’s not a heap. If we look at the sections
+defined in the elf binary with objdump, we
+can see that the address belongs to .bss . Which
+is used for statically allocated variables.
+Anyway, let’s go back to the crash. If we
+look now at the location where name is stored,
+we can print the memory. Here we see that
+there was a bit of a size allocated for the
+name. However we wrote much more As than that.
+Because we have all the symbols, we can also
+see which variables we have overwritten. So
+we overwrote a huge dl_static_dtv array. No
+idea what that is. We overwrote a dl_lazy
+variable, a dl_osversion variable. I mean
+we have killed a lot of stuff. And apparently
+libc printf referenced something from in here.
+mhmh... we have a very clear buffer overflow
+and we overflow global variables and many
+of those variables are libc internal variables.
+The binary was statically built with libc,
+which means the whole libc functions are part
+of this binary. that’s the reason why those
+variables are part of our binary data segment.
+Usually, when dynamically referencing and
+loading libc, these variables would be located
+in the dynamically loaded libc memory. Anyway.
+Here we have found the vulnerability. So how
+can we turn that now into reading the flag
+from memory. Clearly just blindly overwriting
+data doesn’t work, so let’s do this systematically.
+I wanted to carefully control what I overwrite,
+so let’s take a snapshot of the memory without
+an overflow.
+To do this I set a breakpoint at the end of
+main, then I rerun it with a small input and
+then I print the memory starting at “name”
+in 4 byte, or 32bit, chunks. I just keep enter
+pressed until I reach the end. So now I can
+get a huge list with all the memory and the
+symbol names.
+Then I copy the whole thing into sublime,
+and using some text editor hotkey magic to
+quickly reformat this data. Removing all the
+pwndg prompts, making it all a python comment,
+and then taking the memory value. In the end
+I want to rebuild the whole memory with the
+correct values. So I will use a buffer variable
+where I will append the raw bytes. And in
+a second I will define a new function b32
+that will convert this memory value to raw
+bytes. I can do this with import struct, and
+then struct.pack with capital I for 32bit
+values. I will also create a function b64,
+because we have a 64bit binary, so might come
+in handy as well.
+So now this python script prints the whole
+memory. Cool.
+Theoretically if we use this to overflow the
+buffer, it will overwrite the memory with
+completely safe values. Basically not change
+anything. And indeed. It seems to have worked
+and we didn’t get a segfault.
+But now comes the true challenge. What DO
+we overwrite that could help us leak the flag
+from the memory? Well, I didn’t know. In
+the old readme challenge we smashed the stack
+cookie in a buffer overflow on the stack,
+which executed the stack smashing detection
+function. That function would print the program
+name. The program name is referenced from
+a pointer on the stack. And so overwriting
+that pointer with the same overflow on the
+stack, with the address of the flag, caused
+the flag to be printed when the stack got
+smashed. So I kept that inspiration in mind.
+So I was just going through the symbols one
+by one and tried to find one that sounds interesting.
+dl static dtv, slotinfo list. Dtv gaps. Tls
+generation. Domain bindings, cat counter,
+exit fn called, prefetch multple threads.
+Debug. Gnah.. nothing immediately jumps out
+to me. Oh libc argv and libc argc, so there
+is a pointer to argc and argv as well? I keep
+that in mind! The old readme challenge also
+used an overwrite of the program name pointer
+to point it to the flag. So might be useful
+again.
+Gconv lock. This all means nothing to me.
+Nothing screams “HEY I PRINT YOUR FLAG IF
+YOU CHANGE ME”. But then I reached the printf
+function table. And FUNCTION TABLE always
+screams: “change me and you can redirect
+code execution”. But why is there such a
+thing as a printf function table? If we look
+up this function in the libc source code,
+we can maybe learn more about it. A comment
+here says “Array of functions indexed by
+format character. ” and in here is also
+a function called “__register_printf_specifier”.
+So if we google for that function we can quickly
+find that there is such a thing as “Customizing
+printf”.
+“The GNU C Library lets you define your
+own custom conversion specifiers for printf
+template strings, to teach printf clever ways
+to print the important data structures of
+your program.
+The way you do this is by registering the
+conversion with the function register_printf_function”
+Let’s read up a bit more about it. This
+function takes a spec, a handler function
+and an arginfo function.
+“if spec is 'Y', it defines the conversion
+‘%Y’. You can redefine the built-in conversions
+like ‘%s’,”
+“The handler-function is the function called
+by printf and friends when this conversion
+appears in a template string.”
+“The arginfo-function is the function called
+by parse_printf_format when this conversion
+appears in a template string”
+That sounds perfect! Our printf template string
+contains a %s. If we somehow could redefine
+the conversion for %s, we could define our
+own handler function. And could execute any
+code we want. I mean we can’t call register_printf_function,
+but we could maybe overwrite and modify the
+underlying table directly.
+If we look again into the sourcecode of the
+register_printf_function, we can maybe figure
+out how it would work if we want to redefine
+%s. So we would pass in a small ‘s’ as
+spec. And we would give it a function as converter
+and arginfo. And down here it simply uses
+spec as an offset into the printf_function_table
+and printf_arginfo_table. That sounds easy.
+We know there is a pointer to the __printf_function_table
+in the memory that we can overwrite, so we
+could point it to some other memory. And that
+memory should then have a function defined
+at the array position small s. So that would
+be at offset 0x73 or entry number 163 in decimal.
+Cool. So let’s try that. First let’s look
+for some memory area we could abuse for this.
+Let’s try here _dl_static_dtv. Let’s hope
+it’s not important. So now we want to overwrite
+the printf function table to point there.
+Let’s try it out. We write that into a file,
+set a breakpoint in gdb. And use the file
+as input. Now let’s see the memory, oh it’s
+not there… But it should be there? This
+is the stuff that could drive you crazy, but
+you need to chill and approach it logically.
+So the overflow happens because of a scanf.
+The scanf used %s to read input. So let’s
+checkout the man-page of scanf.
+The scanf() family of functions scans input
+according to format as described below.
+s Matches a sequence of non-white-space characters;
+The input string stops at white space. AHA!
+So maybe our memory dump contained some white
+space.
+So what are typical whitespace characters?
+Of course 0x20 a regular space is a whitespace
+character. But also new line would be a problem.
+And basically all of these.. So 0x09, 0x0a,
+B C and D. So let’s make sure that these
+can’t occur in our buffer. I just ad a few
+lines of code to replace these with a regular
+capital X. let’s try it out.
+Oh segfault. Ok we clearly did something now.
+Let’s checkout the memory in gdb. And yup!
+There is our value… But wait… that’s
+not quite right? Why 58 at the end? OHHHHH…
+our address had a space too. Well good we
+caught that. So let’s point it at 24 instead.
+Cool!
+next we want to try to set a function for
+%s.
+So from our new table address, we have to
+get the array entry for ascii value `s`, which
+is 0x73. Which means we have to take that
+times 8, because we are on 64bit so each array
+entry, each function address is 8 bytes wide.
+Cool. So let’s go to that address and write
+there a test values. Let’s see if we successfully
+redirected code execution!
+We run it with the input. But hmpf. Segfault.
+Let’s look at the code why. It tried to
+calculate rcx + rdx*8. HEY! That looks almost
+like what we calculated. Rdx is also infact
+the 0x73. So the letter ‘s’. But rcx is
+zero. So this calculation points to bad code.
+But why is that happening, didn’t we overwrite
+the function table entry with a value? It
+shouldn’t be zero? But if we look at the
+disassembly of this function, we see that
+it references the arginfo table just before
+it. HA!. we didn’t modify that. Sooo…
+once we pointed that to the same address,
+we can try it again.
+both tables should be ok now. Let’s rerun
+it with that. And we get a segfault at a call
+`rax`, and `rax` is the value we wanted it
+to be. Awesome! So what to do next?
+I first thought about pointing it to printf,
+and maybe we can somehow control the first
+parameter too, based on how this printf modifier
+function is called, but then decided to use
+the technique I have learned from the old
+readme challenge. Using stack_chk_fail. Let’s
+get the address of that function. That could
+work. But to print the flag we also would
+have to control the program name pointer and
+point it to the flag. But remember, there
+was some kind of argv pointer in there too.
+Previously it pointed into the environment
+variables on the stack, so let’s just point
+it somewhere here. And then this is now a
+list of argument string pointers. And so the
+first pointer has to point to the program
+name. so we point it to the flag instead.
+This is the address of the flag in the file.
+I’m excited. Will it work now?
+We pipe the exploit output into readme_revenge
+and BOOM! Stack smashing detected. And here
+is our flag!
+So what we did was, we overflowed the printf
+modification table and redefined what to do
+when printf encounters a %s. Upon finding
+the %s it took the address of our modified
+function table which pointed to stack_chk_fail
+instead. That function is then executed and
+gets the program name to show it in the error
+message. But we also modified the pointer
+to the program arguments, argv and pointed
+the program name, which is the first argument,
+to the the flag. So the error printed the
+flag.
+And here is a screenshot from when I did that
+during the CTF, to grab the real flag. Printf
+is so fun sometimes!
+I’m so proud of myself. Because this really
+shows me how much I have learned in the past
+two years and how I improved. Back then I
+would have not been able to solve this. But
+now I did it pretty straight forward. Makes
+me feel really good.

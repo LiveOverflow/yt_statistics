@@ -1,0 +1,360 @@
+Let’s continue with reverse engineering
+the Ledger Nano S firmware.
+As we learned last time, this is the code
+that is always executed on reset.
+And we also know that we are going to call
+into, what we called, the bootloader_main()
+function, next.
+And when I saw that function I got very excited.
+I wonder if you see right away what it does
+too.
+Look at it!
+It’s so awesome!...
+Don’t get it?
+Well…
+As you know this firmware contains ARM code.
+And ARM is a different architecture, from,
+for example AVR.
+AVR is the architecture used by the normal
+Arduino boards and we have done some basic
+AVR firmware reverse engineering on this channel
+before.
+Checkout the riscure embedded hardware CTF
+palylist where I have documented me playing
+it.
+Anyway…
+There is one video where Zeta Two, who btw
+also has a hacking YouTube channel and does
+some live streaming and you should totally
+subscribe to him.
+Where Zeta Two showed us how to “Identify
+UART and the main() function in an AVR firmware”.
+And let me play a short part of it.
+This is basically like a standard thing, where
+it copies some data into some location.
+And it clears a memory region.
+At the beginning I thought this was important.
+But then I realized this is just like a standard
+setup thing.
+It’s like the start function before the
+main function in a regular x86 program.
+What it’s doing is.
+It copies static data from the ROM into the
+RAM.
+The ram is empty.
+When you start.
+And then the program loads basically global
+variables and constants and things like that.
+So it’s a loop copying data from the rom
+into the ram at a specific location.
+And then there is this part, which is just
+zeroes out basically the rest of the ram.
+So this is just setting up the whole RAM.
+AND THEN you call a function.
+So this is more the main function where interesting
+things starts to happen.
+OOPS!
+I think I just mixed up the audio and video.
+I played the audio from the AVR video.
+But I accidentally showed you the IDA code
+from the ledger ARM firmware.
+How silly of me.
+Such an accident.
+Jokes aside.
+This is the exact same thing, and you can
+immediately just visually see the similarities.
+This is a very typical RAM initialisation
+routine.
+Here you copy data at startup, from this ROM
+address, to this RAM address.
+And here you move a 0 into r1, and then you
+write this zero in a loop to more RAM addresses,
+to clear the ram.
+And after everything is setup, you execute
+this function.
+This means we should rename this function
+here bootloader_init, and call this one bootloader_main.
+So lets head into main().
+Maybe you notice that you can’t press SPACE
+here to show the graph view, that’s because
+this is considered CODE and not a procedure.
+So I first press P to turn it into a procedure
+and then we can look at it.
+In the graph overview you can immediately
+see that there is a huuuge block of code just
+doing stuff followed by what looks like a
+simple loop and some conditional branches.
+And if you look at a lot of these graph views
+in programs, seeing such a huge long block
+is pretty rare.
+It’s not so common to see loooong sequential
+code blocks without any ifs or loops.
+And so because this is so early in the firmware,
+it’s safe to assume that here the hardware
+is initialised.
+And you can also kinda see other hints for
+that.
+Here we have, memory addresses referenced,
+that point into the GPIOC and GPIOB segments.
+If you have ever done some Arduino programming
+you know these kind of setup codes.
+For example when you want to read from a pin
+or write output to a pin, you have to properly
+set the pinMode.
+And this is a function that will make sure
+to properly setup the hardware by writing
+specific addresses, or usually also called
+registered, in these special GPIO memory segments.
+Okay…
+But what do we do now.
+There are a lot of different ways to approach
+this now.
+And I want to make clear that the way I do
+it in this video is not the recommended way
+to do it.
+I’m sharing with you what I am thinking
+about, but I lack A LOT of experience and
+a real professional in this area might have
+much better and more thought out process.
+So my goal is it to somehow rediscover the
+f00dbabe bootloader issue.
+And for that we need to find the code that
+handles these APDU commands and we need to
+find the flawed blacklist approach of the
+forbidden address range.
+Let’s start somewhere.
+I want to show you again a dynamic approach
+with JTAG and GDB, and static approach, just
+using IDA.
+Let’s move to GDB.
+I have setup everything again, so GDB is ready
+and the chip has stopped at the reset start
+address.
+As you know the f00babe vulneability has to
+do with the firmware update, and for that
+you have to put the device into bootloader
+mode, which you do by keeping this button
+pressed when booting.
+So let’s just press that button, keep it
+pressed, then at the same time continue the
+code in GDB, let it run for a moment, and
+at some point we interrupt the chip by pressing
+CTRL+C. And we stopped at address 0xc38.
+We can copy it and go into IDA, press G, to
+go to that address, and here it is.
+So we stopped here.
+As you can see we are in this loop here.
+a few instructions later we would also call
+a function which is quite often used in here
+as well - 0x165e.
+If you would do the same thing with keeping
+the button pressed a couple of times, and
+also play around with how long you keep the
+button pressed before you interrupt the chip,
+you will notice you will always land inside
+of this loop.
+Sometimes you maybe hit the functions here,
+but if you go out of them, you will always
+be in this loop.
+mhmhmh...
+But if you release the button and let the
+chip continue to run.
+And then interrupt it.
+You land somewhere completely else!
+This is an interesting observation, which
+means that this loop condition seems to depend
+on that button press.
+Something keeps us inside the loop.
+So when we let the chip continue to run after
+the button press, we land here.
+The display shows Bootloader.
+So we are in the mode of the firmware update
+now, and I guess somewhere here must be the
+APDU handle stuff.
+But for now let’s trace back - somehow we
+must have come from the function we were at
+before.
+So with pressing X, to look at the cross references
+of a particular function, we can make our
+way back.
+And here we are back in our known loop.
+So while we press the button we keep looping,
+and when we release it we run down here and
+follow this function.
+Let’s call it bootloader_continue.
+Now let’s do some static analysis.
+Let’s go back to what we believe should
+be the regular firmware_main().
+You know the code that we would flash with
+a firmware update.
+The code that is not the bootloader.
+If we check the cross-references from there,
+we find the one spot we already know about,
+which is in reset, but also this unknown function.
+Let’s look at that.
+It’s a very simple if case.
+And as you can see, right here it loads f00dbabe
+into R2, and it also loads the address where
+f00dbabe should be in our ROM into R3, and
+then load the actual value into r1.
+And then compares the two.
+So this is a check that makes sure that our
+firmware still has the magic value f00babe.
+If yes, we go here, and eventually jump to
+the firmware_main().
+So I call this function check_f00dbabe_continue().
+Let’s see where that function is called
+from…
+OH!
+Look at that!
+From bootloader_main()!
+It’s called here, in this if-case.
+So either we execute our firmware_main(),
+or we go further into the bootloader.
+So it looks like, whatever happens before,
+here it decides if we stay in the bootloader,
+or if we jump into the regular firmware!
+And from using the device, we know what decides
+this… it’s the button pressing.
+So somewhere in here, in this loop, it must
+read the state of the button.
+And if you take a closer look at the loop,
+you will notice that there are not many possibilities.
+And this function that is used a few times
+becomes suspicious.
+This function turns out to be SUPER small.
+Just 6 instructions.
+So here it loads a value from an address in
+R0 at offset 0x10, into R0.
+So that’s like a “mov rax, [rax+0x10]”,
+if you are not familiar with arm.
+Then it performs and AND with a value in R1
+and does some other stuff I didn’t really
+look closely at.
+But it’s clear the result of this function
+will be in R0.
+So with knowing that, let’s go back out.
+The result R0 is moved into R4, by negating
+it.
+R4 is then later moved into, or I guess, ONTO
+R0 with an OR.
+Stored here in RAM.
+Loaded again from ram into R3.
+Then we have a compare to 0 with that value.
+And we have another compare with it down here,
+where it decides if the normal firmware is
+executed.
+So that must read the button state, no?
+Well let’s look at where the function reads
+from.
+The address must be in R0.
+And right before the function call the address
+is loaded here.
+In this case 48000400.
+Which points into the GPIOB segment we have
+created.
+And we also know that the function reads then
+from offset 0x10 of that.
+So from here.
+So could that be a button?
+Let’s check it with GDB.
+Let’s read that value from memory.
+0x80.
+Pressing that one button and reading again.
+Nope stays unchanged.
+Mh… let’s try the other button.
+WOW!.
+Now it’s 0.
+And when we realease it again and read it
+again, now it’s back to 0x80.
+So this function DEFINITELY reads the button
+state!
+Let’s rename the function.
+So when this GPIO address here is this button.
+Then does it read here the other button?
+Mhmh… it doesn’t seem to load an address
+here the same way… but the assembly is fooling
+us.
+We know the address has to be in R0.
+So first it moves 0x90 into R0, and then it
+performs a SHIFT LEFT of 0x17.
+And the result is 0x48000000.
+AHA!
+No clue why, apparently it doesn’t want
+to move the address directly, so it had to
+do this.
+But now we can check our hypothesis.
+Let’s read again 32bit from this address,
+but of course from offset 0x10. 0xd006…
+then let’s press the button and read it
+again.
+0x5006.
+Release.
+And back to 0xd006.
+Perfect!
+Now before I leave you be, I want to show
+you a special secret.
+It turns out that Ledger has actually an OLD
+firmware version open sourced.
+The code is 2 years old and some stuff has
+changed.
+For example the whole f00dbabe thing with
+the blacklisted memory area is not included
+here.
+That must have been added later.
+BUT a lot of the code is still shared with
+this version.
+And let’s have a quick look at the main.c.
+Here is the main().
+And main() starts with a loooong section where
+it initialises hardware stuff.
+It initialised GPIO stuff, and also some USB
+related things.
+And then we reach a loop, where it checks
+button presses.
+And it reads the buttons with HAL_GPIO_ReadPin()!
+Here it reads Pin 7 and here Pin 15.
+That’s the function we have named read_button.
+And after the loop it either decides to call
+bootloader_delegate_boot - if any button is
+not pressed, then boot the code if any is
+currently loaded.
+Or later go into the function bootloader_apdu_interp
+reter?...
+This is exactly the same code as we have reverse
+engineered in IDA.
+Like I said the code here is older than our
+code, and it does not contain the f00dbabe
+thing.
+For example we know that the bootloader_delegate_boot,
+which we have called check_f00dbabe_continue
+should check for the magic value f00dbabe.
+And it does check a boot magic value before
+it would continue execution.
+Basically same thing.
+BUT the magic value is a different one.
+0x51145E82.
+Not sure what that means.
+But it’s clearly not f00dbabe.
+But anyway...
+This is awesome.
+We have now found code that is not exactly
+our code, but shares SO many similarities,
+that we can use it to really speed up reverse
+engineering dramatically.
+And we can learn so much from comparing C
+source code, with ARM assembly.
+I just love how this Ledger device and firmware
+keeps on giving with amazing learning opportunities.
+Ledger should really consider selling an educational
+Ledger device.
+Maybe stripped down without the secure processor.
+Just to practice embedded hardware research.
+This is amazing.
+I’m not being sarcasting by the way.
+I’m absolutely serious.
+I’m learning so much.
+I kinda want to make a LiveOverflow branded
+Ledger product, and sell it, to accompany
+the video series.
+Wouldn’t that be funny.

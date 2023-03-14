@@ -1,0 +1,221 @@
+[ad] A short message from SSD, who has been
+supporting this video series.
+As part of the TyphoonCon this year 2019,
+they are running a challenge where you can
+win 1000$ and a free ticket to the TyphoonCon
+2020.
+And even the second and third price are great!
+So far it is unsolved, I guess the challenge
+is pretty hard.
+But give it a chance.
+It would be awesome if somebody from this
+community would solve it.
+And if you watch this video in the far future,
+maybe checkout the TyphoonCon website, maybe
+there is another challenge available right
+now.
+Anyway.
+Thanks SSD Secure Disclosure for supporting
+this series.
+Now let’s pwn browsers.
+[/ad]
+With last video we have seen some pretty cool
+stuff.
+We were able to craft a javascript object
+with the help of the addrof() and fakeobj()
+primitive.
+But if you have watched very very carefully
+you might have got confused, when I said that
+doubles have this constant of 2^48 added to
+it, and thus we need to subtract it, but then
+a little bit later in the video I didn’t
+do that for other double values.
+The second question you might have is, why
+did I call the fakeobj() primitive from last
+video a memory corruption, when there was
+no crash, or in general it didn’t look like
+we corrupted anything.
+These questions and a few other things, I
+want to answer in this video.
+Let’s talk first about the doubles.
+And it’s quickly explained by showing it
+to you.
+So when I create an array with a few doubles,
+we can see that Webkit created an ArrayWithDoubles.
+And in memory the three elements look like
+this right now.
+Now when I change the array, by pushing an
+object into it, it is turned into a more generic
+ArrayWithContiguous.
+And when we look now at the elements of the
+array, and very carefully compare them to
+the previous values, we see that they now
+have this 2^48 added.
+Here it was 0xa, now it’s 0xb, here it was
+3, now it’s 4, and here it is a 0xc and
+now a 0xd.
+So sometimes JavaScriptCore stores the double
+just as a regular raw double, and sometimes
+it adds this value to it.
+This difference is often called boxed and
+unboxed.
+The description about the added 2^48 was coming
+from the JSValue header-file.
+So this only happens if our value is a JSValue.
+Storing our double as a JSValue is necessary,
+when our array contains various different
+types.
+Because JSValues allow us to encode either
+a pointer, an integer, or a double in this
+range.
+And to make sure we don’t confuse a double
+with a pointer, we force this addition of
+this 0x1000000000.
+That’s why doubles start from this range.
+And so if you want to access a double in your
+array, and JavaScriptCore sees that you use
+a generic ArrayWithContigous, it has to first
+subtract that value, to turn it into a raw
+normal double.
+And of course the same in reverse, when you
+want to write a double in that array.
+But when JavaScriptCore knows that you only
+operate on doubles, because you only ever
+placed doubles into your array, then the array
+can stay a type specific ArrayWithDoubles,
+and can let the doubles be unchanged.
+So of course that is slightly faster.
+To round out this topic, let me read another
+comment from the webkit sources, from the
+DataFormat header file:
+This [DataFormat] enum tracks the current
+representation in which a value is being held.
+Values may be unboxed primitives (so this
+can be integers, doubles, or cell), or values
+can be boxed as a JSValue.
+For boxed values, we may know the type of
+boxing that has taken place.
+When we think about how this affects exploitation,
+then of course when we have a bug that confuses
+types, like the one we have learned about,
+we of course need to keep track of when we
+read or write boxed or unboxed values.
+Another thing I want to quickly talk about
+is the double to integer conversion.
+In the previous videos I always used python
+to do that, but I also mentioned that you
+want to implement that in javascript so you
+can use it for an exploit.
+And Saelo has written this very excellent
+int64.js library, which Linus also uses in
+his exploit.
+If you scroll through the int64.js code you
+can see that it for example has all these
+checks and warnings like: "[this] Integer
+can not be represented by a double".
+It also can add the 2^48 in case you want
+a JSValue, so a boxed value.
+It also does arithmetic for you.
+And so forth.
+It’s everything you need.
+But instead of just using it I wanted to explain
+how this conversion is implemented in JavaScript.
+And it actually is using these Struct methods,
+to convert the values.
+And those are implemented in utils.js.
+Also written by saelo.
+And this struct is a // Simplified version
+of the similarly named python module.
+And it works basically how we converted doubles
+in python.
+With struct.pack or struct.unpack.
+But this also reveals the underlying trick
+of conversion.
+And I wanted to show it, because it’s a
+not so well-known javascript feature, and
+I believe, it only exists to make exploitation
+easier.
+So here it creates an ArrayBuffer, which serves
+as the underlying buffer of multiple different
+typedArrays.
+Let’s do an example.
+Here I quickly create a 32bit unsigned array
+and a 64bit float array.
+And they share now the same buffer.
+So we can just for example take one of the
+weird float values we got last time and stuff
+it into the float array.
+Now when we access the 32bit array, we access
+the same underlaying raw bytes, but read them
+out as an integer.
+So here is the first 32bit as hex, and the
+second 32bit as hex.
+And we can of course combine them to get a
+nice big hex value.
+The reverse works basically in the same way.
+When you have a big integer like this one,
+you first have to split it into two 32bit
+parts.
+You can do this with some basic math.
+Dividing it by the base you get the upper
+part.
+Of course converting this float to an integer
+just cuts off here.
+And with modulo you can get the lower part.
+And now that it’s assigned to the integer
+array, you can read it out as a float again.
+And just for funsies, we can also assign this
+really quick to a normal array test and investigate
+the memory.
+And indeed we get exactly the hex value we
+wanted.
+So we can also move that now into our test.js
+exploit and use it to shift the pointer forward.
+So here we get the address of the fake object.
+Then we setup our typed array buffers, and
+write the double into the float array.
+Now we just add the integer 0x10, so 16 bytes,
+to the lower part, and we read out the new
+float.
+This float can then be passed to fakeobj()
+to get a handle on the faked JSObject.
+So we can run that again, and print hax.x,
+and we can confirm that it worked.
+Now one small addition to that.
+I mentioned that we have a memory corruption
+here, but I understand if you feel like it
+doesn’t look like one.
+Like we don’t overwrite buffers or whatever.
+But that’s just because we have been very
+careful.
+Let me rewrite parts of the exploit.
+Instead of spraying objects I’m going to
+spray arrays.
+And then I also check how the flags of an
+array look like in memory.
+And then we can also use the new conversion
+technique to comfortably convert these values
+to doubles.
+And this time I do set a butterfly pointer,
+but to an obviously wrong value.
+Now our faked hax object will be an array,
+but the butterfly points into bad memory.
+And then at the end, let’s try to access
+the length of the array, because that is stored
+in the butterfly.
+When we execute the exploit now, we crash
+with EXC_BAD_ACCESS.
+Let me quit this lddb debug session and just
+run it directly against jsc, then this happens.
+ERROR: AddressSanitizer.
+Segmentation Fault.
+So this output appears because I had compiled
+my test jsc instance with addresssanitizer.
+Which is a helpful debug feature, to catch
+some issues that might not immediately crash
+otherwise.
+But in this case of course it crashes, and
+it also includes this detailed debug traces.
+So if you would for example fuzz javascriptcore,
+you might want to use an asan version to detect
+memory corruptions.

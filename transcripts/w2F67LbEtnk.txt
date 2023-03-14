@@ -1,0 +1,458 @@
+Log4j is a very popular logging library for
+java.
+So a critical vulnerability in there is bad.
+And that’s what we got for christmas.
+So nice.
+You probably have seen the log4shell payloads
+and how to test for the vulnerability everywhere.
+And I’m telling you now, this payload will
+go down in the history books like the shellshock
+snippets.
+I expect to see it on t-shirts at the next
+conference I visit.
+Anyway.
+I thought for a while if I should make a video
+about the apocalyptic log4j vulnerability
+or not.
+On one hand I know, a video about this topic
+will be popular, but on the other hand the
+internet is FULL of good resources about it
+already and I don’t want to just “copy&paste”
+what other people already have written about
+and repackage in video form.
+If I do a video, I want to provide a bit more
+in-depth information or share a unique perspective.
+And I think I have that now.
+I hope with this video I can clear up some
+confusions about it, look a layer deeper into
+it, and share some general thoughts about
+what you can learn from all this.
+I have a lot of thoughts, so this video will
+come in two parts.
+But before we really start I have a PUBLIC
+SERVICE ANNOUNCMENT:
+To all my bug bounty hunters.
+When you hunt for log4j messages make sure
+you actually confirm the vulnerability.
+For example when you write an email in gmail
+with a jndi payload, you actually get a DNS
+pingback.
+And you might believe you confirmed the issue,
+but actually you didn’t (shock).
+In this case it’s just Google scanning the
+URL for spam detection reasons.
+So to actually confirm if the log4j injection
+is real, always add a nested lookup, for example
+the javaversion, and try again.
+If it were really a log4j vulnerability, you
+would get a DNS ping to xxx, the javaversion,
+xxx and the long domain.
+But if we check the pingback we receive now.
+We only get xxx.
+So this confirms that there is no log4j lookup
+happening.
+This is not a vulnerability in google.
+And I know every bug bounty program is getting
+swarmed with reports these days.
+And for the sanity of the triagers.
+Please confirm your bugs before reporting
+blindy.
+Thank you.
+Anyway.
+Let’s head in.
+
+Let’s start with the basics.
+Chapter 1: log4j
+I wanted to briefly introduce you to log4j
+and some basic features that really help to
+understand the bigger picture.
+So here is a simple java example using log4j.
+We get a logger instance and we can then call
+logger.info() to log a message.
+Besides this, log4j can be heavily configured.
+Here is a very very basic log4j2.xml config
+file.
+And in here we say that we have a logger that
+logs anything starting with the log level
+info to a target we called “console”.
+And console is actually referring to the target
+standard_system_out.
+So when we run the program we see log messages
+in the terminal.
+But you could also here define that the logs
+are supposed to be written or “appended”
+to a file, or even sent away to a remote logging
+service.
+Also here we can specify the log message format.
+We have in brackets %t, which says we want
+the thread name here.
+And %m is the actual message.
+And at the end we have %n, which is the line
+termination, so a newline.
+There are many patterns available.
+Like we could add date and time information,
+or the name and line of the java file where
+the logging happened.
+And this leads us to another log4j feature.
+lookups.
+Most of the lookups are fairly innocent.
+For example the env lookup allows us to add
+environment variables in the log message.
+So for example if we wanted to print the current
+home directory, we can just write ${env:HOME}.
+And log4j will then replace this.
+And so there are various lookups, for example
+the java version or, if you run in a docker
+container you can log the container name.
+you can see that this is useful information
+you maybe want to include in your log message.
+Chapter 2: JNDI
+And now you probably wonder what the jndi
+lookup is for, because that is the one used
+in the exploit.
+Well, the purpose of JNDI is basically to
+do the same.
+It’s there to lookup some information to
+be included in the log message.
+But JNDI is just a lot more complex and powerful
+than just environment variables, because it
+is used to fetch information from a remote
+server.
+Let’s do an example how this could be used.
+Let’s say you have multiple apps that connect
+to the same database.
+And somehow you have to configure the database
+address in all of them.
+You could hardcode it, but that’s not great
+when you do local development and then want
+to run it in production.
+Really messy.
+Alternatively you could have a config XML
+file with the address in it, or how it is
+very common in web hosting, you set it with
+environment variables.
+But that still require to make sure all of
+this information is set correctly on all systems.
+Why not centralize this information.
+So in the case of very enterprisy java, you
+could use a server that stores this config.
+This could be an LDAP server.
+And it can be accessed with JNDI.
+The Java Naming and Directory Interface.
+So now when any app is running and wants to
+know the database to connect to, it can ask,
+with JNDI the LDAP server where the databaseserver
+is.
+Great.
+At least that’s one use-case I can imagine
+what to use JNDI for.
+I’m not too familiar with enterprise java
+deployments and don’t know how it is actually
+used.
+Anyway.
+let’s come back to logging.
+It makes sense that if you are generally using
+JNDI, maybe you want to log such a value as
+well. and so the JNDI lookup of data in some
+LDAP server is a nice feature, right?
+So we understood the general usage of log4j,
+we learned about log4j lookups, and what JNDI
+can be used for.
+Now we can already better understand the vulnerability.
+Because it’s important to understand that
+JNDI has nothing to do with log4j.
+JNDI is a java thing to get values from a
+remote server.
+Like LDAP.
+And log4j has various lookup features with
+those curly braces, and one of those happens
+to be the feature to perform JNDI lookups.
+And that’s very important to keep in mind.
+On one side we have log4j supporting various
+lookups.
+And on the other side we have JNDI which is
+supported as one feature OF log4j lookups.
+Makes sense, right?
+So we covered some basics.
+Let’s talk about the log4shell vulnerability.
+Chapter 3: log4shell timeline
+On the 10th of december apache published an
+advisory for CVE-2021-44228 with an update
+for log4j.
+Unlike some on the internet believe, it was
+not first discovered in minecraft.
+This issue was discovered by Chen Zhaojun
+(I’m sorry for the pronunciation) of the
+Alibaba Cloud Security Team.
+I believe it was reported around the 26th
+of November.
+So there were about two weeks from report
+to disclosure.
+But let’s go back in time a bit, to understand
+how this vulnerability came to be.
+In 2013 a feature patch was submitted to log4j
+to add JNDI lookups.
+As we have heard, could be a cool feature.
+But this was actually the introduction of
+the vulnerability.
+So it was there for like 8 years.
+in 2014 there was a funny, but interesting
+issue submitted.
+Somebody wanted the ability to disable (date)
+lookups completely.
+Because of compatibility issues with other
+libraries.
+This issue highlights the problem of intransparent
+and hidden magical features of libraries.
+Here a developer was trying to log a string
+that looks like a valid log4j lookup, but
+it was not.
+They literally wanted to log this string but
+then log4j tried to resolve this as a date
+lookup and threw exceptions.
+And this was a surprise to the developer and
+so they asked for a feature to disable the
+lookups.
+log4j lookups are well documented in the documentation,
+but not everybody who uses log4j knows all
+of this.
+So it’s unexpected behaviour from the point
+of view of a regular developer.
+And here is a first lesson we can learn.
+When we plan to build secure libraries we
+have to think about the expectations of developers.
+And developers expect they log string messages
+and that there is not much fancy stuff done
+with it.
+And if we still want to offer those fancy
+features, it’s best to put them behind an
+opt-in configuration.
+This allows powerusers to make use of it,
+but people with just basic logging requirements
+don’t use more than they need.
+Anyway.
+This issue report actually led to the implementation
+of a new feature.
+%msg{nolookups}.
+This can be put into the log4j config file
+here in the pattern layout. this tells log4j,
+when you log a message, IGNORE the lookups.
+If we now try a lookup, you see it’s not
+resolved.
+So lets fast forward to 2017, a log4j maintainer
+added a new config option formatMsgNoLookups,
+which generally disables lookups globally.
+This now also applies to only %m, so you don’t
+have to replace and configure all log messages
+with %m{nolookups} anymore.
+Both of those features have been recommended
+as a first mitigation of the issue.
+Without upgrading log4j, people could just
+add this to their logger configs and be safe.
+However this mitigation was later redacted
+because it’s not perfect.
+I think it’s generally an ok mitigation,
+but there are some caveats you should be aware
+of, but more on that in aprt 2.
+Anyway.
+after 2017, it took a few years and finally
+in 2021 we get the advisory about the remote
+code execution using the jndi ldap lookup.
+It’s crazy.
+Even the german government issued an IT emergency
+of state 4. red . This means
+“The IT threat situation is very critical.
+Outage of many services is likely, and the
+live operation of services cannot be guaranteed.”.
+It’s insane.
+There is also some interesting data from cloudflare.
+Cloudflare, is proxying web requests for TONS
+and TONS of sites.
+Over many many years.
+So if somebody has data on historic use of
+this exploit, then it could be cloudlfare.
+And they said the first usage they found was
+on the 1st Deccember.
+This is kinda interesting, because it’s
+9-10 days before public disclosure,
+this is no surprise to me. researchers often
+share their findings with friends.
+You know the cool hacker underground, the
+scene.
+There are groups of people that just like
+to share their research progress and bounce
+ideas around.
+So to me it’s really no surprise that this
+slowly leaked through some cracks.
+It’s to be expected I think and nothing
+to be really concerned about.
+but it’s also good to see that nobody seemed
+to have known about this vulnerability for
+years and kept it secret.
+So that’s the timeline.
+But wait a minute.
+that’s not the complete timeline.
+There is a significant point missing in this
+history.
+Actually there happened something important
+in 2016.
+let’s talk about JNDI and LDAP Exploitation.
+Chapter 4: JNDI/LDAP Exploitation
+In 2016 there was a talk at blackhat by pwntester
+and Oleksandr Mirosh.
+A JOURNEY FROM JNDI/LDAP MANIPULATION TO REMOTE
+CODE EXECUTION DREAM LAND.
+In this talk they presented research into
+JNDI and specifically the LDAP and RMI features.
+It turns out that you can basically “store”
+JAVA serialized objects in LDAP.
+And then a JNDI lookup is not just looking
+up a basic string, but maybe a complex java
+object.
+And this is where we enter the world of arbitrary
+code execution.
+In the Java development world, people love
+to send complete objects over the network.
+Even in my java computer science class at
+university, when we covered networking and
+sockets.
+We made examples with ObjectInputStream and
+then readObject.
+It’s super easy to just transmit complete
+objects through the network between java applications.
+It’s a very powerful feature.
+But this has massive security problems.
+java objects have functions, constructors
+and so forth, with code that can run.
+So if an attacker can send arbitrary seralized
+objects to an application, then you likely
+get remote code execution.
+And in bigger java applications this is very
+common.
+Especially in applications that are generally
+ran in “internal” enterprise networks.
+I also guess most Java Remote code execution
+CVEs are the result of arbitrary object deserialization
+or class loading.
+That kinda stuff.
+There are also Java features to restrict what
+these serialized objects can do.There is the
+java Security Manager where you can set certain
+policies to prevent or sandbox arbitray code
+execution.
+But yeah.
+This whole object serialization and remote
+class loading is a Java feature.
+Developers will use it.
+And so apps will be vulnerable.
+Anyway.
+It’s important to understand that this talk
+is generally about JNDI and the remote class
+loading with LDAP.
+And I’m not covering this much more in the
+video, so if you want to know more about their
+research, watch the talk and read their whitepaper.
+But what’s important for me to highlight
+is, that this whole research has nothing to
+do with log4j.
+It is just a talk about security researchers
+looking at a particular java feature, JNDI.
+And they simply asked themselves, “if somebody
+could control JNDI lookups, what could go
+wrong”.
+And they found out, it can lead to remote
+code execution.
+And so this is very interesting, because at
+the time in 2016, this talk and research was
+not that “interesting”.
+I mean on the surface it’s “just” more
+examples of java object deserialization stuff
+which we see a lot of.
+At least that is my feeling as somebody who
+is not deep in the java world.
+But now in 2021, we know that this is exactly
+what is exploited in log4j.
+Suddenly this research is the most important
+puzzle piece of the log4shell vulnerability.
+Anyway.
+we should be wondering, “how can it be,
+that in 2016, at one of the the biggest and
+most important security conferences, world
+class security researchers clearly said “Applications
+should not perform JNDI lookups with untrusted
+data” because it leads to remote code execution,
+and it took 5 years for somebody to realize
+that this can be exploited in one of the most
+popular logging libraries?!”.
+What was the problem?
+Chapter 5: Security Research vs. Software
+Engineering
+There are two questions we could ask ourselves.
+First “Why did java developers that know
+about log4j and JNDI lookups, or even the
+log4j maintainers themselves, not know about
+this threat, which was publicly shared at
+a well known security conference?”
+And the second question is “Why did pwntester,
+or we the whole security community not realize
+that the JNDI research, can be abused with
+log4j?”.
+Alvaro Munoz, aka pwntester, who did the talk
+at blackhat shared this tweet.
+If developers dont know that untrustred data
+should not be passed to a JNDI lookup, then
+WE (as the security community) have failed
+them.
+Its not THEIR fault
+And he is absolutely right.
+I think it’s awesome to have developers
+who try to stay up to date on security research,
+and if you are a developer watching right
+now, I hope my channel helps you with that.
+But to be honest, we the security community
+uses the term “SECURITY”.
+We should be the ones who should have recognized
+the impact.
+I mean we did, The alibaba cloud security
+team did.
+But a bit late… in 2021.
+So this is a perfect example why I think it’s
+so important for any security researcher,
+and pentester, and whatever, to understand
+how applications are built - having development
+experience.
+I think this is a great example of the security
+community failing to understand how apparently
+every bigger java application is built.
+This research in 2016 was so important for
+the java landscape.
+And nobody recognized that earlier?
+That's a bit embarrassing for us.
+Unfortunately the security community and the
+developer community are very separated.
+And that makes sense, while the fields are
+very related, in both of them you have more
+than a lifetime of information to consume.
+So it’s easy to say “don't be so seperate”,
+but I don’t how could we actually solve
+that.
+I hope my YouTube channel is popularizing
+creative security thinking, but….
+Lots of work do be done in this area, and
+I hope we can somehow improve it.
+And with those final thoughts, we have reached
+the end of part one of this two part series.
+Next time we will dig deeper into the code
+of log4j, talk about secure code design.
+And so If you are a developer, please watch
+the next video as well.
+We will also bridge the gap to related vulnerabilities
+like format string vulnerabilities.
+And we discuss the mitigation that later was
+redacted.
+For now, thanks so much for watching.
+I would really appreciate if you can share
+this video with your friends and colleagues
+and maybe checkout liveoverflow.com/support.
+See you in part 2.
+peace.

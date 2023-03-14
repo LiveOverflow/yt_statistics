@@ -1,0 +1,190 @@
+The qualification round for RHme3 is over,
+so we can have a look now at the challenges
+you had to solve to qualify. I really enjoyed
+the exploitation challenge, because it was
+pretty straight forward. And you have had
+a good chance to solve it yourself, if you
+are familiar with my exploitation videos.
+So let’s check it out.
+“This binary is running on pwn.rhme.riscure.com.
+Analyze it and find a way to compromise the
+server. You’ll find the flag in the filesystem.”
+When you try to access this domain via the
+browser it doesn’t work. But we are given
+two files and I’m sure we can reverse engineer
+the binary to figure out how to interact with
+the server.
+the fact that they give you a libc is already
+a good hint. Let me tell you what I think
+when I see it.
+First, the target system will be a typical
+modern linux system, so no executable stack
+or heap and thus we have to do ROP or return
+to libc. And in order to do that successfully,
+you have to know where ROP gadgets or libc
+functions are. But if you use your local libc,
+then the offsets are probably different. Some
+CTFs don’t give you a libc, this means it’s
+harder because you first have to somehow leak
+the server libc or guess it based on addresses
+you leak. But yeah.
+And a typical exploit for a CTF challenge
+is to simply call the libc function system()
+with “/bin/sh” as a parameter, to get
+a shell. So I already expect that I probably
+want to overwrite some entry in the global
+offset table and point it to system(). This
+means I’m kinda looking at this challenge
+from the reverse. I know, or at least guess
+what I want to do, and to achieve this I’m
+looking for a way to write into the global
+offset table, or overwrite some other function
+pointer, for that matter.
+Only if after a while I realize that that
+attempt would fail, I consider other possible
+techniques.
+So let’s have a look at the binaries. The
+main.elf file is not stripped, which means
+it will have all the symbol names in there,
+which makes reversing really easy.
+But when we try to execute it, it doesn’t
+seem to work. And I saw some people complain
+that it doesn’t work. BUT, what does “doesn’t
+work” mean. That’s one of my “pet peeves”.
+We have to be more careful with our observations.
+We don’t see any obvious errors. So for
+example if I just rip out the start of the
+binary and try to execute that I get very
+obvious execution errors. That’s not what
+we see. So we have to investigate why it immediately
+exits. Really good tools to get a general
+first impression of what is happening, is
+strace and ltrace. And when you run the binary
+with it, you first of all see that it does
+in fact run, so it works, it just exits for
+some reason.
+ltrace will show you all library calls, so
+you can see it executes “getpwnam” before
+exiting. And the man page tells us that it
+tries to get information about a user from
+/etc/passwd. And the user was pwn. P W N.
+So I guess it expects this user to be there.
+Let’s add this user. Oh and also a good
+idea is to switch now to root. Because it
+looks like the binary wants to mess with user
+permissions.
+So we add this user, enter some random info
+and there we go. When we now execute it we
+get further! This time it builds a path, and
+this path obviously doesn’t exist. So let’s
+maybe create that one as well. Maybe it wants
+that path.
+One other thing that happens is the fork().
+And fork means it creates a new process. So
+we should use the -f flag, to follow also
+any children processes.
+AHA! And now it tries to create a socket and
+open a port 1337.
+Also we can now connect to this port and interact
+with the program. And that is also the port
+for the remote server.
+I heard several people patched the binary
+to get around all those checks, but it’s
+not necessary, the program just expects certain
+things about the environment. But whatever,
+your solution worked too.
+So now that we can see what the child process
+calls with ltrace, we can explore the functionality.
+And at the same time see the libc calls. This
+is super helpful to maybe even find issues.
+Anyway.
+As you can see this program is a team manager
+where you can add players, remove players,
+edit a player or show the whole team. So I
+obviously started by adding a player
+And entered a format string as the name, to
+check if it’s a format string vulnerability,
+but it was not. All outputs properly print
+it. But I still quickly found the bug. Because
+I noticed I first have to select a player
+before I can show this player. And when I
+do this and then delete the player I selected,
+I can still show the player. And now the values
+are weird. So obviously when you delete the
+player you have selected, you shouldn’t
+be able to show the player anymore. This means,
+we have a classical use-after-free condition.
+A reference to the deleted player was not
+removed.
+Next I wanted to see how the heap looks like
+when creating players. Basically I want to
+know what the player structure is.
+But before we get there, let’s open the
+binary in a disassembler. You will immediately
+notice that the binary contains all symbols,
+because it was not stripped. So that is really
+nice.
+For example here are daemonize, background_process
+and serve_forever functions, which do all
+this, well, background process and listening
+forever on a port, stuff.
+But more interesting right now are the menu
+functions, including the edit, show and set
+functions.
+And to look at the player structure, we could
+look into the show_player_func. The cool thing
+is, it is also used in show_team. So everytime
+player information is printed, it would call
+this function here. Useful to dump some debug
+info.
+And in show_player_func it looks like there
+is a parameter rdi that is used to pass in
+the player address. So let’s write a gdbinit
+file that helps us debugging. First I copy
+the default gdbinit to not loose peda and
+then we set the follow-fork-mode to child,
+so gdb will follow the child process upon
+a fork. Then we set a breakpoint in show_player_func
+and use rdi to print some memory.
+Silent so we don’t see gdb info messages
+and continue afterwards, so we just print
+the memory but don’t actually interrupt.
+And then we can start gdb with -x to specify
+this gdbinit file, which sets the breakpoint
+with commands and runs the binary. Then we
+can use our other window to connect with netcat
+to the local port and add a player using a
+name we can recognize in memory. And when
+we then show the team, thus call show_player_func,
+our breakpoint will be hit and print the memory.
+And that worked great!
+Let’s add a second player, also with unique
+data, B B B B as name and 5 6 7 8 for the
+stats. Then we select show team and we have
+a look at the memory.
+So.
+We can clearly see 4 32bit integers containing
+our stats. It was 1 2 3 4 for the first player
+and 5 6 7 8 for the second player. Then we
+seem to have a fifth value, which is an address
+or pointer into the heap. Infact this heap
+chunk is right after this initial structure.
+So this is just a string, the name.
+So to summarise, we have a player structure
+with 4 32bit integer stats and a pointer to
+a char array or string. Which is also allocated
+on the heap.
+And now we come back to our goal, we would
+like to overwrite an entry in the global offset
+table. If we could control this pointer somehow
+and point it into the global offset table,
+we maybe could use the edit name functionality
+to write a new name, or the address of another
+function, into the global offset table. Right?
+That sounds like a good plan.
+As the video gets longer than I expected,
+I will have to split it in two parts. Maybe
+with the knowledge now of how to debug it
+and some hints on what we want to do, you
+could try to do it yourself. And then in a
+few days I will tell you how I did it.

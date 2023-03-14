@@ -1,0 +1,336 @@
+So the public disclosure of dirtyc0w or CVE-2016-5195
+just happened.
+This vulnerability is ancient, and allows
+a regular user on a system to perform a local
+privilege escalation and become root.
+I want to show it to you, explore how it works
+and generally talk about it.
+Let’s cut right to the chase and start by
+looking at the provided proof-of-concept exploit.
+I have here a vulnerable Ubuntu system where
+I can downloa and compile the exploit.
+Then I create a file owned by root to that
+I as a normal user can’t write to.
+I can read it, but not write.
+This is true for many files on the file system
+like for example the ping binary.
+ping belongs to root and has the setuid bit
+set.
+This means anybody can execute it and it will
+run as root, but ping doesn’t do much except
+sending out some networking traffic.
+So our root file we just created resembles
+a file or binary like ping.
+It’s owned by root and we can’t write
+to it.
+Now, when we execute dirtyc0w, and pass it
+the root file and specify a string we want
+to write, we can observe, that the string
+got written to the file.
+We, as a regular user of the system, have
+written to a root file, that we don’t have
+write access to.
+This is insane.
+Now imagine we would have written a backdoor
+into the ping binary, we could become root
+anytime.
+Without knowing the password of root.
+Now let’s try to understand the exploit
+code.
+Let’s check out main() first where the code
+starts.
+So first it opens the file we want to write
+to as READ_ONLY.
+Next comes a call to mmap().
+Mmap is used to create a new mapped memory
+segment in the current process.
+One of these parameters can be a file descriptor
+and in this case it’s the READ_ONLY file
+owned by root.
+This means it maps the file into a new memory
+area.
+Also the permission flags show, that this
+new memory area is READ_ONLY.
+So far so good.
+The other important flag is the MAP_PRIVATE
+flag.
+The comment here is copied from the man page
+of mmap and it states, that this creates a
+private copy-on-write mapping.
+Or short C.O.W, cow.
+This is where one part of the name for this
+vulnerability is from.
+With this flag, mmap doesn’t copy the whole
+content of the file into memory, mmap maps
+the file into your memory.
+This is awesome because you don’t need huge
+amounts of RAM to load a copy of the file,
+you just directly read from the file on disk.
+Or relatively directly, we will learn more
+about memory in a second
+And copy-on-write means, that if you were
+to write to this memory segment, you would
+then create a copy of it.
+So eventhough the file was mapped as READ_ONLY,
+because of the private mapping we can write
+to a copy of it.
+So the important takeaway here is, that mmap
+will map the root file directly into your
+memory, and you can read the content of the
+file, or write to a COPY of it.
+The changes to your copy should not be propagated
+to the real underlaying file.
+It’s just for you
+Next we start two threads that will run in
+parallel.
+Dirtyc0w is a race condition vulnerability,
+this means certain events have to occur in
+a specific order, that are fairly unlikely
+to happen under normal circumstances.
+So you try to race against the probability
+of it not happenign.
+And you simply try it over and over again.
+And maybe you get lucky.
+So let’s see what the two threads are doing.
+The first thread is the madviseThread.
+This thread uses the syscall madvise, which
+probably doesn’t stand for memory advise,
+but mad advise, I think the marketing department
+failed here, naming this vulerability not
+mad cow, am I right?
+Ok.
+done with the dad jokes.
+So this syscall can be used for optimization
+reasons.
+You can provide the kernel some information
+on how you intend to use a memory mapped area,
+because there are different techniques how
+you handle caching, look ahead and so forth.
+And the one advise we give the kernel is,
+that the memory area where we mapped the file
+to, or at least the first 100 byte, is probably
+not needed anytime soon.
+We say that with the MADV_DONTNEED flag, which
+stands for:
+Do not expect access in the near future.
+(For the time being, the application is finished
+with the given range, so the kernel can free
+resources associated with it.)
+Subsequent accesses of pages in this range
+will succeed, but will result in reloading
+of the memory contents from the underlying
+mapped file.
+The last sentence is key to the exploit.
+Otherwise not much else happening here.
+The other thread, procselfmemThread, opens
+the file /proc/self/mem.
+This is a special file and I try to explain
+really quick.
+So /proc is a so called pseudo filesystem.
+In fact most resources on linux are managed
+as “files”.
+So you should always see “files” in quotation
+marks when talking about them.
+Imagine a file just to be something, you can
+read from, or write to.
+So this could be printer, and writing to the
+printer “file” could result in an actual
+physical printer printing the string on a
+piece of paper.
+So /proc does not really contain “files”
+in the common sense.
+They refer to something more general, most
+importantly for our case, something you can
+read and write to.
+So in this case /proc/self refers to special
+“files” provided for the current process.
+So every process will have it’s own /proc/self.
+And in there is a “file” called mem, which
+is a representation of the current process’s
+memory.
+So you could theoretically read your own process’s
+memory by reading from this file.
+Now in this case, the exploit WRITES to this
+file in a loop.
+So first it performs a seek, which moves the
+current cursors to the start of the file that
+we mapped into memory.
+And then it writes the string we pass via
+the program arguments to it.
+So this will trigger a copy of the memory,
+so that we can write to it and see these changes.
+But remember, we will not write to the real
+underlaying file.
+So if you would do these things once, or just
+isolated from eachother, probably nothing
+would happen.
+Because that would be the expected result.
+But because there is a race condition issue
+somewhere, trying this over and over again
+will create a weird edgecase, that usually
+doesn’t occur, but in this case tricks the
+kernel into actually writing to the underlaying
+file.
+Now let’s have a look at the patch, because
+I think this is very interesting and not very
+big.
+So in the commit message the author states
+that
+This is an ancient bug that was actually attempted
+to be fixed once (badly) by me eleven years
+ago in commit 4ceb5db9757a ("Fix get_user_pages()
+race for write access") but that was then
+undone due to problems on s390 by commit f33ea7f404e5
+("fix get_user_pages bug").
+So I’m a little bit disappointed here at
+my IBM friends, because they almost have a
+partial guilt here.
+S390 is the architecture used by IBM mainfraimes,
+system z.
+Anyhow, let’s have a quick look.
+The file that is patched belongs to the linux
+memory manager, hence the mm directory.
+And the file itself is called GUP, which stands
+for get_user_pages.
+Vm stands for virtual memory and pte for page
+table entry.
+I think that should help a little bit to understand
+the code.
+So when you want to write to this mapped memory,
+the kernel has to copy it, because you are
+not allowed to write to the underlying file.
+But a copy takes time.
+Now usually you do the copy once and you are
+fine, but in this case we call madvise with
+DONTNEED over and over again.
+Let’s look this up in the code.
+So if this flag is used, this function is
+executed.
+The kernel source code explains that the:
+Application no longer needs these pages.
+If the pages are dirty, it's OK to just throw
+them away.
+The app will be more careful about data it
+wants to keep.
+Be sure to free swap resources too.
+I guess I quickly explain dirty.
+This is also where the other part of the name
+is from.
+When you read and write to disk you never
+do this directly, that would be wayyy to slow.
+So you cache, or buffer them.
+This means you hold this data somewhere and
+at some point in time you write it to the
+disk.
+Ok.
+So if you read data from disk into memory
+you can just leave it there in the cache for
+further reads.
+BUT, if you want to write to the disk, you
+write it into this cache/buffer, but now you
+have to tell the system, that this buffer
+got touched and is dirty now.
+It’s not clean fresh memory anymore.
+In this case the system has to make sure that
+the change is properly propagated to the underlaying
+physical memory.
+Let it be a file on disk or flash memory.
+So in this case, if you wrote to the copied
+mmaped memory, the memory page got flagged
+dirty.
+And because you tell the kernel now, that
+the page is not needed anymore, this means
+you don’t care that the dirty page has not
+been written yet.
+You just toss it.
+So this madvise call causes the throwing away
+of this memory.
+This means it’s not in any of the memory
+caches anymore.
+This is important for this exploit, because
+this means, everytime when we try to write
+to it again, the copy of the memory might
+have been tossed.
+So we have to re load a new copy from memory
+so we can write to it.
+And creating this copy takes time.
+And this is the race condition, if the copy-on-write
+cycle is not complete yet.
+The patch added this function that checks
+if the copy-on-write is complete yet, and
+only then allows writing to it.
+To be honest, I don’t understand this code
+really to tell you why this snippet makes
+sure that the copy on write is complete.
+But it added some additional checks, so I
+assume now it’s fine.
+So here is the mental picture of our race
+condition.
+We constantly use madvise to drop any cached
+copy of the mapped file.
+And at the same time we try to write to it,
+which causes a copy of that memory.
+Now in some rare condition, that can be hit
+very reliably by just trying over and over
+again, we perform the write to the memory,
+before the page table is updated to point
+us to our copied version.
+And we write to the real file instead of the
+copied memory.
+So the crazy thing about this vulnerability
+is, that it has been in the kernel for a very
+long time.
+And it was even a known issue, according to
+the patch author, that had been attempted
+to be patched before.
+So over time this apparently theoretical race
+condition got viable because our systems got
+faster and faster.
+And Petr Matousek also states, that this was
+an 0day exploit used in the wild.
+So there was a real threat.
+Now a bit of controversy.
+And this goes into the unresolved debate that
+has been going on for decates how to do vulnerability
+disclosure.
+If you were the person who found this exploit
+in the wild, what would you do?
+The obvious arguments are:
+Full disclosure, because it was actively exploited,
+fully disclosing it right away would have
+not given advanced attackers anything new.
+But the knowledge would have allowed system
+administrators to immediately patch their
+systems.
+But on the other hand it is such an easy and
+widespread vulnerability, that a full disclosure
+would have allowed armies of less skilled
+hackers to take advantage of it, until less
+professional sysadmins or private people could
+patch it.
+On the otherside we have the responsible disclosure
+where you first contact the developers, create
+a fix, try to roll it out and then tell people
+afterwards.
+The obvious arguments here are, you stopped
+professional sysadmins for hotpatching their
+system quickly and leave them exposed for
+the ongoing attacks.
+Now I don’t know what is the best way.
+Both ways have advantages and disadvantages.
+And it entirely depends on your threat model.
+In general I lean slightly more towards full
+disclosure, because I like information to
+be free, though I myself do responsible disclosure
+because I’m a hypocrite.
+I hope you liked this kind of exploit walkthrough
+video and that I could show you something
+new and interesting.
+If I said something wrong or you have additional
+info on why this exploit has to be triggered
+through a write to /proc/ mem and not directly
+writing to the address, please correct me
+or post additional info in the comments below,
+so that other attentive viewers can benefit
+from it.
+Thanks.

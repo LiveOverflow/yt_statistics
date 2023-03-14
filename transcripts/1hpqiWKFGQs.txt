@@ -1,0 +1,345 @@
+In a previous video we looked at 
+a kernel exploit in SerenityOS,
+which was the intended solution for the wisdom2 
+challenge from the hxp CTF. But of course
+SerentiyOS is a big software project, so there 
+might have been more security issues. And in this
+video I want to look at another solution for this 
+challenge. So basically another kernel exploit.
+Actually our team ALLES! was the only team 
+that solved this challenge during the CTF. But
+as always I have to mention, this was not me. 
+This team is insane, and I did not contribute
+to this success. It just blows my mind how skilled 
+the ALLES! members are. Especially when you know
+how young they are. In this case it was incredible 
+Linus Henze again solving it alone. Feelsbadman.
+ANYWAY! It’s crazy to think back at how much 
+I knew over 5 years ago when I started with
+my binary exploitation course. At the time 
+I felt I already had some nice experience.
+But you should always keep 
+in mind that over all those
+years since then, I kept learning more stuff 
+and accumulated more knowledge and skills.
+And I think that’s important for you to 
+remember, you can also learn all that stuff,
+it just takes time. Literally years. And so in 
+this video I want to share with you one new thing
+I learned. I just learned something new from 
+Linus’s SerenityOS exploit. And it makes me
+really excited, because it’s a thing that I never 
+really understood, and it finally clicked for me.
+Like with the previous exploit, Andreas Kling,
+the developer of SerenityOS, made a whole 
+video going over the writeup of the exploit,
+explaining the vulnerability, looking at 
+the kernel source code and fixing the issue.
+Because that video is already very technical and 
+detailed, I thought I will try to have a bit of a
+different angle with my video - I want to focus 
+on my eureka moment instead. So let’s head in.
+Sometimes when I think about how computers work, 
+I get this feeling of “it’s kinda simple”. I can
+see how complex code is compiled to very simple 
+instructions, which then get executed by a CPU.
+Also maybe you know that I have spent many hours 
+working on Ben Eater’s 8 bit computer - and when
+you develop each part of a CPU by hand, you 
+really start to feel like you understand it.
+I have also played a lot with very 
+simple electronics like Arduinos,
+which have an Atmega AVR microprocessor. Or 
+maybe you remember my series about the research
+into the hardware wallet, which included a 
+lot of details about ARM microprocessors.
+But the thing is:
+on one side I understand how
+higher level C programs can be compiled 
+to machine code, and how they run.
+I understand how an ELF binary is 
+loaded into memory and then executed.
+I know my way around reverse engineering 
+them, I know how debug them and so forth.
+And on the other side I understand very low level 
+code running on a microprocessor. For example
+this basic Arduino code where I can simply set a 
+PIN to HIGH or LOW. And that makes an LED blink.
+I understand that. I understand that there are 
+transistors that decode some instruction that will
+then lead to a toggle of wire that goes to the 
+outside. To this pin. Thus turning this on or off.
+But there is something in the middle of those two 
+worlds that I have very little experience with.
+And as soon as I think about this middle 
+part, I suddenly get this feeling that I
+actually DO NOT UNDERSTAND A SINGLE THING 
+ABOUT COMPUTERS. And this thing in the middle
+is basically the world where kernel code lies. 
+It’s what makes modern CPUs like an Intel CPU
+so much more complex than a microprocessor. What 
+I’m basically referring to are the privilege
+levels. Ring 0,1,2,3. You probably 
+have heard those terms before.
+But of course I have some knowledge 
+about operating system kernels,
+so what do I already know? I have actually made 
+a few videos where I explained some stuff about
+the Linux kernel. For example in the binary 
+exploitation playlist I introduced syscalls.
+I have made videos about docker containers, and 
+the linux kernel namespace feature that enables
+that. In those videos we also looked at kernel 
+source code to better understand how that works.
+I also made a video about the Linux Device Drivers 
+book, which was a huge “AHA!” moment for me when I
+understood some stuff about it. 
+And in the last SerenityOS video
+you can also see how I feel comfortable reading 
+the syscall source code of the Serenity kernel.
+But all those topics that I have prior 
+experience with, have one thing in common.
+They are very close to the userland. It 
+is kernel code, it is high privilege code,
+and there are some quirks to that, 
+but it still feels and looks like
+relatively “simple” code. There is 
+nothing really hardware specific in
+those areas. And that’s the crux of the matter.
+I’m missing the link between this software world
+and the hardware world. How exactly does Linux 
+talk to a hardrive. How exactly do key presses
+on this physical thing end 
+up as the input to a program?
+When you look at very simple 
+microcontrollers, like looking at an arduino
+or ben eater’s 8 bit computer that I was building, 
+I can understand how this microprocessor can
+“talk” to hardware. I can understand that 
+there is a wire going out of this chip,
+driven by transistor logic, and it can 
+“talk to this LED” to turn it on or off.
+But I don’t understand how a modern Intel 
+CPU is connected to the physical world.
+How do drivers talk to a physical harddrive?
+And this is where we come 
+back to Linus’s SerenityOS
+exploit. It’s a really creative exploit, 
+in some ways a suuuper simple exploit,
+but it offered me an opportunity 
+to learn about this missing link.
+So let’s quickly hear how Andreas summarises 
+the kernel vulnerability abused in this exploit.
+The vulnerability they found is 
+quite interesting. But basically
+they discovered another flaw 
+in our ptrace implementation.
+Quick reminder, ptrace is a syscall, 
+so a kernel feature, that allows
+one process to debug another process. 
+Read write the other processes memory.
+Single step execution. Change registers. 
+So the kind of stuff gdb implements.
+And the issue is, that we just accept the e-flags 
+coming from one process to the other. That makes
+it possible to overwrite certain CPU flags that 
+you really shouldn’t let user programs change.
+Like the I/O privilege register for example. 
+And that’s how they exploit it. So they change
+the IOPL. The IO Privilege Level. And elevate 
+the IO Privilege of their own process, making
+it possible for it to talk to hardware. And then 
+once they have hardware access they can talk to
+the harddisk and extract information that way. 
+And that’s actually what their exploit does.
+So the exploit contains a small IDE harddisk 
+driver. Very small. Just reads one sector.
+And you know the typical objective 
+of a CTF. read a flag from a file.
+And the wisdom2 challenge actually had a second 
+harddrive connected, that contained this flag.
+So if your program can directly talk to 
+hardware, they can just directly ask the
+harddrive to give them data started on it. And 
+you completely bypass any of the permission
+checks that the operating system might have 
+implemented in the kernel. Theoretically you
+could also directly talk to the main drive, 
+overwrite any setuid binary, and then you can
+easily get root. But here it was enough 
+just to read some data from the harddrive.
+What they do is, they attach with ptrace to a 
+child, then they get the registers of the remote
+process. And then they write back the registers, 
+after modifying the flags, setting the IOPL to 3.
+Which means that Ring3 is allowed 
+to have IO access I suppose.
+So what are the eflags? Let’s fire up gdb run 
+a basic program like /bin/ls, let the program
+single step run for a bit. And then let’s 
+look at the info registers output. Here are
+all the registers of the process we are debugging.
+Under the hood, GDB used ptrace to ask the kernel,
+“please give me the registers of this process”. 
+And then gdb displayed it here. So here is the
+stack pointer. Here is the instruction pointer 
+that points to the next code being executed.
+You have other general purpose registers. So 
+these are just small memory cells in the CPU
+that your code can use to calculate stuff. And 
+if you followed my binary exploitation playlist,
+you are pretty familiar with those.
+But what’s up with the registers down here?
+They are a bit weird registers, 
+and for your regular program you
+usually don’t deal with them. They sometimes 
+differ between operating systems how they are
+used. And they are actually another thing I don’t 
+fully understand myself yet. But I want to focus
+for now on the eflags. And the eflags are a 
+bit like internal CPU “housekeeping” flags.
+Some of them you might be familiar with. For 
+example ZF. It’s the ZERO FLAG. “Set by most
+instructions if the result of an operation is 
+binary zero.”. That’s basically how if-cases
+are implemented in assembly. Let’s say 
+you want to jump if two values are equal.
+Well jump equal has no additional operand 
+parameters which values to compare. Instead
+the actual implementation of that instruction is 
+to jump IF THE ZERO FLAG is set. And before that
+jump-equal instruction, you usually have a compare 
+instruction. And here is what compare does.
+“The comparison is performed by subtracting 
+the second operand from the first operand
+and then setting the status flags in 
+the same manner as the SUB instruction”
+If you subtract the same value,
+the result is zero. If the values differ, 
+the result is not zero. So if it’s zero,
+the zero flag is set in the eflags. And then 
+Jump equal can check if the zero flag was set.
+As you can see you might not directly set them 
+yourself. It’s like CPU housekeeping stuff,
+where the CPU wants to remember something. In 
+this case the result of a compare or subtraction.
+But there are more flags, and I want 
+to focus on an eflag I didn’t know
+existed. And it’s the IOPL flags. It’s two 
+bits. Input/Output privilege level flags.
+The IOPL (I/O Privilege level) flag is a 
+flag found on all IA-32 compatible x86 CPUs.
+It occupies bits 12 and 13 in the FLAGS register.
+And it’s used, in order for the 
+task or program to access I/O ports.
+But it’s important, the IOPL can only be changed 
+when the current privilege level is Ring 0.
+So what are IO ports?
+Memory-mapped I/O (MMIO) and port-mapped 
+I/O (PMIO) are two complementary methods of
+performing input/output (I/O) between the 
+CPU and peripheral devices in a computer.
+So IO Ports are the secret how intel CPUs 
+access hardware. I am familiar with memory
+mapped IO from microprocessors. Again, I’d like 
+to reference my hardware wallet series, where I
+explain memory mapped IO on an ARM processor.
+But ARM and INTEL are different processor
+architectures, so they handle hardware 
+differently. And I this concept of PORTS
+was weird to me. Maybe it’s the name and when 
+I hear “ports” think of network ports. But
+that’s of course something COMPLETLY different.
+But this is where the Serenity exploit comes into
+play. As you now know, there was a vulnerability 
+in the Serenity kernel ptrace handler for setting
+registers in another process. This exploit simply 
+set the 12th and 13th bit, and write the changed
+eflags with ptrace back to the other process.
+As you know, gdb uses ptrace to debug other
+processes, so we could try the same on Linux. 
+As you can see, the zero flag is currently
+not set. But with set $eflags and 0x40, we 
+can set the 7th bit, which is the zero flag.
+And when we now check the registers, we can 
+see the zero flag is set. We could also just
+try to set all flags to zero. Let’s do that.
+But when you check the registers, you see that
+apparently IF is still set.
+IF, Interrupt Enable Flag,
+is also a privileged flag you are not supposed 
+to change. A user program cannot just disable
+all interrupts on the system. Now we could also 
+try to set the IOPL flags like the exploit did.
+0x3000. But as you can see, it didn’t do anything.
+Of course, we shouldn’t be allowed to change
+those flags. But because serenity OS didn’t 
+account for this, and the kernel runs in ring0,
+this code can set the flags for us, when we call 
+PTRACE Set Registers with the modified eflags.
+Okay. So now we have the IOPL flags set. 
+Apparently we are now allowed to talk to
+hardware via I/O ports. And as Andreas said, 
+this exploit implements a very basic IDE
+harddisk driver which reads out a sector from 
+the attached drive. And when you look into this
+code, specifically the inline assembly, you 
+can find here port_byte_in, and port_byte_out
+using the in and out assembly instruction. And 
+this assembly instruction takes a port number.
+The in instruction reads a byte from a port. And 
+the out instruction writes a byte to that port.
+And before we continue with this code, I want 
+to quickly jump back to my super simple Arduino
+blinking lights. Because when you write arduino 
+C code, you use functions like digitalWrite,
+to write to a pin. But under the hood, in actual 
+AVR assembly, there is an instruction to set
+a bit in a port. And there are also IN and OUT 
+instructions. These instructions also write or
+read a byte to or from a port. Here is another 
+blinking example using inline assembly with the
+OUT instruction, writing 0 or 1111s as a byte to 
+the port number 5. And the port number references
+these entire 8 pins on the arduino. 8 pins, 8 
+bit, 1 byte. Another port number corresponds to
+other 8 bits of pins. The AVR architecture of the 
+arduino, and Intel architecture of a modern CPUs,
+are of course COMPLETLY different. But 
+they both have a concept of I/O Ports.
+And so the exploit here, uses the OUT instruction, 
+to write to specific ports. And the port number we
+are using is based on this base 0x1f0. And when we 
+look up a list of the strictly defined x86 intel
+ports, we can see that the ports 0x1f0 to 0x1f7, 
+are connected to The primary harddisk controller.
+You can imagine this as if a harddisk 
+is connected to those arduino pins.
+Isn’t this incredible?
+When I saw this list I also
+saw those ports at 0x60 dealing with ps/2 
+controller. So keyboards and mice connected
+to that oldschool ps/2 plug. And I found 
+this awesome repository by cirosantilli,
+x86 bare metal examples. And here in the ps2 
+keyboard assembly file, you can see that it reads
+a byte from the port 0x60. So it reads whatever 
+key you pressed on your connected ps2 keyboard.
+And this was a eureka moment for me. I 
+realized that a x86 CPU is not so much
+different from an arduino microcontroller. Both 
+need somehow instructions to write and read bits
+or bytes from wires connected to their chips. 
+The difference is only that modern desktop CPUs
+have privilege level features, 
+so that only kernel code in ring0
+can use instructions like IN and OUT. And the 
+IOPL flags are not set for ring3 processes,
+so they can’t directly talk to hardware. 
+That’s why they need to ask the kernel to
+read data from a harddisk using syscalls like 
+read() and write() instead. And the kernel can
+then check permissions like file permissions, 
+to make sure you are allowed to read or not.
+Really really cool. I think now I 
+understand the link I was missing.

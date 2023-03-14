@@ -1,0 +1,158 @@
+AngularJS fixed the sandbox bypass from version
+1.4.7.
+But very quickly a new bypass was found.
+The old bypass which overwrote the charAt
+prototype function to screw with AngularJS
+internals, got fixed.
+But the fix was incomplete.
+Very quickly a new bypass was found but was
+initially kept private.
+Eventually somebody else discovered the bypass
+too, and reported it publicly on github.
+SO let's try to find the bypass for the incomplete
+fix ourselves.
+Let's start by testing the old bypass.
+No alert.
+And when we look into the console we can see
+the Error "Assigning to a constructor is disallowed!"
+What does that mean?
+Let's have a look at what ensureSafeAssignContext
+is doing.
+So this is a function that takes an object
+as parameter and performs a couple of checks
+on it.
+It basically checks if the object passed to
+it, is some kind of constructor.
+As we have seen with the first bypass, constructors
+are dangerous.
+In that video we used the Function constructor
+to escape the sandbox.
+And in the last escape we accessed the prototype
+of charAt via the String constructor to screw
+with Angular's internals.
+So it makes sense that the sandbox tries to
+prevent you assigning to the constructor.
+Well... the name "AssignContext" indicates,
+that this is a check used in assignments.
+I set a breakpoint with the debugger; keywoard
+here, so let's see what kind of objects are
+passed to this function.
+So the first object passed to it is the string
+"a".
+The second object passed to it is the String()
+constructor, which will obviously then throw
+the exception.
+Now let's check where this is called from
+in the call stack.
+It's coming from fn, and fn is again this
+dynamically generated JavaScript code representing
+our expression.
+We can take this generated code here and compare
+it to the generated code from 1.4.7.
+You can see that the fix is not super big.
+It only added two function calls to ensureSafeAssignContext.
+Anyhow.
+Let's try to understand what Assign context
+means.
+In what cases does AngularJS check an object
+with this function?
+We can do this by using simple expressions.
+So for example 1+1 doesn't trigger the breakpoint.
+So no check here.
+That's not surprising, we would expect some
+kind of assignment anyway, right?
+So let's do an assignment.
+a=1.
+Ok this triggered the breakpoint.
+And the object passed to it is the Scope object.
+Remember from the very first video, that any
+variable you use is evaluated against the
+Scope?
+So that kinda makes sense.
+Let's look at the function Angular generated.
+So v0 is the 1 that we want to assign.
+v2 up here is s, our scope.
+So that also makes sense.
+So now in here it checks if v2 is a safe object
+for assignments.
+And yeah the Scope is a safe object.
+After that you see the assignment happening
+with v2.a.
+So a on the scope get's assigned the number
+1.
+As you can see, it always only checks the
+left side of an assignment.
+So the object to the right is never checked.
+This means we can still do stuff with the
+constructor, it just can't be on the left.
+So we can assign it to a variable on the scope
+just fine.
+But is that enough?
+Now that a is the String() constructor, let's
+see if we can assign something to the the
+prototype of a.
+First check is the first assignment, which
+is fine.
+But the second check, will fail.
+Because a is the constructor.
+mhmh....
+Playing around like this is enough to find
+the bypass for the incomplete fix!
+So go ahead and pause the video to try it
+yourself and head over to the testbed at liveoverflow.com/angularjs/
+You can do it!
+In case you didn't get it or you just want
+me to tell you, well here we go.
+So we can use those evil objects on the right
+side of an assignment.
+So we can assign them to anything we want.
+But they can't be on the left.
+But the only evil object that can't be on
+the left is the constructor.
+So what we could do is, we could assign the
+prototype to a instead.
+And then we use a.charAt in the next step.
+Theoretically this should work, because a
+contains now prototype and NOT the constructor.
+Which means ensureSafeAssignContext will not
+find a constructor and be happy.
+So let's try it.
+First assignment is on the scope.
+So that is safe.
+And the second check is on this weird object
+here, but that is just the prototype!
+And when we let the code continue, we pop
+an alert!
+Hah! that was super easy.
+Let's compare our bypass with what ian found.
+His exploit is a little bit overcomplicated,
+but in essence it's the same.
+He assigns the prototype to a property y of
+x. and then accesses the charAt via that property.
+Same thing, we just used a simple variable.
+Also this bypass still works in the latest
+version 1.5.8.
+But AngularJs has announced that they will
+remove the AngularJS sandbox in 1.6.
+This means, that we don't need any fancy sandbox
+bypasses anymore and exploitation becomes
+trivial.
+It sounds counter intuitive, but I think that's
+a good thing.
+But let's discuss this in another video.
+Now that you understand AngularJS sandbox
+bypasses, I highly recommend you to watch
+the talk "an abusive relationship with angularjs"
+by Mario Heiderich.
+He gives a great overview over the history
+of angularjs sandbox bypasses.
+I just finished editing the video and i realized
+I forgot to give my disclaimer and the proper
+credits like I did in the previous videos.
+So here it comes a bit late.
+I did not discover those bypasses myself.
+Great researchers like Mario Heiderich, Ian
+Hickey, Gareth Heyes and many more are true
+brains here, I merely tried to explain their
+hard work in a video.
+So look them up, and follow them on twitter.

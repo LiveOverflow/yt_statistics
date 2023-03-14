@@ -1,0 +1,237 @@
+So in the previous video we talked a bit more
+highlevel about what a hardware wallet is,
+but now it’s time to have a look at the
+actual device. So this is the Ledger Nano
+S. I have to say, a pretty cool looking device.On
+one side it has the Ledger Logo and on the
+backside it says “vires in numeris”, which
+is fancy language for “strength in numbers”.
+SO LET’S HIT THE SUBSCRIBE BUTTON TO GET
+THAT NUMBER UP! Just kidding.
+So from the outside the Ledger has two buttons
+to enter the pin and change settings and so
+forth. A screen to display different kinds
+of information and menus and a usb port, to
+connect the device to your computer so you
+can actually do cryptocurrency transactions.
+Here I was just testing it out, setting a
+secure pin and let it generate a private key,
+and I’m writing down my mnemonic backup
+phrase. So yeah it seems to work. On your
+computer you will actually have a software
+running that interacts with the Ledger. The
+Ledger Manager is actually a Chrome app. So
+before I was updating the Ledger Nano I actually
+made sure to open the Chrome Developer Tools
+to observe requests the software maybe makes
+to the internet. Mostly I was interested in
+if the firmware is downloaded and if we can
+grab the firmware update through that. So
+I left that open when I did the update. Now
+don’t get excited and think, “oh gosh
+a chrome app and you can debug it so easily,
+how awful”. It’s not. This hardware wallet
+is supposed to protect you against malware
+on your PC, so the software running there
+should not really matter. Also I don’t consider
+further obfuscation really helpful, especially
+because I want to actually understand what
+the device I bought does. Rather than spending
+countless hours defeating obfuscation. So
+I’m big fan of that choice.
+Anyway, we are much more interested in the
+hardware for now and we will come back to
+the Chrome app later. I just wanted to mention
+it because timeline wise, that is what I did
+before I opened up the Ledger.
+Okay… we can remove the metal case very
+easily, but to open the plastic case we need
+some tools. Urgh it kinda hurts to just having
+spent around a 100$, and only a few hours
+later you trying to pry it open and hoping
+not to break it. So opening up is easy, there
+are just a few hooks in place and maybe you
+could snap one off accidentally, but in general
+it seems pretty straight forward.
+So here you can see the USB socket, some chips
+and a flat cable wrapping around to the other
+side. That’s the display connector.
+Also don’t get annoyed when I just show
+different shots of it, I just spent around
+1500$ on a Camera and Lenses just because
+I was so excited for this opportunity to make
+these videos that I wanted to have great shots.
+And I have no clue what I am doing but I think
+it looks good. So appreciate them.
+Anyway, we can simply push out the pcb and
+screen, it’s not glued in or anything. So
+here you can see the flat cable bending around
+to the screen and here are the two buttons.
+Here it is from the bottom side. We can already
+see some very interesting looking points.
+These TP numbered points are probably Test
+Points. When you manufacture hardware you
+often expose test points, that are not necessary
+outputs for debug interfaces or anything,
+they are usually just a way to verify that
+the assembled hardware works. So you can have
+an automatic device coming down with some
+needles, and running some tests on it. Very
+normal. But there are also a few unlabeled
+points over here, and to those we will get
+to soon.
+On the front side we have three chips, one
+with a lot of pins and then two smaller ones.
+But now you have to say bye to my beautiful
+shots for a while. Unfortunately a lot of
+hardware research is done through documentations
+and manuals, so please excuse me for stretching
+this moments with no content and useless talking
+in order to show more footage from my 1500$
+camera setup.
+A pcb might look very intimidating and you
+feel like you have no clue what to do now,
+this is just dark magic, but there is always
+stuff you can do. Most chips, especially on
+typical small devices like this are nothing
+special. They are bought from huge manufacturers
+and you can just look up what these chips
+are for. You don’t need to understand how
+to build hardware with them in order to get
+an understanding of what does what. The most
+prominent and biggest chip here is this one.
+And when you google the first cryptic number
+here “f042k66” you find a bit of information.
+I mean the ledger is a known device using
+this chip so many other people have documented
+that already, but let’s assume these results
+weren't here, because it’s a different device,
+then you find some traces about “stm32 f042k6”,
+the last 6 is missing so when you search for
+that the results are a lot clearer. STM32
+F042k6 is an ARM chip. And on the official
+information page of STMicroelectronics you
+can also find the STMicroelectronics logo,
+the ST and it’s here on the chip. So yeah,
+pretty sure that’s the chip, or at least
+from the same family. So it’s very likely
+the documentation you find here is very relevant.
+This is just a very typical microcontroller.
+Actually it’s ARM, so it’s a different
+architecture from the microcontroller we have
+seen before on this channel - that was AVR.
+Anyway. So this is a ARM 32-bit Cortex -M0
+CPU, Runs with up to 48 MHz. Has 16 to 332
+Kilobytes of Flash Memory, so that’s basically
+persistent memory where the program code is
+stored and 6 Kilobytes of SRAM. So RAM. So
+there is not much RAM on there. Other interesting
+features for us might be that it can speak
+USB, it has two serial connections, and we
+know serial, we have used serial several times
+before with the AVR stuff.
+And it supports the serial wire debug protocol.
+SWD. mhmh… stuff like that is obviously
+very interesting for research.
+But let’s move on and have another look
+at the board. Do you see here these two lines
+going from the USB to the microcontroller?
+So it looks like USB is directly communicating
+with this ARM processor. And the one button
+here looks also to be directly connected to
+this chip. So this chip seems kind of to be
+the main component. It handles the USB communication,
+the button presses and looks like these lines
+here are also connected to the display? So
+seems like it also controls the display.
+Also now that we know the ST logo, we know
+this second chip here is from the same manufacturer.
+But when you try to search for those labels,
+you can’t really find anything. Also is
+that NBO, NB0, N8O, N80? As you know I’m
+not super into electronics, so I can only
+speculate. And I assume this is a generic
+label because this is actually the secure
+element.
+On the ledger wallet website it states that
+two chips are used, the STM32F042, which we
+already identified, and the ST31H320 (secure).
+There is only one other chip here under the
+display cable and that one is also from ST
+and it’s a ST8R00W, which is a syncronous
+(TYPO! TYPO! Missing ‘h’. Literally a
+garbage product). It’s a boost converter
+with output current cut-off function. No idea
+what that is, but it’s doing some electronics
+magic, maybe it’s required to drive the
+display. As you can see it’s just an analog
+component and not a digital microcontroller
+or so. So this means this one has to be the
+secure element - the ST31H320.
+This chip is “Designed for secure ID (so
+for secure identification) and banking applications.
+(So for example this could be inside a smart
+card, like your typical baking chip card and
+you can identify yourself to the bank), the
+ST31H platform products are serial access
+microcontrollers (which I think means it communicates
+via a serial interface with other components)
+that incorporate the most recent generation
+of ARM processors for embedded secure systems.
+Their SecurCore® SC000™ 32-bit RISC core
+is built on the Cortex™ M0 core with additional
+security features to help to protect against
+advanced forms of attacks.”
+In hardware speech a “core” is basically
+like a library in software. Chips are designed
+through their own design languages, like programming
+languages, for example VHDL or verilog, and
+we have used verilog once before on this channel
+to implement something simple. So These design
+files, or libraries basically, can just be
+licensed by somebody, and then they are allowed
+to go with that design to a manufacturer plant
+and they have then machines that produce chips
+that contain this design. And if you have
+heard of FPGAs before, they are like reprogrammable
+chips, so you can implement your own chip
+or license cores for your FPGA and configure
+the FPGA with ii. So ST licensed the SecureCore
+SC000 RISC core, which is based on the Cortex
+M0 core. Basically a library based on another
+library and they pay tons of money to be allowed
+to manufacturer a chip with those. This means
+you can also look up some information on these
+cores because companies might want to license
+these from ARM. And yeah, the Cortex M0 is
+just a general very small ARM processor, " small
+silicon area”, so it doesn’t take up much
+actual space on the chip. And the Arm SecurCore
+processors are the most widely licensed 32-bit
+processors for smartcards worldwide. So I
+obviously don’t know if any of the smartcards
+I have here use this chip, but totally might
+have one. But, the “explanation of anti-tampering
+features requires a SecurCore NDA.” a non
+disclosure agreement with arm. So without
+anybody leaking this or researchers trying
+to reverse engineer it, the public won’t
+know how exactly it’s supposed to protect
+you. From hardware security classes at university
+I also got a great tip, you should research
+a bit the pay TV hacking scene around smart
+cards, there are some nice documentaries,
+and what kind of crazy (and expensive) attacks
+exists to get access to the secrets stored
+on these chips.
+But let’s go back to the insecure STM32
+for now and start by having a look into the
+official ledger documentation which is really
+great and goes into a lot of detail. I want
+to highlight a sentence in Chapter 10.
+There are “two hardware chips, one being
+secure (the ST31 Secure Element), and the
+other having JTAG enabled and acting as a
+proxy (the STM32 MCU).”. JTAG.
+That sounds awesome… We will have a look
+at that next video

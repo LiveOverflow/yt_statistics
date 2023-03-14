@@ -1,0 +1,240 @@
+[ad start]
+This free video series about the basics of
+browser exploitation, is supported by SSD
+Secure Disclosure.
+If you find a critical vulnerability in a
+popular and widespread software or hardware,
+for example browsers, my recommendation would
+be to first contact SSD.
+On their site ssd-disclosure.com you can also
+find a list of targets they are generally
+interested in.
+So let’s say you have found a critical vulnerability
+on one of those targets.
+Then you can send this vulnerability to SSD,
+they will confirm and pay you for it, and
+start a responsible disclosure process where
+they contact the vendor and the vulnerability
+is responsibly disclosed and published while
+you still get the credit for it.
+Not every vendor offers bug bounties for researchers
+(for example Apple).
+Also, other exploit acquisition programs usually
+do not disclose the vulnerabilities to vendors.
+So checkout their site and make sure to read
+more about the scope and the submission process.
+SSD Secure Disclosure is also involved with
+the offensive security conference TyphoonCon,
+so keep an eye out for that conference over
+at typhooncon.com
+[ad end]
+For several years I have been whining about
+that I don’t understanding browser exploitation.
+I can imagine that it was quite annoying to
+constantly hear that, for the people that
+I talked to.
+I thought that I’m theoretically able to
+understand this topic, but I kinda resigned
+and never really tried properly..
+I remember for example the 33c3ctf, where
+there was a firefox exploitation challenge,
+and I thought that would be the perfect opportunity
+to finally get started with browser exploitation.
+But back then I already failed with compiling
+a debug versions of firefox and I gave up.
+So that means even before that, I thought
+a lot about getting started with this topic…
+It has always been kind of a scary topic,
+I didn’t really know where to start.
+It became really frustrating.
+Maybe you can relate to this with other topics.
+The thing is, in some way it was totally clear
+to me how to get started with this.
+I mean I should start watching my own video
+the “secret step-by-step guide to learn
+hacking”, because it applies to this here
+as well.
+It just takes time, but it overwhelmed me.
+You see, I already have experience with the
+basics of exploitation, I know how buffer
+overflows work, I know how heap overflows
+work, and how to do return oriented programming
+and I have somewhat of an intuition for how
+browser exploition also works, at least on
+an abstract level.
+I just couldn’t get myself into it on a
+technical/practical level.
+And it’s really not the fault of people
+keeping it secret or something.
+There are not tons of resources, but there
+are probably more than you might think.
+For example saelo’s phrack paper on “Attacking
+JavaScript Engines”.
+Or argp’s article about Firefox exploitation.
+Or CTurts PlayStation 4 exploit writeups that
+included a commented exploit.
+Writeups from project zero.
+And many many more.
+Honorable mentions here should also go to
+ret2system, they have a multi-part writeup
+about a WebKit exploit they used for Pwn2Own.
+Unfortunately I stumbled over it fairly late
+in my adventure of creating this series, but
+I think it would have been a great start as
+well.
+And beyond all those public resources, thanks
+to playing CTF and engaging with the community,
+I also know several people that could answer
+questions, if I had proper questions for them.
+And instead of following my own advice at
+“how to (not) ask a technical question”
+I annoyed them with questions like “whaa
+I don’t know how to get started.”
+“please help meeeeee” “I don’t understand
+this”...
+And I got sick of that myself.
+I hated myself for doing that.
+And it’s about time that I finally take
+responsibility for myself and approach this
+properly!
+I just have to frckn’ play around with this
+crap and invest the time that is necessary.
+I know it will be slow and it will take time.
+So after 3-5 years of whining around, I think
+I finally came to the realization that maybe
+I was just scared of failing at it I let it
+overwhelm myself . But then I remembered,
+that was exactly the same feeling I had when
+I go started with security and wargames and
+CTFs in the first place.
+And in the end I was able to get into that
+as well, look where I am now, so why not repeat
+that with browser exploitation.
+And I always tell people: “there is no magic
+to it, it just takes time and persistence
+and you will learn all this stuff eventually.”
+So I don’t know why I was such a hypocrite
+for not following that advice when it came
+to this...
+Then came congress, 35c3 in Leipzig, where
+I saw Jonathan Jacobi’s talk “From Zero
+to Zero Day” in there he talks about his
+journey to a Charka exploit.
+And at the beginning he is referencing my
+own tweet as one piece of advice to get into
+this kind of stuff.
+And also Ned Williamson in his talk “Attacking
+Chrome IPC” he reminds me again how much
+practice this stuff takes and he shares how
+he approaches things.
+So both talks offer excellent advice and I
+recommend them you to watch them.
+They were both major reason why I decided
+to tackle this again.
+So… this is my 2019 new years resolution,
+I guess.
+At the time of writing the first version of
+this script, it’s just two days after the
+congress.
+the 31.
+December 2018, berlin is basically a warzone
+with all the fireworks.
+And I’m finally going to get properly started.
+Here is the rough plan and what you can expect
+from this series.
+This is a huge field with different browser
+engines and operating systems . Browsers are
+next to Operating Systems probably the most
+complex software, including various disciplines
+from computer science.
+And then what do you do?
+do you look at the DOM, the network layer
+or the JavaScript?
+If you go for Javascript will you look at
+V8, spidermonkey, chakra or javascriptcore,?
+There is so much.
+So instead of getting overwhelmed by that,
+I just have to pick and start somewhere.
+And like I often say it doesn’t matter where
+I start, because this will be a long path
+and I don’t know the path.
+I just have to start somewhere.
+And I chose to start JavaScriptCore, the javascript
+engine from WebKit and doing that on Mac.
+Here are the my reasons.
+First of all my CTF team mate Linus Henze
+has recently published an exploit for JavaScriptCore
+and has a proof of concept for Safari, and
+my Safari version is still vulnerable to it.
+So I think that’s a good start.
+Also this Exploitation is similar to @5aelo's
+exploit for CVE-2018-4233, which we also have
+the code for.
+AND niklasb has an exploit using the same
+bug Linus uses, but implemented his own exploit.
+Oh I mentioned that the first draft of this
+video was written in december 2018, well now
+it’s march 2019 and I’m about to go into
+production for this video.
+And actually just recently ZDI published a
+blog post about the same bug from a different
+researcher’s perspective.
+Additionally I discovered a german 2h long
+video recording of saelo walking through an
+older exploit in JavaScriptCore, which is
+related to his phrack paper on attacking javascript
+engines.
+Also saelo has done a few talks on this topic
+that I have seen already, but I couldn’t
+really apply knowledge yet - so I also want
+to revisit them.
+So all of that makes this bug and all these
+exploits sooo interesting to start with.
+Because you can then compare them and each
+of them will have slightly different angles.
+To summarize, this video series is about looking
+at WebKit, which uses JavaScriptCore as its
+JavaScript engine.
+And I’m also doing this on a Mac, but all
+of this should also be doable on Linux.
+Also if you don’t have experience with exploitation,
+memory, debugging, stack, heap, etc., it’s
+probably a good idea to start with my binary
+exploitation playlist first, and play some
+overthewire, picoctf or exploit.education
+challenges.
+I would also like to mention that this series
+is not a replacement for a proper professional
+paid training in browser exploitation.
+Like I described, I just got started with
+this topic as well and this video series is
+documenting my learning progress and methodology.
+This means I probably will say some wrong
+stuff - I just really lack the experience.
+You will see me learning about JavaScriptCore
+from episode to episode, but I hope that it
+is still a good example of how I approach
+a new topic, and hopefully I also help you
+to get started more easily.
+Anyway…
+In the first episode we will setup WebKit
+and JavaScript core, and then learn a bit
+internals and how to use the debugger, and
+then we slowly work our way through Linus’s
+and niklas’s exploit.
+So I hope you are as excited, as I am, for
+this!
+And if you like to support this free series
+and all the other videos I make, please have
+a look at my Patreon or the YouTube membership
+program.
+I made a video explaining everything you can
+find it in the description.
+Thanks.
+[ad start]
+Thanks again to SSD Secure Disclosure for
+supporting this series - checkout their
+website and learn more about the SSD vulnerability
+disclosure program at
+Ssd-disclosure.com.
+[ad end]

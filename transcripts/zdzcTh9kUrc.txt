@@ -1,0 +1,283 @@
+We have rediscovered the sudoedit vulnerability
+in sudo.
+Our testcase actually triggers a malloc abort,
+and this abort is just a symptom of a memory
+corruption that must have happened in some
+other part of the program.
+Last video we already setup an address sanitizer
+build, that helped us identify the location
+where the actual heap overflow happens.
+And now we can take this information to look
+deeper into WHY this actually happened.
+The explanation of this is already included
+in the official Qualys advisory for the bug,
+but it’s sometimes hard to understand it
+from just a writeup.
+And also we want to pretend we figured this
+out ourselves.
+So let’s do the root cause analysis.
+To analyse the crash we found, it’s useful
+to have a debug version that makes the process
+more comfortable.
+-g is the compiler flag for adding more debug
+information, so we can ensure to set that
+by setting the CFLAGS.
+We can also add -O0, to disable any optimization.
+Now let’s launch Gdb with ./src/sudo binary!
+Btw. in this case I have gef installed as
+a gdb extension for nicer debugging..
+As we know from last video, where we used
+address sanitizer, we learned that the overflow
+happened in this loop in sudoers.c.
+Specifically this memory moving around, writing
+bytes from from, into to.
+And now that we have a debug build, we can
+actually set a breakpoint based on file and
+code line.
+Break sudoers.c at line 868.
+Then we can run it and we pipe in the minimal
+crash file as input.
+Breakpoint hit, right here at the from, to
+copy.
+For many of you, this might look like really
+scary pointer magic.
+We not only have pointers, but we also mess
+with them using ++.
+I know this looks intimidating, but let’s
+look at this in assembly.
+I know assembly looks even more intimidating,
+but actually it’s much more simple.
+As long as you can read the basic assembly
+syntax.
+So this single line of C, compiled to multiple
+lines of assembly.
+So take my hand, and let me walk you through.
+And you will see, you could have done that
+yourself.
+RBP is the basepointer.
+Together with the stackpointer rsp they define
+the start and end of a stackframe.
+And local variables are stored on the stack,
+in that stack frame area.
+So here we are loading the value of a local
+variable into rax.
+Gef is awesome because it colorcodes the addresses.
+This purply color means it’s a stack address.
+So just from the color we know all these values
+are stack addresses.
+And because it’s an address gef also tries
+to check what is stored in that address.
+And here we apparently have the malicious
+argument 00000 with the backslash.
+And that’s basically how pointers work.
+Pointers are addresses.
+And in rax we have an address.
+We have a pointer.
+And this arrow here is just the perfect symbol,
+because this address POINTS at this value.
+So rax is the address location, the pointer,
+where the argument string is stored.
+And now see what happens next.
+We move rax into rcx, so now we have a copy
+of the address in rcx, and then we increment
+rcx by one.
+Now look at the C code, we have a from pointer,
+which is incremented.
+Which means the address is incremented, so
+we make the address point to the next byte.
+So RAX is the original address, and RCX is
+the incremented address.
+And now we write that new incremented value
+into the same local variable we read earlier
+from.
+So we updated the variable.
+And this is what ++ in C does, right?
+It increments a variable.
+So we incremented the FROM variable.
+And do you know the difference between ++
+coming before or after the variable?
+When used within an expression, then the ++
+before or after decides if you take the value
+and THEN increment, or if you increment first
+and THEN take the incremented value.
+++ coming after means we first take the value
+and THEN increment.
+But didn’t we just increment the variable
+before using it?
+Well technically yes, but we incremented rcx.
+And rax is still the value before we incremented
+it.
+And NOW we use rax.
+So the code just already updated the local
+variable, but we still use now the non-incremented
+value.
+Anyway.
+Rax still points into our string and we perform
+a move into dl.
+But here we use BYTE POINTER rax.
+So this assembly in brackets means, we take
+rax as an address, and we want to move the
+VALUE stored there.
+So here we are coipying the first byte of
+this data.
+So this ascii 0.
+In hex 0x30.
+So in dl, which is the lowest byte in rdx,
+you can see now the loaded value 0x30, an
+ascii 0.
+So now we evaluated the right part of the
+equal sign.
+We loaded a byte from the from pointer, and
+incremented from.
+And now let’s see what the left side is
+doing.
+We are starting by loading another local variable,
+also in rax again.
+And you can see, it’s also an address.
+But this time it’s color code is green.
+This means it’s an address located on the
+heap!
+So it’s a different address, pointing somewhere
+else, but like before, we increment it, because
+the to pointer also has ++.
+So we move rax into rcx, we increment rcx,
+and we write it back into the local variable
+on the stack.
+But again, RAX still contains the address
+before we incremented it.
+And see how we use it now.
+Now we move the byte we loaded earlier, into
+the location pointed to by rax.
+So we are copying this byte onto the heap.
+And that’s it!
+Now you understood this magic pointer line.
+We simply have two addresses, we derefernce
+the right one to load a byte, and write it
+into the location of the to pointer.
+And we increment both.
+Executing this in a loop copies bytes!
+And now let’s check the code surrounding
+this.
+So we are coming back up now at the start
+of the while loop, and here is basically the
+same code.
+We dereference from.
+So we load a byte from this variable.
+And that’s exactly what happens here in
+the code.
+We load into rax the first local variable.
+And then we compare if at that address location
+is a 0byte.
+Strings are null-0byte terminated in C, so
+this is simply a loop that checks if we reached
+that nullbyte.
+And that seems safe, right?
+We have a loop, copying each byte, and we
+copy until we reached the end of the string.
+All fine.
+Except we have these two lines.
+Vut Here you can also see something cool,
+here we write from[0].
+And look at the line in assembly.
+IT LOOKS EXACTLY THE SAME like the dereference
+of the from pointer.
+It also just loads the address into rax, and
+then it loads a byte from that address.
+It loads a byte like these lines did.
+In fact *from and from[0] are exactly the
+same.
+This is because arrays in C are also just
+pointers.
+So if you load a value from a pointer by dereferencing
+it, or loading the first value with the array
+notation, that’s the same.
+And so here we check if the current byte is
+a backslash, and if that is the case, we increment
+from again.
+And that is the source of the trouble.
+Let’s see that in action.
+I have set a breakpoint right here at the
+copying of bytes and we can ceep continuing
+in gdb and observe rax.
+Rax contains the address of the from pointer.
+So the source string of the copy loop.
+And when just running loop after loop, we
+keep consuming the source string, copy it
+into to on the heap, and increment the address
+further.
+And now we reach the end.
+We are at the backslash now.
+And see what happens now.
+We reach the compare of 0x5c, so we check
+if the byte is a backslash.
+And that;s the case!
+So now we enter that if case, where we now
+increment from.
+So we load the variable.
+Add 1 to it.
+And write it back.
+Which means, the from pointer is now pointing
+at the null-byte.
+You can see here how gef does not display
+a string anymore, because a nullbyte is not
+a string, it’s the end of a string.
+Gef displays it just as a hex number now.
+But here is the nullbyte.
+And now we enter the copy line again, where
+we copy this nullbyte to the heap, and we
+increment from.
+Suddenly pointing into another string!!!
+Here we also have ascii zeroes.
+And we keep copying that now, because this
+while loop check missed the nullbyte.
+This if-case skipped the nullbyte.
+So we copy more bytes than intended.
+But how many bytes were intended?
+The to address on the heap where we copy to,
+is coming from user_args.
+And if we scroll up a bit we can find the
+place where we allocate the size of the user_args.
+And this size is a sum of all string lengths
+of av.
+And av goes over the argv arguments.
+So we loop over each element of the arguments,
+we check the string length and add up the
+sizes, including the string terminating nullbyte.
++1.
+So we allocate memory that is large enough
+to hold all strings.
+BUT this loop down here looks for backslashes,
+and skips the value after the backslash.
+Which in theory can only make the strings
+shorter, because we skip characters we don’t
+copy.
+But the bug is that we can skip the final
+terminating null-byte, because the backslash
+is at the end, and thus we skip over it and
+start copying more data.
+More than the string length had calculated
+earlier.
+But why is it doing that?
+Why is this even looking for a backslash?
+And skipping it.
+Causing this whole drama?
+Well the comment in the code here says.
+When running a command via a shell, the sudo
+front-end escapes potential meta chars.
+We unescape non-spaces for sudoers matching
+and logging purposes.
+So this is an unescape logic.
+If you have for example an escaped double
+quote, then this copy detects the backslash,
+skips it, and just copies the double quote.
+But our backslash was at the end, right before
+the null-byte, so we basically had an escaped
+null-byte and we skipped it.
+Cool.
+Now we understand the copy loop itself and
+why the buffer allocated a wrong size.
+The next question we have to answer is how
+do we even get here.What conditions need to
+be set to reach this code.
+And why does it even care about those backslashes.
+Let’s do a bit more code review next video.

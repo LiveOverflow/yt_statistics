@@ -1,0 +1,214 @@
+In the previous video of this series we soldered
+and set up the arduino board for the riscure
+embedded hardware CTF.
+I couldn’t release this video earlier, because
+the competition was still under way.
+But now it’s over and I can release all
+the solutions and show how I worked on these.
+And i’m excited to take you along with me
+on this journey of slowly exploring this unknown
+land.
+As I mentioned in the previous video, the
+“secure filesystem” is a good challenge
+to start, because you can learn how to interact
+with the board.
+And this video will be about that.
+Ok, so we already learned how to flash the
+challenge onto our board.
+The challenges come as a .hex file.
+That is a special file format which is not
+really a raw binary, but has the binary data
+as hex encoded strings inside.
+Avrdude can read that file format and flash
+the raw bytes onto the board.
+This binary would usually contain AVR assembler
+code, which we could disassemble and reverse
+engineer.
+But that would make many challenges trivial.
+So this is actually encrypted and without
+the secret key embedded on the board we cannot
+analyse it.
+So only way for us to solve this, is to load
+it onto the board and figuring it out by interacting
+with the board.
+So when I loaded the binary onto the board,
+the first thing I did was checking the serial
+monitor feature of the arduino IDE.
+usually you can use that to send and receive
+data via the serial connection.
+And it actually looks like there is some data,
+but it seems corrupted.
+It is not readable.
+So either it’s binary data, or we have the
+wrong settings.
+Serial has this baudrate setting, it defines
+how much time you get for each symbol, or
+packet if you will.
+So if you read very slow or too fast, you
+will only read garbage.
+By simply trying out different default baud
+rates offered by the drop down menu, I got
+the correct value.
+And we see a list of files.
+A cat.txt and also a passwd file, which probably
+is our goal.
+When I hit enter or other keys, it doesn’t
+react, we don’t get a response or see our
+keys.
+I actually tried out different line ending
+settings - what should be sent if we hit enter
+- and we will soon learn that i just missed
+the correct answer.
+But at this point I couldn’t figure it out.
+I thought maybe something is weird with the
+arduino console, so I connect to the board
+via screen.
+And that also seems to work.
+I get the file list.
+But I have the same issue there, nothing really
+happens when I write anything on the keyboard.
+Before we continue, let us quickly establish
+what a serial connection really is.
+And then check if we actually send data or
+if that is broken.
+So let’s say you want to transmit the letter
+A.
+We know that the ascii representation as a
+numbr of this letter is hex 41 or decimal
+65.
+In binary that would be 100 0001.
+A simple way to transmit this information
+between two components, two devices, two circuits,
+two chips, two whatever, is to simply use
+7 single wires, and simply apply +5v or 0
+volt depending on 1 or 0.
+That would be a parallel connection.
+And that one is very fast, right?
+You can transmit 7 bits immediately.
+But you waste space.
+Another way would be a serial communication.
+You could have a clocl that always checks
+in an interval the state of one single wire,
+and if it was high you read a 1 and if it
+was low, you read a zero.
+And over a short period of time you can assemble
+the whole 7 bits into an ascii A.
+So.
+And this is basically how the arduino and
+many many embedded devices communicate.
+There are two LEDs on the board, one says
+TX and the other one RX.
+TX stands for transmitting and RX stands for
+receiving.
+So these are basically two wires, one allows
+sending data in serial, the other one to receive
+data as serial.
+If you look closely, you can also see RX and
+TX being available as a pin here.
+So we can hook up a logic analyzer and capture
+what is send over these single wires.
+We connect 3 probes, one RX, one TX and one
+to ground.
+Then we use the Logic software to collect
+a trace for like 10 seconds.
+And then we very quickly connect to the board
+via screen and type something and press enter.
+Now let’s look at the trace.
+So this one signal here is the receiving side,
+and the other one is the sending side, from
+the perspective of the arduino.
+And you can see that it sends some data and
+that it received some data.
+You can also enabled the protocol decoding
+and then you can actually read what kind of
+characters or bytes were send in these serial
+packets.
+So for example here are our a,s,d that we
+pressed.
+And here is the start of the file list output
+that we received.
+And now you understand also the baud rate,
+if you have the matching rate it will perfectly
+read these highs and lows, if you are too
+fast, your read too little, and if you read
+too slow, you read too much.
+So now in reality, the serial connection doesn’t
+actually go from the arduino into your computer.
+It’s just goes from the microcontroller,
+the atmega to this chip here.
+CH340, which is a USB to UART converter.
+Uart stands for Universal asynchronous receiver/transmitter.
+So the microcontrolelr and this chip already
+speak a specific protocol to exchange this
+serial data via RX and TX.
+And then this gets translated into USB packets,
+and the driver on your computer will make
+it look like a serial interface.
+When you then send serial data, the driver
+will do the USB communication with that chip,
+and that chip then does the uart or serial
+communication with the microcontroller, which
+runs code that can read that data.
+So its a fairly complex system.
+But whenever you see RX or TX on a pcb, it’s
+very likely that it’s some kind of serial
+connection, maybe for debugging, where you
+can hook up a UART to USB chip.
+And read it with your computer.
+So now we know that sending data actually
+works.
+But we do something wrong.
+Next I try to interact with the board through
+a python script, because that allows me to
+control each byte I want to send, rather than
+hoping the terminal is configured properly.
+I use pyserial for that.
+After installing the module I can import pyserial
+and setup a serial connection.
+Then I can start reading bytes from the serial
+connection and I also get the file list.
+So that works.
+And then I noticed something.
+Each line doesn’t end with a simple newline,
+it ends with a carriage-return and a newline.
+AHA!
+So I try it again.
+This time I use an example line from the challenge
+description and send it with python.
+That example apparently can read the cat.txt
+file.
+Argh forgot the newline and carriage-return.
+Ok, so now we can read from the serial connection.
+And it worked!
+We see the content of cat.txt.
+That’s awesome.
+Ok, so we figured out how to interact with
+the board.
+Each line has to end with a carriage return
+and a newline.
+But how we solve that challenge now will be
+in another video.
+So now that we know that we need a carriage
+return for the line ending, we can modify
+a couple of terminal settings.
+I create a special keyboard shortcut with
+SHIFT+Enter, which sends a special text, which
+also allows us to specify escape sequences
+like newline and carriage return.
+So…
+now when we hit shift+enter we should send
+these instead of just a newline.
+Let’s try it.
+When we now access the screen and hit shift+enter,
+the board actually responds and tells us that
+it’s an invalid request.
+And we can even request the example files
+now.
+Ok, now we are all set to solve this challenge.
+I was actually very confident that I know
+the solution for this task already.
+Like I said in another video that covered
+the idea behind this challenge, it’s either
+super simple for you, or super hard and mindblowing.
+I wonder if you can figure out which video
+i’m referring to.

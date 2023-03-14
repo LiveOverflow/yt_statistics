@@ -1,0 +1,229 @@
+today I only have a small pen testing
+Learning Resource for you I guess it's
+mostly interesting for either students
+or people that want to transition into
+pen testing and I guess especially young
+people because this is something that I
+wish I had seen before I started to go
+into this industry
+so when you're going to school and then
+maybe also university you still don't
+really know how like the real world
+works and how exactly this pen testing
+look like and so if you have basically
+zero experience with that having a
+little bit of insight goes a long way of
+understanding how this corporate world
+kind of works and what people are
+looking for and how you should be
+working
+[Music]
+so there's this pretty cool github
+repository by giulio cesare fort this is
+a curated list of public penetration
+test reports released by several
+consulting firms and academic security
+groups and check this out
+there's quite a lot a lot of the
+information is now getting older but it
+does get occasionally updated if you
+find a public report that's not in there
+just create a pull request and edit so
+let's check out a couple just just for
+comparison
+so the phone Hoffa Institute it's like
+more like an academic institution
+ioactive are pretty famous NCC group is
+pretty famous in famous maybe Price
+Waterhouse Cooper is a very I would say
+conservative consulting business so how
+they do pen testing that might be
+interesting as well so far no far
+audited TrueCrypt oh I guess this
+project was initiated by the German
+official government Federal Office for
+information security but so yeah let's
+have just a quick look so we have a
+summary we have an analysis of
+differences between like two versions as
+a dedicated review of the encryption
+mechanism their code quality and
+documentation evaluation of the
+architecture definitely looks a bit more
+academic you can see this at the typical
+la tech fund I'm not going to read now
+everything to you but basically what you
+can learn from especially the summary
+the aim procedure and the results it's
+kind of like the high level management
+summary what's the language that is
+being used here read the study and think
+about this and this will help you maybe
+you've write your own reports okay so
+here are a couple of findings
+maybe findings are a good way to compare
+how differently the reports are doing it
+so here's just a simple headline finding
+to finding three fighting for with a
+description very condensed very
+straightforward so let's check out I Oh
+active they looked at bromium in
+different layout and they have a quick
+like management summary here right at
+the start so you can see that the
+architecture the source code the runtime
+and the penetration test was all secure
+so they did a source code review they
+say something about the methodology so
+if a company shares their method
+it might be interesting to you what the
+methodology is that these companies were
+using you can almost use it like as a
+checklist or use it to inspire your own
+methodologies you obviously don't have
+to follow exactly those methodologies
+you can come up with your own but this
+is definitely a nice inspiration oh it
+wasn't only the summary it wasn't
+actually the full full report I guess
+this is a little bit with the problem
+with like the publicized tests bromium
+is obviously a company and they don't
+maybe want the details they just want
+the fancy good-looking summary for like
+advertisement purposes
+hashtag advertisement maybe I should
+label this here as an advertisement I
+mean be aware of this right that
+companies might use pen testing reports
+as a way to advertise look we are secure
+so you don't actually see like the
+actual details NCC group looked at key
+base so the protocol Security Review
+they also have a nice document change
+lock so you can like see which words is
+and what changed I've also seen this in
+other reports is a typical thing again
+you can read that they execute a summary
+how what what kind of language they are
+using I this this might all sound like
+ridiculous to people that have been
+working in the industry and in
+corporations for a long time but I'm
+aiming this here at students okay like
+as a student I know like this is kind of
+interesting and fascinating to be
+exposed to for the first time and and I
+do believe that getting into this
+mindset and being aware of how companies
+are working and the language being used
+this kind of experience goes a long way
+especially if writers start when you are
+searching for a job it teaches you a
+little bit better how to like navigate
+the corporate world I mean I'm not
+saying you should study this now about
+tens and tens and hundreds of hours but
+I think like you know looking through
+that for an hour or so I think is a good
+experience to you so here they show
+exactly the code commit they were
+testing on and especially with more
+detailed reports like this oh look it's
+like it looks very mathematic here it's
+actually a quite an interesting learning
+resources well now cryptography might
+not be you know your domain your
+interest in this case but reading
+through these you to get a tech idea so
+you understand what people are looking
+for
+like what are the typical issues that
+you can find if you don't have the
+experience yet what are the typical
+issues that you can find you can
+actually see here in reports what did
+they find what impact they are seeing
+maybe what fixes they are suggesting
+it's it's a way to kind of like get
+experience of pen testing and
+understanding like the way of issue is
+in the way of working and what kind of
+issues you are looking for without
+having actually worked in that space yet
+so let's look at Price Waterhouse Cooper
+security at HM Revenue & Customs Oh age
+and Treasuries so this was for the UK
+government of course they would go to
+Price Waterhouse Cooper I'm not judging
+the Pentium I don't know okay I just
+know what Price Waterhouse Cooper is
+like a you know a conservative hardcore
+consulting business you know lots and
+lots of monies and Wolff I'm sure they
+have enough money to hire an excellent
+pentesting team as well I'm not saying
+anything about the in the quality here
+they probably also use a little bit
+different language you know they know
+how to produce pages holy crap wait what
+the morale is low
+HMRC has gone through enormous change
+including making efficiency gains and
+shedding staff which naturally impacts
+on morale staff are wary of change a
+clear message from the workshops we run
+with frontline personnel is that the
+average member of staff has impression
+that decisions are short-term tactical
+and largely cost focused the data loss
+has put further pressure on morale
+interesting that's an interesting report
+I've never seen this kind of like in a
+fantastic but it's also not really a
+fantastic report right that's like an
+overall review of the information
+security landscape and morale might be
+important you know how because there's a
+threat of obviously disgruntled
+employees as well let's see is there
+anything technical in there is this more
+like a process review stuff it's quite
+fascinating to get a little bit of an
+insight into how and here the UK
+government is working HMRC should map
+its end-to-end data flows at the right
+level of detail to enable effective
+information security risk identification
+and management
+data flows in HMRC tend to document wait
+is there a being missing I'm not a
+natives because I could be wrong but I
+would say there's a be missing data
+flows in HMRC tend to be documented it
+right I don't know I don't have anything
+to say but again this is probably a very
+interesting insight into like how
+companies and corporations work I feel
+like this can be kind of interesting to
+people that just get started with like
+the corporate world I mentioned here a
+lot like the corporate world but
+obviously this might also be helpful to
+freelancers I'm not advising you to
+become a freelancer especially without
+any experience but if you are looking
+for any information on how to like
+properly work and what kind of reports
+maybe a customer expects and how a pen
+test reports should maybe look like work
+through this repository look at the
+style of reports you like and the
+details of information and what kind of
+services you actually want to offer and
+what you can do and I'm sure you have a
+better understanding of what what
+exactly you are doing you can even find
+reports that I worked on it's kind of
+embarrassing
+[Music]

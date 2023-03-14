@@ -1,0 +1,181 @@
+Have you also tried to fuzz sudo to 
+rediscover the sudoedit vulnerability?
+Last video we installed AFL and tried to 
+instrument sudo, so that we can fuzz it.
+But if you actually followed along, 
+you might have noticed some big issues.
+Fuzzing sudo turns out to be not that trivial 
+and we need to deal with it now. So in this
+video we will look at some of the issues 
+we run into and come up with a solution.
+
+Fuzzing was running for a while now, but 
+then I noticed that the fuzzing exec speed
+tanked a lot. Afl showing under 100 execs 
+per second and yelling at me that this is
+really slow!
+Mh…
+Eventually I stopped one fuzzer and 
+tried to start it again and it said
+“no more free CPU cores”. What?
+I then looked at the process list
+and saw TONS of vi processes. It looks like afl 
+found some argument input that causes the vi
+editor to launch. And then hang around. Causing 
+some processes to go crazy. When I killed them,
+I started the fuzzer again, and all was good.
+But this problem wont just go away,
+so we should fix it.
+So I thought, it maybe makes sense to
+look for all exec calls in sudo, and just remove 
+them. We are not interested in other programs sudo
+executes. I mean that can be a goal for fuzzing. 
+Finding maybe other ways to perform privilege
+escalation, through an exec you control. But 
+we are interested in a traditional memory
+corruption issue, so we can just remove all those 
+execs. There are a few different exec variants:
+execl, execle, execlp, execve , and a few 
+more. So I just searched for all of them in
+the sudo source code and commented them out. 
+This basically acts as if the exec failed.
+Cool. Let’s compile everything, and launch 
+fuzzing again, and now the fuzzing speed
+is much better. Awesome. Let’s go 
+to bed and let this run over night!
+Dim, dim,du,du,dim….
+Good morning! Let’s check our fuzzing results.
+Oh! Unable to create /tmp/out queue file. No
+Space left on device,
+What?!
+I can’t even create a new file myself
+Let’s check with df -h the disk space.
+But that’s weird. It’s only 33% 
+full. How does that make sense?
+This took be a bit of investigation and googling, 
+until I read somewhere to check the allocated
+inodes. And sure thing, with df -i I saw that 
+100% of all indodes were used. This indicates
+that we have TOOOONS of small files. Literally 
+millions, that are so small, that they didn’t fill
+up the drive, but they used up all inodes. Inode 
+numbers are a unique identifier for each file.
+And the filesystem can only count up to a certain 
+number. Damn. Because of that I went on the hunt,
+trying to find where all those files are. 
+And by looking around the system by counting
+files in folders and so forth, I eventually 
+found /var/tmp/ where sudo apparently created
+TOOOOONS of temporary files. Which is bad for our 
+fuzzing. We don’t want it to create tons of files.
+However, I did notice that the 
+filenames are crazy random,
+which indicates that user input can control 
+the filename. And remember, sudo runs as root,
+so maybe there is a path traversal where 
+we can inject ../ into the tempfile path
+and write a root owned file somewhere.
+So instead of removing this tempfile creation,
+like I removed the execs, I decide to 
+crash on purpose when we create a file.
+I do this by forcing a null-dereference. 
+This causes a segfault that AFL can detect.
+I also added a printf to print the filename.
+This is a trick to find security issues with afl,
+that are not memory corruptions. 
+But we force a memory corruption
+to signal to afl, this is a condition we like.
+When afl finds now this crash, we should get an
+example argument list, that causes such a tempfile 
+to be created, and we could play with the name.
+So let’s compile these changes, always 
+takes a while, and start fuzzing.
+Very quickly afl runs into those 
+crashes, so we can start investigating!
+Here is an example input. I copied this 
+file to /tmp/mktemp, as this is now our
+make temporary file testcase and then we 
+can use cat, to pipe it as input to sudo.
+And we get the expected crash. But when 
+I did this I also thought. Wait! We are
+already running and fuzzing everything as root. 
+Those arguments leading to the tempfile creation,
+can a regular user even reach that code?
+So I switch the user to user, and run the same
+test, but we get the error, that the effective 
+uid is not 0. Is sudo installed setuid root?
+So let me copy the binary we have to /tmp/sudo, 
+and then set the setuid permission bit.
+Now we have a setuid sudo binary 
+and we can try the payload again.
+But we get a password prompt.
+FUCK! This is another fuzzing issue we haven’t
+considered. We are targeting a binary that is 
+INTENDED to run with setuid. And we are interested
+in the special case where the binary is INVOKED by 
+an unprivileged user but RUNS as root with setuid.
+But we can’t simply fuzz a setuid binary as 
+a user. AFL wouldn’t work because it can’t
+communicate with the privileged setuid process. 
+We either run completely as the regular user,
+or we run everything as root. But both cases are 
+bad, as they don’t reflect a normal sudo usage.
+So we need another plan. I thought about it for a 
+bit, and I figured we should keep running as root,
+but somewhere sudo should get the current user, 
+and if we find that location, we can modify it and
+force it to think an unprivileged user invoked it.
+The typical libc function to get the userid of the
+user that executed a program 
+is, who would have guessed,
+getuid(). So let’s search for all usages of that. 
+And we can find here this function get_user_info
+in sudo.c. and instead of letting getuid() return 
+0 for the root user, we just hardcode it to 1000.
+This is the user id of a regular user.
+When we now compile those changes and use our
+test mktemp payload again, instead of running 
+into the tempfile creation as we did originally,
+we get the password prompt as if we 
+were an unprivileged user. Sad… but
+also PERFECT! This looks like it should work.
+And this should also resolve our file creation
+inode issues, as these tempfiles were only 
+created running sudo already being root.
+This means we now should have a pretty good 
+sudo fuzzing setup, and we can try again!
+So let’s go to bed and see 
+what we can find next video.
+I quickly put on my Pyjamas, to get 
+cozy and watch AFL do its magic. Hach…
+the output is just so pretty.
+Before we end this video, I also wanted to ask if 
+anybody of you has experience with other fuzzers
+or fuzzing frameworks. For example libfuzzer 
+or honggfuzz. If you could setup a minimal
+fuzzing environment for sudo, and share it via 
+GitHub or so, I would really appreciate that.
+I have no experience with them and would love to 
+compare their setup and how they perform with this
+specific use case, to how AFL performed for me.
+Also if you have any recommendations on how to
+optimize the AFL fuzzing, please share your 
+setup as well. I know the project AFL++,
+and I will switch to that soon in this series, 
+but curious about other tricks you might have.
+Anyway. Next video we will look at 
+the result of the current fuzzing
+campaign. An I can already spoil 
+you. We will run into more issues….
+If you want to try out fuzzing yourself, checkout 
+Linode in the description. With my affiliate link
+you can get 100$ free credit for Linux servers. 
+So you can essentially run a bit of fuzzing for
+free. Just make sure you don’t run a super 
+expensive server and forget to shut it down
+after a while. But if you end up spending some 
+money on Linode, you are supporting these videos.
+In general, these videos are very technical 
+and are not mass appealing. So if you like
+to support the creation of videos like 
+this, checkout liveoverflow.com/support.

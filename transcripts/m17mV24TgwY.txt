@@ -1,0 +1,300 @@
+In the last episode we have created our first
+full stack buffer overflow exploit, by overwriting
+the return pointer on the stack and jumping
+to shellcode that we have placed on the stack
+as well.
+In this episode we will look at stack level
+6 which looks at what happens when you have
+restrictions on the return address.
+To understand this video you must have understood
+how a normal buffer overflow and jumping to
+shellcode works.
+I hope I explained it well enough in the past
+videos.
+But if there are still open questions, please
+post them on reddit.
+I really need you to have understood that
+stuff.
+As a hint this level tells us that,
+This level can be done in a couple of ways,
+such as finding the duplicate of the payload
+(objdump -s), or ret2libc, or even return
+orientated programming.
+In this video we will not be able to explore
+return oriented programming.
+But I will show you a couple of other tricks
+that will eventually lead to return oriented
+programming.
+So let’s have a look at the source code.
+And again, it’s very similar to the previous
+levels, just some small changes.
+Instead of everything being in main, main
+calls this function get_path.
+Get path allocates a string buffer for 64
+characters.
+Then reads a string with gets.
+And we all know by now that with gets we can
+read arbitrarily many characters, which we
+can use to overwrite the return pointer on
+the stack.
+But the next line is interesting.
+__builtin_return_address is a function from
+the compiler, which you can use to read the
+current return address from the stack.
+And this return address is checked if it starts
+with hex 0xbf.
+The ampersand performs a bitwise AND with
+the address.
+After that only the part where they were same
+survives.
+basically setting the remaining bits to 0.
+And checking if the front is still hex bf.
+If the return address starts with 0xbf, it
+prints this return address and exits.
+When we use our exploit from last time.
+And adjust the padding to account for the
+new unsigned int in this function, we see
+that it doesn’t work.
+It fails with bzzzt.
+Ok.
+So we cannot use addresses that start with
+hex bf.
+The exit protects this function from being
+exploited that way.
+Because the exit is a syscall that simply
+quits the program.
+So even though we have smashed the return
+pointer, this function will never return.
+So you can see, that even having a buffer
+overflow doesn’t necessarily mean you can
+exploit it.
+When we open this level now in gdb, break
+at getpath, run it and then look at the mapped
+memory with `info proc map`.
+We can see that the only addresses that start
+with bf are on the stack.
+So basically we cannot return to a stack address.
+This is crazy, then how can we run our code,
+if we cannot return to the stack where we
+place our shellcode?
+So first of all, we can still control the
+return pointer.
+As long as it doesn’t start with bf.
+And now comes this sick idea, of returning
+into known code.
+Let’s think about this.
+The return instruction just looks at the current
+address on top of the stack, removes it, and
+just jumps there.
+… What would happen if you return to the
+address 0x080484f9.
+Which is the return instruction itself.
+Think about this.
+We overwrite the return pointer with hex 0x080.
+We reach the return instruction, it will pop
+this address from the stack and jump to it.
+Basically just jump to itself.
+And now it will read the next address on the
+stack and jump there.
+Now you could repeat that.
+Make the next address on the stack again 0x080.
+Or place the address of the stack here.
+And we can return into the stack again.
+And in theory that should work.
+Because the original return address got overwritten
+with an address that starts with 0x080.
+Ok let’s try that.
+let’s modify our exploit code.
+Instead of the shellcode let’s use int 3,
+CC instruction again.
+For a trap.
+We all know now that when we hit them, we
+have code execution and we just have to find
+suitable shellcode.
+So let’s focus on the interesting part.
+Set a breakpoint at the return of getpath,
+and then run it with our exploit input.
+We hit the breakpoint.
+And we got past the return pointer check.
+So let’s look at the stack ourselves.
+We can see that the address on top of the
+stack is now the 0x080.
+Which is the return instruction.
+So now single step forward.
+This should pop this address from the stack
+and jump there.
+And indeed.
+We hit the breakpoint again, because we jumped
+to itself.
+When you now look at the stack, the next address
+on the stack is the stack address.
+And we will return into this address now.
+So when we just continue, we will return into
+the stack, like in the previous exploit, where
+we hit our traps.
+Boom!
+Arbitrary code execution!
+By the way.
+This address where we jumped to, the 0x080
+is a gadget.
+When you read about return oriented programming,
+you are looking for gadgets.
+And that was a simple no operation gadget.
+It was just a return, doing nothing.
+And for full return oriented programming,
+you look for gadgets that do some more stuff,
+before returning to the next address.
+Now when we do this kind of stuff, you hear
+me saying “return into”, or “jump to”.
+Those become equivalent in this case.
+Because yes, we execute a return instruction,
+but we are not returning to the original function
+anymore.
+We are returning into something else.
+Effectively just jumping somewhere else.
+So I hope that doesn’t confuse you.
+Let’s have a look at another trick.
+It’s very similar to what we did in stack
+level 4.
+So where else could we jump to.
+One of 
+the
+hints said we could look into ret2libc.
+Now that you are almost a pro in exploitation,
+you understand what that means.
+Return into libc.
+Like we just returned into some code, we could
+also return into the huge library libc.
+There must be something interesting that we
+could abuse.
+One interesting function from libc is system.
+Which executes a shell command.
+With print system, we can find the address
+of it.
+But simply returning into it will probably
+not work.
+We need to make sure to control a couple of
+things.
+Let’s create a simple C program that calls
+the libc system for us.
+In the end we want to somehow execute system
+with /bin/sh.
+Because then we get a shell.
+If we try that here, that works well.
+Now let’s look at this in gdb.
+We can see that before the call to system,
+the address of the command we want to execute
+is put on top of the stack.
+And as we know, a call to a function will
+push the return address on to the stack as
+well.
+So if we draw this, this is how the stack
+will look like once we are at the start of
+system.
+First the address of the command is placed
+on the stack.
+And then the address we want to return to.
+Now imagine if we use our buffer overflow
+to return into system.
+Firstof all we didn’t execute a call instruction.
+Thus there was no return address pushed.
+But we fully control the stack.
+So system expects the stack to look like this.
+And we can build this by hand!
+So first we have to put the return address
+for system on the stack.
+But actually we don’t care about this right
+now.
+But that is still cool and important, and
+remember that.
+Because you can chain those things together.
+Like we chained two returns after each other
+before, we could chain multiple function calls
+or other gadgets after each other, by always
+controlling the return pointer of the next
+step.
+So in our case, when system finishes, we will
+run into a segfault, because it will return
+into 0x41414141.
+the next address on the stack has to be a
+string we want to execute.
+Preferably “/bin/sh”.
+There are many options how to get a reference
+to such a string.
+one option would be to use a stack address.
+Because there are strings we control.
+Or environment variables.
+Because they are at the bottom of the stack
+and a bit easier to predict.
+But as you remember, the stack is a bit unreliable
+and shifting around.
+A more reliable technique is this here.
+We can use find to search in the mapped memory
+of libc for a string.
+Cool, apparently at this address we can find
+/bin/sh.
+Let’s check if that is true.
+Examine memory as string at this address.
+Awesome!
+What the frak!
+gdb.
+What the hell are you doing.
+Why do you say you found bin/sh there, if
+it’s not there?
+I have no idea why this happens.
+Couldn’t find anything online.
+Anyway.
+Ignore this.
+Here is another technique.
+We can use strings to find all strings in
+libc.
+And with -t we can print the offset inside
+this file as hex.
+And then we can simply add this offset to
+the address libc is loaded to.
+And that is the real address of /bin/sh.
+Ok so let’s copy this address into our exploit.
+And then let’s try it.
+Remember to use the trick from the previous
+video with the parenthesis and cat.
+Because the exploit script will close the
+input again.
+And cool!
+It works.
+What we just did was the technique called
+ret2libc.
+And we never executed any code on the stack!
+Maybe you ask yourself why the hell the stack
+was executable in the first place.
+There is no valid reason why the stack should
+be executable.
+That’s why there exists a general memory
+policy nowadays.
+Write xor Execute.
+Basically it means, never have a memory page
+that is writeable AND executable.
+Because then an attacker cannot execute any
+shellcode that he was able to write in the
+process memory.
+So we would hope that today every modern system
+uses DEP, data execution prevention and sets
+the NX bit, the non executable bit for memory
+pages like the stack.
+But reality is not so simple.
+Embedded devices are on the rise with the
+Internet of Things, and often they don’t
+support features like that.
+Or modern programming languages like javascript
+use JIT.
+Just in time compiler.
+So they have to compile code on the fly in
+memory when needed and execute that.
+So they need writeable and executable memory
+regions.
+But even if we had DEP, we could use techniques
+like ret2libc to never execute actual shellcode,
+but still pwn a system.
+And at some point in the future, I will make
+a video about return oriented programming.
+Which is the next advanced step for this kind
+of technique.

@@ -1,0 +1,459 @@
+In August last year 2019, Google announced
+the
+Google Cloud Plattform (GCP) prize, to promote
+security research of GCP.
+With a prize of 100,000 dollars [...] to the
+reporter of the best vulnerability affecting
+GCP reported through the Vulnerability Reward
+Program.
+AND having a public write-up.
+The Google Cloud Platform is basically the
+Google version of Amazon’s AWS services
+or Microsoft’s Azure.
+So you have stuff like Compute Engine, which
+is general purpose VMs, or even fancy machines
+with GPUs.
+Various Networking stuff like DNS or CDNs.
+And of course database and storage solutions.
+Loads of different stuff.
+We have actually used BigQuery from it before,
+to scan through GitHub repositories and look
+for bitcoin wallets.
+And I made one video with the bug hunter Wouter
+about one bug he found in the Google Cloud
+Shell.
+This in-browser IDE.
+I actually heard about this prize when I went
+to the Google CTF finals in November 2019.
+And there eduardo reminding everybody of it.
+Okay.
+So one thing that happened recently.
+That we launched something called the GCP
+prize where we give 100.000 USD to one reporter
+that finds the best bug related to GCP.
+The only caveat is that we wanted it to be
+a public writeup about it.
+And the bug must be reported in 2019
+And when I heard that, I thought, DAMN! 100k.
+On top of the regular bug reward?
+I should definitely participate!
+Well… so… let me be honest.
+I didn’t participate.
+I was very intimidated by the huge target.
+Also have no prior Google bug hunting experience,
+and I thought: “for 100k, I’m sure every
+bug hunter is going for it.
+I have no chance”.
+This is very typical thinking for me, and
+I assume a lot of people feel the same way.
+And now it’s too late anyway.
+2019 is over.
+But Google shared with me the nominations
+and I thought it would be interesting to analyze
+what kind of bugs were found.
+Their impact.
+And thinking critically if I could have found
+them myself.
+This is very useful for learning.
+Occasionally you should do that too!
+Now let’s look at the first bug by obmi.
+I assume this is obmihail currently rank 13
+in the google bughunter hall of fame.
+“File upload CSRF in Google Cloud Shell”
+The bug was a CSRF.
+Cross-site request forgery.
+Which means if a user is logged into the google
+cloud shell, and visits a malicious domain,
+this website then can perform actions across
+origin on behalf of the user.
+In this case uploading an arbitrary file.
+Anyway.
+As I mentioned at the beginning, Wouter’s
+bug was also about cloud shell, so I skip
+an introduction here, if you need one, checkout
+that video.
+I link it below.
+So.
+apparently an area of cloudshell can be accessed
+directly by either of those URLs.
+If I launch Cloud Shell.
+Might take a moment.
+And then launch the editor, I can observe
+in the sources tab, that this devshell.appspot
+URI is used.
+Opening up that directly opens the editor
+itself.
+However there appears to be a second URL,
+it looks more like an internal URL.
+But certain functionality is the same on it.
+It could be that the first domain is a reverse-proxy
+for that second domain.
+And it turned out that the second URL was
+missing the CSRF protection.
+What does that mean?
+We have something called the same origin policy.
+This means when you browse to domain 1, that
+website, cannot generally access data from
+a different domain 2.
+For example can’t write javascript to just
+read the content.
+But simple form submissions.
+So a basic HTTP Post request with a form,
+is possible.
+That’s why the domain2 needs a CSRF protection,
+to make sure requests came from a trusted
+source.
+typically this is implemented as a secret
+token.
+the malicious domain1 doesn’t know that
+random value, so when it sends that request,
+domain2 can reject it.
+Another option is via a special HTTP header,
+because due to the same origin policy, the
+domain 1 cannot add special headers to that
+request.
+And so the main URL required such a header,
+here called X-XSRF-PROTECTED.
+But the second URL was missing it.
+So either they forgot to add it, or this internal
+URL shouldn’t be reachable directly and
+be always only accessed through the first.
+Not sure.
+So domain 1 could simply create a POST request
+to upload a file.
+BUT there were actually two challenges.
+First.
+you need a multipart file upload, which you
+can’t really do without a user selecting
+a file in the file dialogue.
+You could probably try to trick the user into
+that.
+But, obmi found a “bug in the multipart
+requests parsing”.
+Instead of this request structure, obmi sent
+the following request:
+Content-Disposition: form-data; name="upload;
+filename=the_filename; x"
+Now this looks similar.
+To the Content-Disposition here.
+AND look closely at the quotes.
+Here it starts and here it ends.
+This was achieved with a regular form input
+element.
+This is the name.
+Equal.
+And then comes the value.
+And for crazy reasons, this was interpreted
+on the server as a multipart/form-data file
+upload with content-disposition.
+WHAT THE HELL.
+WHO COMES UP WITH THAT?
+I have never seen this kind of wrong parsing
+of the request.
+And I would have never guessed to test for
+that.
+What a weird bug.
+Now the second challenge.
+How to know the victim's cloudshell hostname.
+because the domain is unique for each user.
+Which means you need to somehow leak it to
+construct the form with the correct action
+url.
+And here they mention another trick, that
+I wouldn’t have thought about.
+obmi noticed that during some redirects during
+authentication, it redirects an authenticated
+user to their unique URL.
+And then The result of redirect can be hijacked
+via CSP reports.
+More detailed information about this auth
+redirect is in another report by obmi.
+But let me reproduce this with a small test
+to show how it works in principle.
+So here I have a malicious attacker test website.
+It contains an iframe embedding the authentication
+URL.
+When accessing it, it will redirect to the
+unique URL of the user that visits this site.
+I also set the CSP header to only allow the
+authentication domain test.liveoverflow.com
+as a frame source.
+And any CSP violations I want to get reported
+to me.
+And let’s check what happens if this is
+embedded as an iframe on the malicious user
+domain.
+We see the iframe got blocked.
+Because test.liveoverflow.com was allowed,
+but it redirected to the unique dev domain
+not whitelisted in the CSP header.
+And in the console we see the error
+Refused to frame 'dev-1234' because it violates
+the following CSP directive: only "frame-src
+test.liveoverflow.com" is allowed.
+But additionally I set the report-uri, so
+in the network requests you can see that this
+CSP violation triggered a request to the attacker
+domain attacker.liveoverflow.com/leak, including
+the details of this violation.
+Specifically the blocked-uri.
+Which is "dev-1234".
+So now the attacker knows the unique URL of
+this particular user, can automatically craft
+a malicious form and trigger a CSRF POST request
+to upload an arbitrary file.
+Awesome!
+So I definitely wouldn’t have figured out
+the multipart parsing bypass.
+But I’m not so sure about the CSP leak.
+Maybe, maybe not.
+Depends on if I had gotten a creative burst.
+However the CSRF itself seemed pretty easy
+to find.
+An endpoint without proper CSRF protection
+is easy to identify.
+Maybe I couldn’t have fully executed a full
+chain because of the unique URL But those
+restrictions seem a bit secondary.
+For example even without the multiparsing
+bug you could argue that you could trick a
+user into filling out a form with a file.
+They think it’s harmless but it’s uploaded
+to their cloudshell.
+So I personally would have reported that lack
+of CSRF protection regardless.
+Anyway, obmi got 5.000 USD as a reward for
+this bug.
+So Kudos.
+Really cool tricks used, and I definitely
+learned something!
+I have to say this chain looks 100% like a
+web CTF challenge!
+But I guarantee you, if those tricks were
+required in a CTF challenge, people would
+say “this is unrealistic”.
+But nope.
+Weird stuff happens all the time.
+And this writeup shows it.
+I love it!
+Obmi has two more reports here.
+One of them an oauth token hijacking in Google
+Cloud Shell Editor.
+Which was rewarded with 5000 USD.
+This was a pretty typical token leak issue.
+The state parameter contains a URL the user
+is intended to be redirected to after authentication,
+where it adds the token to it.
+And obmi noticed that the domain is not properly
+checked and could enter a malicious domain.
+So when a victim would access this url, the
+token would be added to a redirect to the
+malicious attacker domain.
+So the attacker can grab that auth token and
+can use it to access cloud shell of the victim.
+And lastly a XSS in google cloud shell.
+Very standard reflected XSS.
+Parameter name is not properly escaped in
+the error output.
+And as I said, the XSS report also has a few
+more details about the domain name leak, because
+the unique domain has to be known here too.
+It wasn’t very detailed in the CSRF post.
+But here obmi showed that this request to
+ssh.cloud.google.com/devshell/proxy?authuser,
+will redirect to the unique domain.
+Like my example redirect.
+So in principle all three bugs are typical
+web security issues which I could have also
+found.
+But the few tricks used to pull off a proper
+PoC, especially the multiparsing bug, awesome!
+Really nice work!
+Ehhh.
+LiveOverflow from the future checking in.
+So I had prepared a first version of this
+video and sent it over to Eduardo at Google.
+Who then responded,
+“I think for the multipart upload, you could
+use fetch”
+And I was like….
+Uhmmmm.
+How do I explain this that this doesn’t
+become super embarrassing now.
+I guess ……. let me just tell you this
+different solution to perform the multipart
+file upload.
+Eduardo pointed out, you could simply use
+fetch().
+If you ever tried to create asynchronous JavaScript
+requests, you might have used XMLHttpRequest.
+Fetch provides a better alternative.
+It’s a simple function, with a lot of different
+options to create requests.
+Obviously they have to obey the same-origin
+policy.
+But like I said, a POST request to another
+domain is perfectly fine.
+So you could simply write javascript code
+like this, to set the content-type, even including
+the boundary.
+And then simply use the full expected request
+body.
+Including the newlines and everything.
+When this is executed, you can see the request
+with this content-type and data.
+So…
+Isn’t it fascinating that the bug hunter
+also apparently failed to just use this simple
+solution?
+Clearly obmi is absolutely capable and has
+the skills of using fetch().
+But for whatever reason they didn’t, and
+instead found a crazy request parser bug.
+Talking about overcomplicating things.
+Can't see the forest for the trees.
+It’s so easy to forget about such simple
+things, especially when you work with much
+more complicated systems.
+It just shows, you need to practice and even
+read up again on more basic stuff all the
+time.
+It’s a lot of practice and you forget stuff.
+This is very very interesting to me.
+Now back to the video.
+Let’s move on to the next writeups.
+These are actually by wouter.
+Wtm.
+He is the bug hunter I made that one video
+with before.
+And these bugs are closely related to the
+stuff explained there.
+So I actually suggest you watch that previous
+video and checkout the writeup yourself.
+No need to go over it again.
+But the conclusion I draw from these writeups
+are.
+He did a lot of research trying to understand
+and map the architecture of the whole cloud
+shell.
+And the bugs he found are not a typical web
+security issues.
+Impact wise they were similar to CSRF or XSS.
+But the bugs were not standard web bugs.
+These are issues where I feel like, I understand
+them, I could have maybe found them too, but
+it would have definitely required more time
+and digging into the cloud shell to identify
+that.
+And then also I would have needed the luck
+for to think about the creative attack vector
+that wouter used.
+Because like I said, not typical web bug.
+It’s something unique to this cloud shell
+IDE.
+So let’s move to the third writeup by psi.
+A CSWSH vulnerability in Google Cloud Shell.
+- Cross-Site WebSocket Hijacking.
+You can already guess from the name that it
+could be similar to CSRF.
+Cross-Site Request Forgery.
+But with websockets and not normal HTTP requests.
+And interestingly the two bugs from obmi and
+psi are closely related.
+Psi saw that the editor uses a lot of websockets.
+And similarly like regular requests from one
+domain to another, the browser attaches cookies
+and so websockets also need to have some form
+of protection or additional authentication
+to prevent access across origin. and psi wrote:
+“When I looked at the messages passed through
+the WebSocket I realized that inside the socket
+no authentication seemed to happen.”
+“At that time I suspected that the authentication
+of Cloud Shell's editor might rely only on
+that cookie”.
+Which would mean that a malicious website
+could simply open a websocket connection to
+the cloudshell, and like a CSRF, perform actions
+as the current user.
+But it turned out that the endpoint does validate
+the Origin header.
+And that means when the request is coming
+from an attacker domain, the websocket connection
+is rejected.
+HOWEVER, and this is where the first writeup
+by obmi and psi connect, Obmi also noticed
+that there is this second unique URI to access
+the cloud shell.
+Which was missing this origin check.
+For obmi it was missing the cross-site-request
+protection header check, and for psi it didn’t
+perform the origin header check.
+It’s also interesting to read what psi says
+about the unique domain, because obmi figured
+out a way to leak that unique URI using the
+auth redirect and CSP.
+And Psi didn’t figure that out.
+But psi goes into a lot of details in this
+Exploitability section and argues for why
+this unique URI is not a proper protection.
+I really recommend for you to work through
+that, because in there you can find all the
+different thoughts and ideas.
+It’s a great example for a case where you
+might not have all the puzzle pieces to pull
+of a full exploit chain, but you have some
+significant pieces that clearly show it’s
+a bug regardless, and it has to be fixed.
+Also I wonder how you think about the following.
+Basically, the underlying issue for both the
+obmi CSRF and the psi CSWSH, was using the
+direct VM URI.
+This could be part of a typical application
+setup where you have a reverse-proxy in front
+of an internal servers.
+And the direct URL to this vm server might
+have been wrongfully exposed?
+So the fix to both of these issues could be,
+simply put it behind the reverse-proxy.
+Block the direct access.
+That might have been a possible fix.
+Now.
+Would that then mean it was not two bugs “CSRF
+and CSWSH”.
+But it could be seen as a single bug and be
+be called “Internal servers exposed”?
+This is a difficult question when it comes
+to bug bounties, due to the reward structure
+per bug.
+But as far as I can tell, blocking access
+to this URL was not the fix here.
+Both those protections were added to the direct
+vm domain as well.
+So these are the three contenders for the
+100.000 prize.
+Who do you think should win it? please write
+your thoughts into the comments, I’m really
+curious, because I actually don’t know yet.
+But when this video goes live, you should
+be able to find more information about this
+prize and the winners over at the official
+security.googleblog.com
+But before you leave.
+They said that this is a new yearly prize.
+this was the first round and it will happen
+again in 2020.
+I don’t know the rules for this year, but
+if it’s similar to last year, any GCP bug
+in 2020 might qualify for the new prize.
+So you could use the public writeups as a
+learning resource to understand how the google
+cloud platform works and go hunt for bugs
+right now.
+And FYI there is a free 12month trial with
+300$ credits for the google cloud platform.
+Which is perfect for testing products that
+typically cost money.
+And maybe, hopefully, next year, you are in
+the finalists for the 100.000 Dollar GCP prize.
+I think this time I try too!

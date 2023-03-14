@@ -1,0 +1,250 @@
+In past videos we have learned how the CPU
+works, how to read assembler and how to reverse
+engineer the functionality of a simple program.
+In the upcoming videos I want to go a little
+bit deeper and explore how we can exploit
+a program when we have the ability to corrupt
+memory.
+This first video will be more about how to
+setup and get everything running.
+So we can focus on the technical part in the
+next videos.
+The title of this video is inspired by the
+famous phrack article “Smashing The Stack
+For Fun And Profit” from 1996.
+You can imagine that a lot of stuff has changed
+since then.
+Though, we first have to learn about the basics,
+before we can have a look at modern techniques.
+We will kind of follow the timeline of exploitation
+technique discovery and attempted mitigations.
+Like DEP or ASLR, just to name two.
+As basis for the next couple of videos, I
+will use challenges included in the Linux
+images provided by exploit-exercises.com.
+This allows you to set up this system as well,
+which I highly recommend.
+With protostar you will start with simple
+memory corruption and modification, function
+redirection, and finally executing custom
+shellcode.
+In order to make this as easy as possible
+to introduce, ASLR and Non-Executable memory
+has been disabled.
+So first download the protostar .iso and boot
+from it in the VMWare Player.
+As you can see it doesn’t start with a nice
+graphical user-interface like our Ubuntu system
+does.
+But don’t panic, you learned how to use
+the command-line from the very first episode.
+Now, I will use this moment to introduce you
+to `ssh`, which stands for secure shell and
+is a program that allows us to connect to
+a system over a network, that has an ssh server
+running.
+This would be the kind of access you get when
+you have to administrate servers that run
+for example a website.
+That’s the reason why I introduced you to
+the command line in the very first episode,
+because you really really have to know how
+to use it.
+You can also tell that I run windows as a
+host OS.
+I think I haven’t mentioned it before, but
+the main reason here is, that I imagine the
+majority of people start out on Windows, which
+means it’s the best way to reach more people.
+We don’t want to be excluding like so many
+other parts of our societies.
+At least for me, hacking conveys a spirit
+to be open and share knowledge.
+So that’s why I have to download PuTTY for
+Windows now, which is a windows client for
+ssh.
+To use it to connect to this machine we have
+to find the IP address of it.
+The username and password for the protostar
+image is just “user”.
+So use that to login.
+And then execute the command `ip addr`, to
+find the assigned IP and then copy it into
+putty, save this session and press Open.
+You have to login again, but this is much
+better now.
+We can copy data back and forth and we can
+have multiple connections.
+The equivalent for Mac and Linux is just simply
+`ssh`, the username “user” at the ip address.
+Ok.
+At the moment our shell is /bin/sh.
+And as you can see, tab-completion doesn’t
+work.
+But we can execute `/bin/bash` instead, which
+makes the command-line a bit nicer.
+So what do we have here.
+With uname -a we can get some system information
+and we can see that we have a 32bit linux
+with a 2.6.32 kernel.
+So how does this work now.
+On the website it says: The levels to be exploited
+can be found in the /opt/protostar/bin directory.
+Let’s have a look.
+`Ls` to list all files in this directory.
+Immediately you will notice this weird red
+background color for the filenames.
+Let’s have a closer look.
+With `files` we can check the filetype and
+it tells us that it is a setuid ELF 32bit
+executable.
+From earlier videos you may remember that
+we have never encountered `setuid` before.
+As always, if we want to know something in
+linux, we can look in the linux manual.
+Though, the man page for setuid is actually
+about the setuid function provided by libc.
+But that doesn’t bother us, because it might
+be related.
+So let’s see what it says here about this
+function.
+setuid stands for set user identity.
+And… setuid sets the effective user ID of
+the calling process.
+mhh… with cat /etc/passwd we can see all
+users on this system.
+Remember our user is called user so we have
+the id 1001.
+And the root user has id 0.
+So does that mean, that we can simply write
+a C program as our unprivileged user and execute
+setuid with id 0, to become root?
+Obviously not.
+That would be horrible.
+Further down it tells us about possible errors
+like EPERM which says that the user is not
+privileged and the uid does not match the
+real uid of the calling process.
+Ok… then…
+what can it be used for?
+An example usage is, that a root process might
+want to drop privileges to an unprivileged
+user, that in case the process gets exploited,
+the attacker does not gain root privileges.
+So if you have a process that has to start
+as root but then doesn’t need it anymore,
+it’s good to drop them.
+Anyway.
+What does this have to do with our setuid
+binary?
+Let’s open a second ssh session to look
+at all running processes.
+Now open a process that keeps running.
+Something simple like a vim editor.
+And then we can use the other shell to execute
+`ps aux` to list all running processes.
+Now we have to search a bit, but here it is.
+The first column tells us the user of the
+running process.
+And because we as “user” have executed
+vim, it will run with our privileges.
+So no let’s execute one of those setuid
+binaries and do the same.
+Let’s search the program name.
+Here it is.
+BUT do you see the first line?
+It says it’s running as root.
+What the fuck?
+How is that possible?
+Let’s have a look again at the file permissions.
+Ok first of all `r` `dash` `x` means that
+anybody on the system can read this file and
+execute it.
+The next 3 permissions are the same and refer
+to the permissions for the group.
+A group is just an id, that multiple users
+could share.
+So we are in the group that is also called
+user.
+But theoretically you could group multiple
+users together.
+Ok.
+Now it get’s interesting.
+The first character indicates if a file is
+a directory.
+Well it’s not.
+So the remaining 3 permissions are for the
+owner of the file.
+The owner of the file is root.
+And the owner has the permissions to read,
+write and … S?
+So the s replaced what should be x for executable.
+This is called the setuid bit.
+We have already looked at the running process,
+so you can guess what this does.
+When this bit is set, and I as a regular user
+execute it, Linux will actually execute it
+with the privileges of the owner.
+So in this case it will run as root.
+Why the hell would somebody do this?
+There are two good examples.
+First, you may know sudo.
+Which is a program that allows you to run
+something as root if you are a normal user.
+So how can sudo execute a program as root,
+even though you typed in the command?
+Well it also has the setuid bit.
+Another great example is the ping program.
+Ping will also run as root, because it has
+the setuid bit set.
+Why you ask?
+Because ping wants to send an ICMP packet
+which is a fairly low layer.
+And linux generally doesn’t allow normal
+users to create such raw packets.
+But because ping is not evil, somebody created
+a setuid binary, to allow normal users to
+send ICMP packets.
+What if there is an exploit for a program
+like ping, that would allow you to execute
+arbitrary code as root, right?
+So it’s clear, that setuid can be really
+dangerous.
+Well.
+And that’s the whole point of the challenges
+from protostar.
+If we can exploit one of these programs here,
+we can escalate privileges and gain root.
+This is basically like jailbreaking on iPhones
+or rooting on android devices.
+You try to find a vulnerability that allows
+you to execute arbitrary code in a privileged
+mode.
+Well, on those real devices, especially iOS
+this is extremely fucking complicated, and
+a lot more layers are involved, but now you
+get a better imagination of the whole thing.
+One last thing before we start with the challenges.
+You know that you can debug programs, right?
+For example you can use strace to spy on the
+system calls.
+Or simply use gdb.
+And gdb allows you to modify memory.
+So you could just open this setuid binary
+in gdb, modify the code and execute whatever
+you want as root?
+let’s try it.
+Ok it seems to run.
+So let’s rerun it and look at the process
+list.
+As you can see it doesn’t run as root anymore.
+The reason is, that gdb could not debug a
+process that runs as another user.
+So gdb actually forces the binary to NOT run
+as root so it can actually debug it.
+So good idea, but unfortunately… or maybe
+fortunately it’s not that simple.
+I guess we have to rely on good old exploiting
+techniques.
+See you in the next video when we start with
+the first challenge.

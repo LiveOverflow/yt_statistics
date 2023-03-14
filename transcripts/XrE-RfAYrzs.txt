@@ -1,0 +1,511 @@
+Remember the boss Magmarok in the Fire and
+Ice dungeon?
+It’s part of another quest, or flag, that
+we still need to get.
+Magmarok shoots fireballs and and when he
+gets below half of his health, he will heal
+himself up.
+Here is a clip from the let’s play episode:
+Ok, let’s try this again.
+Yeah, that’s easy!
+Eeeezy!
+Easy, look at this skills I have.
+This movement.
+Oh shit what is he doing now?
+He healed.
+He healed.
+So how can we defeat him?
+Like I mentioned previously, the motivation
+for me to make this series came from Antonin
+Beaujeant asking me originally, to make videos
+about Pwn Adventure 3 and he shared his workshop
+slides covering Pwn Adventure 3 with me.
+However this CTF has always been something
+I wanted to do myself.
+So he was a huge help and was of course the
+spark to motivate me to finally do it.
+And that means I didn’t want any spoilers,
+but he did spoil me a little bit.
+In his very first message to me, he suggested
+that I could make a video about the “double
+integer overflow to kill the boss”.
+Dun dun duuun.
+So anyway, I knew that we had to kill Magmarok
+with one or two Integer Overflows, and I’m
+not going to pretend I didn’t know that
+and make up a story how I figured it out myself.
+Nevertheless I think it’s still interesting
+to actually find it.
+It happens sometimes that you hear, a software
+has a certain bug, but no technical details
+are known yet, so you have to find it yourself.
+And that’s what I tried to do.
+The past few videos were about reverse engineering
+the network protocol, developing our proxy
+and parsing packets.
+And I will be using that heavily here.
+I added again a few more packets to the parser
+off camera.
+one new packet in particular is very important
+here, and that is the “update health”
+packet.
+It’s a simple packet, it is sent from the
+server to the client and comes with a health
+value and an ID to identify who’s health
+it is.
+You might discover this packet when you get
+damaged and slowly regenerate.
+But you also get the health value of the monsters
+that you damage.
+While implementing this I first defined the
+health to be an unsigned integer, indicated
+by capital I when unpacking the binary data.
+Though when I killed a spider I noticed that
+the health suddenly is extremely large, and
+that doesn’t make sense.
+So this means we interpreted the binary data
+wrong.
+In fact this tells me this is supposed to
+be a signed integer.
+Unsigned integers are just positive numbers,
+while signed integers means that certain binary
+values are interpreted as negative numbers.
+And changing the parsing to a lower-case i
+shows us now a nice negative value for when
+we kill the spider.
+So we keep in mind, that the health is a signed
+value.
+I don’t want to explain here in detail again
+how signed and unsigned numbers work, so I
+created a short bonus episode for those of
+you who need some additional information.
+But with this knowledge we can put together
+a plan to find this mysterious integer overflow.
+We are looking for where unsigned and signed
+numbers are somehow carelessly mixed together.
+In assembler this means we are looking for
+signed and unsigned operations.
+In the bonus video I have shown you, that
+addition works perfectly fine with signed
+and unsigned values.
+So that wouldn’t be a difference in assembler.
+The difference is in how we interpret this
+data.
+And one such interpretation happens with comparisons.
+Because with signed values a -1 is smaller
+than a 1.
+But the equivalent unsigned value a 0xFFFFFFFF,
+4.2 billions is much larger than a 1.
+And in x86 assembly we have different instructions
+for that.
+For example for a signed comparison we would
+do JLE, jump if less or equal, while with
+unsigned values we would do JBE, Jump if below
+or equal.
+So greater and less than, are signed interpretations
+of data, while above and below is the unsigned
+intepretation.
+And that helps us now with our plan.
+We essentially look for where a signed value
+like the health, is handled with an unsigned
+instruction like below or above.
+Or the other way around, we take an unsigned
+value and compare it with less or greater
+instructions.
+So a good start to look, is the damage function
+for Magmarok.
+Because in the end, dealing damage to Magmarok
+is the only way how we as a player can interact
+with him.
+Or in more abstract terms, that is the only
+input we can give to the Magmarok “program”.
+This function takes an Actor, an Item, the
+amount of damage and the damage type as parameter.
+We can control the damage and type of damage
+based on the weapon or spell we use.
+From our time debugging the game with gdb,
+or from the enums IDA recognized we know that
+there is PhysicalDamage, FireDamage, ColdDamage
+and ShockDamage.
+If we compare a little bit how IDA and Binary
+Ninja disassemble the Damage function, we
+can see that IDA displays a bit more information.
+In fact it names certain variables it was
+able to get from the debug information embedded
+in the binary.
+But we can do some of this by hand in Binary
+Ninja as well.
+You see that it shows the types of the parameters
+here, but didn’t set the type or name of
+the parameters.
+So we know arg1 is the this pointer, pointing
+to the Magmarok object itself, this is an
+actor, probably our player, an item, and damage
+and damage type.
+And we can also see here based on the calling
+convention which parameters corresponds to
+which register and thus we know what kind
+of local variables are set here from the parameters.
+But if we compare that now to IDA, we realize
+that something is not right.
+IDA said that the type would come from rsi,
+while we thought r8 is the source.
+So what is true now?
+Well if you would blindly rely on IDA now,
+you would have a hard time understanding what’s
+going on.
+But this is only true for the IDA 64 free
+version.
+I don’t know if it was a bug, or if this
+analysis is only a feature from more advanced
+plugins in the Pro version, but when I ask
+my friend to open it in a recent version,
+then IDA Pro does it correct.
+So the point of this story is, I rarely rely
+on one tool, I don’t understand IDA, or
+any other tool, well enough, to be able to
+figure out issues like this.
+I’m sure a professional reverse engineer
+has no issues with that.
+But I like to compare the output from Binary
+ninja, IDA, Hopper, radare and whatever.
+It helps me to understand the stuff better.
+Anyway.
+Let’s have a closer look.
+First we compare the damage type to 1.
+If it was not equal to 1, we go over here.
+So if it’s not fire damage, because that
+is type 1.
+Then we check if it’s cold damage, type
+2.
+If it’s equal, we would go down here, but
+if it’s not equal, so any other kind of
+damage, we load a 2 into eax, move it into
+this address here, load the damage amount
+into ecx, load the 2 again down here and then
+perform a division.
+So we divide the damage by two.
+However, if the damage was fire damage.
+We go into this crazy block.
+And xmm registers usually means there are
+some floating point calculations.
+And there is a pow float function, so it takes
+some value to the power of, something?
+Reading this forward is always a bit ugly,
+but we can also backtrace.
+So after all of this, the damage is set from
+eax.
+And eax comes from this variable, but is subtracted
+from 0.
+So this makes it negative.
+This means the damage value that was calculated
+is actually more like a healing value.
+Negative damage is healing.
+So let’s rename it to healing.
+And healing could be set in this block to
+whatever is in this unknown variable.
+But healing is only set here, if the condition
+before is false.
+And it compares here the healing to that unknown
+value.
+So if this unknown value is smaller than the
+healing, then healing is set to that value.
+Which means there is a cap on the amount of
+healing that is calculated.
+So doing healing larger than that value is
+not allowed.
+And don’t forget, we are hunting for an
+integer overflow, so we need to pay attention
+to these comparisons and here, we have JBE,
+which is an unsigned comparison.
+And this unkown value is the result of a subtraction
+from a fixed value, 0x2710, which is 10.000
+in decimal.
+And it’s subtracting a value stored at the
+offset 0x38 from rax.
+And rax is this.
+This is a pointer to the current Magmarok
+object, so taking an offset from that address
+means we are referring to an attribute of
+Magmarok.
+Let’s investigate this with gdb.
+First we need to set a breakpoint somewhere
+in this function.
+As this is an external library, we can’t
+simply copy the address here, but gdb knows
+the symbols and addresses so we can just disassemble
+the Magmarok Damage function and also set
+a breakpoint there.
+Now we just have to walk up to Magmarok and
+shoot with something at him, to trigger the
+damage function, and we hit the breakpoint.
+Let’s walk a few steps forward so the function
+prologue is done.
+And then print this.
+So you can see that this is a pointer to a
+Magmarok object.
+And by dereferencing the pointer when printing,
+we can also print the whole object.
+Including the attributes coming from inherited
+classes such as actor.
+So for example Magmarok has 10.000 health!
+Or he has an attribute if healing is active.
+And we know he can heal himself.
+With gdb we can also now learn more about
+the offsets.
+For example we can get the address of where
+m_health is stored, and calculate the offset
+from where Magmarok starts.
+Which turns out to be 0x38.
+And the healing_active attribute at offset
+0x148.
+I have chosen those two because they will
+be important, but of course you could map
+out all of them like that.
+And that is super useful for reversing with
+a disassembler.
+We now head to the structures in Binary Ninja
+and create new one, that we call Magmarok.
+And let’s give it some size, like 0x150,
+so we can fit both attributes we know in there.
+Now we don’t know the other fields, but
+we know that at offset 0x38 we have an integer
+health and at 0x148 we have a bool for healing
+active.
+Then we can go back to our damage function
+and change the type from the default integer
+that was set for this to a Magmarok pointer.
+And now, look!
+The pointer was automatically resolved and
+Binary Ninja can tell us now that this is
+an offset to the health!
+Cool, right?
+So defining structures once you learn more
+about what stuff means, is part of reversing,
+like renaming functions and variables and
+so forth.
+You slowly build up the whole picture.
+Now we know, the current health of Magmarok
+is subtracted from 10.000.
+So our unknown value could be called, health_difference.
+It’s the difference between the full health
+and where Magmarok currently is at.
+So if the health_difference is smaller than
+the healing we wanted to do, then the healing
+is capped at the difference.
+Let’s do an example, if Magmarok has 9800
+health, then the difference is 200.
+And when we try to heal for 500 health points,
+then that would be larger than 200 and the
+healing would be capped, set to that value.
+So we can’t heal more than up to 10000.
+Now remember, here we have an unsigned comparison
+on the result of a hardcoded 10.000 minus
+the current health of Magmarok.
+And subtraction is always very tricky.
+There is no check if the health is larger
+than 10.000.
+So this unsigned comparison could really screw
+up, if the health of Magmarok were larger
+than 10000.
+For example if the health were 15.000, then
+subtracting 15.000 from 10.000 would result
+in -5000 if interpreted as a signed value,
+but -5000 is a huuuge value if interpreted
+as unsigned.
+And so this unsigned check, jbe would interpret
+the result as 0xFFFFEC78, or 2.5 billion.
+So if we now would try to heal for 500 HP,
+then the check would say, no 2.5billion is
+not smaller than what we try to heal.
+So we don’t cap and allow to heal.
+If this would have been a signed check, so
+JLE, jump if less or equal, then yeah,it would
+be interpreted as -5000, which would be smaller
+than the 500 we try to heal.
+So… this thing here could be unsafe, if
+we somehow can get the health of Magmarok
+higher than 10.000.
+If its not higher than 10.000, then the subtraction
+would not overflow the integer and apply a
+cap to the healing.
+So while we can heal Magmarok with fireballs,
+this check will always prevent us to heal
+higher than 10.000.
+So it’s kind of like a chicken and egg problem,
+right?
+If the health would be higher than 10k, we
+could heal him even higher, but if the health
+is below or equal to 10.000, we can only heal
+him up to 10k.
+But theoretically.
+We know that the health is a signed integer.
+We know that from killing spiders that had
+a negative health.
+So if we can keep healing magmarok so high,
+that the value doesn’t fit in the 32bit
+signed integer anymore, it overflows and wraps
+around to a negative value.
+Then Magmarok would be instantly dead!
+Hmmhmh…
+But the problem is, by itself, this function
+here is safe.
+We can’t heal over 10k.
+But we know, that Magmarok can also heal himself.
+So there is a second logic somewhere that
+manipulates Magamarok’s health.
+So if we somehow can abuse that to get over
+10.000 health, then we have a clear path laid
+out to kill Magmarok.
+So now we have to find that.
+A good way to start is just by looking at
+the other Magmarok functions.
+And the tick() is a function that is constantly
+called.
+It’s a tick, like on a clock.
+This function exists for a lot of objects
+so they can update their behaviour according
+to the game time.
+So if Magmarok would do something, it most
+likely would originate from in here.
+Like with any object function, the first parameter,
+is the this pointer.
+This parameter points to the current Magmarok
+Object and it is passed in via rdi.
+And so here we can see that rdi is used a
+few times..
+So we can change all their types to a Magmarok
+pointer.
+And we can already see, that here it checks
+if the healing is active, and the health is
+referenced multiple times as well.
+Now if the healing is 1, so true, active,
+we check if the health is less or equal to
+0.
+Basically checking if Magmarok is still alive.
+And as you know, this is a signed comparison.
+So a negative health would be interpreted
+here properly.
+Then we check if Magmarok’s health is greater
+than or equal to 5000.
+Which we know is the trigger for the healing.
+When we got him to 50% health he initiating
+his healing sequence.
+So if healing is not active, he is not dead
+and health is under 5000, he will switch into
+healing mode.
+At least that’s what I guess.
+I haven’t really reversed how these states
+work in this game, I just see something is
+referenced here and it would make sense.
+But we are looking for where the health is
+modified, so let’s look for something that
+sets or modifies the health.
+I really wish we could look for cross-references
+to the health attribute.
+Anyway, here is one example.
+The health is moved into ecx, then we add
+0x136f to it, that’s 4975 in decimal, and
+the result of the addition is moved into the
+health.
+So…
+We know that there is a delay between Magmarok
+going into healing, where he does this animation,
+and then actually healing up…
+Do you see the issue?
+There is a race condition here.
+A time of check time of use kind of thing.
+The decision if Magmarok is going to heal
+is decided when he falls under 5.000 HP, but
+then the actual healing, happens later.
+And the healing is not just setting the health
+back to 10k, it’s actually adding 4975 to
+the health.
+This means, we can push Magmarok over 10.000
+health.
+We just have to kick him into healing mode
+by damaging him.
+And as soon as he falls under 5.000, and he
+decided he is going to heal, but first has
+to cast his spell and the animation starts,
+we quickly switch to fireballs to heal him
+back up over 5025 health.
+Because then a few seconds later his healing
+spell succeeds and heals him for 4975 HP,
+which then pushes him over 10k.
+And by pushing him over 10k, we know we can
+bypass this healing cap and keep healing him
+with fireballs.
+And that could maybe kill him, because healing
+too much can cause an integer overflow of
+his health, making his health suddenly negative
+and thus instantly killing him.
+To pull that off I modify the network proxy
+a bit.
+I shoot TheGreatBallsOfFire and ZeroCool straight
+down.
+And collect those packets.
+Both of these packets cause the magic spell
+being shot straight down.
+We also know the position of Magmarok from
+the actors list.
+So what we can do is, we can craft a position
+update packet, and tell the server we are
+standing above Magmarok, by setting a higher
+Z value than him, and then we send the shoot
+packet.
+And because we never actually moved there,
+the client will keep sending the real position
+updates.
+This means the server thinks we are always
+teleporting above Magmarok, shoot a spell,
+and teleport back behind the safe chest.
+I was thinking about how to trigger this for
+the game, and I decided to place the creation
+and injection of these packets into the sneaking
+parser, so when we press down the sneak button,
+this packet is sent to the server, we parse
+it here and maybe decide to inject these two
+packets into the traffic.
+And this makes fire balls or ice balls rain
+onto Magmarok.
+Cool huh!
+We basically invented a new spell.
+A meteor shower.
+So all we have to do now is carefully damage
+him with cold spells or other attacks and
+observe his health.
+Once we get close to 5000 we have to be careful.
+Okay.
+Now a bit of damage is missing.
+Now I take it slow.
+I exchange the Zero Cool spell with the GreatBallsOfFire
+spell.
+So presing sneak now will cast a fireball
+on him that will also heal him.
+Then I switch to a pistol with low damage,
+shoot him with it, and this pushes him under
+5000 HP and initiate his healing sequence.
+now we have a couple of seconds time to heal
+him above the threshold with some fireballs
+by pressing sneak.
+Healing is coming!
+Okay, we were successful.
+His healing spell is over, he healed up and
+his health is above 10k.
+Now we just have to keep healing him, and
+that should eventually kill him.
+See how he sometimes shoots up?
+That’s because even though we stand here,
+we tell the server we are actually above him
+to shoot a fireball.
+So for a split second Magmarok thinks we are
+there.
+But when we keep doing this, and you can see
+here the signed and unsigned raw byte values
+as a comparison, at some point his health
+will overflow and kill him!
+Quest: Complete, Fire and Ice.
+Let’s loot the chest.
+Acquired flag of the Lava.
+Some bosses just roll over and die.

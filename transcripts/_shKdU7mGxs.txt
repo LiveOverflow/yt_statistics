@@ -1,0 +1,230 @@
+Let’s head into the final levels of exploit-exercises
+protostar.
+These levels are a little bit more developed
+and are on the level of very easy pwnable
+CTF challenges.
+Let’s have a look at final level 0.
+The network setup is basically the same like
+from the previous challenges, so if you are
+not familiar with these custom functions you
+should watch the previous videos where we
+figure out what they do.
+So, when a client connects to this service
+running on port 2995, it will call this function
+get_username.
+This function has a local 512 byte big buffer
+which is overwritten with 0.
+Then gets is used to read data from the user
+into the buffer.
+And as we have learned many episodes ago,
+gets is a dangerous function.
+So this is obviously our buffer overflow.
+Then it checks if there is a newline or carriage
+return and if so, would overwrite it with
+a 0.
+After that is a loop, which will go over the
+buffer and call toupper on every character.
+Then the function returns.
+This means we should be able to overwrite
+the return pointer of this function and redirect
+code execution.
+We only have one issue, and that is that the
+data we would use to overflow would be transformed
+to uppercase.
+This means our shellcode, as well as the address
+we use to overwrite the instruction pointer
+on the stack have to not change when toupper
+is used.
+Meaning, you cannot use lower-case ascii characters.
+Or is there maybe a trick how we can get around
+this restriction?
+Let’s think about this and work our way
+backwards.
+So what condition has to be true in order
+that toupper is not used on our input.
+Well the for loop uses strlen to determine
+on how many bytes it will do this.
+And strlen counts all bytes until in finds
+a null byte.
+So if we manage to somehow get a null byte
+before our actual overflow and shellcode,
+we would be fine.
+Ok, how could we get a null byte in there.
+If you check the man page of gets you will
+see, that gets reads everything until it a
+newline or EOF.
+This means gets will have no issue of reading
+a null-byte.
+Easy.
+So we can completly ignore the to uppercase
+stuff.
+And just for creativity reasons, you could
+also abuse the null-byte replacement of the
+carriage return.
+Let’s say the input would use strcpy, thus
+also stopping at a null byte, you could use
+a carriage return instead, which will then
+afterwards get replaced by a null byte.
+So that would also work.
+The buffer is 512 bytes big, so let’s use
+that knwoledge to create a simple proof of
+concept buffer overflow.
+We can use python with -c, to directly write
+a short script in the argument.
+So we could print like 510 lowercase a, and
+then we can later see that these were modified
+to be uppercase.
+Then we append a nullbyte and continue with
+a typical alphabet so we can recognize how
+to overflow the instruction pointer.
+We can also make the alphabet lowercase, to
+proof that it will not be transformed to uppercase
+after the nullbyte.
+Like with the previous networking challenges
+we can connect to the service on port 2995
+with netcat.
+So we can simply pipe the output of our python
+one-liner to netcat as well.
+We don’t see the output “No such user…
+“ like before.
+And the code shows us that it would be printed
+after the return in main, thus we can assume
+we successfully overwrote the instruction
+pointer and crashed the program.
+But how do we debug this now?
+If you have a look at the description of the
+protostar VM, you will see here a headline
+called core files.
+It says that the filename pattern is set to
+/tmp/ something.
+This means that core dumps are stored in tmp.
+And when we have a look at the content of
+/tmp/ we will see a core file we just produced.
+They belong to root, so let’s switch to
+root so we can work with them.
+But what are core files?
+Let’s ask the linux manual with `man core`.
+The default action of certain signals is to
+cause a process to terminate and produce a
+core dump file, a disk file containing an
+image of the process's memory at the time
+of termination.
+This sounds good, if we get the state of the
+memory when it crashed, we should be able
+to get a lot of information about our buffer
+overflow.
+This image can be used in a debugger (e.g.,
+gdb(1)) to inspect the state of the program
+at the time that it terminated.
+Oh wow, we can use gdb to look at these and
+we area already very familiar with how to
+use gdb.
+A list of the signals which cause a process
+to dump core can be found in signal(7).
+Ok, interesting.
+Apparently the process received a signal because
+it did produce a core file, right?
+So to understand this properly, let’s also
+try to understand what signals are.
+Notice the 7 in brackets after signal, this
+is important to reference the correct page
+about signal in the manual.
+so `man 7 signal`.
+Let’s have a look at the standard signals
+further down.
+Linux supports the standard signals listed
+below.
+Several signal numbers are architecture-dependent,
+as indicated in the "Value" column.
+Mhh, so signals can be different on different
+architectures.
+So if it is an intel, arm or sparc processor
+this might make a difference, bug generally
+this tells us, that signals could have something
+to do with very low-level CPU and hardware
+features.
+Let’s have a look at the list of signals.
+For example SIGINT is a signal you have used
+many many times, it’s an interrupt from
+the keyboard, this happens when you press
+control+C.
+Or remember how you sometimes can get illegal
+instruction when you jump into invalid code,
+a SIGILL, that’s also a signal.
+Which obviously must have been triggered from
+the CPU which couldn’t make sense of an
+instruction.
+Or our favorite syscall, SIGSEGV, a segfault.
+Trigegred from an illigel memory reference,
+for example when you jump to non-existing
+memory.
+Or try to write to non existing memory.
+Which obviously is also triggered by low level
+hardware when you try to execute bad stuff.
+This line here is also interesting: The signals
+SIGKILL and SIGSTOP cannot be caught, blocked,
+or ignored.
+This means most of these signals can be caught
+by the process.
+You have actually experience this before too,
+when you run a process in gdb, and you forgot
+to set a breakpoint and the process is just
+running, you can use CTRL+C to break back
+into gdb.
+You sent a SIGINT to the process which instead
+of quitting, had a signal handler set up to
+catch it and perform a different action.
+So signals are kind of like interrupts for
+processes by the kernel.
+Certain events like memory access fails, pressing
+CTRL+C or also killing a process causeses
+the kernel to send a signal to a process.
+Unhandled signals usually cause the process
+to die, but a process can also set up signal
+handlers to perform certain actions when it
+receives these signals.
+So.
+In our case, when we overflow EIP on the stack,
+and the function returns a segmentation fault
+is raised and a signal is triggered.
+The process doesn’t handle it and is killed
+by the kernel.
+At the same time a core dump file is created
+to save the state of the process that caused
+this signal.
+So now let’s use gdb to see what happened.
+Like before you simply specify the binary
+as a first argument but then you add the core
+file as a second argument.
+And you see immediately when gdb opens, the
+message that the process terminated due to
+signal 11, a segmentation fault.
+We can also look at the registers and see
+the value of eip.
+And those are definitely our characters we
+have entered.
+We can also explore the stack with examining
+the stack pointer.
+You can see that having these core files is
+extremely useful.
+Now we know which characters caused an overflow
+and we can now calculate the offset to the
+instruction pointer on the stack.
+Another way to debug this further is to use
+gdb to attach to the already running process.
+Make sure you are root.
+Simply find the process id and call gdb with
+-p and the pid.
+As you can see the process is currently in
+accept waiting for a client to connect.
+But when we send our PoC overflow, we don’t
+see a segfault.
+That’s because if you remember, this process
+creates a fork, a new process, to handle the
+client.
+And we always stay in the parent.
+But we can set in gdb the follow-fork-mode
+to child, and when we now continue and send
+the long input, we get the segfault.
+Awesome, now you have everything in place
+to develop the full exploit.

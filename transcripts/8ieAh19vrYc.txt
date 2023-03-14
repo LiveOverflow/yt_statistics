@@ -1,0 +1,282 @@
+Wow… we have almost solved all challenges
+of Pwn Adventure 3.
+Only one challenge, “Pirate’s Treasure”,
+with 500 points is left.
+From our let’s play a long time ago we also
+know that there is this pirate ship with a
+chest.
+Let’s check the boat.
+Is that a chest as well?
+I don’t trust it!
+Oh.
+heh.
+DLC.
+Oh I guess I was wrong with the free-to-play,
+I guess you have to pay.
+Unlock code entered is not valid.
+Try again.
+Okay.
+I guess we know what we have to do here.
+And when you try to open it, it asks for a
+“Pirate’s Treasure DLC” unlock code.
+So clearly we have to find a valid code, or
+key.
+So this is probably a keygen challenge.
+A quick look into the functions of the libGameLogic
+library shows that there are functions called
+SubmitDLCKey.
+The interesting one is from the Player class
+because it will call the VerifyKey function
+of the KeyVerifier class.
+The return value of this function will be
+in the al register.
+And through a few indirections eventually
+checked here.
+This is where it decideds if we print the
+failure message or are succesful.
+Now you can simply modify the client here
+or set a breakpoint and make sure that we
+pass this check, but this would be way to
+easy.
+The client might think it was correct, but
+the server, which has the same verification
+code, wont give us access to the chest and
+thus wont give us the item that is the flag.
+So we have to look deeper into the VerifyKey
+function.
+And that function is not looking super crazy
+but it definitely requires some work to go
+through.
+So how do we tackle this now.
+As always with reversing, this already feels
+overwhelming.
+There is so much assembler code and we have
+no clue what’s going on.
+So let’s try to be systematic about it and
+start with a highlevel view and then work
+ourselves down the layers.
+Let’s start with a look at the flow graph
+and see if we can identify some sections that
+we can kind of isolate from eachother.
+And right at the start it looks like all this
+part over here is part of a big loop.
+Then we have a short contained loop afterwards.
+After that a simple check.
+Then another loop, followed by a longer sequence
+of operations which ends in another loop.
+And if we pass all of this, we set the return
+value to 1, which means the key was correct.
+So let’s look at the first loop.
+The loop condition here is a comparison and
+shortly before that is a call to get the size
+or the length of a C++ string.
+And of course our VerifyKey function will
+get the unlock code we entered as a string
+parameter, so this will probably get the size
+of the key we entered.
+And the return of the call to size, so the
+length of the string will be in rax and compared
+to rdi.
+And rdi is coming from this local variable,
+which is actually this local variable and
+this one was also set to 0 initially.
+If you look at the block right before it loops
+back up you see the same variable being loaded,
+incremented by 1 and then moved back.
+So this is clearly a for loop.
+We have the init - i set to 0.
+We have the condition, if i is above or equal
+the size of the string, we exit the loop,
+so the for loop condition is i < size of the
+string.
+And we have the increment here, which simply
+increments i.
+So this loops over our input string.
+We also know that the string address is passed
+to the function via rdi, so this local variable
+here is our input key.
+And when we look what this loop does we see
+that it uses the key and the current i value
+with the brackets operator []. So it accesses
+the ith element of the string.
+And this ith character is then compared to
+0x20, which is of course ascii character space.
+And the same check is happening for dash.
+So if it finds a space or dash in the input
+key it will skip this whole part and move
+directly to the i increment.
+So it ignores those characters.
+If it was any other character we have another
+check here for 0x19.
+And we see that based on some condition this
+value is incremented.
+So if this check fails we immediately return
+from the VerifyKey which means the key had
+the wrong format.
+But if it’s correct it increments another
+value or counter.
+So that mens this is the number of correct
+characters.
+If you look closely at this check, then you
+see it depends on a function call to this
+obscured function cfZTUjEJ.
+So we have to look into that one.
+Remember that this is orange here because
+it is dynamically loaded, so we have to find
+the actual function implementation via the
+function search.
+Here we got it.
+In here we have a check if the character is
+a lowercase letter, by checking if the current
+character to check is larger or equal to lowercase
+‘a’ and smaller or equal than lowercase
+‘z’.
+If that is the case we subtract 0x20 or space.
+This is a super cool property of ascii.
+If you check the ascii table you will notice
+that the distance of the lowercase to uppercase
+letters is exactly 0x20.
+This means if you want to convert from lower
+to uppercase or upper to lowercase you just
+have to subtract or add 0x20.
+So here it makes sure that the input is uppercase
+by converting lowercase letters.
+After that is another loop.
+This local variable is incremented here, so
+that’s probably another i.
+we then take a character from an offset here
+from i and compare it to our character we
+are checking.
+If we follow this, interpret this as an address
+we land here.
+A string 0123456789ABCD and so forth.
+BUT be careful, it’s not the full alphabet.
+ABCDEF G is missing, I is missing and more.
+So this for-loop loops over these valid characters
+and checks our input character and it has
+to match.
+One small but very important detail here is,
+that the function takes not only the character
+to check, but also a char pointer.
+And at the location of this char pointer it
+will also increment a value along the for-loop
+increment value i.
+So it will keep incrementing that value until
+the valid current character is found.
+This might all look pretty complicated but
+long story short, if we go back to the key
+verifier, the first loop here is an input
+check or validator.
+It ignores spaces and dashes but counts and
+enforces valid characters.
+And our valid input characters are the numbers
+and letters in the alphabet we found.
+And this one function also helps creating
+a new array that maps our input to indices
+of the alphabet.
+So for example the input letter 0 would be
+found immediately and stays 0, but A would
+be found after 10 iterations of the loop,
+so it would store a 10, Makes sense right,
+it just maps out the input key to indices
+of the alphabet.
+After that we only work with this new array.
+Besides that it also counts the amount of
+valid characters and compares it to 0x19 which
+is 25 in decimal.
+So our input has to be 25 characters long.
+This means we have understood this part, and
+can move on.
+On to the next smaller loop.
+So this is also clearly a for-loop.
+We initialize a value to 0, compare it to
+the constant 0x18, which is decimal 24, so
+one less than what we thought was our input
+length.And then this value is incremented
+here.
+So that is i of this for-loop.
+And inside that loop we take again a value
+from the offset of i, I assume we get the
+i-th valid input value, then we also load
+this other variable, add our character to
+it and move the resulting byte back into that
+other variable.
+That’s all it’s doing.
+And after that loop we load that other variable,
+apply a binary AND with 0x1f
+Load another byte into eax and compare those
+two.
+Ehh..
+So maybe it’s time to set a breakpoint in
+the code and see what is happening.
+Our assumption is that if we enter 25 valid
+characters, we should get to here.
+And we also just assumed that this loop simply
+sums up the first 24 character indices we
+have, and stores the sum result in this variable.
+So let’s break here.
+To find this we can disassemble they VerifyKey
+function by giving it the full name surrounded
+by SINGLE quotes.
+Gdb should also know tab completion so that
+shouldn’t be an issue.
+As you can see our addresses in gdb are very
+different from the ones in the disassembler.
+that’s because our library is loaded somewhere
+into memory.
+But it’s always loaded memory aligned wich
+means the lower bytes should be constant.
+So we can look for b98 at the end and we find
+this line.
+We also see it matches the code, “cmp eax,
+edx”.
+Perfect.
+So let’s set a breakpoint there.
+Then let’s enter a string, how about we
+just enter the first 25 characters of the
+alphabet and see what happens.
+We hit the breakpoint and see that 0x14 is
+compared to 0x18.
+We know that our loop loops over an array
+at rbp-0x30, so we can look at it.
+Maybe shown as single bytes instead.
+Yeah that looks good.
+It’s the indices of the alphabet form our
+input.
+The ascci character 0 matched to byte 0, and
+the ascii character ‘A’ matched to 0xa,
+so that’s 10.
+It’s the 10th character in the alphabet.
+So now it’s also clear what the code does.
+If we now print the memory locations from
+our two values that are compared, so rbp-0x41
+and rbp-0x18, we see that the sum is compared
+to the last character value.
+And that’s a mismatch.
+We can also verify that in python.
+First we define the alphabet with our characters.
+Then we loop over the first 24 characters
+of our test, and our test input was just using
+the alphabet.
+And for each character we can then find the
+offset, the indice in this string and add
+it to the sum.
+The result is 276, or in hex 0x114.
+The sum is also anded with 0x1f, so the result
+is 0x14, exactly what gdb uses to compare
+the last character, the 25th character.
+So this is a CHECKSUM.
+This is a simple verification that you didn’t
+mistype the unlock code.
+The last character of your input is derived
+from the sum over the first 24 characters.
+This is our first important milestone.
+If we try to reverse the keygen, we know now,
+if we find 24 valid characters, then the last
+character, the 25th one, is simply the sum
+of those.
+It must be so hard to follow this boring reversing
+in assembler.
+But we slowly make progress.
+So I let’s do a cut here because we finished
+the first part.

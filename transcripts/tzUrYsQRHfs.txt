@@ -1,0 +1,306 @@
+Last video we tried to carefully massage the
+heap to allocate our overflowing buffer before
+a function pointer, but we couldn’t get
+it to work.
+It was too far away.
+But our heap fuzzing was also very basic.
+Maybe we can do even more useful heap grooming.
+But for that we need to figure out what malloc
+sizes we can really control.
+If we find more such inputs, we can fragment
+the heap differently and maybe get a better
+chance to land a buffer closer to one of the
+function pointers.
+I thought about this for a bit and figured
+it’s not super straight forward.
+If for example we used gdb to break at each
+malloc invocation, it would be a bit hard
+to determine if the malloc is related to any
+input we can control or not.
+We really have to read the code surrounding
+the malloc to understand where the size value
+came from.
+BUT!
+There is a small trick.
+Its a lot easier to look for free calls.
+Because free gets passed in the pointer of
+the memory to free after this buffer was already
+in-use, so if at that location is a string
+we recognize, we know we can control the size
+of that.
+So I wrote a small gdb helper script that
+sets a breakpoint on free and prints the string
+at the free location.
+We can then run this and look at the output.
+There are some strings we probably don’t
+have control over.
+Like the path to the libthread library, but
+there are also some environment variables
+we should be able to control!
+For example LC_CTYPE.
+And this string looks like the HOSTNAME of
+my system.
+So we could modify our small script and specifically
+set those variables to a recognizable string
+and see if they indeed end up on the heap.
+We run everything again.
+And yes!
+Here is the LC_CTYPE string!.
+Unfortunately it looks like the source of
+the HOSTNAME is not from the environment variable,
+so we can’t use that.
+But while doing all this I also thought, wait!
+Maybe there are a lot more environment variables
+that are being used by sudo, and I just don’t
+have them set.
+Thus they don’t show up on the heap.
+How can we find them?
+To check environment variables a program usually
+calls getenv().
+So why not trace all calls to getenv() and
+log their value?!
+Then we get a list of most environment variables
+that sudo considers.
+So we can run it and look through the trace.
+After cleaning it up, I found all of these
+variables.
+Let’s check if they end up on the heap.
+We can simply extend the gdb script to set
+all of those environment variables, to a value
+we can recognize like the string Heap and
+a number.
+Then I use the free trace again and look for
+all occurrences of these HEAP strings.
+And we find LC_ALL, LOCPATH and TZ.
+Fun fact.
+While working on this video, I noticed that
+I totally forgot about the LC_CTYPE environment
+variable from before.
+Seeing this footage I don’t know why I forgot
+about this.
+Probably was just super tired after tens of
+hours of work.
+So this is a mistake I make here and carry
+with me.
+All the scripts I write from now on, never
+consider LC_CTYPE.
+Which maybe would be needed to find a good
+heap layout.
+But that’s how it goes, mistakes happen
+all the time.
+So running the whole bruteforce script again
+with the new variables, now we actually have
+some cool results.
+When editing this part I realized I should
+maybe add more info.
+The minimal change to include these environment
+variables had massive improvement.
+We now find so many more cases with the function
+pointers coming after our buffer, and even
+lots of different crashes.
+Compare this to the script from last video.
+This was roughly running for the same amount
+of time, and here we only have so many cases,
+and here we have tons.
+Also I mentioned it last video, but while
+this script looks short and easy, it took
+so many hours and iteration.
+For example at first I didn’t properly detect
+segfaults, I had the wrong return number.
+Also I have the timeout here, and so when
+the communicate() triggered it, I lost the
+output.
+This function returns stdout and stderr.
+And only later I realized I can call the function
+again after terminating it, and I get the
+output it had so far.
+So there were tons of small mistakes like
+that.
+Anyway
+Now when this was running for a while at some
+point I noticed in the system logs a crash
+at 53535353.
+Which I thought meant I overwrote a function
+pointer and redirected code execution.
+And my scrapped failed to log it.
+So I went into a deep! rabbit hole trying
+to find the input that caused this.
+But an hour later I looked at this line again.
+I misread this.
+the instruction pointer was normal 0007f-something.
+And some offending memory location was just
+53535353.
+So it just was like an invalid move using
+that address.
+This rabbit hole wasted again more time.
+I guess this video is just the summary of
+all the engineering fails.
+Well…
+I mean this invalid move is still interesting,
+conditions like that could help in exploitation.
+But for this one-shot sudo exploit case, hard
+to say how useful it is.
+It seems like with the current tooling I just
+can’t find any good exploit strategy.
+So while this is running we can think about
+improving our tools.
+And I think one improvement could be to create
+a version that actually runs sudoedit in gdb.
+This way we can get more information about
+a crash for logging.
+Unfortunately this means there will be a lot
+less executions per second.
+Running in gdb is just slow.
+So it will be more like 1 exec per second,
+instead of dozens, but we also get more insight
+and maybe that helps us.
+This is explorative engineering.
+We are researching the unknown.
+So we need creative ideas, even when many
+fail.
+But long story short.
+I didn’t find anything super interesting.
+that doesn’t mean this was all wasted time
+though.
+Because I learned SO MUCH stuff doing this.
+I hope it’s clear to you the viewer, that
+I am learning as I’m going.
+You see these short videos, but you see here
+dozens of hours of time spent.
+And during these constant code iterations,
+I investigated many of the crashes I found.
+So in this whole process I learned more and
+more about the sudo code, the internal data
+structures and generally how sudo worked.
+And that’s probably very helpful for exploitation.
+But now we need to change strategies.
+What would you have done at this point?
+Do you have any ideas about tools we could
+write that could help us?
+Would you give up and look at the existing
+writeups and exploits?
+Do you have any ideas?
+I’m not giving up just yet.
+Because I have more ideas I wanted to try.
+I wanted to get more insight into the heap.
+I wanted to know EXACTLY what was allocated
+after the buffer we can overflow.
+So I decided to write another heap analysis
+tool, this time as a gef gdb extension.
+The idea was kinda simple, I wanted to track
+all MALLOCS() and FREES() to learn more about
+the objects allocated after our buffer.
+Again, developing something like this was
+not trivial.
+I have never written a gdb extension like
+this in python. this was all new to me, which
+means I also ran into a lot of issues.
+For example one big problem I had was where
+can I remember all the mallocs.
+I couldn’t figure out how to have a global
+variable, so I decided to just read and save
+everything into a file.
+Not ideal, but it works.
+Another issue was with the breakpoints.
+I set a breakpoint at malloc which we can
+use to get the size from the rdi register,
+but to get the address of our allocation we
+need to know the return value.
+Which means once we hit the malloc breakpoint,
+we need to set a temporary breakpoint after
+malloc returns.
+Which can be done by inspecting the stack
+frames, looking at the return pointer and
+setting a breakpoint there.
+But for whatever reason it didn’t track
+all mallocs.
+For example it never stopped at the malloc
+of our user_args target buffer.
+And that is an important malloc because we
+want to stop there to analyse the collected
+data.
+I had to debug this and figured out that for
+whatever reason the stack frames are weird
+and I had to go two frames up to find the
+correct return place.
+I don’t know why, so I only do that for
+the overflow buffer.
+Which means I probably miss a lot of other
+mallocs too.
+But whatever maybe it’s enough.
+Now when we hit any malloc return, we can
+collect all the information we want.
+For example the backtrace and function name,
+as well as the address of the allocated data
+from the rax register.
+Besides mallocs we also set a breakpoint on
+free, and there we simply check if we have
+mallocd this address before, and if so we
+remove it from our list.
+The output of this kinda looks like this.
+We are just tracking all mallocs and frees.
+And the goal is now, that when the tracing
+is used, eventually we reach the malloc of
+our buffer that we would overflow, and then
+we can stop.
+In that case we get all allocated chunks,
+we sort all by address, and then print the
+5 chunks after our overflow buffer address.
+More precisely we print the callstack of functions
+that lead to the allocation of this memory.
+Here is an example entry of the trace.
+This is the heap address as a decimal integer.
+The size of this allocation was 294.
+The instruction pointer was this value in
+decimal.
+And then we have the most important value,
+the backtrace.
+And here you can see we called malloc from
+set_cmdn, and that function was called from
+sudoers_policy_main.
+And so forth.
+And this allows us to very quickly find out
+what kind of structure was allocated there.
+Awesome!
+But this alone doesn’t help us much.
+Now we only have a tool that given an input
+to sudo, will tell us what allocations were
+placed directly after our overflown buffer.
+So we should iterate once more over the bruteforce
+heap layout script from before.
+Here is the function again that generates
+random input arguments and environment variables.
+Then we call sudo_crash_check.
+Here we simply call sudo and check if the
+input crashed.
+This is the old code with like a dozens of
+executions per seconds.
+But once we crashed, then the case is interesting
+to us.
+Which means we now can pass the input to the
+new run_sudoedit function.
+In there we execute the super slow gdb instrumented
+execution of sudedit.
+This will collect all the heap information
+we want.
+If we have an ABORT or a SEGFAULT we then
+open the generated heap trace data which simply
+contains a few lines describing the call stack
+of each allocated chunk after ours.
+And then we simply log this information in
+a few files.
+In this case the filename is the backtrace
+callstack of the first allocated buffer after
+ours.
+This way we can fairly quickly see what we
+could overwrite.
+Now of course it doesn’t tell you the exact
+type name of the structs being allocated,
+but the function names already tell you a
+lot.
+And once you look into a function, it’s
+easy to see what the allocation was.
+Now let’s let this code run for a while
+and collect some data.
+And next video we can look over some of the
+results.

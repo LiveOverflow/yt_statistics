@@ -1,0 +1,254 @@
+Pasteurize, or pasteurize, was a web 
+challenge from the Google CTF 2020.
+In the end 260 teams solved it. 
+It was also labeled as easy.
+“This doesn't look secure. I wouldn't put even the 
+littlest secret in here. My source tells me that
+third parties might have implanted it with their 
+little treats already. Can you prove me right?”
+And we get the link to the challenge 
+website. So let me tell you how we solved it.
+
+The CTF started around 2am german 
+time, so I didn’t play from the start.
+In the morning when I got up, somebody else 
+from our CTF team ALLES! Already found the
+vulnerability but hadn’t fully solved it yet.
+Here you can see our internal organisational
+system. We used to have CTFPad, and extended it 
+with some additional features, but some crazy
+people, I think mainly Cherry Worm(?) from 
+our team, basically wrote this from scratch.
+It’s AWESOME! You can create tasks for each 
+challenge and people can assign themselves to it.
+When you click on a challenge, like Pasteurize 
+you get a shared notepad. It supports markdown
+and you can look at it with a split view. It’s 
+crazy. Anyway. When I woke up I already saw this:
+bodyParser.urlencoded with "extended: true" 
+in /source, which means, json object can
+be supplied, which leads to, breaking the 
+javascript string. And this payload here.
+Content, and in brackets we have dash, 
+alert, dash, equal, dash, one, dash.
+Of course I have no clue what that means. Yet.
+I obviously need to look at 
+the challenge myself first.
+So here we go.
+We can “create
+a new paste”. Blah blah. And maybe we can 
+already add some Cross-site Scripting tests.
+A basic HTML  tag and a script tag with alert.
+Huh! We get a headline Test HTML! But no alert
+popup. If we inspect the HTML element here, we 
+can see that we were able to inject the
+HTML code, thus format this headline, 
+but our  tag is gone. So it
+looks like some sanitization is happening 
+to the text, only allowing harmless HTML.
+If we look at the HTML source code of this 
+page, so not the currently rendered HTML,
+but the raw HTML before the browser 
+executed any javascript, we can see that
+the note is actually empty when we load the page.
+But further down we can find javascript that seems
+to contain our text. “Blah blah” and so forth. 
+Also still containing the script tags with alert.
+Then this note text is passed into 
+the DOMpurify.sanitize function
+and then, once sanitized, it is added 
+into the innerHTML of our note tag.
+DOMpurify is a javascript library that performs 
+client-side output sanitization and I know this
+library. It’s basically the best library you 
+can get if you need to allow some HTML tags,
+but be safe from XSS. That’s very hard to 
+do, and for many it’s unintuitive, but it’s
+actually better to do this sanitization in the 
+browser on the client, and not on the backend.
+I also personally know the maintainer very well. 
+And I know DOMPurify has rarely vulnerabilities
+and bypasses. Mostly weird edge cases. So I 
+consider this usage here to be completely safe.
+I strongly believe the goal is not 
+to bypass this sanitization check.
+Also we can find here a comment, fix the bug 
+number 1337, in /source, that could lead to XSS.
+So we are not only told that the goal is to find a 
+XSS, but that the bug is not here, but in /source.
+And when we go to that site, we find the source 
+code of the server. It’s written in NodeJS.
+Okay.
+One other important
+detail is this “share with TJMike” button.
+When you press it you get a message that TJMike
+will soon look at this paste. This is a typical 
+XSS challenge setup. XSS means you attack another
+user, right? So you need some kind of bot that 
+visits page, and executes the XSS, so you can
+actually pull off an attack. So by clicking this, 
+we trigger the bot to look at our paste. And if we
+have XSS here, we can XSS this bot and somehow 
+steal the flag. We just don’t know yet how.
+With web challenges it also makes sense to use 
+a web proxy like burp to look at the traffic.
+I’m using here the free community edition 
+and it also has this awesome new feature
+with the embedded chrome browser. It’s my new 
+favorite thing - makes the setup so much easier.
+If we create a paste again, we see here this post 
+request being sent. And looking at the post data
+we can find a “content” variable.
+This looks oddly familiar,
+right? In the notes we also had “content”.
+So let’s send this request to the repeater,
+take the example snippet from the notes and 
+modify the request. Send it, and now we created
+a new note. Here is the note id. Copy it into 
+the browser, and BOOM! We got the XSS alert.
+So how did this work?
+Let’s look into the page source code and
+look at the javascript. This looks weird now.
+Start quote, end quote, so that’s an empty string,
+and then we subtract this alert(). And to 
+calculate this subtraction, we first need
+to know the return value of alert(), so we 
+have to execute alert(). BOOM. triggered XSS.
+Very briefly. What happened. This payload looks 
+a bit weird because it’s already doing XSS. but
+if I clean that up with simply key and value, 
+and look at the javascript code this produces,
+we can see here the key, colon, value.
+Now only look at this part and imagine
+the first and last quote wasn’t there. This is 
+basically a JSON key, value pair. The problem is,
+that the key and the value use quotes. And if 
+we simply embed this, without escaping those
+quotes into another string, then the first quote 
+terminates the string, and then our key is raw
+javascript. If we look into the console we can 
+also find a syntax error. Unexpected identifier.
+This is not valid javascript anymore, right?
+But with the trick as seen in this payload,
+we can make a mathematical expression out 
+of it, where we combine these strings with
+these identifiers through subtractions. A plus or 
+other operations would have worked equally well.
+Let’s also have a peak into the nodejs server 
+code to see why this happens. In the route
+handler for displaying a note, we can see 
+that it takes the note’s content and calls
+escape string on it. This is important because the 
+note is embedded into the javascript on the page.
+We must escape double quotes so you can’t 
+break out. Also closing script tags have
+to be escaped. And escape_string uses a neat 
+trick to do that. It calls JSON.stringify on
+it. If we pass a string into that function, it 
+will escape the string to go into a JSON string
+and that is safe for javascript. Only one caveat, 
+if we place that into a HTML document we also need
+to make sure we don’t get a closing script tag, 
+because that would break this too. So the output,
+for this context, also has to escape the angle 
+brackets. Which is done here. That’s perfect.
+As mentioned earlier I didn’t find this XSS, 
+loknop found it first, so I quickly asked
+how. And he said he saw the urlencoded middleware 
+set to extended. And he googled what that means.
+Then you can quickly find the documentation 
+for body-parser, which says that this enables
+extended syntax allowing rich objects. “For more 
+information, please see the qs library.”. And
+here we can find “qs allows you to create nested 
+objects within your query strings, by surrounding
+the name of sub-keys with square brackets []”
+He simply tried this out, like our key value
+example, and saw that it breaks out of 
+the javascript string, allowing XSS.
+So you don’t really need to understand the server 
+code much. Or why exactly the XSS happens despite
+the escape_string. You can find it just by a 
+bit of experimenting or researching the code.
+But for completeness sake. The issue is 
+that with this syntax you can create rich
+objects. The server expected that content 
+is a string, but now content can be an
+object. And my key value example would 
+result in this string after JSON.stringify.
+And suddenly this string contains double quotes 
+breaking out of the javascript string. Anyway.
+We have the XSS now, how can we solve 
+it. That was actually the hard part.
+We had no clue where the flag was. Checkout the 
+notes I have written when I tried to solve it.
+First guess was that we should leak the 
+whole HTML code TJMike sees. But “I don’t
+see anything in there (full output below)”.
+Here is the whole code I had leaked. It also
+contains how I did that. I simply called 
+fetch to create an HTTP request to a domain
+I can see the request and I added 
+the HTML code in base64 encoded form.
+Anyway. This didn’t give us the flag.
+The challenge description read
+“third parties might have implanted it”. What 
+could that mean. “Implanted”. So I thought,
+maybe another attacker XSSed TJMike and 
+implanted/installed service workers. So Here
+is my XSS payload to look for all registered 
+service workers, but there was nothing.
+Another guess. “Implanted” could also mean like 
+“embedded” in an “iframe”. Maybe the page we XSS
+is an iframe. So let’s see what the top URL is, 
+maybe that leaks something. But nope. Nothing.
+Goddamit. Next guess. The challenge is called 
+“PASTE”urize. copy&PASTE. Maybe we need to steal
+the clipboard of the user. Here you can see 
+the call to `navigator.clipboard.readText()`.
+But nope, no luck.
+Maybe we should install a serviceWorker to perform
+man in the middle and capture something else?
+But as far as I know I would need a clean
+.js script hosted on the same 
+domain. And we don’t have that.
+And then the last guess I had was with TJMike, 
+because it had this microphone. Maybe we need
+to record the mic for a bit and send it over. But 
+I didn’t try. I was too lazy to implement that.
+My gosh this cost so much time. In the 
+end I desperately tried something else.
+During the CTF I used burp collaborator from 
+Burp professional. But you can also use one of
+those many request bin websites. Create a bin. 
+Anything sent to this URL will show up here.
+So we can now craft a XSS payload with “fetch”, 
+to perform a GET request to this URL. and I add
+to it the document.cookie. I create this paste 
+and copy the ID. Here is the paste. And now
+we can share it with TJMike, and when TJMike 
+looks at this post, he should execute this XSS,
+and send his cookie to this url. If we refresh 
+now the request bin, we can see we got a request
+from a 104 IP and I know that this is google. So 
+a google server is the origin of this request.
+And when we scroll down we find the leaked 
+cookie string. And there is the secret flag.
+Solved.
+This was overall a very simple challenge. But 
+there was no hint that the flag is in the cookie.
+This website doesn’t use cookies. As you can 
+see here. So it makes no sense to attempt to
+steal the cookie from TJMike. And the wording 
+of the challenge description lead us down a
+very different rabbit hole. So in the end I wish 
+they had hinted more at the cookie. Maybe set a
+cookie with “flag would be here” so that we 
+know, “ahh we need to steal TJMikes cookie”.
+Anyway. I also saw that John Hammond did a 
+writeup about this challenge. In a different
+style than my videos, so if you didn’t understand 
+something, maybe checkout his video about it.
+Also Gynvael did a full walkthrough of all 
+the easy challenges from the google CTF.
+So checkout his live stream recordings as well.

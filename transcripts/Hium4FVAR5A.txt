@@ -1,0 +1,303 @@
+In the last video we used the very simple
+sandbox bypass from version 1.0.8 and checked
+why it doesn’t work anymore for 1.4.7.
+After that we started to look at the sandbox
+bypass from gareth heyes for this new version.
+In this video we will continue where we left
+off last time and debug the AngularJS code,
+evaluating the evil expression that will lead
+to an alert.
+So as a quick reminder, the sandboy bypass
+looks like this.
+It has two parts.
+The first part attempts to overwrite the charAt
+function with another function.
+Which hopefully screws up angular internally.
+And the second part is dollar eval, which
+is the angular eval to evaluate an expression.
+So this is basically a new expression inside
+of the other expression.
+Also remember that a lot of stuff has changed
+internally from the old version.
+The concept is the same - angularjs parses
+an expression, evaluates it and somehow executes
+it.
+Just how it’s done has changed.
+We will see what it does by stepping through
+the code.
+Ok.
+Let’s start for real.
+Here we are at the first breakpoint that we
+hit after we load the page.
+I placed this breakpoint into a function called
+lex.
+This is the Lexer.
+Wikipedia tells us that lexical analysis is
+the process of converting a sequence of characters
+into a sequence of tokens.
+The lexical analysis is basically the first
+step in a compiler.
+So if you are a computer science student and
+always wondered why the heck you ever need
+to know compiler construction, here is a real
+life example.
+Also if you look at the call stack you can
+see that the lexer is called from somewhere
+with the name AST compiler, which stands for
+“Abstract Syntax Tree” compiler.
+It sounds weird but that is literally what
+this is.
+AngularJS implements a compiler that takes
+an agnularjs expression, which looks like
+javascript and compiles it to real javascript.
+There is a damn compiler inside of angularjs.
+A compiler that compiles something like javascript
+to javascript.
+Anyhow… still freaks me out.
+Back to the lexer….
+So.
+This function has one parameter called text.
+And text contains the current angularjs expression.
+According to wikipedia this lex function should
+parse a string and extract tokens from it.
+And after our breakpoint we can see a while
+loop that does exactly that.
+This while loop iterates over the full length
+of text.
+And in each iteration it will use text.charAt
+to get the next character of the string.
+So the first character would be the single
+quote from the string a.
+When we step one step further we get to an
+if that checks if the character is a single
+or double quote.
+Which is obviously the case.
+So we will follow this and call the helper
+function - readString.
+Because this single quote is an indication
+that a string starts.
+And this whole while loop is full of ifs and
+helper functions like that.
+But in the end we will get an array of tokens.
+So lets continue until this next breakpoint.
+Now we should have all tokens extracted from
+the expression.
+This.tokens is now an array of Objects.
+The first object, or token, is the string
+“a”.
+Because it’s a fixed string this is also
+considered a “constant”.
+The next token is the dot between the string
+and the constructor.
+And the third token is the constructor.
+Which is considered an identifier.
+All variable names and function names etc.
+are identifiers.
+Also for example the 8th token is the equal.
+Which is an operator.
+And before that we have the charAt function
+name, which is also an identifier.
+Now when I press continue until we hit the
+next breakpoint a loooot of stuff will happen.
+And we all skip that.
+Basically this lexical analysis to extract
+the tokens was the start of compilation and
+now we will have a look at the result of the
+compilation.
+So we skip the whole complicated compiling
+part.
+So continue.
+And now we are here.
+At the end of AST Compile.
+Just before our breakpoint we have here this
+variable called fnString.
+Stands for function string.
+And I printed that string to the console log
+down here.
+And this.
+is . the compiled javascript code.
+That is the result of compiling our angular
+expression to javascript.
+This looks a bit awful to read, so let’s
+copy it over into javascript beautifier to
+indent it properly and have a look at it.
+Sweet.
+That looks more readable.
+It might look crazy and complicated at first,
+but it’s actually pretty simple.
+So first of all, this code starts like our
+expression with the string a.
+And stores it in the variable 4.
+Then it attempts to get the constructor from
+variable 4.
+So the constructor of the string.
+After that angularjs added a function ensureSafeObject
+to check if the constructor of variable 4
+is safe.
+And because that is just the String constructor,
+it’s considered safe.
+Remember that this function was responsible
+for the exception when we tried to access
+the function constructor with the old bypass.
+After that the constructor is moved into variable
+3 and checked if it has the property prototype.
+If that’s the case, the reference to prototype
+is saved in variable 1.
+And as a last step we check if the string
+prototype stored in variable 1 has a charAt
+property.
+Now we are done with the left side of the
+assignment
+Up next is the right side.
+Here we start also with a string.
+String b is moved into variable 5 and follows
+it up with referencing concat of it and moving
+it into variable 0.
+Then angularjs checks if charAt of variable
+1 is a safe object.
+But that is obviously just the normal charAt
+function and that’s considered safe.
+Afterwards variable 1 itself is checked, because
+we are about to assign something to the string
+prototype in variable1 and angularjs want’s
+to be sure it’s safe to assign something
+to that object.
+Man.
+If angularjs would just know what is about
+to happen.
+Now the crucial part.
+We assign the concat function in variabvle
+0, to the charAt function of the String prototype
+in variable 1.
+Now the first part of the exploit is done.
+At this point charAt should have laid an alien
+egg inside of angular’s body, which is about
+to hatch and break out of angular’s chest.
+The following few lines are then the second
+part of the exploit, which is fairly short.
+It basically gets dolalr eval now from the
+scope object, does some checks on those variables,
+including the string parameter we pass to
+dollar eval, but it’s just a string.
+So all is safe.
+And eval is called, which initiates another
+parsing, compilation and execution of this
+string.
+Now that we understand the compiled code.
+So let’s see what happens with that.
+After our old breakpoint fnString is used
+in a call to the good old Function constructor,
+which will create an actual function that
+can then later be called.
+At the end it will return this function fn.
+I’m about to hit continue again so we will
+jump to our next breakpoint.
+The next breakpoint is inside if ensureSafeObject.
+That is one of the function called from the
+compiled code.
+So that means we are actually inside of our
+executing expression.
+Go!
+Boom.
+ok.
+Ensure SafeObject.
+In the call stack we can see that we are coming
+from fn.
+And fn is this compiled function.
+You can pretty print this code by clicking
+on the curley braces in the bottom left of
+the source window.
+Yep, this looks familiar.
+Just what we looked at before.
+Here is our string a.
+And getting the constructor of it.
+Etc.
+When I now continue we are again in ensureSafeObject.
+This time further down in the code.
+Actually right before we assign and overwrite
+charAt.
+Just one more check before, the ensureSafeAssignContext.
+Ok let’s continue a bit more, until we are
+back inside of the lexer.
+Why are we here again?
+Well as you can see in the call stack we are
+coming from fn.
+And fn called dollar eval.
+And dollar eval is just now triggering evaluation
+and execution of this new expression string.
+As expected, text is simply what we passed
+to dollar eval.
+But let’s step further.
+We are again heading into the while loop that
+is supposed to extract single tokens from
+this character sequence.
+The index starts again at 0.
+So now angularjs tries to get the first character
+from the string with charAt.
+But charAt is not charAt anymore.
+The alien hatches and feeds on angular’s
+intestines.
+Charat zero appends now zero to the string,
+instead of returning a single character.
+So ch is super long and thus not the start
+of a string.
+It’s also obviously not a number.
+BUT!
+The validation function isIdent thinks that
+this is now an identifier.
+Remember that usually variables and function
+names etc. are identifier.
+That means that usually identifiers do not
+contain special characters, such as the equal
+or curly braces we have in this string.
+And if we continue now to the end of the loop,
+and look at the tokens, we can see that there
+is only one token.
+And It’s an identifier with our whole string.
+That is just wrong.
+An identifier should not have those weird
+characters inside.
+If we continue now, we hit the next breakpoint
+at the end of compilation.
+And we can have a look at the resulting javascript
+code.
+Let’s again copy it over to js beautifier
+to see what happenned.
+Ah.
+You can already see here the part2 of our
+exploit embedded in the javascript code.
+You can also see that it’s S. Dot.
+exploit blah blah.
+Remember that all expressions are evaluated
+against the scope object?
+Well because angularjs thought we had an identifier
+in our expression, it placed that identifier
+in the compiled code by checking if the scope
+object has such a proeprty.
+In this case this totally blows up because
+the identifier had non valid identifier characters.
+When you ident it properly it becomes more
+clear.
+You can see now the start of our expression
+with exploit equals 1 and the three closing
+curley braces.
+Then the breakpoint and then the alert one.
+So when we continue now, we should hit that
+breakpoint.
+Boom.
+Indeed.
+We are inside of the compiled code at the
+breakpoint.
+Pretty print it again.
+And let’s enjoy this beauty for a second.
+Then hit continue, which will execute alert.
+Awesomeee!
+And this is how the angularjs sandbox bypass
+for version 1.4.7 works.
+We overwrite the charAt function that is shared
+for all strings.
+Which breaks how angularjs parses expressions
+allowing us to inject bad characters as an
+identifier in the compiled code which we can
+abuse to break out and write arbitrary javascript
+code.

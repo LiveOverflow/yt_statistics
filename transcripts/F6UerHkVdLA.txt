@@ -1,0 +1,609 @@
+Sometimes people write to me because they are 
+stuck in a CTF challenge and they hope I can help
+them. In this case it’s a person who is apparently 
+trying to exploit a format string vulnerability.
+There is always a bit of a conflict for me because 
+I want to help people, but it takes A LOT OF TIME
+to do so. You will see how much time it costs, 
+even with a simple challenge like here. And to
+be honest, I rather invest this time into making 
+videos for thousands of people, than helping one
+individual person. But when this person wrote 
+me, I just happened to stand at the platform,
+waiting for my train, and had nothing better 
+to do. And actually, in the end helping, this
+person exploiting this vulnerability, but turning 
+that into a video to showcase their mistakes and
+sharing my thought-processes, it becomes a very 
+valuable learning resource for a wider audience.
+So let’s head into the DMs. BTW, voice 
+actor helping me for this episode
+is non other than John hammond!
+“I'm trying a ctf and I need your help it's 
+about print string vulnerables and stack
+bleeding. I have managed to leak everything but 
+the flag. Here is the server and port to connect
+with netcat”.
+c
+They also share a screenshot. They called it 
+a “print string vulnerability”, but given the
+description and the screenshot, I think it’s more 
+commonly known as a format string vulnerability.
+If you don’t know what a format string 
+vulnerability is, please watch my old binary
+exploitation episode about it. Anyway. As I 
+said I was outside on my phone, so I couldn’t
+check the challenge with netcat myself. So my 
+first response was, “what’s the question?”,
+because I’m already annoyed that this 
+person didn’t share important details.
+Please watch my videos raging about that, BEFORE 
+you send me questions. Because, this text and
+screenshot contains SO LITTLE INFORMATION, that 
+I have to guess a lot. And my guesses could be
+wrong, that would help nobody and would be very 
+frustrating for all sides. Though this person got
+lucky, it is such a simple challenge that I was 
+pretty confident that I knew what was going on.
+But just to make sure, and teach 
+people to ask proper questions,
+I’d rather poke back. And I 
+ask “what’s the question?”,
+I mean there was no question. The person just 
+stated they they leaked everything but the flag.
+I know it’s a format string vulnerability. 
+Apparently we have to leak the stack to get
+the flag, and in between the task description, 
+I see leaked environment variables. HOME, PATH,
+PWD and some more. This makes sense, 
+because environment variables are stored
+on the stack - at the beginning of the stack.
+So apparently this person already was successfully
+exploiting the format string vulnerability and 
+leaked stack variables. But they didn’t leak the
+flag. The question for me now is, how was this 
+output generated. There are two possibilities.
+This could be a script decoding output and 
+make it printable text, or the person used %s,
+in the format string exploit, to leak strings. 
+That’s why I asked about more details. I don’t
+want to guess what you did. Show me what you did.
+And so they sent me their script.
+“Here is my python code. What am I doing 
+wrong? I connect to the challenge server.
+Then iterate over a few offsets, and send 
+a format string input with %s to it.”
+Based on this code and the screenshot I was 
+actually 100% sure about what was going on.
+So let me explain what I was thinking.
+Let’s start with a recap how the format
+modifier %s works, compared to for example %d or 
+%x. When you write code like printf(“%x”, value);
+Then the compiled assembly code, will place the 
+value on the stack as a literal value. There is
+some 32bit and 64bit differences. 64bit calling 
+convention passes early parameters via registers.
+But doesn’t matter, later values are taken from 
+the stack. Thus %x, or %d literally print the
+value found on the stack (or a register). But 
+%s is different. printf(“%s”, string); expects
+a POINTER to an array of characters. And so printf 
+takes the value on the stack as an address, goes
+to that address, and prints the characters there.
+Which totally makes sense seeing this screenshot,
+because there are pointers to those environment 
+variables on the stack. The reason why is not
+surprising. The third parameter of main() 
+in a c program, is a pointer to an array
+of environment variables. So the code 
+that setups your program and calls main,
+will place pointers to those strings on the stack.
+So going back to the script, if you now use %s to
+print different strings from the stack, this 
+is done here with the dollar $ iterating over
+different stack offsets,, eventually you 
+might reach such an environment pointer,
+so printf follows it and prints the string.
+Which explains the evidence I am seeing.
+But keep in mind, I’m only this confident in my 
+guesses, because this is a very simple challenge
+that I have done many times. A little bit 
+more complex challenge, and I would have
+no clue what is going on. Anyway.
+If you have a bit of experience
+with format string exploits, you might 
+even already identify their mistake.
+Instead of using %s to leak strings, you should 
+use something like %x to literally leak the
+values on the stack. You will leak them as hex 
+values, and so you have to decode them first,
+but you leak the actual values on the stack.
+Anyway. Now that I know the most likely solution,
+I could just tell them, but 
+I don’t like to do that.
+Especially when I don’t know if this is some kind 
+of active CTF. I’m not your CTF cheat code. I
+want people to learn, so I like to have a back 
+and forth conversation. And that’s why helping
+people costs time. So I ask, where is the flag?
+Because even though my solution idea might work,
+maybe the task of the challenge is completly 
+different. Maybe you need to get remote code
+execution. Again, not enough information given.
+But they respond with:
+“FLAG curly braces”.
+To which I respond:
+“Not what is the flag. WHERE is the flag?
+What’s the goal?
+Do you have the binary or 
+is it blind exploitation?
+Is the flag in memory somewhere? Or 
+do you need remote code execution?”
+“Here is the post. It’s the 
+only info i’ve been given”
+Stack bleeding - this program will echo 
+anything you write. Can you exploit this?
+“Mmhh okay. „stacking bleeding“ sounds 
+like the flag should be on the stack”.
+Now we can actually go into the technical 
+details. I respond that “I have an idea
+to try”, because now I think I know their 
+problem, but first I have another question.
+“What exactly does %s do?”. I ask this, because I 
+want them to carefully think about what they do,
+so they can figure out their own mistake. 
+Basically I look for an answer what I just
+explained, that %s takes a pointer from the stack 
+and prints the string at the target location.
+It doesn’t print the actual value on the stack.
+But I get the response “just halts it 
+if I remember correctly. Doesn’t echo”.
+“I mean. Your exploit uses %s
+So what do you try to do with that?
+What does that format string do?”
+“So if I go up the stack using 
+smth like %2$s if it has a string
+it echos. it if not seems to halt / doesn't echo”
+“Okay. Can you describe to 
+me how %2$s prints a string?
+I know the question might be a bit confusing
+I try to get to a specific detail and 
+difference between %s and for example %x
+Why does %s not work sometime? Why does it break?
+And why does %2$s not break”.
+You can see me here hinting again at what I 
+want. I directly ask what the difference is.
+I want them to tell me, that %s follows a 
+pointer on the stack, so if a value on the
+stack is not a valid address, then printf will 
+fail. It will break. But %x would not fail,
+because it literally prints that value.
+But it didn’t work yet.
+“So basically %i$s tells it where on the stack 
+to try to print a string from , the author told
+me bleed the "stack" so I think it's a play on 
+words. Why %s breaks it sometime I have no idea”
+“Did you watch my videos about format strings?”
+I know it’s a bit unfair to say 
+that, nobody watches all my videos,
+but those are all topics that I have covered. At 
+least I think so. And so sometimes it makes me
+a bit sad when I get questions that 
+would be answered if they would remember
+EVERYTHING I said in videos. I know 
+it’s a bit unfair. But… urgh… Anyway.
+Next, I try to ask the same thing in a slightly 
+different way, because I’m trying to figure out
+how to ask, so their brain responds to 
+it properly and realizes their mistake
+“Does %s print strings from the stack?”
+This is a bit of a “trick question”, because 
+the answer is kinad yes or no. Depending how
+you interpret it. But I was thinking about it 
+this way: %s follows pointers on the stack and
+prints strings where they point to. So those 
+strings could be ANYWHERE in memory. They don’t
+have to be on the stack. If you realize 
+this, you would figure out your mistake.
+‘I did but there's a few”. So I 
+guess they did watch my videos.
+Also I just checked my scripts, in 
+episode 0x1e I briefly mentioned it there.
+“Also because we already know it will 
+be about a format string vulnerability,
+we can try to inject some characters 
+such as %x, but again, nothing happens.
+We could also try %s, because if you remember, 
+it will take values on the stack as the address
+location of a string, thus if values on 
+the stack do not point into valid memory,
+the program should crash, which would be another 
+indication of a format string vulnerability.
+But nope. Also doesn’t do anything.”
+But I understand, there is so much information 
+in so many videos, you might not remember that.
+And I guess I wasn’t super clear either. So. 
+alright. BUT there are also TONS of other
+format string exploit tutorials online too.
+And literally the first result when I search
+for “format string exploit 
+what does %s do” writes this.
+“The printf in the second line will interpret 
+the %s%s%s%s%s%s in the input string as a
+reference to string pointers, so it will try 
+to interpret every %s as a pointer to a string,
+starting from the location of the buffer 
+(probably on the Stack). At some point,
+it will get to an invalid address, and attempting 
+to access it will cause the program to crash.”
+You can see, you can help yourself a lot if 
+you google around. And so I was hoping this
+person would explore my questions further, even 
+if it means they need to research more. Anyway.
+“I know it prints the string at 
+%i$s if there's one there it seems”
+And this screenshot shows that %s seems 
+to crash the process. Which makes sense.
+Probably the first address on the stack (or 
+in the first register) is an invalid address.
+Okay. clearly the person doesn’t 
+catch what I try to get at.
+So let me try to ask differently again, and 
+this time start even earlier with basics.
+A: “Ok let me ask differently. What 
+are strings? What is a string in C?
+B: “A char array’
+A: Cool okay!
+Do let’s say you have the char array 
+„AAAABBBBCCCCDDDD“ on the stack. And you print
+1) %s
+2) %2$s
+What do you think it will print?
+Just try to have an educated guess”
+Again this is a bit of a tricky question. 
+Because both answers are, it will crash. But
+I deliberately ask it this way, because I figured 
+they would say the first one prints maybe AAAA
+and the second one BBBB. Which would show 
+me they have a wrong understanding of %s.
+But their answer surprised me:
+B: ““1. Would do nothing
+2. Would print that string because 
+2nd offset is it's address?”
+A: “Aha! Okay!!!!
+I mean,
+That was COMPLETLY wrong! but 
+you said something important!
+1 and 2 would break. BECAUSE 
+%s looks for an address.
+%s Takes the address and prints 
+the string at that location
+%s would try to interpret “AAAA” as an address.
+And %2$s would interpret “BBBB” as address
+(On 32bit at least)”
+B: “Interesting”
+A: “So. How would you print the actual value
+on the stack? And not interpret that 
+value as an address to a char array”
+B: “So what do we can do if it thinks 
+they are addresses if they are strings
+I can get the address %x”
+Oh we are getting there slowly! 
+I think they almost got it.
+Now I wanted to try to check their 
+understanding, with another question.
+A: “Let’s do the same example. AAAABBBBCCCCDDDD 
+is on the stack. What would it print:
+1) %x
+2) %2$x?”
+B: “1. Prints the address
+2. Prints that addresses contents?”
+Ah crap. That is completely wrong. “I 
+think you misunderstand what 2$ does”
+B: “I thought that meant where on the stack”
+A: YES! Exactly! So why do you say 
+that 2) prints the address content?
+Why does 1) and 2) do something different?
+I mean you just said it says WHERE on 
+the stack it prints the value. So it
+sounds to me like that 1) and 2) do 
+the same. Except they differ WHERE
+on they stack. They don’t differ with 
+WHAT they will print. Print a value.
+B: “Because 1 is just the first thing 
+on the stack printf gets and 2 is where”
+A: “No that’s wrong. And that’s 
+not what you said yourself”
+But then I stare at it again and I realized 
+that there is a miscommunication happening.
+“Ahh no yes it’s correct” what you say. “I 
+see the confusion about the word “where”.
+They thought I focus on: `here it’s 
+only %x`, and `here is the dollar
+offset notation`. So they thought I was 
+asking about the meaning of the dollar.
+But no, I just wanted to know what the 
+expected printf with these conditions is.
+So I clarify.
+“%x prints the first value on the stack. And $ 
+decides where. So %2$x is the SECOND value on the
+stack.” Maybe it’s the third. I don’t know how 
+to count. But that’s not important right now.”
+B: “Yes but it's %x hex and we need a string”.
+Uhmmmm…. mh! I think they understood now the 
+problem. But, they still have some confusion left.
+They think their goal is to leak the flag, the 
+flag is a string, so it must be %s. Because %x
+would be hex values. So now I try to show them, 
+that it doesn’t matter how it’s represented.
+A: “What is 0x41414141 as a string?”
+B: “AAAA”
+A: “So……? If you can easily convert hex to string? 
+Why do you care that it’s hex and not a string?”
+B: “It should tell us the string in hex”
+A: “Why? Why do you care - if PRINTF 
+converts the bytes to readable text for you,
+or if YOU take the hex and convert it yourself?
+It’s all about leaking values from 
+memory. And that seems the goal here”
+B: “Because %x is hex so we 
+convert to string from hex”
+At this moment I thought, why are you 
+repeating the same thing. Didn’t we
+just realize that it doesn’t matter if you leak 
+hex values or strings? So I got a bit grumPy.
+A: “Why do you care???
+Look. When “AAAABBBBCCCC”
+is a STRING on the stack. Then you cant leak it 
+with %s. I explained why. But you can use %x!!!”
+As you can see, I basically 
+just stated the solution now.
+“The output will be in hex. 
+But if you do that, the leaked
+hex bytes are still part of that string?
+So why do you care that the leak is in hex.
+The values you leaked are from a string. 
+Now you just have to convert them back”
+B: “I don't care if it's hex, you said so above,
+and I was replying to that 
+and it went down from there”
+Urgh oops okay. Miscommunication again. 
+I thought they still don’t want to use
+%x because they want a string. But 
+they were just stating a fact. My bad.
+That’s the issue with messages, sometimes 
+context is lost. And so I got a bit impatient.
+Whatever. It’s forgotten. Let’s move 
+on. “Oki. So what’s the problem now?”
+B: “I have to test it”
+A: “I’m waiting”
+5 minutes later I get this screenshot. 
+“Kinda seems like just addresses”.
+I think around this time I was also back 
+at home. So I didn’t immediately respond.
+15 minutes later they added.
+B: “ye so far as i keep going up I'm 
+not seeing anything that looks like text
+when i put it into hex editor”
+Mh. it’s sometimes not easy to recognize a 
+flag in hex output. So I thought I suggest
+them to convert the expected solution string 
+“FLAG” to hex, because then they have the hex
+values they need to look out for. And might be 
+able to quickly identify it. Thus I ask them:
+A: “Can you convert FLAG to hex?”
+But in the meantime, I was also back at the 
+PC, and I could now ch eck those bytes myself.
+Of course I have to type them and can’t 
+copy them, because it’s a screenshot.
+And I immediately saw some bytes that looked like 
+text. Checkout my “ey! Look for patterns” video
+if you want to know how I knew that. Anyway. 
+Those first bytes translate to “ ehTssap”. And
+that is printable text! And maybe it could 
+be the string “The pass”. The byte order,
+so the endianess is f’ed up, so when we fix 
+the 4 byte endianess, you can see it too!
+By the way, I’m using this cyberchef tool for 
+this. In an exploit you would of course write
+that stuff in python code, but it’s great 
+for playing a cround with data like here.
+Mh… but it looks like FLAG does not 
+appear in it. “The password ...”. So maybe
+that was their issue. Maybe they saw this, but 
+not the flag. And at this point I also thought
+maybe it’s not the whole leak. Sometimes in 
+format string vulnerabilities when they appear
+in a combination with a buffer overflow, you might 
+leak the string itself, because you your format
+input overwrites the whole stack, rather than the 
+leaking the original bytes you want. And I noticed
+here those bytes at the end are basically %x. So 
+I thought this is what might have happened here.
+maybe it’s not the complete leak yet. The solution 
+to that is to not have a ling %x string like here,
+but have short format strings, and use the dollar 
+offset to l eak individual values. And so I said:
+A: “Ahh I see your problem. What do 
+you get when you convert those hex
+values? What kind of string snippets do you see?”
+At this moment I wanted them to recognize 
+that they did leak some actual text,
+but also there is this issue with the buffer.
+But look at the screenshot they sent “went from 
+%1$x - %100$x and didnt see anything hex that
+looks like a string”. But that output makes no 
+sense. You saw me just converting some values.
+BUT, the difference between this and that 
+is that, they said they ran the script again
+to iterate through offsets. So 
+these bytes are not the ones from
+here, but from them running their script. So OF 
+COURSE, I wanted to see that actual script output.
+A: “Can you show me that output? 
+The screenshot only shows %x”
+B: “sure”. And now this screenshot 
+shows all offsets by hand in one input.
+Goddamit. That’s not what I meant. 
+If there is really that issue with
+the buffer overflow destroying the stuff on 
+the stack, then this doesn’t help. We need
+the output from the script that does it in a 
+loop with short format strings. So I respond:
+A: “a few mistakes you make there.
+Why don’t you use the program you 
+showed me? Change the s to a x?”
+And now they deliver the output of that script.
+B: “ok, the issue with it seems
+to skip numbers. beside the hex number 
+is the i number in the for loop”
+And that screenshot is indeed 
+weird. Why are there only a few
+outputs. I’m getting confused 
+too. So now I need more info.
+A: “can you show me more?
+maybe copy it to pastebin or 
+secret github gist or something”
+I get this pastebin with the output. 
+And indeed some outputs are missing,
+which is really weird. But some hex snippets 
+still look like printable strings. So I ask:
+A: “and have you looked at 
+some of the output there?
+any printable string snippets?”
+To which they respond with this screenshot,
+and YEAH, this looks kinda good. At least 
+the initial “The” in wrong endian is there.
+A: “doesn't this sound interesting?”
+B: “sound interesting i guess…”
+COMEON! YOU ARE BASICALLY THERE. 
+PLEASE WALK THE LAST STEPS NOW.
+A: “The
+...
+is:
+...
+0v3_”
+i mean... sounds to me like 
+it's part of the solution. I
+could imagine that the complete 
+string would be something like:
+The flag is: FLAG{...”
+So as you can see I was still expecting to 
+see the FLAG string to appear in the output,
+and it wasn’t there, which 
+meant we have some other bugs.
+Maybe the reason for that is that the 
+script itself is buggy. So I wrote:
+A: “now we need to just figure 
+out why some outputs are buggy””
+B: “it is, need to fix the python 
+script first make it a bit easier”
+So I kept thinking about this bug, and 
+I needed a bit more experiments to drill
+down onto the potential issue. 
+First of all I wanted to know
+if the issue only happens when the script 
+executes, or if it also happens by hand.
+A: “does it ALWAYS fail to print those?”
+Apparently offset 8 didn’t work,
+so now I’m specifically asking:
+“can you do by hand: %8$x”
+B: “something like that i think the issue is the 
+remote server expects inpute to give broken pipe
+i mean 2nd input like a space
+like you have to put in what you
+want it to echo then hit enter then enter again 
+to exit and I think that's why my script fails”
+Because they didn’t do the test and send me the 
+results, I though, “goddamit. I do it myself
+then”. So in the meantime I just tried it by 
+hand to print the 8th offset. And it worked!
+A: “I can print it no problem. so something 
+might be broken with your script or so”
+B: “i think the 2nd part is the server is waiting 
+for another enter and the script isn't giving it”
+A: “yeah dunno.” those explanations sound a 
+bit weird to me. But I also thought that it
+doesn’t matter, because “you can also now 
+solve it by hand”. If the script fails,
+just do the %x by hand!
+Please just solve it now,
+so we are done with this!
+But I couldn’t help myself, so I
+did look at the script again, and thought about 
+it. And then I realized what an issue might be.
+“maybe you try to recv() too fast. 
+server is not fast enough with
+responding. try to add a time.sleep(0.5)”.
+20 minutes later no response. “so. any result?”
+B: “offset 6-20 I get this. If I 
+clean it I get this. Which is that”.
+And they even sent a screenshot along! 
+And look at that! This is readable text!
+You just have to fix the byte order, 
+the endianess. So I give some hints:
+A: “well... you are getting close
+can you fix the endianess?
+" ehT" should obivously be "The "
+B: “I thought it was endianess when 
+I saw it because it was backwards”
+Very good! You know about endianess, glad 
+I don’t need to explain that. “so fix that”
+And then they sent this.
+“%15$u6s4t_bf0rm0v3_ I_l is:wordpassThe”
+“ill try again”.... Uhm yes please.
+“yea, i don’t know, but the flag has 
+always been FLAG{} so I don't think its it”
+Sure, but it doesn’t matter. You are clearly 
+leaking something that seems important for
+the challenge. So I ignored this and mentioned 
+again “You are dealing with the endianess wrong”
+And now they fixed it:
+“The password is: I_l0v3_f0rm4t_bu6s�%15$”
+Some code they probably used 
+to swap endianess. Very good.
+And then they write thanks for the help. But I 
+wasn’t sure if they solved it now, so I asked
+“is the flag
+FLAG{I_l0v3_f0rm4t_bu6s}?
+did that work?”
+After spending so much time on this, I need 
+the satisfaction of having it solved now!
+“It did but everyone iv done before had 
+FLAG{...} idk where it was in that one”
+Urgh okay. Well. It’s solved! “maybe not the best
+challenge design ;)”, when the FLAG{} 
+always appeared before, but whatever.
+They solved. Congratulations. Clap clap.
+Btw, maybe you noticed this, I only 
+noticed it when making this video,
+they actually had the solution already at 
+this output. Which was about 50 minutes
+after we started writing. I was just too lazy 
+to type the bytes, and apparently they were too.
+So as you can see, really trying to help people 
+takes time. We started talking around 12,
+and it was solved around 3pm. I plotted 
+all the messages on this timeline here,
+just so you can visualize how much back 
+and forth this is. It’s just messages,
+but you can’t do anything productive in parallel. 
+Constantly you get distracted from those messages.
+So this was me spending like 2 hours or more on 
+this, and in the end I only helped one person.
+I hope you understand why I don’t have the time 
+for everybody and why I generally prefer to spend
+those two hours working on videos for all instead.
+But then there was this idea to turn this
+conversation into a video and now 
+hopefully you learned something too.
+Which leads me to the following question. 
+In my imagination a video like this here
+is a really good learning resource, because 
+troubleshooting and working through issues,
+is the best way to learn. Much better than 
+just me telling you how something works.
+So please let me know if this kind 
+of video style is actually engaging,
+or if it’s boring, and if you want to 
+see more videos like this, or rather not.

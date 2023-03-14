@@ -1,0 +1,201 @@
+These networking levels from protostar are
+not really security related, but they are
+great to do some first simple network programming.
+And just for the sake of having a complete
+series from exploit-exercises, we will solve
+these challenges too.
+
+The previous two videos were already a good
+introduction into networking, sockets, TCP,
+and, so let’s build on this foundation by
+writing a python script to interact with this
+program over the network.
+Especially for CTFs, this is an important
+part, because for many many challenges you
+interact with a service over TCP.
+So the exploit you write has to do this over
+the network.
+Let’s have a look at this level.
+I won’t go over the meaning of all these
+unknown functions, because we have done so
+in episode hex 19.
+As we see in the defines, or simply by checking
+netstat on the VM, we can see that net level
+1 is running on port 2998.
+Again we could use netcat to talk to this
+service, but this time, we want to write a
+python script.
+But let’s first have a look at the run function.
+First run generates a random unsigned integer,
+and then we sprintf the number into fub.
+We haven’t seen S-printf before - so other
+than regular printf which writes the resulting
+string to stdout, sprintf will write the resulting
+string the address specified in the first
+argument - in this case buf.
+This means `fub` will contain the decimal
+representation of the number in ascii, and
+not contain the raw byte values.
+Then write will write to the socket, thus
+sending us the integer number, thus the raw
+bytes.
+That’s what we saw returned by netcat.
+After that, the program will wait for user
+input with fread.
+Once we send some data it will overwrite any
+newline or carriage return with a null byte.
+This makes sense because when we for example
+use netcat and hit ENTER to send something,
+it will include a newline at the end, because
+that’s the key we pressed.
+But obviously this program only wants the
+characters we actually meant to send - thus
+stripping away the newline.
+Then it compares the original number with
+the number it received and either prints success
+or fail.
+So, lets start to write our python script.
+But how do we do that?
+Maybe a first hint on how to do network programming
+could be to look at how netcat connects to
+the server.
+So we can use strace, to trace all syscalls
+of netcat.
+Now let’s try to identify the important
+ones, and then we try to figure out how to
+implement them in python.
+First one is obviously the call to socket,
+so let’s look into the python socket documentation
+on how to do that in or script.
+So the call to socket uses the parameters
+PF_INET and SOCK_STREAM and when we look here
+in the python doc we see something very similar.
+Except that it suggests to use AF_INET.
+So I wondered what’s the difference between
+PF and AF_INET, so I googled and surprisingly,
+it turns out, that that is a remnant of an
+idea that never took off, and in fact in the
+linux kernel it’s now simply defined as
+being the same as AF_INET.
+Ha, learned something today.
+And the python doc then uses connect to connect
+to a hostname, or an IP and port.
+Which we can also see in the strace.
+Here it’s called with the port 2998 and
+the ip address 127.0.0.1
+So we can also just use that.
+Cool.
+And now we can use send and receive with this
+socket.
+Obviously we want to read the number that
+is sent to us, so we use recv, but we have
+to specify how much data we want to read.
+In this case we expect an unsigned integer,
+which is 32bit large, thus we have to read
+4 bytes.
+Now let’s simply print the data we receive
+and then test it.
+Cool.
+Btw, also notice that when we request a new
+number very quickly, that a lot of numbers
+are the same and not random?
+That’s because in the code the random number
+generator is seeded by the time in seconds.
+Thus if we send fast enough, the seconds will
+be the same and thus produce the same pseudo
+random number.
+Don’t you ever use a non random source as
+a seed for a pseudo random number generator!
+And now it’s easy to solve it, because we
+are already very experience with converting
+numbers to raw bytes and raw bytes to numbers
+from all the exploits with memory values that
+we have written.
+So we can simply use the struct module and
+convert the raw binary data back to an unsigned
+integer, and then send it as a string back
+to the server.
+Remember that struct unpack returns a tuple,
+so the actual unpacked number is the first
+element.
+Mh… it seems to hang.
+Let’s try it again.
+Now it seems to work.
+The receive hangs when it is waiting for data
+and doesn’t get any, so I assume the server
+sends too fast and there is no buffer buffering
+the data, and when we are finally ready to
+recv data, the data is already lost in the
+void.
+Anyhow, it worked.
+Doesn’t have to be perfect, as long as you
+succeed once, the attack was sucessful.
+This episode is so short, and these challenges
+are not really about security anyway, so let’s
+quickly solve the next one too.
+Net2 is very similar, we again have a network
+setup with a program listening on port 2997.
+In the run function we see a for loop that
+runs 4 times and each time it generates a
+random number, adds it to the sum of them
+all and then sends it over the network.
+The description also says that we have to
+add 4 32bit integers.
+And it already warns us about the possibility
+of it wrapping.
+Or in proper terms, it warns us about an integers
+overflow - which again is security relevant.
+Ok, so let’s copy our previous script and
+quickly modify it to read 4 integers and then
+calculate the sum.
+We can simply extend the struct unpack modifier,
+and then we can also just create a sum over
+the resulting tuple.
+Easy as that.
+The code expects the result not in an ascii
+decimal representation but as a raw binary,
+so we can use struct pack to covnert it to
+a binary string and send that.
+Oh.
+haha.
+I wanted to show that this doesn’t work.
+because of the integer overflow.
+If we have a look at the result of the sum
+in binary we can see that it contains more
+than 32bits, and that cannot be.
+An integer is only 32bit large.
+So what happens is, that the integer is simply
+overflowing, or wrapping around.
+This means the carry of the highest bit is
+just lost.
+Well, it’s not entirely true, the CPU is
+actually aware of this, when an arithmetic
+operation such as an addition ends up overflowing
+the value in a register, a special overflow
+flag is set that could be checked.
+But anyway, in this case our unsigned integer
+on the server will always wrap around.
+And apparently this old python struct version
+actually did that for us, but this behaviour
+got deprecated.
+So we can simply do the same in our code.
+As I said, this issue is called integer overflow,
+and when you search for this you will find
+many bug reports about it.
+Let’s make a simple example of a typical
+integer overflow issue.
+Let’s say you have a loop that keeps reading
+data and adds the size to an overall size
+variable.
+Once it’s done with the loop, it will know
+for how much data it has to allocate space
+for.
+The issue is now, if you manage to send so
+much data, that the counter overflows, wraps
+around, a smaller space is allocated for the
+huge amounts of data, and then you have a
+typical overflow condition.
+We are slowly heading into the final levels
+of exploit-exercises protostar and we start
+to see a little bit more intricate challenges.
+So let’s stay focused and tackle these next!

@@ -1,0 +1,264 @@
+We are exploring the early years 
+of JavaScript security. Or I guess
+Browser client-side security in general. And 
+in this video I want to explore a timeframe
+of about 3 years from around 97 to around 
+2000. And I call it the “age of Universal XSS”.
+But what does that mean?! As you now know, 
+“Cross-site scripting” (XSS) is a modern term,
+it was not a term used by anybody before the year 
+2000. But we are looking back from the future
+and what we call today “universal XSS”, which we 
+see very rarely today, it was the norm back then.
+But what exactly does “universal XSS” mean?
+I imagine many of you know about basic XSS. 
+like reflected or stored XSS. But the first time
+I had heard of “universal XSS”, I 
+couldn’t quite grasp what it means.
+But I think all of this becomes a lot 
+clearer when we look back in time at
+these early vulnerabilities. So let’s boot 
+up Windows 95, and forget the term cross-site
+scripting and universal XSS for now, because 
+in 19997 nobody knew this term. Let’s go.
+A few months after the release of JavaScript in 
+Netscape 2.0 around 96/97, they realized it’s
+a bad idea when a website can use JavaScript to 
+access the cookies or data from another website.
+So they implemented a restriction. Today we call 
+it “the same-origin policy”. We talked about
+this already in the first episode of the series.
+But like with many security fixes, especially in
+a very very complex environment like websites 
+and browsers with tons of crazy features that
+were developed at light speed, there were always 
+issues that broke that security barrier again.
+But enough of netscape for now. Because
+Internet Explorer also joined the scene with 
+their implementation of JavaScript called JSCript.
+They released it a few months after Netscape and 
+had similar issues. Look at this email by Aleph1.
+I think this is the same aleph1 of the famous 
+smash the stack for fun and profit article. See,
+even the cool binary exploitation hackers back 
+then dabbled in this new area of security.
+So here alleph shares information about an 
+issue reported by german hacker Ralf Hueskes
+of jabadoo communications. His findings are 
+part of a series for the c’t computer magazine.
+Crazy to think that magazines back then were 
+interested in such vulnerability research.
+Anyway, In a followup email we can find the actual 
+vulnerability code, because apparently microsoft
+forced Ralf to remove the code.
+And it is a super short payload.
+Here we have an iframe, so it embeds another 
+page. And the page it embeds is a file from
+the local system again. After the iframe 
+loaded the file, it takes the HTML code
+of the embedded page and displays it.
+Does this vulnerability sound familiar?
+This is super interstuing to me because this 
+is essentially the same issue we looked at in
+the first video. So basically the same 
+issue happened in netscape’s javascript
+implementation a few months prior to that. I 
+mean it’s not necessarily a javascript issue,
+it’s a design and architecture issue. This issue 
+arises from the fact that suddenly websites have
+javascript. But I guess news didn’t travel to 
+Microsoft yet and so they had the same issue.
+Obviously if you try to do this today,
+it doesn’t work. The same origin policy tells 
+us that one site cannot access the content of
+another site. But here in the Internet 
+Explorer version 4, this still worked.
+Now let’s have a look at a more 
+interesting Internet Explorer vulnerability
+In September 1998 Georgi Guninski found 
+a bug that allows reading local files.
+Down here is the javascript. It’s essentially only 
+two lines but it looks a bit more complicated.
+So it starts by opening a new 
+window containing a local test file.
+And the real magic happens in this navigate 
+call. window.navigate is old Internet Explorer
+function to open a website URL. nowadays 
+we would use window.location instead.
+So now we load a new URL in this 
+window and it’s a javascript URL.
+So this will execute the javascript here, which 
+again opens a new window with the target file,
+and simply extracts the text of 
+it. And shows it with an alert box.
+It’s kinda straight forward what happens here. 
+Javascript URLs don’t actually redirect to a
+new page. The javascript gets executed on the 
+current site. This is actually still true in 2022.
+Here I have chrome and when I enter a javascript 
+URI and to alert the current domain, you can see
+we execute javascript in the context of this 
+site here. But the small detail that makes this
+a vulnerability in the old internet explorer, 
+is that an attacker can automatically trigger
+this javascript URI with code. No user interaction 
+required. And so this evaled code is executing in
+the context of the currently loaded site which 
+is a file:// URL, so by the same origin policy,
+it is allowed to access this file now.
+You see, researchers had to slowly find more
+and more tricks to break the security. But that 
+was not a problem for Georgi. Georgi is a hacker
+who had his debut on the bugtraq mailinglist 
+in 1997 with an exploit for the mount process.
+A very long LC_MESSAGES environment variable 
+caused a buffer overflow in `mount`. Look at this
+exploit written in C. clearly he knows his stuff. 
+And in 1998 he started to shift focus on breaking
+browsers. He reported several bugs to netscape and 
+eventually started to dig into Internet Explorer.
+Look at all these Microsoft Security 
+Bulletins Acknowledging Georgi.
+Ms99-012: A particular malformed URL 
+could be used to execute scripts in
+the security context of a different domain.
+MS99-037: it ispossible for a 
+web site to invoke this method,
+bypass this restriction and write files that 
+could be used to execute system commands.
+MS99-040: a server-side redirect can be used 
+to bypass a restriction, thereby enabling
+a malicious web site operator to read files on 
+the user's machine or the user's local intranet.
+This list just goes on and on. Georgi reports 
+issue after issue in internet explorer.
+Tons of them in 1999, and the year 2000. His 
+motivation you wonder? Looking at his resume,
+maybe it’s because he hated Microsoft :D
+“I avoid using Microsoft products.”
+Which is funny because his security work is 
+really really important FREE work for microsoft.
+But I guess at the time it felt 
+like hurting them. Eitherway.
+So let’s look at another Georgi bug. 
+For example this one from January 2000.
+“Internet Explorer 5 security vulnerablity 
+- circumventing Cross-frame security policy
+and accessing the DOM of "old" documents.”
+I have Windows 98 here with Internet 
+Explorer 5. So let’s visit the test page.
+It tells us that we should create a test 
+file so we can test the file access. And
+I have here a test.txt. Then it opens this text 
+file in a new window. And another alert appears.
+Just need to wait a moment apparently. 
+Alright. And we close this again.
+And there we have it. We have an 
+alert with the content of the file.
+Proofing us that javascript was able to 
+access the content of the local file.
+So what happened?
+The script opened the file in a new window.
+And then 2 seconds later it clicks this img2.html 
+link. But it has target victim, so actually the
+site where the file is loaded is redirected to 
+that new page. And then this new page loads an
+image with a javascript URI. And this javascript 
+code calls window open with another javascript URI
+where apparently it is now allowed to access 
+the document body and text of the loaded file?
+At first I thought somehow we get javascript 
+execution again in the context of the file URI.
+BUT actually something else happens. 
+Let’s see how Georgi describes the bug:
+“This is a strange exploit. If you 
+open a new document in a window that
+contains an old document, the old 
+document's DOM may be accessed by
+the new document until the new document 
+is completely parsed and displayed.”
+So sounds like there is a 
+race condition happening.
+“Looks like IE keeps the old document 
+until the new document is finally
+parsed and displayed. So If you put a  in the new document,
+it has access to the old document's DOM.”
+Ahh.. I think I get it. So an alert() is 
+like a breakpoint. Javascript execution
+stops at this point until the user clicks OK.
+So lets go through it again. the file test.txt
+is opened in a window and then we redirect this 
+window to a new page. This page starts parsing,
+and encounters an image. This image URL now 
+has to be loaded so triggers this javascript.
+And this javascript opens another window which 
+will execute some more javascript. And also
+execute an alert. At which point this site 
+“freezes”. While the javascript code on the
+new opened window can still execute. And this 
+javascript code then goes through the opener,
+so back to the window that opened 
+it, to the body and the innerText.
+And this is the race condition. This new img2.html 
+site has not finished loading yet, because
+this alert is still hanging. Waiting for the user 
+to click OK. so following the opener back we don’t
+get the img2.html site, we get the previous DOM 
+the “old document’s DOM”, so the local file.
+Absolutely insane that somebody came up 
+with this. Over 22 years ago. What a legend.
+And actually I only know about georgi, 
+because during my research into this history,
+I actually had the opportunity to talk to David 
+Ross who was working at Microsoft during that era
+and he told me about Georgi.
+“At the time, Georgi was the
+primary finder of cross domain bugs."
+In our conversation he just kept praising
+Georgi for the crazy work he did back then. 
+And it actually had a huge impact on Microsoft,
+Internet Explorer, and security 
+history. But more on that next video.
+For now lets circle back 
+to the title of the video.
+What do all the security bugs we looked at, and 
+all the other dozens and dozens of bugs Georgi,
+and of course others, discovered have in common?
+Well they are all about bypassing what people at
+the time, especially microsoft, started to 
+call the “Cross frame policy” “cross-frame
+vulnerabilities” and so forth. Mh! The term 
+kinda sounds similar to two terms we use today.
+same origin policy and Cross-site scripting., 
+But we are not there yet. So in the year 2000,
+the browser security world was all about the 
+“Cross-frame vulnerabilities”. As you now know,
+these were bugs in the browser itself that allowed 
+a malicious website to somehow access another site
+through another frame or window. A common example 
+target for the proof-of-concept exploits was
+stealing local files, but of course this 
+applies to any other website as well.
+Instead of stealing a local file one could have 
+loaded a another website and access that content.
+And that’s what universal XSS is about.
+Universal because it’s a vulnerability that 
+applies to universally to every website,
+because it has nothing to do with websites, it’s 
+a vulnerability in the browser. I think that’s why
+the term universal XSS is so confusing because 
+when you learn about XSS you learn about XSS
+issues in websites, but clearly we are talking 
+here about vulnerabilities in the browser itself.
+I hope this makes it clearer 
+to you what universal XSS means
+AND why it’s so much rarer to find nowadays. 
+It would be a very critical security bug.
+Anyway. Now forget the term XSS again 
+because, in the year 1999 and early 2000,
+the term cross-site scripting still didn’t 
+exist yet. Even though hackers were already
+exploiting the classic XSS vulnerabilities 
+in practice. It just didn’t have a name.
+So in the next video we can finally look 
+at the history of Cross-site scripting.

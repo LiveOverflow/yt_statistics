@@ -1,0 +1,236 @@
+Let’s have a look at format level 4 from
+exploit-exercises protostar on a current ubuntu
+machine.
+And this time I thought instead of building
+the complete exploit from the ground up, we
+take the old exploit that we developed for
+the 32bit linux image, and see if it still
+works.
+Probably it won’t but then we debug it and
+slowly make it work on this 64bit ubuntu.
+Okay so here is the source code again.
+We have a 512 byte large buffer on the stack,
+which is used to read data from standard input.
+But it only reads up to 512 bytes, so there
+is no buffer overflow.
+But then this buffer is passed directly to
+printf, so we have a format string exploit.
+Our goal is it to redirect code execution
+to the hello() function.
+Notice how here after the printf() we find
+an exit?
+Well that was intentionally placed here because
+exit is part of libc, so there will be a global
+offset table entry for it which we can overwrite.
+Then when we call exit here, our overwritten
+function would be executed instead.
+So it’s actually a pretty straight forward
+format string exploit.
+Just write to the exit GOT entry the address
+of hello and you are done.
+Hello() and the GOT table have fixed addresses
+and are not affected by ASLR.
+At least on this ubuntu version because of
+the default compiler options.
+I received several comments that wrote that
+on their system they default to PIE.
+So there the GOT address and the functions
+will be affected by ASLR and then I don’t
+think these simple cases are exploitable anymore.
+We would require a little bit more complex
+examples, with more interactions, where we
+first can leak values to defeat aslr.
+But we will slowly get there, over time.
+Let’s not rush too quickly into those topics.
+So we compile this now on our ubuntu machine
+and we get the old exploit code.
+Man this was episode 0x13…
+August 2016… holy shit that is a long time
+ago.
+When I started I thought I would have very
+quickly a complete series on all the basics...
+and we still haven’t reached ROP and ASLR.
+mhmhm…
+Goddamit.
+Anyway.
+Let’s copy that python code.
+Looks good.
+Now I write it into a file - `exp` and then
+we can start gdb with format4 and execute
+it.
+Run and then we pipe in the exp file as input
+to the program.
+Uh we print a lot of character, that looks
+good but we get a segfault.
+We are attempting to write the value in r15,
+0x84b4 to the address in rax.
+And rax is obviously wrong.
+0x58 is X.
+So this is the %n part of the exploit.
+0x84b4 is the amount of characters already
+printed, that’s all this empty space here,
+and it tried to write to the 4th value, and
+that turned out to be not the address anymore.
+So two things.
+First of all obviously the amount of characters
+that we are writing with %n are wrong, we
+don’t even know yet what we want to write.
+And most importantly, we are not writing to
+the address we have specified in the exploit.
+Now with the format string offset we hit our
+padding.
+Okay so let’s use this opportunity and get
+the correct addresses first.
+We need the address of the exit GOT entry,
+we do this by looking where it is called.
+Then we simply disassemble the few instructions
+that jump to the GOT entry, that’s the PLT
+the procedure linkage table.
+And here it references the exit GOT entry.
+You can see it will jump to whatever address
+is written there, so we have to overwrite
+this with the address of hello.
+And here is the address of hello.
+You can see again that only the last 2 bytes
+of the current exit GOT entry and our desired
+hello address are different.
+Which means we only have to overwrite those
+last two bytes.
+So let’s place these two new addresses in
+our exploit code and we can also throw away
+the old format modifiers.
+The amount of characters we print is wrong
+and the offset doesn’t match anymore either.
+And instead we just add a bunch of %p, to
+find our new stack offset.
+So we write it again to a file, start gdb
+and pipe the file in as input.
+Ehm…
+no real output?
+Just like an @ and backtick?
+Where are the addresses we leak with %p?
+These are the small things that can be really
+frustrating and this actually happened to
+me when I was preparing this episode.
+I was going crazy trying to understand what
+the heck is happening.
+I’m just executing it over and over again,
+hoping the computer would do something else.
+I’m debugging it to break before the printf
+and see that my input is passed to printf.
+But no output.
+GHNANAN goddamiit work!
+But it will not.
+If it’s not doing what i want it to do,
+I made a mistake.
+I am the problem.
+I need to calm down, take a step back and
+try to figure out a way to figure out my stupid
+mistake.
+So what exactly is the output we get.
+I pipe the exploit output into hexdump and
+see that it stops after three characters.
+And that is our address but cut off.
+The other address and the format string is
+missing.
+But when I then also did the hexdump of the
+exploit I noticed the obvious mistake.
+The address has a null byte.
+And printf stops at a null-byte.
+Strings are null-terminated.
+Godam I’m so dumb.
+This was not an issue for the 32bit exploit,
+because there our address had also 4 bytes
+and thus no null-byte.
+Now on 64bit the default address is only 3
+bytes.
+So our next step is - we move the address
+at the end of our exploit.
+They still get placed on the stack with the
+nullbytes.
+fgets will read nullbytes.
+Just the printf format vulnerability part
+must not have a null-byte.
+When we move it to the end we want it to be
+in a fixed location, so we add padding to
+our format string and then make sure we leave
+enough space for the two addresses at the
+end.
+We are on 64bit, so we have 2 times 8 bytes,
+so we need 16 characters.
+Looks good.
+So we try that intput into format4.
+Looks good, we print values now.
+But I can’t find our address.
+Let’s actually have a lot more %p.
+How about 100, that fits easily in the 512
+bytes.
+Ok so where are they.
+Here they are are?
+But that doesn’t look good.
+They should be two individual values.
+But it’s pretty clear what happened.
+We forgot to also encode the addresses for
+64bit.
+Struct pack I packs the integer in 4 bytes,
+but we want it packed in 8 bytes.
+So let’s try it again.
+Here they are.
+This looks good.
+Now let’s find their offset.
+We can just count how much to the end.
+And then subtract from 100.
+So at offset 68 we should find the address.
+And yes indeed.
+There it is.
+So now, we just have to print the correct
+amount of characters to write the two bytes.
+Actually, we don’t need two writes, we should
+be able to do that in one.
+So we add another format string with a padding
+of the amount of characters we want to write.
+That would be 0x676, minus the characters
+we already printed before that.
+So basically minus 8.
+And then we should also remove the spaces
+before the %n that would be another character
+printed.
+So it should work now, right?
+Let’s change the %p to %n and try it!
+Segmentation fault.
+Damn…
+So when I was recording all of this I really
+thought it should work right away.
+But then I got the segmentation fault.
+Really confused me.
+And that would be again something I could
+obsess about.
+Why did that happen?
+But after I stopped recording and literally
+started to write down what I just did, in
+the script.
+I realized my mistake.
+When I wrote down %n
+I realized I wrote a whole integer.
+But I meant to write only two bytes, so I
+would have required %hn.
+We should be able to verify this with gdb.
+Let’s check it out.
+Yes there it is.
+Segfault at address 0x676.
+We wrote a whole integer, so we overwrote
+the higher bytes that were already stored
+in the GOT.
+So let’s change it to %hn.
+To write half a word or whatever that means.
+It writes two bytes.
+And that worked!
+code execution redirected!
+you win
+You see the exploit is different from the
+original 32bit version.
+It required quite some changes but it also
+kinda is still the same thing.
+Definitely not a hard challenge on a modern
+system.
+As long as you don’t compile it with PIE.

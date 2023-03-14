@@ -1,0 +1,382 @@
+Recently I get too little time to play CTFs
+but John Hammond, who also has a CTF and hacking
+YouTube channel approached me and asked if
+I was playing the Google CTF 2018, and so
+I was persuaded into playing a few hours with
+him.
+Because we are both noobs, we chose a challenge
+that already had a high number of solves.
+This way we know it shouldn’t be too hard
+and thus perfect for us.
+JS SAFE 2.0 was a web challenge for the Google
+CTF 2018.
+“You stumbled upon someone's "JS Safe" on
+the web.
+It's a simple HTML file that can store secrets
+in the browser's localStorage.
+This means that you won't be able to extract
+any secret from it (the secrets are on the
+computer of the owner), but it looks like
+it was hand-crafted to work only with the
+password of the owner…”
+Ok, so let’s download the attachment, which
+is a zip file and unpack it.
+There is a single js_safe_2.html file in it.
+So let’s open it in Chrome and have a first
+look at it.
+We have a key input field and a cool spinning
+cube animation.
+If we enter something we get an “Access
+Denied” and we have to reload the page to
+try again.
+Next let’s have a look at the source code.
+There are some texts here, so let’s read
+them because maybe they provide some hints
+for us:
+JS safe v2.0 - the leading localStorage based
+safe solution with military grade JS anti-debug
+technology
+Anti-debug.
+Okay that already sounds annoying.
+Let’s see what that is about.
+Advertisement:
+Looking for a hand-crafted, browser based
+virtual safe to store your most
+interesting secrets?
+Look no further, you have found it.
+You can order your own
+by sending a mail to js_safe@example.com.
+When ordering, please specify the
+password you'd like to use to open and close
+the safe.
+We'll hand craft a
+unique safe just for you, that only works
+with your password of choice.
+WOW!
+I’m SOLD!
+Then we have some CSS, and oh.
+Keyframe animations.
+The cube is actually animated in HTML and
+CSS.
+No webgl or anything.
+That’s a cool solution.
+And then we have two scripts here.
+One is minified and the other one not.
+Down here we see the keyhole input element
+which on a change, so when we entered a key,
+will call open_safe().
+And that function will execute a regular expression
+in our input, so it has to be this flag format.
+So out input password has to start with CTF
+and in curly braces some regular characters.
+This means the correct password for this safe
+will also be the solution, the flag, that
+we can submit for points.
+And then it will call x with the extracted
+password.
+So it will call x with the part inside of
+the curly braces.
+And if x returns a 0, or false, it will fail
+and return with denied.
+But if that function x returned a 1 or true,
+it will do the stuff here and show that access
+is granted.
+Now just simply removing the check here and
+jump to granted doesn’t help us, because
+the challenge is about finding the correct
+password.
+That is the flag.
+So we have to check out the function x.
+Now x() is up here in the minified version.
+I will copy this file now to keep the original,
+but then we can use jsbeautifier to prettify
+the script and work with this now.
+Immediately that really weird string is poking
+out.
+But let’s see.
+X first defines three helper functions.
+Ord to get the numer, the char code for a
+given character, chr is converting from a
+number to the character string and str is
+simply making sure the a value is a string.
+This is pretty much the javascript equivalent
+for the python functions ord, chr and str.
+Then x defines two function h and c. h is
+a bit weird, it takes a string, sums up values
+onto a and b and then returns some stuff.
+And c is a for loop over the a input, and
+it appears to XOR the a string with the key
+b.
+So c is, I guess, just a XOR implementation.
+Then there is a for loop calling debugger
+many times.
+I guess that’s the anti-debugging trick.
+And then we call h on the string x.
+And x is our password we gave in as a parameter?
+And after that we define this source, overwrite
+the toString of it.
+So if you would attempt to get the string
+representation of source, it would call XOR
+decryption with itself again and x.
+No clue what the f that does.
+And then we have a try catch that attempts
+to eval, the eval of a XOR on source and x.
+Mhmh… very odd.
+Let’s move on to a more dynamic approach
+and see if we can debug this.
+We can open the developer tools and go to
+the sources tab.
+And then let’s just set a breakpoint just
+before we pass our password to the x function,
+by clicking the line number here.
+And then let’s enter a easy test input with
+CTF{AAAABBBB}.
+Boom.
+breakpoint hit.
+And now we can ivnestigate.
+So at this point the regex was already executed
+and password looks like this.
+And the second element of password is passed
+to x as a parameter.
+Then let’s single step forward into x.
+But at some point we reach the debugger loop.
+So let’s remove that first.
+Now here you have to be very careful.
+A very simple mistake you could make here
+is to remove the whole loop.
+But the function h uses a and b.
+If a is undefined it initializes it with 1,
+but a is used in this loop here.
+And I think because the loop variable is here
+not defined with the var keyword, it makes
+the variable extend out of that scope of the
+loop.
+So it affects the global state of a.
+So actually a is 1000 when h is called right
+afterwards.
+So you just have to make the loop empty.
+So let’s rerun this change with our input.
+Cool, now we reached the h.
+So h gets passed in the x, right?
+And x was the parameter of the function, so
+it’s our password, right?
+But when you print x now with the developer
+tools it prints the function x instead.
+The function x uses the parameter x.
+And str on x will simply get the source code
+of x as a string.Is that a bug of the debugger
+tools or is h really using the source code
+of x?
+Let’s single step forward into h and let’s
+see.
+NO!
+The parameter s is in fact the source code
+of our function.
+And it now loops over this string character
+by character and is now creating a sum of
+these characters with a and b.
+If we let that loop run we can inspect the
+final state of a and b.
+And now that is assembled into a string and
+returned.
+Here is another easy mistake you could make.
+We modified the code, right?
+We replaced the debugger statement and we
+beautified the code.
+It was minified before.
+So now we pass in a wrong string to h.
+So let’s go back to our original html file
+and try to extract the correct source string.
+To do that I open the developer tools and
+set a breakpoint again just before we call
+x.
+Then we can let it run until it hits the debugger
+loop.
+And to bypass that now I simply set a to a
+very high value by hand, so we don’t have
+to execute that 1000 times.
+And then we can single step forward into h.
+And now here we get s.
+BTW if you prettify on-the-fly with chrome
+developer tools like that, that doesn’t
+affect the string sources of the function.
+It’s not modifying the real sources.
+So no worries here.
+We can also quickly verify here that indeed
+the a used inside of h is already at 1000
+because of the loop before.
+Cool.
+So let’s copy that string into our modified
+version and harcode that as a parameter for
+the call to h.
+But just to make sure we got everything right,
+let’s go back to the original source, set
+a breakpoint after the loop and extract the
+final state of a and b.
+This way we can verify that with the hardcoded
+parameter we get the same result!
+So 2714 33310.
+We go to our modified html again, set a breakpoint
+at the end of h, and let it run.
+And we check a and b.
+YES!
+Same values.
+Perfect.
+Now let’s step forward again and now we
+reach this weird source string.
+Ok we set it.
+We overwrite the to String function and now
+we call console.log on the source.
+I assume that will trigger the toString function
+and then does this call to c with recursively
+itself?
+Not really sure what javascript will do in
+this case.
+I’m not that familiar with quirky code liket
+that.
+But in any way.
+Our single step attempt over console.log caused
+the debugger to become unresponsive and after
+30 seconds or so the whole tab is killed by
+chrome.
+Okay. that really looks like anti debugging
+here.
+I wonder if it’s just that line here that
+is bad, or more.
+I remove it for now and try it again.
+With a breakpoint here.
+Run again.
+But damn… it will again hang.
+That was probably the most annoying part and
+where I spent the most time on.
+Because I needed to get some way to debug
+and get visibility into the code but it always
+hangs.
+My assumption was, it has to do with this
+overwritten toString.
+And I kinda assumed that the developer tools,
+when trying to display variables in the current
+scope will try to get the string representation.
+And that then causes a DoS (denial of service).
+So I played around with that a lot and tried
+different things, debug statements in different
+places.
+Changing the toString, adding console log
+outputs and so forth.
+Probably did easily for an hour or more.
+But then I had a big breakthrough.
+one of my tests was console.log in the XOR
+decryption function to print the xor result.
+The c.
+Check it out.
+It printed two outputs and while they both
+look like garbage data, the first one definetly
+isn’t.
+This is javascript code.
+X == and then a call to c, the XOR decryption
+with some crazy string and as an XOR key it
+will call h with x.
+So at this point x has to be equal to this
+part decrypted with a key that is derived
+from x as well.
+Huh?!
+So two questions.
+What is x at this point and how does that
+fit into the larger picture.
+Let’s look at the latter one first.
+When you look at the eval you see that it
+is an eval inside an eval.
+And the first call to XOR decrypt, so the
+inner most eval, resulted in this x==.
+And then this eval will now execute that string
+and, and that string has another call to c,
+which is this ouput.
+So the eval comapres this output to the x.
+That is then either true or false and then
+that result is evaled too and returned from
+this function.
+And if this returned a true, we get into the
+access granted.
+Ok how does that x work.
+Is that x again the source code of the function
+x?
+A simple way to find out what x is, to add
+a console.log inside of h.
+Because x is passed into that.
+And when we do that and run it with our test
+input, we of course see the first call to
+h with the source code, but then the second
+time it uses our input string.
+So this time x is not the source code but
+it’s the parameter.
+WHAT THE FFFFFF I don’t understand Javascript
+Namespacing or Variable scopes.
+Goddamit.
+I dind’;t fully investigate that, but I
+guess it has to do with the with() statement.
+Here is a short quote from the mozilla developer
+docs:
+“The with statement makes it hard for a
+human reader or JavaScript compiler to decide
+whether an unqualified name will be found
+along the scope chain, and if so, in which
+object.
+Yeah ok.
+Basically nobody in the world knows what it
+does.
+It just does what we observe here.
+Anyway.
+Now we have basically everything we need to
+solve it.
+Our input has to generate the correct xor
+key when passed to h, to decrypt this string
+with xor to the original input again.
+I want you to take a second and think about
+what the weakness here is.
+How can this be attacked?
+How can we possibly find the correct input,
+that decrypts to the correct input.
+Isn’t that a chicken and egg problem?
+Well, the fail is the h function.
+H is essentially a key or password derivation
+function.
+It takes a secret or a seed and generates
+a key, in this case used for XOR, based on
+some kind of algorithm.
+It doesn’t really matter now what h exactly
+does, important is just that the result of
+h is always 4 bytes.
+The XOR decryption only uses a 4 byte key,
+that is obviously always repeated.
+So no matter what our input is, this secret
+can be decrypted with the correct key, and
+the decrypted result has to be a valid character
+in our flag.
+And that is super easy to bruteforce now.
+Because of the repeating nature of the key
+we can bruteforce each byte of the key individually.
+Basically we take every 4th byte of the secret,
+and decrypt it with the first key byte.
+We bruteforce all the 256 possible byte values
+and if one results in all of the chars to
+be valid flag characters, it’s a good chance
+that the key is real.
+And we do the same for each 4th byte starting
+with the second and so forth.
+Makes sense, right?
+And if we do that, and combine all 4 bytes
+together, we are able to find a pssoible decrypted
+secret.
+Which of course is now tested against our
+input, which means this is the flag input.
+We can test it, CTF, curly braces, next version
+has anti, anti, anti debug.
+Access granted.
+And we can submit the string now to the CTF
+and get points.
+Awesome.
+By the way you should checkout John Hammond’s
+YouTube channel, he has a lot of CTF video
+writeups as well and could use a few new subscribers.
+He also has a few more content about the google
+ctf.6

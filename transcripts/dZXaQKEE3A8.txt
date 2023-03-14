@@ -1,0 +1,226 @@
+All The Little Things was a harder web 
+challenge from the Google CTF 2020.
+In the end only 20 teams solved it. 
+This challenge is almost like a part
+2 from the easy pasteurize challenge, 
+so make sure you have seen that too.
+As it is with most harder challenges this also 
+was a team effort. multiple people of our team
+ALLES! contributed to the solution. 
+So, let me tell you how we solved it.
+
+“I left a little secret in a note, but 
+it's private, private is safe.” and “Note:
+TJMike🎤 from Pasteurize is also logged into 
+the page.”. This already tells us that,
+like pasteurize, this is a browser client side 
+hacking challenge. So XSS, CSRF, that kinda stuff.
+So let’s start by checking out the functionality.
+We can login by using a username
+and a profile image URL.
+The image is then embedded up there. And
+we can access settings. Notes and logout.
+In settings we can change the name,
+profile picture and theme. There 
+is dark-mode and light mode.
+Then there is “note” where we can create a new 
+note. And we can make it private or public.
+If we make a public note, just as a test submit 
+anything, it shows up in our list of notes, but it
+actually redirects to the pasteurize challenge. 
+So public notes are submitted on pasteurize.
+Let’s go back to the littlethings 
+domain and make a private note instead.
+Like with pasteurize we could try some XSS 
+payload. A HTML tag and an image tag with onerror.
+Submit it and then it shows up in our list of 
+notes. And private notes are now displayed on
+the littlethings domain. AS with pasteurize 
+some HTML got rendered, but only what is
+safe. The onerror handler of the image was 
+removed. When we look into the static page
+sources we can see that it basically looks the 
+same like pasteurize. Here is the note content,
+including the XSS payload, and then it is passed 
+into DOMpurify.sanitize(). Which we know is safe.
+We could also try the trick from pasteurize 
+for the XSS, but it doesn’t work. In fact
+after the CTF, the author of the challenge 
+shared that the vulnerability in pasteurize
+was actually first in this challenge “all the 
+little things”, but it was an easy unintended
+bypass, so he fixed it, and created pasteurize 
+as an easy introduction challenge with this bug.
+Anyway. After that I just started looking through 
+all the given sources. Mainly the utils.js,
+user.js and theme.js. Those are the custom 
+javascript code to make this website work.
+And if we try to find some kind of 
+XSS, it’s probably somewhere in there.
+And the code turns out to be really fishy. 
+So there was already a feeling for, “yeah,
+this looks so weird, there must be issues here.”
+For example in theme.js, the update_theme()
+function takes the configured theme from 
+the document.username object. Then creates
+a script tag, where it embeds this theme URL with 
+a cb parameter. If we look at the requests sent
+when you load a page, you can see that a theme 
+could be for example set_light_theme, and then
+the response of this URL looks like this. So this 
+is a JSONP api endpoint. I briefly introduced
+JSONP and how it can lead to issues in the Google 
+Sheets XSS video. So watch that if you want some
+additional information. Here this script simply 
+uses the callback parameter as a function name,
+to call this function. So when embedding this 
+as a script, it will call set_light_theme,
+which is defined in theme.js as well. And this 
+function simply updates the .css of this page.
+The callback parameter can also be kinda freely 
+chosen. So for example we could enter here
+alert(), and now we have a script, hosted on the 
+littlethings website that calls alert. And this
+will become important soon. Let’s remember that.
+Other than that we have a user.js file,
+which contains a user class. A user has a 
+name, an image and a theme. In the function
+make_user_object this user is created. The 
+image source of the profile image is set,
+and also update_theme() is called. There is also 
+this weird load_debug function call, but we don’t
+know what that is for now. Just fyi, the question 
+mark is a special syntax that basically means.
+If load_debug is undefined, do nothing, 
+if it exists, call it as a function. So
+this is just a shorthand to make sure there 
+is no error if the function doesn’t exist.
+And then we come to utils.js, and this looks like 
+the start of everything. It triggers when the DOM
+of the website is loaded. And it triggers a fetch 
+request to /me, which turns out to respond with
+the user data in a JSON format, it then takes 
+the json and calls make_user_object on it. So
+that triggers the chain of creating the user and 
+then updating the theme with the JSONP callback.
+At this point we were still missing one important 
+detail that we missed. We thought we explored
+everything, but we didn’t. Regardless, we 
+started to think about possible exploits.
+We knew the goal is to access 
+a private note of TJMike.
+He must have a private note with the flag 
+in it. We didn’t have full XSS anywhere yet,
+but we knew it must be browser client 
+side related. So we started to experiment.
+The notes did allow some HTML. Not 
+javascript, no XSS, but it allowed
+html tags. And there is a technique called DOM 
+clobbering using HTML id and name attributes.
+Here is an example. let’s create a note with a 
+div using an id like “bla”. This is definitely
+allowed, as it is not XSS. But this does 
+something to the DOM. If we go into the
+javascript console, we can access this HTML tag 
+via window.bla. Window.bla points to our div.
+Notice something? Remember the window.load_debug 
+that is checked if it is undefined or not?
+We could create an HTML tag with the 
+id “load_debug”, and then it exists!
+Let’s try it. Submit it. And here it is. 
+If we look now into the javascript console,
+we can find an error, “window.load_debug is not 
+a function”. Which makes sense, because it is an
+HTMLDivElement object. So I thought “maybe there 
+is a trick. Maybe there is a weird HTML element,
+that is also a valid function!” This is a 
+very wild idea, I would have never thought
+to check something like this, if it weren’t 
+for this challenge. Finding such an HTML
+element could be a very cool DOM clobber trick.
+So let’s do some security research. Let’s try to
+find such an element. First I looked up a big list 
+of possible HTML elements on github. I just took
+a random list. Don’t even know if it’s complete. 
+Then I put it into a javascript array and looped
+over each element. On our notes we know that 
+script tags are removed by DOMPurify. So for
+each tag I call DOMPurify sanitize on it, just 
+to make sure it is allowed and gets through.
+The element I create also gets the id=x, so that 
+we can then try to call window.x as a function.
+This is all inside a try-catch, because most 
+likely this won’t work and throws an error.
+Window.x is not a function. But if it 
+survives the function call, we print found!
+Now I simply execute this code in the developer 
+console. It super quickly runs through. And finds
+nothing. Crap… Oh well… This is a typical 
+“dumb” idea you might have, you test it,
+and you find out it doesn’t work. But that’s 
+security research. I think it was a good idea
+and worth testing for. Now we know, this 
+probably is not the path to the solution.
+After that we continued looking for other 
+things we could clobber. I mean there is
+window.USERNAME, but it’s assigned here, 
+so it would overwrite our clobbered value.
+Or here is a querySelector for the id 
+bootstrap-link, which we could also try to include
+into our note, but this code is actually executed 
+BEFORE it renders the note, so it doesn’t work.
+And even if it would set the href, I 
+don’t really know if it would help us.
+So we were kinda stuck.
+…
+I started to get a bit frustrated when I clicked 
+through all the sources again, and then I noticed
+this __debug__ get parameter. This is the 
+small important detail I missed earlier.
+Adding this to the URL, it will add a 
+new debug.js script! And it also adds
+some additional HTML into the settings page.
+This debug.js script actually defines
+the load_debug function! It takes the 
+window.name, interprets this string as JSON
+and, this line, the Object.assign(), merges 
+this debug JSON object with the user object!
+It then has some additional features, you can turn 
+verbose mode on, show all hidden HTML elements,
+and keepDebug, which adds the __debug__ GET 
+parameter to all anchor href links that it finds.
+onerror is also overwritten with alert.
+This obviously gets us forward. So with 
+debug turned on we get this debug input
+form in the settings. All this does is, you 
+can write there some JSON and it will set the
+window.name to this JSON as a string. So 
+let’s write some JSON that sets verbose,
+showAll and keepDebug onto the user object. 
+Refresh the page. And now you see it change a bit,
+because things like showALL revealed 
+all hidden elements and made them
+blocks, we can also see here the hidden input 
+CSRF token, and so forth. So this worked.
+window.name is now set to this JSON string. Upon 
+every page load, if the __debug__parameter is set,
+the debug.js script with the load_debug 
+function reads, parses the string as JSON,
+and then applies it to the user. and then these 
+attributes become available on the user object.
+And for those that don’t 
+know, window.name is special.
+Because… See what happens if I go to 
+a different website in the same tab.
+Liveoverflow.com. And now check the 
+window.name. IT IS STILL THE SAME. window.name
+persists across other websites.
+This gives us an entry path.
+The video is getting quite long and there 
+was so much info input already. I think
+this is a good moment to stop. If you 
+haven’t solved this challenge yourself,
+now is a good point to try again. You can find 
+the link to the challenge in the description.
+But there are still a few more little tricks 
+involved. But let’s talk about it next video.

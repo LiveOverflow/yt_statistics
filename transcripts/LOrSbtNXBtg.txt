@@ -1,0 +1,236 @@
+We are going to solve the reversing challenge
+Zwiebel from the TUM CTF 2016 by creating
+a dynamic analysis script with radare.
+Before I knew I would write a script for radare,
+I had to figure out what the binary is doing.
+So after I downloaded the binary and checked
+that it’s a 64bit linux binary, I made sure
+my vagrant Linux VM is running and opened
+the binary for a first analysis in Binary
+Ninja.
+Let’s head to main and start reversing.
+So first we have a printf() that is asking
+for the Input key.
+The valid input key is probably also our flag.
+The fflush() just makes sure that the output
+is displayed and not held in a buffer.
+After that we have an fgets(), which means
+here the input key string is read.
+The rdi register is commonly used as the Destination,
+so this memory with the flag symbol name is
+probably where our input key is stored.
+Funnily we can also see that it’s not just
+0, but already initialized with some fake
+flags.
+Then we see an mmap().
+Which is directly followed by a memcpy.
+Which means that the program want’s a new
+memory segment for something and copies some
+data to that new segment.
+Because we have a reversing challenge it’s
+not unlikely that it might have some self-modifying
+code that uses this new memory.
+It looks like it is copying shc, which probably
+stands for shellcode to this new address,
+which is in register r14.
+Now when you look at shc, you can see this
+chunk of pretty random looking data.
+And it’s also pretty long.
+Mh.
+After it copied this long memory to the new
+mmaped memory segment, it will perform a call
+to r14.
+And r14 contains the address of the new memory
+segment.
+So it will jump to this code.
+This means that shc contains actually some
+assembler code.
+So we can go there and press P to tell binary
+ninja it should make this an assembler procedure.
+Switch to graph view to make it easier to
+understand the flow.
+The first meaningful instruction here is the
+mov from rbx to rax.
+And if you paid attention to the mov before
+the call to r14, you know that rbx contains
+the address to our input key.
+This means that rax points to that address
+and it will get the first byte of it in al.
+Then it will perform a binary and with 0x40.
+Let’s have a look at 0x40 in binary.
+You can see it has only one bit set.
+So if our input character has this bit set,
+the result will be non-zero, thus the je (jump
+equal) (which is the same as jump if zero),
+will not jump and continue over here.
+So if the input character would not have this
+bit set, it would jump to the left and perform
+two syscalls.
+A write and then an exit.
+So this is not where we want to go.
+This means the first character has to have
+this bit set to 1.
+In this branch we immediately notice a loop,
+which contains an xor.
+Inside of this loop, memory at the location
+of rsi is xored with whatever is in eax.
+Then the address is incremented.
+And we repeat the whole thing.
+After that we jump somewhere.
+The jump target here looks a bit meaningless,
+but that’s probably because it’s not the
+real code yet.
+This loop seems to decrypt the next layer
+of assembler and then jumps there.
+Layer.
+Get it?
+Zwiebel is german for onion, so looks like
+we removed the outer layer of the onion.
+We could now use the XOR key and decrypt the
+code and proceed, but at this point I decided
+that I want to see it executing.
+So I copy the binary to the shared folder
+so I can access the executable in the Linux
+VM.
+Then I connect to the linux system with ssh
+and execute it.
+So we get the Input key prompt, and the sad
+smiley for failing the key check.
+Now let’s open it with gdb.
+But if we run it in gdb, it imediatly gives
+us a sad smiley without asking for the key.
+What’s going on?
+When we execute it with strace, we get a bit
+more information.
+If we look closely, we can see a failed ptrace
+in there.
+This looks like a typical anti-debugging trick.
+How is this an anti-debugging trick?
+See, when gdb is debugging another process,
+or strace collecting a syscall trace, they
+both use the ptrace syscall to observe and
+control the execution of another process.
+But if the process is already traced by something,
+the kernel will return an error on calling
+ptrace.
+So the binary executes ptrace, basically trying
+to debug itself, and if that syscall fails,
+it knows that it is being debugged by something.
+So it will commit suicide.
+This is usually easy to defeat.
+So let’s look for this in binary ninja.
+We notice here on the left, that indeed, the
+binary uses ptrace.
+If we follow the cross references we find
+this function using it, which has two options.
+One kills itself, the other just returns.
+So we can just nop this code here so it will
+always return and we should have defeated
+this anti-debugging trick.
+This is very easy with binary ninja.
+And we can simply save the modified binary
+and call it zwiebel2.
+When we now run it in gdb we will get the
+key input prompt and it seems to work well.
+Great.
+Now we can continue with what we wanted to
+do.
+Let’s set a breakpoint before we follow
+the call to r14, so we can observe the decryption.
+Now we can step single instructions forward.
+Awesome.
+Here at the mov to al we can see that it references
+the flag which has our input AAAAA.
+And we can see the and happening.
+Because character capital A is he 41, the
+binary and result will be non zero and we
+continue to the decryption loop.
+If you look closely at where the jumpa fterwards
+would go, you see that when we execute the
+XOR decryption the code is changing.
+So it really is decrypting the next layer.
+Let’s set a breakpoint after the decryption
+loop, before we jump into the new code, and
+continue.
+Then we hit that breakpoint and we can single
+step forward and look at the new decrypted
+code.
+HUGH!
+That looks interesting…
+look at that…
+it again loads the flag into rax.
+But instead of loading the first character
+into al, it loads the character at offset
+0x1d.
+Then it again performs a binary and operation,
+this time with 2.
+2 in binary also has only one bit set.
+So this is also a check if a certain character
+has a certain bit set.
+And following this check we see another xor
+decrypt loop.
+Basically the same thing like before.
+So we can set another breakpoint after the
+loop and see how that decrypted code looks
+like.
+And what a surprise.
+It’s basically the same thing over again.
+Another character is taken, checked if a certain
+bit is set.
+And then continues with another decrypt loop.
+We slowly peel that onion layer by layer and
+we get an idea what it is doing.
+So let’s back off for a second and recap.
+The code performs the same actions over and
+over again.
+It will first check a certain character if
+a bit is set.
+If that bit is set, it will decrypt the next
+layer.
+In that new decrypted layer, it checks another
+character’s bit.
+Decrypt the next layer.
+And so on.
+Based on the 2 layers we have already seen
+we know that the first character has to have
+bit 6 set to one.
+And character 29 (0x1d) has to have the bit
+1 set.
+We can imagine now that this will go on for
+quite a while and it slowly tells us all the
+bits it checks.
+So if we collect all those rules we can recover
+an input that passes all those checks.
+Now we have to think about how we could do
+that.
+There are multiple options and I have thought
+about what could be the fastest during the
+CTF.
+But it kind of depends on what you know.
+If you are very good at binary ninja plugins,
+you could build a static analysis tool that
+decrypts everything and then you simply extract
+the disassembled code.
+But I don’t have that experience yet.
+So I chose radare2.
+Because radare2 is super simple to script
+with python and r2pipe.
+So the plan is to debug the binary with radare,
+like we did with gdb.
+And then always extract the bit rule.
+Find the jump address after the decrypt loop,
+let it decrypt and continue to the next rule.
+To get this started, make sure your radare
+is up-to-date.
+Always run sys/install.sh.
+It takes a while but radare is so heavily
+developed, that if you have any issues, don’t
+bother asking people if you are not on the
+latest commit.
+After that you can install r2pipe for python
+with “pip install r2pipe”.
+Now you can import r2pipe in python and use
+it like you would use radare.
+In the next video we will create the script
+that will extract all rules and recover the
+flag.

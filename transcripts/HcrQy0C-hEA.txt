@@ -1,0 +1,301 @@
+Like every year I was playing the CTF by Eat
+Sleep Pwn Repeat during the 35th Chaos Communication
+Congress. There were a lot of excellent and
+hard challenges, but I want to highlight one
+challenge in particular, because despite it
+being “simple”, only 5 teams solved it.
+And as far as I know, one of them even found
+a new and different bug in Chrome to abuse.
+So I think this challenge is a great example
+for how difficult it is to stay up-to-date
+and how much research is just getting overlooked.
+We will later see a blog post that basically
+tells us the solution, and the worst part
+is, I do remember seeing that blog post shared
+on twitter, however I never read it. But before
+we get to that, let’s start investigating
+what this challenge is about.
+filemanager - a web challenge. In the end
+it had five solves.
+The description reads: “Check out my web-based
+filemanager running at filemanager.appspot.com.
+The admin is using it to store a flag, can
+you get it? You can reach the admin's chrome-headless
+at: nc [and an IP]”
+So the description tells us already, that
+we have to perform a browser client-side attack.
+An admin user is emulated with a headless
+chrome, and can be reached with this ip. When
+you connect to there with netcat, you will
+get a prompt: “Please solve a proof-of work
+with difficulty 22”. So this is just to
+rate-limit connections to the more expensive
+chrome running on the server. We can install
+the referenced proof-of-work script and run
+it to get the response. And once we pass that
+check, we see that it now wants us to “send
+a URL to open”. As a quick check I’m running
+a simple HTTP server on a server of mine and
+pass in the URL to the admin. We can then
+see that the headless chrome of the admin
+made a normal HTTP request to us. So this
+is just a typical CTF setup for a XSS or CSRF
+challenge.
+So … to start we have to get a quick overview
+of how the web application works. To do that
+I’m using BURP as a web proxy to investigate
+all the requests that are being made. And
+then I just use the webapp. So we can signup
+as a user, and we see two forms.
+We can search for files, and we can create
+new files.
+So creating a new user is a simple post request
+with the user name. And that created a new
+session for us, as you can see here the cookie.
+From experimenting I also know that simply
+using an “admin” user or something like
+this, doesn’t give us the admin files - everybody
+just gets a new session... the names don’t
+really matter at all.
+Next I’m searching for a file, but of course
+there are no files yet. “no results”.
+So let’s create two test files with similar
+content, but different. Just to see how the
+search behaves.
+Searching for “oo” leads to no results.
+Because our files were named “foo”, it
+means it doesn’t search for filenames. But
+if we search far “bar”, we can see that
+both of the test files show up, and the part
+that matches our search term, is highlighted.
+From that point on I was mostly playing around
+with the search query, to check if there are
+any other attacks possible, such as some kind
+of database query injection.
+While looking around, I still had in the back
+of my mind, that this is supposed to be a
+browser client-side attack challenge. But
+searching for database injections still makes
+sense, because some more advanced challenges,
+might be triggered from a XSS, but then you
+have to chain more things together, and maybe
+you have to then perform a SQL injection from
+the XSS or so. But it all looked safe.
+Besides that I was also looking for possible
+XSS or CSRF issues. For example I checked
+how the server responds to pre-flight requests.
+This is important to check, because this might
+give us options to perform CSRF attacks from
+a domain we control and send to the admin.
+But the headers all look fine. Except two
+things.
+First of all, the X-Frame-Options header was
+missing, which means the site can be iframed
+by another website. This opens up the door
+for some possible attacks, most notably clickjacking.
+So this is interesting, and should be kept
+in mind, but not sure if it leads anywhere.
+The second thing I was wondering about was
+the XSRF header. It has to be sent along when
+creating a file, to protect against CSRF.
+And I was wondering “maybe custom HTTP headers,
+which are usually prefixed with an X- are
+treated differently with this webserver. Normal
+headers were not allowed by CORS, but maybe
+XSRF was specifically chosen because the server
+allows CORS requests with X prefixed headers”.
+In retrospect that was completely ridiculous.
+Of course that also wasn’t the case. But
+you can see sometimes you just chase the weirdest
+ideas. Especially when you start to come to
+the conclusion, there is nothing exploitable.
+And that leads us to a second thing I tried,
+XSS. And in fact we found a XSS. The XSS was
+caused by not escaping backslashes, which
+allowed us to hex encode special HTML characters
+inside of the Javascript query string. And
+when that string is then reflected back into
+the DOM with innerHTML, we can inject HTML
+tags that trigger a Javascript payload. I
+even wrote a python script to easily do that
+and investigate further. However the problem
+is, that to get the admin to execute this
+XSS, we would have to create such a malicious
+file first. And that was prevented by the
+CSRF protection we just talked about.
+The other option for this XSS would be, to
+abuse a login-csrf and make the admin log
+into our account with the malicious XSS file,
+but that also doesn’t work because this
+webapp doesn’t differentiate between users
+and just creates new sessions on signup. So
+this was another area that we explored and
+that cost a lot of time to play around with,
+and lead nowhere.
+At some point we reached the conclusion, this
+is not solvable with our current knowledge
+and understanding of browser client-side security.
+This doesn’t make any sense. And we kinda
+gave up on the challenge. But then chatting
+with one of the organizers about how frustrating
+it is, we kinda got nudged into the direction
+of side-channel attacks. It wasn’t directly
+a hint, and to be honest I don’t really
+remember the actual conversation, I just know
+that after that I was full on, trying some
+side-channel stuff.
+Theoretically we have two very different responses.
+Basically when we search for the flag and
+we enter a character sequence that is part
+of the flag, we get this response. And if
+we enter characters that don’t appear in
+the flag, we get “no result”. So if you
+can somehow detect this difference, then you
+can slowly search for the flag character by
+character, and leak it.
+This attack is typically called XS-Search.
+Cross site search. Like Cross site request
+forgery, but you are executing a search cross
+origin, and somehow leak some information
+about it.
+A typical way to do this, and that was, what
+I tried, was to measure timing differences
+using the chrome cache API - based on research
+I have found while googling for cross origin
+timing attacks.
+But in the end I didn’t succeed with this,
+and at some point the CTF was over.
+So after the CTF we were talking with other
+teams about solutions of challenges we didn’t
+solve. and one person explained to me, that
+there is a trick to detect chrome errors,
+when a site is loaded in an iframe.
+And it works by checking how often the onload
+event of the iframe is triggered.
+So when you load a site in an iframe, you
+trigger the onload event once. And when you
+then change the fragment URL, so a URL with
+a hash, then this doesn’t cause a navigation
+and the page stays the same. thus you don’t
+get another onload event.
+But as it turns out, when the website had
+an error, and you update the URL fragment,
+then you cause a new navigation, triggering
+another onload. This means you can detect
+if an iframed site has an error or not.
+So now it only comes down to figuring out
+if we can trigger an error on one of the pages.
+And that turns out to be pretty simple, because
+only when we found a file, this javascript
+appears. It’s missing when there are “no
+results”. This means we can provoke an error,
+by including this javascript as a fake GET
+parameter. Because then the Chrome Auditor
+will think THIS IS AN XSS, WE MUST BLOCK IT!
+In this case Chrome, by default, redirects
+to this error page. This page isn’t working
+BLOCKED_BY_XSS_AUDITOR.
+So now we have the two cases we need. If our
+search query is successful, we get the javascript
+which triggers the XSS auditor. And if our
+query didn’t find any files, we get the
+regular “no results” output.
+Because the the challenge wasn’t available
+anymore when I created this video-writeup,
+I had to create a simple test server with
+python. This was actually all done on stream
+and you can find the link below.
+So the python test server is simple, we just
+have a /search endpoint and it takes a q query.
+If the search query is part of the flag, we
+prepare the result with the flag, or leave
+it NONE.
+And the search.html template will then check
+if there was a result or not. So if our query
+found the flag, we output the case with the
+JavaScript snippet, and if there was no result,
+we just show “no results”.
+To emulate running this on a different domain,
+I’m simply using /etc/hosts and redirect
+filemanager.appspot.com to localhost.
+So when we then run the example server, we
+can simply access the search via the filemanager
+appspot url, like during the real challenge.
+Now we can write our malicious attack script.
+During the CTF we would have to host that
+our own website, and send it to the admin,
+as we have seen earlier.
+It starts with an iframe, which we will use
+to observe the onload events.
+But the most important part here is the xssearch
+function. It takes a query, and we want to
+know if that query returned a search result,
+or not.
+Here we see that we prepare an onload function,
+and register it on the iframe. This onload
+function will count the iframe.loads. To start
+the test, we simply assign this url including
+the fake XSS parameter to the iframe.src.
+Now chrome will request this site to show
+in the iframe. We then also register a timeout
+function, which will become important in a
+second.
+So chrome loads the site and at some point
+triggers the onload event. It increments the
+loads counter, and then assign the new iframe.src.
+It’s actually the same URL as before, except
+the URL fragment changed from #test to #leak.
+Now if the website had a XSS auditor error,
+this should lead to a second onload event,
+and in that case the query returned a successful
+result. And we can move on to bruteforce the
+next character. But if there never was a second
+onload event, we will, at some point, run
+into the timeout function. In there we check
+how many load events there were, and if there
+was only one, we know the query returned “no
+results”. And we remove the last character
+and retry with a different one.
+Executing the script looks like this. It could
+be improved a lot, but as a proof of concept
+it’s fine. Let me speed it up a bit. I think
+it looks really cool - leaking secrets through
+a side-channel always looks like real hacking.
+And at some point we get the whole flag. So
+for the real challenge we would now send it
+to our own server.
+Anyway… This would have been the solution.
+Pretty simple right? But before we end this
+video I wanted to come back to what I said
+at the beginning: “I think this challenge
+is a great example for how difficult it is
+to stay up-to-date and how much research is
+just getting overlooked.”
+Because it turns out, that the amazing researcher
+Gareth Heyes, who I coincidentally have talked
+about in the video about amazing research,
+has done more amazing research. And in his
+blog post about “Exposing Intranets with
+reliable Browser-based Port scanning” he
+was actually introducing this technique, but
+using it as a port scanner. “if you first
+load the url and capture the onload event
+and increment a counter and then make the
+same request again but this time with a #, because
+the url has changed to, chrome-error: instead
+of the original url, you'll get a second onload
+event because the url has changed.”.
+He actually had tweeted about that as well:
+“I can detect chrome error pages, I wonder
+if it would work with detecting the XSS auditor....”
+And then sirdarckat responded:
+“cool :-) we came up with a similar trick
+for xs-search” and tagging @_tsuro.
+@_tsuro was the author of this CTF challenge.
+So this happened in October and November.
+Just around 1-2 months before the CTF.
+You can see, the information was all public,
+but I missed it. And apparently most people
+didn’t know about it either. Again some
+real gems were hidden in Twitter conversations
+between great security researchers.

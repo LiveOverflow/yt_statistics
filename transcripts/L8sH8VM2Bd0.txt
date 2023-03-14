@@ -1,0 +1,402 @@
+Let’s continue with the Blocky puzzle challenge.
+We identified a packet sent from the server
+to the client that contains the state of the
+input buttons, 32bits and the state of all
+the output lines.
+We then used the proxy to inject random input
+states and collect a lot of data.
+And so I have been running this brute-forcing
+over night.
+wc -l counts the lines of a file and with
+watch, which is just executing wc over and
+over, we can easily observe how the test data
+grows.
+So shortly after I started around midnight
+I had already 4000 samples, and then I went
+to bed.
+In the next morning after 9:00 am we had 100.000
+samples.
+But I let it run even longer and in the end
+I had about 340.000 samples.
+So… how can we do machine learning with
+that?
+First of all, before we even do any real analysis
+of this data, we have to figure out which
+output bits are actually important for us.
+Not all of the over 170 bits are useful.
+Some are just the lines directly connected
+to the button, or other lines in the middle.
+So we have to figure out which are the important
+output bits.
+If you look at the data you can immediately
+see that every output starts with 6 1s, and
+then two 0s.
+And that makes sense if you look at the end
+of the puzzle.
+The final stage of the puzzle just combines
+a lot of output lines with OR gates.
+So if only one of these lines is HIGH, a 1,
+then the OR result will be HIGH, and all these
+lines will be high.
+You can see for example here the very first
+OR gate in this chain, with 3 inputs.
+And with the random button inputs it’s very
+rare that all 3 of them are 0.
+Thus the output is almost always high and
+thus the whole chain stays high.
+And at the end of the chain the signal is
+inverted, and so we then have two low.
+Because we probably never guessed the correct
+input and one of these lines will always be
+high, thus we see this pattern here.
+This means that the important output lines
+for us are the ones feeding into the final
+OR gates.
+Those must be 0, and then the whole line becomes
+0 and thus the final door opens.
+Now we need to find which bits in our output
+correspond to these OR inputs.
+To do that I simply position myself over the
+puzzle and then use the proxy to inject a
+random input.
+Then I write down the state of one OR input.
+Get another random input, and write down the
+states.
+And I’m continuing this for a bit and we
+get this ON/OFF pattern for these two lines
+to the OR gate.
+Now we can take our over 170 bits output and
+try to find this pattern in there.
+To help with that I wrote a few simple loops
+in python.
+Btw I’m using jupyter notebook here, easy
+to run with Anaconda, because this kind of
+exploratory data analysis is really nice with
+it.
+The outer loop goes over each bit.
+So first we look at the first bit of our output.
+Then we go over each test case.
+So we basically compare the first bit of the
+output with the pattern we have written down.
+If they match, cool.
+But if they don’t match we break out of
+the loop.
+And then we check the next bit.
+We go over each second bit in the output,
+compare it to our pattern and if it finds
+a bit that doesn’t match, we break out.
+But if all bits would match, we would never
+break out of the for loop and then this else
+case of the for loop is executed.
+YEP, for loops can have an else cases, which
+is executed when we didn’t break.
+This means we found a output bit that matches
+the pattern.
+But when we did that we find two matching
+bits.
+172 and 173.
+Let’s see if they indeed are always the
+same, or if we just need more data.
+So I collect a few more samples so that if
+indeed it was just coincidence, then the probability
+that they would still match goes very low.
+And when we run this now, indeed, we see now
+that 173 is the magic bit.
+Now we just have to keep doing that for all
+OR gate inputs.
+Write it down and then we get all the important
+output bits.
+Infact there are 15.
+So we can ignore the rest.
+So our goal is it to get all of these bits
+to 0.
+Because then the whole chain stays off, the
+inverter makes it high and the door will open.
+Before I mentioned anything about machine
+learning, I wanted to say that what I have
+is “gefährliches halbwissen”.
+That is a cool german expression and it translates
+to “dangerous superficial knowledge”,
+you use this to describe somebody who knows
+a little bit and they think they know enough
+to voice an opinion, but their views or opinions
+are dangerous because they only have superficial
+knowledge and don’t really get it.
+And that very much applies to me.
+So I will not prefix everything I say with
+a “sorry, maybe, I’m not sure”, and
+will just tell you what is currently going
+on in my head.
+I’m just sharing with you the process of
+me learning.
+And that also means to do dumb stuff.
+So I try to use the little bit of knowledge
+I have and see how far I can get.
+I know very well that a professional would
+do it completely differently.
+And in some way I’m really scared to share
+my thoughts, that’s also the reason for
+this disclaimer, because I’m well aware
+that they are probably wrong.
+So if you are a professional in this field,
+I’d love to know what I got right and what
+I got wrong.
+And if somebody of you can make a proper model,
+I would LOVE to see it.
+So first of all, what kind of algorithm or
+method of machine learning or AI should we
+used.
+Most of you probably know about neural networks,
+deep learning and stuff.
+And we have 32 input bits and 15 important
+output bits.
+That could be something that could be modeled
+with a neural network, right?
+Each input bit connects to simple binary functions,
+ANDs and ORs and those outputs connect again
+with other simple functions and eventually
+result in the 15 output bits.
+And I think a well modelled neural network
+could totally solve this.
+Basically each neuron, or a combination of
+neurons could implement such a simple logical
+function, and thus if we have multiple layers
+it should theoretically be perfectly able
+to learn that.
+But if you model it like that, then you are
+just predicting the output for a given input.
+And that doesn’t really help us because
+we don’t want to know what a given input
+gives us, we can just test that already ingame,
+right.
+What we want is, we know the output we want.
+We want the output to be all 0.
+So actually what we want to know is, what
+inputs lead to the outputs being all 0.
+Which means we probably want to reverse the
+model.
+The output bits become the input of the network
+and the input bits become the output of the
+neural network.
+So the neural network would train the theoretical
+inverse of the binary function.
+Given these output bits, what was the input
+for it.
+If that works, we could maybe ask the network
+to tell us, here we have these 0 output bits,
+what would the input be.
+But the inverse of an OR and AND function
+is not that simple, right?
+For example for an OR gate you know that 0
+means the inputs were 0, but if it was 1,
+then one or both inputs could have been 1.
+So that introduces an uncertainty and I would
+hope the neural network still could work with
+that, but I don’t know.
+The whole magic or difficulty for neural networks,
+as far as I understand, is mostly deciding
+how many layers the network should have, what
+kind of activation function to use and a lot
+of other stuff.
+And that’s exactly why I have no clue what
+I am doing.
+I think I could look at the activation functions
+and know that for our case we probably don’t
+want something like sigmoid because that models
+more like analog data, and we want something
+more digital, ON/OFF, so maybe a Rectified
+linear unit or even binary step function,
+because here certain connections can be completely
+turned off - and that’s what we want because
+not every input bit is connected to every
+function in the real network.
+I even went so far to checkout tensorflow,
+I installed it and I googled for “neural
+networks boolean tensorflow”, because essentially
+we have boolean data.
+And there was one blog post in particular,
+“Solving XOR with a Neural Network in Tensorflow”,
+which caught my attention, because we also
+want to learn boolean functions, just something
+more complex..
+I and I started to adapt that code to my problem,
+but then I also kinda gave up…
+I think I need to do a bit more learning of
+basics and playing with known simpler examples
+before I try to apply this to something so
+weird.
+But there was another thing I wanted to try
+out.
+You see neural networks are just one topic,
+there are a lot of other machine learning
+algorithms out there.
+And there is a whole subcategory about learning
+rules and decision trees.
+The goal [of a decision tree] is to create
+a model that predicts the value of a target
+variable based on several input variables.
+That’s exactly what we want.
+I thought maybe we can just use such an algorithm
+to find exactly the binary AND and OR combinations
+of input bits that lead to this particular
+output.
+And then we can solve that with z3
+And I remembered a tool that I have seen once
+called weka.
+Weka is a collection of machine learning algorithms
+for data mining tasks.
+It’s a tool from the Machine Learning Group
+at the University of Waikato in New Zealand.
+To work with this tool I quickly transform
+the data into an arff file format, which basically
+just describes the attributes we have in our
+file and splits it all to comma separated
+values.
+So here we can open the file and load all
+attributes.
+Let’s only look at one particular output
+bit, so I remove the others from the dataset.
+Then in the classify tab we can select an
+algorithm from a list of many many different
+ones.
+Again, I have no clue what I am doing so I
+just select one, let it run and see what happens.
+As a test the output bit I selected is not
+one of our final ones, it’s a simpler one,
+an output state much earlier in the whole
+puzzle.
+There are also a lot of variables you can
+control, but I have no clue so I just click
+Start.
+And very quickly it extracted some rules,
+a decision list.
+So this particular output bit is influenced
+by input bit_31 and bit_12.
+Let’s write this down in a table.
+It basically says, if input bit_31 was 0,
+then the output bit_17 is 0 as well.
+Which means it doesn’t matter if bit_12
+was 0 or 1 But if the input bit_31 was not
+0, so it was 1, then bit_12 is important.
+If bit_12 is 1, then our output is also 0,
+but if that was not the case, if bit_12 was
+0, then the output bit is 1.
+If we draw this as gates we have an AND gate
+that takes in the bit_31, but only triggers
+when bit_12 is 0, so bit_12 goes through an
+inverter first.
+So now only if bit_31 is high and bit_12 is
+low, the AND gate will put out a 1.
+Cool!
+So we used a machine learning algorithm called
+PART to learn a simple gate.
+Weka will also run this model on other data
+in the dataset and you see in all testcases
+this ruleset is perfect.
+100% accuracy.
+So that is really cool and I tried it with
+one of our final output bits, which have much
+more complex connections and gates going on.
+That runs a bit longer and when finally a
+model was found, then it’s just insane long.
+It’s huuuuge.
+The number in parentheses shows how many of
+testcases are covered up to this particular
+rule.
+For the simple gate before half of all cases
+were already covered by the first rule, and
+the other half was handled by these two rules.
+But here we have rules that sometimes have
+only like 6 or 3 cases in our dataset.
+So that doesn’t look good.
+That looks like overfitting.
+And also the test on the whole dataset reveals,
+that it’s only 99.8% correct.
+Which is not bad, for a lot of real life applications
+it’s probably really good, but I was hoping
+such an algorithm could really uncover the
+logic connections perfectly.
+I tried a couple of different algorithms and
+weka really makes this explorative process
+fun.
+But again my lack of experience probably fails
+me here.
+Maybe one of these algorithms if the variables
+are tweaked correctly could be perfect.
+But I don’t know.
+I gave up on this too.
+Now you see I did all this over the course
+of many many hours and so I was handling this
+training data a lot.
+And one time I thought I could checkout how
+many inputs actually I resulted in a desired
+0 in one of these output bits and I wrote
+this simple loop.
+Just print the input if the particular output
+bit was 0.
+I ran this and I couldn’t believe my eyes.
+While the 0s and 1s were rushing by, I noticed
+one column to just stayed constant.
+Look at this!
+And that turned out to be true for every output
+bit.
+Each output bit had at least one bit constant
+in the input.
+Now the inverse of this was not true, not
+every input where this was a 1 resulted in
+this output to be 0, but in every case where
+it was 0, this input bit was 1.
+This means, our final solution MUST have these
+bits set to this constant value.
+So I wrote a quick script to extract all constant
+bits and this is what I got.
+This really surprised me.
+Every second bit was constant!
+Holy shit!
+This is awesome.
+This also means, only 16bit of 32bit are remaining.
+And bruteforcing 16bit, that’s easy.
+There are just 65.000 possibilities left.
+So I modified the proxy again, to instead
+of just using fully 32bit random values, to
+keep 16bit fixed and bruteforce the other
+16bit.
+And in the packet parser we can then check
+the important bits to be all 0.
+This means we found the valid input.
+So I print WINNER WINNER and just kinda stop
+everything.
+So I go in game, start the bruteforce and
+now we just have to wait.
+I watched some TV show and came back to it
+like 1:30h later and to my surprise it was
+done.
+It had disconnected but it found a valid input.
+So here it is, this is the valid input.
+Let me login again, and inject the packet
+with this value.
+And here we go.
+Quest complete..
+Blocky’s Revenge.
+And the door opened.
+Let’s have a look at that from the top perspecitve.
+So door is closed.
+And injecting the correct input packet and
+boom.
+Evert output is 0.
+Let’s walk to the open chest and get the
+“Flag of the Block”.
+Oh!
+And also the weapon Heap Spray!
+Of course Heapspray is a Shotgun.
+Haha
+And here is the final input.
+How beautiful.
+While my machine learning idea didn’t work
+out how I was hoping, I think the solution
+is still cool.
+Through data analysis we found that half of
+all input buttons have to be fixed, and so
+w reduced the brute-force search space dramatically
+to only 16bit. 2 bytes.
+And that was easy to do.

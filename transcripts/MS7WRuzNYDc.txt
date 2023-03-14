@@ -1,0 +1,374 @@
+Is leaking your IP address really dangerous? It 
+seems like many people think so, because because
+when I released my minecraft hacking video 
+series, I kept leaking my personal IP,
+as well as the IP of other players (oops sorry?). 
+After that I got tons of worrying messages telling
+me about it, I should immediately remove it. 
+But how bad is it really? I believe it is not
+bad at all. And my suspicion is that the 
+crazy amount of VPN ads manipulate people
+into believing it is dangerous or bad. So In 
+this video I want to investigate this “danger”
+of leaking your IP address. And at the end I 
+also will tell you my recommendation on what
+you could do instead of a VPN. As always, these 
+are just my opinions on the matter. The devil
+is in the details. So feel free to challenge my 
+views and discuss with others in the comments.
+This video is sponsored by Noo… 
+oobody. Of course I won't advertise
+a VPN in this video.
+Sorry I had to do it.
+Anyway… where do we start.
+In theory, IP addresses are
+unique and identify a computer on the 
+internet. For example a minecraft server
+address. This part is the IP, it identifies 
+the computer, so where to find the server
+on the internet. And this is the port. 
+The port is then used ON that computer,
+to find which program you want to communicate 
+with. In the case of a minecraft server,
+it’s the minecraft server program. On the same 
+computer you could also host a website, and then
+the webserver program would be accessible on maybe 
+port 80. But we want to focus on the IP address.
+As you can see, IPs are supposed to be addresses 
+for devices on the internet. And so they
+are inherently public. For example, I didn’t 
+release the IP address of my minecraft server,
+and still people found it. Because it’s “easy” 
+to scan all IPv4 addresses on the internet.
+And that’s our first lesson! How much 
+can you even “hide” your IP. If there
+is anything insecure about your device, if you 
+really believe if a hacker can hack you when
+they know your IP, you are screwed anyway. 
+people will find your device regardless.
+But don’t worry not only are modern devices 
+generally secure. You have another layer of
+protection you might not know about. Yes my 
+minecraft server is directly accessible via
+an IP address. But as you probably have heard, we 
+don’t have enough IP addresses for all devices on
+the internet. How did we try to solve that 
+problem? You can see it here. I have two
+phones connected to the same wifi and I look up 
+their IP address. Both phones have the same IP.
+This is very common for residential internet 
+connections. So the IP does not actually
+identify every device, it’s just the address of 
+the device directly connected to the internet.
+Usually at home this is your Router. Which means 
+this single IP does not point to your device. It
+points to the router, but also, behind this 
+address there could be dozens of devices.
+And in a larger shared flat, a college dorm, 
+hotel or an office, maybe several hundreds of
+devices and different people use the same 
+IP. This is achieved through NAT. It’s an
+interesting technique and quite clever how 
+routers translate packets and forward them
+to the correct local device. There are also 
+some very interesting “weaknesses” in NAT
+which get exploited for good reasons, like 
+UDP hole punching for playing games, or for
+bad malicious reasons like NAT Slipstreaming.
+But that’s not the topic of the video. The
+important part is that the IP address is shared 
+by many devices and often shared by many different
+people, which has legal implications. If you 
+have roommates and you commit a cyber crime,
+they don’t know who exactly committed the crime. 
+Was it you or your roomate? Depending on your
+local laws, maybe this means they cannot 
+prove who committed it and you are safe
+(or maybe they raid both of you), or they 
+default to charging the owner of the wifi.
+But besides legal trouble, point being. 
+Your public IP address, the address website
+owners and minecraft server owners see, 
+might be used by many different people.
+So this is the second lesson. The same 
+IP does not mean, it’s the same person.
+Of course, if you live alone things might be 
+different, you don’t have this legal “protection”.
+However some ISPs have started to deploy DS-Lite. 
+It’s very common in Germany. This is when IPv4 is
+tunneled over IPv6 leading to another layer 
+of NAT or carrier-grade nat, which means.
+Behind this public IP there might be HUNDREDS of 
+customers, each of them with dozens of devices.
+And don’t forget lots of people use 
+the internet through LTE. Here your
+mobile operator also probably shares IP 
+addresses for many connected devices.
+So even living alone, your public IP 
+might be shared by many many people.
+On top of that, it’s very common 
+when you restart your router,
+or it happens automatically every 24h, the IP 
+address you get assigned by your ISP changes.
+So from the point of view of a 
+website operating seeing your IP,
+they don’t know if it’s really you, and the 
+next day you might have a different IP anyway.
+But of course all of these things depend 
+on the ISP, and probably every country
+has different behavior as well, so the best 
+thing for you is just to test it yourself.
+I have read in the comments that there are 
+a few people that actually have a static IP,
+though usually that requires special contracts 
+or a business contract and I would guess those
+people know what they are doing and know 
+why they want a static IP. By that I mean,
+they want a static IP so people can know the 
+static IP. And then if you worry about people
+knowing your static IP, don’t get a static IP.
+Of course there are also people who had no
+choice for a static IP, but then again. What 
+exactly are you worrying about? We will get
+to those threats in a moment. But, for most 
+people the IP address changes regularly and
+it just identifies the home router, or a router 
+of your ISP or mobile operator. So leaking an
+IP address doesn't really mean much. There could 
+be literally hundreds of people behind that IP.
+This actually creates lots of problems when 
+blocking “malicious IP” addresses. Because if
+you as a website owner block an IP, you 
+might accidentally block a whole area,
+like a hotel or office, so blocking 
+hundreds of people from using your service.
+Anyway. Now we covered some important 
+properties of IP addresses. Let’s
+talk about the impact of “leaking IP 
+addresses”. What’s the threat model.
+I see two areas. “Hacking” or “attacking” 
+IPs and more the privacy concern.
+As you can already tell, if you leak the IP 
+address of a person, the IP address could mean
+different things. It could just point to a router 
+of the ISP, or it could point to your home router.
+Attacking the home router might be the most 
+risky case, because you might have an outdated
+router with some exposed service or default 
+credentials that could be hacked. Or it can be
+directly targeted for a denial of service attack.
+So maybe you feel worried about your unsecure
+router and think that’s a good reason why you need 
+to keep your IP private. But keep in mind, all IP
+addresses are public. There are not that many. You 
+can literally scan the whole internet in like half
+an hour. And malicious hackers constantly scan the 
+internet for vulnerable routers to take them over.
+So if there is a known exploit in your router, 
+your router might already be hacked. And if not,
+then maybe your ISP knows about the issue 
+and blocks these attempts on their end.
+So security issues are not really a 
+concern. And if it is, you need to fix
+the root issue. Security through obscurity, 
+aka. Trying to hide your IP, doesn’t fix it.
+However, maybe you don’t worry about security 
+issues, but about denial of service attacks.
+It’s easy to overwhelm a basic home router. 
+but as I said, in lots of cases the IP doesn’t
+even point at your home router. At this 
+point an attacker DDoSes the ISP directly.
+And keep in mind. It’s just a DOS. it might 
+knock you off the internet temporarily, and for
+some businesses or streamers this has economical 
+consequences. But that’s all there is. Go outside,
+touch some grass, and when you come back maybe it 
+stopped and you can continue. You have no actual
+loss of privacy there. It’s not hacking. And 
+maybe browser restart gives you a new IP anyway.
+But are there any other privacy concerns?
+VPN companies always advertise protecting
+your privacy by hiding your IP. But as we 
+already learned, in lots of cases the home
+IP is already achieving the same, it’s also 
+a public IP shared by many other customers.
+So from the point of view of the internet user, 
+who sees that IP, you are already obscured. But
+of course there are some differences between 
+a VPN and an ISP. So let’s go through them.
+The probably most important difference 
+is the legal jurisdiction. Depending on
+a country's laws, ISPs might be required 
+to keep logs on which customer was using
+what IP. So when law enforcement wants 
+to find your real identity from an IP,
+they can ask the ISP for it. This is definitely a 
+“risk”, if you intend to break those local laws.
+But actually, this is the same for 
+VPN companies as well, they might be
+required by their local laws to do the same.
+So it really depends on what jurisdiction you
+live in, and what level of crime you commited. Of 
+course a VPN is a second layer that might shield
+you from basic legal investigations 
+because they operate in a different
+country than where you live and your ISP is 
+located, BUT laws exist to protect both ways.
+Not only do laws allow police to request 
+information about an IP, there are also
+data protection laws that protect how that data is 
+used and when it has to be deleted and so forth.
+So if you use a VPN registered in some weird 
+ass country where your national police has
+a hard time to get data from, yes you are 
+probably safe from legal investigations, but,
+maybe the privacy laws of the VPN’s country are so 
+“bad” that they can happily log all the websites,
+inject ads, create profiles on you and sell 
+all this data to advertisement companies.
+It’s hard to say what in practice really 
+happens, but in the end you have to trust
+them. So I personally prefer to route my 
+traffic through my local ISP where I also have
+legal “power” and “rights” that I could defend, 
+versus routing my traffic through a shady shell
+company who tells me with ads I should trust them.
+But I don’t want to fear monger too much because
+ultimately most connections are encrypted 
+thanks to SSL anyway. So the privacy risk
+is definitely not very high. For the legal 
+risks, there it depends a lot on what you do.
+But as you can see, in the end it 
+all comes down to trust. Where do
+you want your packets to travel 
+through. Do you trust your ISP
+more or the VPN provider more. You 
+have to make that decision yourself.
+Also I think it’s important to not forget what 
+it means to have a “privacy” issue. I mean,
+privacy issues arise when you share private 
+information. So what private information
+does your IP leak? If you use facebook 
+and instagram to share private photos,
+it doesn’t matter if you used a VPN or your 
+regular IP. you still shared your private
+photos online. So the actions you do online 
+are much more important than the IP. THe
+only thing IPs leak is your “location”. 
+But this is a bit misleading. Because,
+what do you mean by “location”? It doesn’t leak 
+your exact GPS coordinates. It might point to the
+city you live in. But most likely it points to 
+a region where tens of thousands or hundreds of
+thousands of people live. Of course some might 
+want to completely hide their general location
+and don’t want anybody to know they live in 
+Berlin. But I don’t think this is generally
+an issue most people have to care about. Think 
+about “Normal people”, they post a single picture
+on instagram from hiking in their home, and 
+people could figure out their general location.
+So let’s talk about me leaking the IP address of 
+players on my Minecraft servers. How bad was that?
+In my opinion, some of those IP addresses are 
+dynamic and changed long before I uploaded the
+video, and some of the IP addresses are 
+shared with hundreds of people anyway.
+Of course it might leak the rough 
+geographic location of some players,
+but maybe they don’t care or they leaked it in 
+many other ways. For example OMG HERE I LEAK
+THE FAMOUS OTTOMATED_ IP ADDRESS! Because I’m 
+so famous he even came onto my server. Now we
+can IP geolocate him to seattle. OH MY GOD. But 
+on his github he also says he lives in seattle.
+So here is my last argument why me leaking 
+IP addresses of the server is not bad. IF
+ONE OF THOSE PLAYERS REALLY REALLY CARED 
+ABOUT HIDING THEIR TRACKS ONLINE BEING
+SUPER PARANOID, THEY MUST HAVE USED 
+A VPN TO ACCESS THE SERVER ANYWAY.
+As you can see, In my opinion. There is 
+no meaningful security risk or meaningful
+privacy issue about leaking IPs. There 
+are crazy edge-cases with very weird
+threat models where this all can matter, I 
+agree they exist, but they will have to deal
+with those threats on their end. because their 
+threat-model probably doesn’t include “trust
+nobody except this dude LiveOverflow, 
+so I directly connect to his server”.
+If you your threat model is “cannot 
+trust anything I connect to online”,
+then “don’t connect to it” or “don’t use your 
+“home IP”, whatever you consider your home IP”.
+Okay. anyway… Now many of you watching 
+probably also scream the whole time “IS
+HE TAALKING ABOUT IPv4 OR IPv6”? And 
+well… yeah… Most of what I mentioned
+mostly applies to IPv4. Due to them running 
+out and many customers will share IP addresses.
+Leading to the ISP setups discussed in this 
+video. With IPV6 the game kinda changes.
+To be honest I’m not super sure how the ISP setups 
+look like with IPv6. The little bit of networking
+knowledge I have is mostly limited to IPv4. 
+But I guess depending on your internet setup,
+your devices might actually be directly accessible 
+from the internet if the IP is known. So suddenly
+leaking the IPV6 of a device COULD mean 
+that an outside attacker has direct access
+to the device. And not like with Ipv4 where an 
+outside attacker only “sees” your router or your
+ISPs router. So I think that could be an issue.
+And to be honest, I personally rely a lot on IPv4,
+DS-Lite, NAT and routers in general being my 
+“firewall”. No clue how fucked up IPv6 maybe is.
+But this whole video was motivated 
+due to the comments on me leaking
+IPv4 addresses. Soooo… Well…
+Anyway. In the beginning I also
+promised to share what I use if I 
+have to be anonymous online. And
+that is TOR. When I have the use-case 
+to really hide my internet connection,
+I will use TOR. TOR is probably the strongest and 
+most reliable tool you have for internet privacy.
+But of course you have to use it right, you 
+always have to think about your threat model.
+Because while you are very anonymous, the TOR 
+exit nodes can be operated by anybody and they
+WILL log traffic and collect data. Maybe even 
+manipulate traffic. But that’s the same power
+your ISP or VPN provider has. So it is generally 
+a threat model you should operate within,
+if you care about that kind of stuff. Luckily you 
+have SSL to encrypt actual data transmitted and so
+in practice it’s not super risky.
+Anyway…
+Those were some thoughts I have on the danger of 
+leaking IP addresses. And Why you shouldn’t fall
+victim to the fear mongering of VPN providers. 
+Of course there can be legitimate concerns about
+leaking IP addresses, which some of them 
+I mentioned, like streamers and ddossing,
+but hopefully you see that in the most general 
+case it just doesn’t matter. But if you are
+one of those edge-cases, try to really define 
+your threat model. Don’t just blatantly use a
+VPN because it makes you feel safer. What exactly 
+are you protecting against. And then think about
+what are the most effective measures against it. 
+Which of course is only possible if you actually
+try to learn more about networking. But maybe 
+that’s a good motivation to learn some IT stuff.
+Also check the comments, I’m sure there are 
+people who share their opinion and mention
+technical nuances I maybe forgot or didn’t explain 
+correctly. So that’s probably interesting as well.
+While I was editing this video, malware 
+researcher oalabs released a related video
+titled “Your VPN Sucks for Malware Analysis”. 
+I really recommend you check it out, because
+it provides a very unique perspective about 
+the topic you probably haven’t heard before.

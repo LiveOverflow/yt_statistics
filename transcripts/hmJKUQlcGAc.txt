@@ -1,0 +1,237 @@
+Let’s talk about a vulnerability class that,
+maybe, requires less technical knowledge than
+most other attacks.
+So it can be a great area for people who just
+started doing bug bounties.
+But a good understanding of an app’s functionality
+is required.
+I’m liveoverflow and I run a YouTube channel
+about hacking competitions, bug bounty and
+anything security related.
+So Google asked me to talk with you about
+Authorization bugs and lateral escalation
+vulnerabilities.
+These terms Authentication, Authorization
+and lateral escalation may sound very technical
+and crazy, but let me explain.
+Let’s start by talking about the difference
+between Authentication and Authorization.
+Authentication describes functionality that
+identifies a user.
+For example your username and password can
+authenticate, so identify you, so Google can
+give you access to your Google Mail.
+Authorization on the other hand is about what
+a user is allowed to do.
+For example in google drive, authorization
+checks decide if you are allowed to access
+a certain document, or if you are only allowed
+to leave comments or even edit the document.
+Those are questions of authorization.
+So authorization is usually more important
+in bigger web applications.
+Simple web apps oftentimes have no difference
+in user roles, or maybe only two.
+So oftentimes you could have admin users,
+which can access restricted admin APIs, and
+you have regular users that should not be
+able to access the admin API.
+So an example authorization bug is it, when
+it turns out a regular user CAN access an
+admin API endpoint.
+In contrast, an authentication bug could be,
+if you manage to login as an admin, by exploiting
+a SQL injection in the login field for example.
+So authorization bugs are about the permissions
+certain users have, and in big complex applications,
+especially those used by a big company, you
+might have very complicated permission systems.
+And that’s why we talk about it now.
+Let’s have a quick look at Google Cloud
+how a complex authorization system can look
+like.
+On Google Cloud you can run tons of different
+services like databases, kubernetes, storage
+systems, whatever you want.
+And here in the Identity and Access Management
+you can see the different user and service
+accounts including their roles and permissions.
+And in very big companies with multiple engineering
+teams you might want to carefully control
+what kind of access each employee has.
+You see, it can get complex fast.
+So let’s talk about the challenges with
+permissions and roles and how this relates
+to bug hunting.
+Let’s imagine a web app with a functionality
+to impersonate other users.
+But this can only be done if you have the
+“impersonate user” permission.
+This is intended for developers or support
+staff to debug very weird account issues.
+But giving direct access to an account is
+a huge invasive act, so this permission is
+only given to team leads.
+Regular support staff or regular developers
+cannot do that.
+BUT each support staff has the permissions
+to change the email of an account.
+Because users might have account issues and
+request email changes.
+On first sight this seems reasonable!
+But actually this email change permission
+can be abused in lateral escalation.
+Here is how.
+A support staff can change the email of a
+user to their own email, then use the forgot
+password functionality of the app to change
+the password, and then login.
+They got access to the account, even though
+they didn’t get the “impersonate user”
+permission.
+I guess that’s not surprising but that's
+the crux of the matter.
+When you try to come up with reasonable permissions
+and design what users are allowed to do, indirectly
+users might have very critical permissions,
+even though it doesn’t seem so at first.
+And now when we talk about bug bounty, a lot
+of apps have certain default permissions for
+users, or have permissions that seem harmless,
+but are actually very powerful.
+In those cases it might be worth reporting
+it to Google’s bug bounty program.
+However keep in mind that “fixes” for
+these issues can be very complex and might
+require a lot of Google internal discussions
+from many different teams.
+It’s often not easy to evaluate if it’s
+intended, or if it has privacy, abuse, security
+or other kinds of impacts.
+So you really have to make a good case why
+you think a certain permission is not good
+and how it can be abused.
+You really need to be sure of it.
+And then give Google some time to figure out
+what they think they should do.
+But this is not all when it comes to authorization
+bugs.
+We just talked about individual permissions.
+But in big applications like Google Cloud,
+you also have roles, and roles combine multiple
+permissions.
+For example the Owner role or editor role.
+They are massive roles and give you over 4000
+individual permissions.
+While more fine-grained roles like “Cloud
+Run Admin”, gives 20 permissions.
+Google cloud has some cool features here,
+because you can analyze those roles.
+When doing that they try to see which actual
+permissions this user requires, and Google
+cloud thinks that some of them are excess
+permissions.
+It seems like this particular user with the
+cloud run admin role is not requiring all
+of those permissions, so you could remove
+individual ones that are not actually needed.
+For this particular example organization.
+Anyway, when doing bug bounty we need to think
+and understand what the purpose of a certain
+role is and if it matches expectations.
+A good start for that is the documentation
+about the roles.
+And the article on the google bughunter site
+has a good example of this.
+“If the documentation says "Users must have
+the OWNER role on the file to change the file
+name", and you find out that a user with the
+EDITOR role is also able to change the file
+name, we consider this to be a vulnerability,
+because (the word must implies an obligation)”.
+In this case it’s not clear that you could
+have also used the less-privileged EDITOR
+role.
+“[But] If the documentation says "The OWNER
+of the file can change the filename", then
+we might just fix the documentation to clarify
+that an EDITOR is also able to change the
+file name (because the word can implies a
+possibility, but not an obligation).”
+So as you can see, for auditing permissions
+and roles, no real technical knowledge is
+required.
+But you still need a lot of in-depth understanding
+of the app’s functionality.
+Before we end this video, there is one last
+confusing area of authorization bugs worth
+talking about.
+Especially in Google’s case, because Google
+offers tons and tons of API endpoints, and
+certain apps might only use some of the endpoints
+exposed to the UI.
+But when you poke around the APIs, you can
+find undocumented endpoints that still work.
+And it’s important to understand that that
+is not necessarily a security issue, just
+because no button for it is on the page, it
+doesn’t give the user special access.
+So think about the first example for authorization
+bugs in this video.
+Maybe the undocumented API is an admin API
+that you shouldn’t access, in that case
+it’s a bug.
+But often times it’s just a “harmless”
+endpoint that doesn’t give special privileges
+and is just not used by the UI.
+In that case it’s not a bug.
+And then there is one more thing that is really
+confusing, sometimes there are endpoints that
+seem to be only accessible to admins, for
+example, “list all files”.
+For an admin this would literally return all
+files of all users.
+And you noticed that when you as a regular
+user access this API, you actually return
+some data as well, you think you found a bug,
+but the response is already filtered matching
+your user’s permission.
+You only return files that you own.
+So you used the admin endpoint, but the results
+are perfectly in-line with what your user
+can access.
+In such a case it’s not a security issue
+either.
+So to summarize.
+Hunting for authorization bugs doesn’t require
+a lot of technical knowledge, but it requires
+a very good understanding of the apps functionality
+and use-case.
+You really need to show impact and make a
+good case why you believe a certain permission
+or role is bad.
+This can be done for example by showing a
+mismatch between the documentation and what
+is actually implemented.
+However a mismatch between what the UI exposes
+to the user and what the actual API offers
+is often not a bug.
+In the end, it’s always important to proof
+impact and make very clear arguments why something
+has practical security-related consequences.
+And let me give you some personal advice,
+even though it requires you to spend a lot
+of time to learn about the application’s
+functionality to understand if there are authorization
+bugs, it’s not at a waste of your time.
+Because when you select a target to hunt on,
+and you start playing around with the different
+roles and permissions, you will learn about
+all the features of the app, and when you
+then slowly move into the more technical attacks
+you might have already noticed weird behaviours
+and identified areas that are worth looking
+into.
+So it will be much easier to come up with
+interesting attack ideas.
+So good luck hunting.

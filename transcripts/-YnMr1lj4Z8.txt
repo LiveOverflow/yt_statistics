@@ -1,0 +1,356 @@
+In the last video where I introduced how to
+generally use docker, I said stuff like:
+“We can use docker exec to execute a process
+within this container.”
+or
+“inside of this container we are root.”
+And at the end of the video, I told you to
+rewatch the video and replace “container”
+with “namespace”. so you would get:
+“We can use docker exec to execute a process
+within this namespace.”
+Or
+“inside of this namespace we are root.”
+So what are namespaces?
+We will answer this in this video, and we
+will also understand why containers are not
+like VMs.
+Like always when you want to learn how stuff
+works, it’s a good idea to just check the
+documentation or source code.
+In this case, let’s start with the docker
+documentation so we can work our way down.
+The underlying technology
+Docker is written in Go and takes advantage
+of several features of the Linux kernel to
+deliver its functionality.
+Docker uses a technology called namespaces
+to provide the isolated workspace called the
+container.
+When you run a container, Docker creates a
+set of namespaces for that container.
+These namespaces provide a layer of isolation.
+Docker Engine uses namespaces such as the
+following on Linux:
+The pid namespace: for Process isolation
+The net namespace: to manage network interfaces
+or
+The mount namespace: to manage filesystem
+mount points
+There are a few other features used as well,
+but the core functionality to achieve this
+concept of “containers” are the namespaces.
+Before we look at namespaces, let’s make
+a few different observations first.
+So this here is a shell inside a container.
+And this is outside the container, on the
+host.
+In the container I’m the user ctf, which
+has the userid 1000.
+And on the host I’m the user named “user”,
+and have the userid 1000 aswell.
+When I create a file in the container, I see
+that it’s owned by the ctf user.
+And when I look at the shared folder on the
+host, I see that it’s owned by me, the user.
+That’s kinda interesting right?
+Same userid, different names.
+But look at this.
+So I’m executing watch with “ps ax”.
+Watch is a small tool to watch the output
+of a command every 2 seconds, in this case
+always executes “ps ax” to look at the
+list of running processes.
+So you can see here the watch process itself!
+And you can also see ynetd, because this is
+the challenge container from the previous
+video.
+Now let’s look at the processes on the linux
+host.
+There are a LOT more processes.
+A lot.
+But if you look very closely, you can find
+a mysterious “watch ps ax” process.
+WHAT?!
+It has the pid 12675.
+But inside the container it has the pid 79.
+This should be your first evidence, that docker
+containers are not VMs. they share stuff with
+host system.
+There is a certain level of isolation between
+the host and a container, I mean inside the
+container you can’t see the host processes.
+But clearly it’s not like an actual VM.
+Now let’s use pstree to look at the tree
+of processes.
+You can see here systemd is the init process
+1.
+That’s where the system started.
+And systemd then started different services.
+Just FYI if you ever wondered.
+That’s how linux works.
+There is an init process, which uses syscalls
+to clone and fork itself and then execute
+new child processes.
+Eventually one of those child processes will
+be a shell you use.
+Anyway.
+We are looking for our watch process from
+inside the container.
+Where is it?
+AH here!
+So it’s a child from the containerd-shim
+process.
+Which is a child from containerd.
+And containerd is a service started by systemd.
+What is containerd?
+“An industry-standard container runtime.
+It manages the complete container lifecycle
+of its host system”
+Whatever that means.
+In the README of the containerd repository,
+we can also read this:
+“Runtime Requirements for containerd are
+very minimal.
+Most interactions with the Linux container
+features are handled via runc.”
+So let’s checkout runc.
+“runc is a CLI tool for spawning and running
+containers according to the OCI specification.”
+Okay… so we have like docker.
+Containerd.
+Runc. oof.
+What is all that.
+Let’s zoom out again and look at the highlevel
+docker overview.
+There is this picture of the docker architecture.
+The docker command line tool that we use,
+like docker build or docker run is a client
+that communicates with the docker daemon.
+Dockerd.
+That d at the end always refers to daemon,
+which is a term for like background running
+services.
+The docker client can talk to the docker daemon
+via a HTTP REST API or a UNIX socket.
+Now in the dockerd documentation, you can
+search for containerd and find this sentence.
+“By default, the Docker daemon automatically
+starts containerd.”
+Combining with what we learned before, we
+can paint this picture.
+Docker communicates with the docker daemon
+- dockerd.
+Dockerd started containerd earlier, because
+containerd actually manages containers.
+But it uses runc, which is used for actually
+spawning and running containers.
+So let’s investigate.
+We could use strace to attach to the current
+containerd process to trace all the syscalls
+containerd uses.
+We also want to specify -f, to follow all
+childprocesses.
+And log the output to a file.
+Pidof containerd gives us the process id so
+we can attach to it.
+This way we should figure out how containers
+work.
+Alright.
+We are attached.
+Now let’s use docker run, to start a new
+container.
+And this immediately triggered containerd
+to spawn some new processes and doing stuff.
+The container runs now.
+So we can have a look at the syscall trace.
+This trace is huge, and most of it is not
+interesting.
+But for example we know, that containerd should
+run runc, to actually start the container.
+So let’s look for that!
+Here it executes containerd-shim, we saw that
+as another child process of containerd earlier,
+and we know it must also be the parent of
+the container processes.
+Let’s continue.
+there we go.
+The next call to execve, is to execute the
+runc binary!
+Okay… now I’m looking for a very specific
+syscall.
+But there are soooo many.
+It’s obviously doing a lot of stuff.
+Let’s see if I can find it.
+I scrolled for quite a while and was unsure
+if I’d miss it.
+I mean I know what I’m looking for and could
+search for it.
+But I was curious if I can catch it.
+OH!
+There it is!
+Unshare.
+That’s the magical syscall I was looking
+for.
+And just before it you can see that in the
+same process, so that number here is always
+the process id where this syscall was called.
+Before it called processcontrol, with SET
+NAME, which sets the name of the calling thread.
+So this is the child thread of runc, which
+calls unshare.
+So what is unshare.
+unshare() allows a process to disassociate
+parts of its execution context that are currently
+being shared with other processes.
+The argument [...] specifies which parts of
+the execution context should be unshared.
+All flags here are interesting, but let’s
+focus one of the flags CLONE_NEWPID.
+It means: “Unshare the process ID namespace
+so that the calling process has a new PID
+namespace for its children which is not shared
+with any previously existing process.
+- NAMESPACES - “The calling process is not
+moved into the new namespace.
+The first child created by the calling process
+will have the process ID 1 and will assume
+the role of init(1) in the new namespace.”
+So let’s follow this process, and we can
+find a CLONE() syscall.
+This creates a new child process.
+So this will become the PID1, the init process
+of the new namespace.
+The return value of clone is the new process
+ID on the host, because it was called from
+the host, but inside that namespace, it should
+have process ID 1.
+When we look at what this process is now doing,
+we can see that it’s still runc, but it
+renames itself as INIT.
+It has become the init process of this namespace.
+Of this container.
+And now let’s continue to see what this
+new child process does.
+Eventually it calls clone() again and creates
+another child process.
+But this time it’s a process in the new
+PID namespace, right?
+When process ID 1 has a child, it should have
+pid 2.
+And clone() as I said returns the new PID.
+So what does clone executed in that pid namespace
+return?
+It returned 2.
+Now strace is a bit confusing.
+Because obviously outside the namespace, where
+strace is running, this child process will
+have a different pid.
+It might be this one here 29866.
+But the return value of that syscall inside
+that namespace is 2.
+The processes inside of the namespace think
+the process has now pid 2.
+You have now these two parallel universes.
+They are somewhat shared, the processes of
+the child namespace live in the parent universe
+too.
+But that PID namespace creates a bubble around
+all the children and they think they are PID
+1 and 2.
+So this is the process ID namespace.
+There are many more namespaces.
+And in the manpage of the unshare syscall
+you can see which exist.
+CLONE_NEWNS - Unshare the mount namespace.
+“Mount namespaces provide isolation of the
+list of mount points seen by the processes
+in each namespace instance.“.
+Every storage is mounted, so this refers to
+stuff like your hardrive, SWAP, the temp filesystem
+or procfs.
+You want containers to be isolated from your
+host filesystem.
+Or CLONE_NEWNET - Unshare the network namespace.
+So you can also isolate the container from
+the networks that are available on the actual
+host.
+That’s it.
+That’s the magic behind containers.
+Docker is just a fancy interface around this
+unshare namespace feature.
+Containerd and runc are just components to
+interface with all that.
+In the end it comes down to these syscalls,
+that tell the kernel, please fake a new process
+ID or fake a new network for this child process.
+Now one last thing.
+You can check the namespaces of a process
+in the proc filesystem.
+So here we have the pid of the watch process
+which we know must run in it’s isolated
+namespaces.
+And with ls we can check the ns folder of
+this process.
+And now we can see here the different namespaces
+identified by this number.
+Let’s compare this to the init of my host
+system.
+So this is not inside the container, this
+is actual systemd on my machine.
+And we can also look at the namespace of the
+current shell process.
+$$ just represents the current process id.
+And if you look closely and compare, you can
+see that my shell, and init, which run on
+the host, share the same namespace.
+They see each other normally.
+But the watch process, inside the container,
+has a unique namespace.
+But not everything.
+It has a different pid namespace.
+We knew that already.
+But the user namespace is the same.
+This makes sense because in the unshare syscall
+we didn’t see the flag CLONE_NEWUSER.
+Usernamespaces are cool:
+A process's user and group IDs can be different
+inside and outside a user namespace.
+In particular, a process can have a normal
+unprivileged user ID outside on the host,
+while at the same time having a user ID of
+0 inside the namespace;
+So you could be root inside of a container,
+but in reality you are just a regular user.
+It looks like you are userid 0 root.
+But you actually have no additional privileges.
+But for the example at the beginning this
+was not the case.
+Userids were equally mapped inside and outside
+the container, and you saw that when we created
+that file.
+The user id was 1000 inside and outside the
+container.
+We just had different names displayed for
+it, because the name is read from /etc/passwd.
+inside the container the name was ctf.
+And outside it was user.
+Anyway.
+I hope this helped you to better understand
+what containers are.
+And you understood that you are using the
+same kernel inside and outside the container.
+And that you can choose what to unshare and
+not unshare between the host and the container.
+That’s why it’s not like a VM and you
+need to be careful that you don’t expose
+too much to the container, because it can
+be dangerous for breaking out of it.
+And of course some kind of kernel exploit
+would mean you can break out of it too.
+I can also recommend to you the LWN article
+about namespaces.
+It’s from 2013 and many things have evolved,
+but it’s still a good introduction for namespaces.
+At least it was my first resource where I
+learned about it.

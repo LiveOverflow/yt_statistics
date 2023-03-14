@@ -1,0 +1,290 @@
+Paul Cher is a research who together with
+his colleague Emil found vulnerabilities in
+ffmpeg.
+He then wrote me an email asking if I would
+like to make a video with him.
+And this lead to the very first LiveOverflow
+podcast episode which you should listen to,
+to get a bit more context for this video.
+So Paul will now walk us through some of his
+exploit process and I will add some comments
+here and there to hopefully make it a bit
+easier to understand.
+ok.
+Hello everyone.
+My name is Paul and today I will be presenting
+you guys research about FFmpeg security made
+by me and my colleague Emil Lerner.
+We have already presented it in our talk on
+PHDays conference which took place in Moscow
+earlier this year, and you can watch it in
+recording, but we did not cover the binary
+exploitation part too much, and now we are
+gonna focus only on binary exploitation and
+go as much in-depth as possible.
+But first, let’s take a quick look what
+is FFmpeg and how it really works.
+FFmpeg is powerful opensource software, to
+easily record, convert and stream out videos.
+Thus, it is used by many platforms and services
+that provide file storage conversion and editing
+functionality.
+And this really means that FFmpeg is used
+almost everywhere starting from your favourite
+messenger finishing up with some lovely meme
+storage.
+When you upload a video as a gif or so on
+some image sharing plattform it’s very likely
+that the video is handled by ffmpeg.
+It’s really a very popular and big tool.
+Of course such a system would be a good target
+because it has a very large attack surface.
+There are some really cool researches already,
+for example research presented at blackhat
+2016 by Maxim Andreev and Nikolay Ermishkin.
+Or research by Gynvael Coldwind and Mateusz
+Jurczyk from google, who managed to fix thousands
+of bugs in ffmpeg and many other researches.
+Knowing this, me and my colleague Emil still
+tried to take this challenge and to find some
+new bugs.
+First let’s take a quick look at the ffmpeg
+functionality.
+Ffmpeg has really cool features and all of
+them are described in the documentation on
+the official website.
+Seems like there is a feature that allows
+you to collect files not only from the local
+filesystem but also form the remote systems
+by using networking protocols.
+So as you can see you can provide a link as
+an option to ffmpeg and it will go for the
+remote file, and take it, and process it.
+Let’s download the sourcecode from the github
+and see how this process is implemented.
+And now I’m going to clone the repo to my
+ubunut virtual machine.
+And this may actually take a while.
+So now we have downloaded the ffmpeg sourcecode.
+To follow me in my next steps you need to
+be sure that you have downgraded your FFmpeg
+to vulnerable version.
+You can do it by resetting FFmpeg to correct
+version by using exact commit number or by
+grepping from the commit log.
+As I do right now.
+So i’m using git reset hard to pull the
+head driectly to the exact commit number.
+Heh.
+Funny little advice.
+Look through the git commit log with his name
+in it to find the latest version before it
+was fixed.
+Now let’s take a quick look at the http
+protocol implementation.
+I’m using vim to do this
+So, as you can see, ffmpeg doesn’t use libcurl
+or any other library, and it has a custom
+implementation of the HTTP protocol and also
+many others.
+So it is really a good [attack] surface to
+search for the vulnerabilities.
+And this is a very important observation.
+Libcurl has been audited and around for a
+long time.
+It’s a very very safe library and also used
+a lot.
+But instead of relying on some other library
+ffmpeg implements it’s on HTTP handling.
+And sure you will think that HTTP is very
+simple, but there are weird protocol features
+that can break your neck when you actually
+have to implement it in C.
+So, for now I have two versions of ffmpeg
+compiled, the first one is compiled with addresssanitizer.
+We talked about this one in our podcast.
+And the second one is the original ffmpeg
+binary, but it has debug symbols and it is
+compiled without code optimization options,
+so I can easily debug it.
+You can do it as well by configuring project
+with the following options.
+I just want to quickly explain the basic idea
+behind address sanitizer and why it’s great
+for debugging but also finding heap vulnerabilities.
+For example one feature is that asan will
+automatically fill certain memorz areas with
+a recognisable pattern.
+And when then some code uses bad memory, for
+example in a heap overflow case, it will likely
+crash because of those values and you can
+easily recognise that it crashed because it
+read data from that memory.
+And there are a few more ideas and tricks
+like that.
+So it’s very convinient.
+So, let’s quickly recap on how we actually
+did the fuzzing.
+At some point, we thought that there might
+be a small chance that nobody has been fuzzing
+the network protocols inside FFmpeg before
+us, and there might be some vulnerabilities.
+And yeah, this is exactly the case.
+I won’t explain too much about the fuzzing
+process, because we used secret dark magic
+related technique called ehm “launching
+AFL” and the process of fuzzing was already
+described in the podcast.
+So let’s jump directly to the part where
+we already have a crash.
+So, here I got my crashes, I have already
+simplified them a bit to be more readable
+for you.
+So Let’s take a quick look at them first.
+The first one is ascii text basically.
+Let’s open it with my favorite.
+Vim.
+Soo… this is HTTP protocol.
+it has a lot of really interesting features
+like “Transfer-Encoding: chunked” for
+example which was used here.
+Basicly what it does is instead of setting
+the content-length header and length of data
+and then whole bunch of data afterwards, it
+allows you to send the data to server in little
+chunks.
+First you send the size of the chunk in hex
+and the next line is the chunk itself finished
+with the CRLF (\r\n).
+And there -1 was used as size as you can see,
+maybe this was causing an issue.
+So, let’s move on.
+So here I wrote a simple echo server.
+Basically what it does is, it is binding on
+the port, listens for everyone.
+And it’s basically reading the argv filename.
+It reads it and basically echoes to the output.
+So nothing special.
+Let’s now launch both binaries with this
+output and see what happens . Let’s launch
+the original binary first.
+Segmentation fault confirmed.
+So he wrote a small server that just responds
+with this test case that causes a crash and
+pointed ffmpeg to load the file from there.
+And then it caused a segmentation fault.
+But how do you figure out now where and why
+it happened?
+That’s why he compiled a second version
+of ffmpeg with address sanitiser instrumentation
+included.
+So for a more detailed report we are now launching
+the address sanitizer binary.
+Ho ho.
+Let’s see.
+So the heap buffer overflow in function http_buf_read.
+This is nice.
+You can see here the output of address sanitizer.
+And it recognised a heap buffer overflow.
+And it shows you here how the heap looked
+like and fa means heap redzone.
+So that’s a bad address.
+And because it was also compiled with debug
+symbols you can easily see the trace of functions.
+So let’s launch FFmpeg using GDB and take
+a closer look at what happens and then we
+will start auditing the source code.
+As you can see the server is already launched.
+Let’s connect to it using ffmpeg in gdb.
+So as you can see the crash is actually caused
+by memcpy, because it reached the end of the
+mapped virtual memory region.
+Let’s look at the backtrace.
+So in this functions it seems that the size
+equals to -1 integer…
+So being able to pass in a negative chunk
+size is clearly a programming mistake that
+apparently leads to an exploitable condition.
+These two functions are very interesting,
+let’s look at them.
+Once again I will be using vim as my IDE with
+support of ctags, which will allow me to navigate
+through the sourcecode quite quickly.
+So keep up.
+Just FYI: Ctags is a tool that will sift through
+your code, indexing methods, classes, variables,
+and other identifiers, storing them.
+And vim can then use it to quickly jump around
+the c source code.
+So paul now investigates a bit around the
+line that caused the crash.
+So this is the http_buf_read function.
+And inside the memcpy the len is actually
+-1 over here.
+So this is actually not exploitable.
+But let’s look at what caused the corruption
+of the size parameter.
+This was already corrupted in the previous
+function which called it.
+So.
+Let’s look at it.
+This is http_read_stream function.
+It’s actually in the same file.
+Let’s scroll up to the top of the function.
+Ok.
+As you can see here is the piece of code which
+corresponds for reading the HTTP chunked data.
+So there is the line reading.
+And there is the strtoll function, which also
+accepts a negative numbers.
+So the chunksize could have been negative.
+So str to long long integer is a function
+that converts a string to an integer.
+And integers can be negative and we know that
+the HTTP chunk size was set to -1.
+So this function will return -1.
+And a memcpy with -1 is nonsensical.
+And later the minimum was taken of these two
+and of course the negative number was less
+than any positive.
+So that’s probably how our size integer
+was corrupted, which caused the crash of FFmpeg.
+And later there is the http_buf_read function
+which was called with the negative argument.
+So as you can see this is actually not quite
+exploitable.
+Let’s jump back to it.
+But still if we are able to make this fall
+through this branch, meaning that buf_end
+will be equal to the buf_ptr we will be able
+to call ffurl_read function, which is different
+from the memcpy.
+Let’s look inside it.
+And this is basically calling the retry transfer
+buffer with the callback url_read.
+So.
+here it is called.
+And url_read is basically a function which
+accepts some parameters and it feeds those
+parametrs to the read function and calls it.
+And that’s it.
+Maybe that’s it.
+Maybe we can translate the -1 to the read
+function and this issue will be actually exploitable.
+If we will be able to make buf_ptr be equal
+to buf_end we will fall through this check,
+into the ffurl_read which will call the ffurl_read,
+which ... , which will call the transfer_func
+callback, which will fill the arguments for
+the simple read function and call it to receive
+the data.
+Eh stop.
+Oh boy, now I’m completely lost.
+I didn’t understand that last part.
+But that’s because we don’t know enough
+yet about the heap and some other structures.
+As you know, this video is getting a bit long
+and it’s a lot to process already.
+Let’s continue this very technical part
+in the next video and see if we can understand
+it then.

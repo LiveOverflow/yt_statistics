@@ -1,0 +1,370 @@
+The Google Hacking CTF 2019 Qualifier had
+a Hardware category.
+And there is one challenge that caught my
+eye.
+minetest.
+Which is based on the game engine with the
+same name.
+Minetest.
+An open source minecraft clone.
+I thought that sounds like fun!
+I've stumbled upon this weird minetest map,
+can you make sense out of it?
+Minetest + mesecons required
+Mintest is the main open source voxel game
+engine, and Mesecons is a mod which adds advanced
+digital circuitry like logic gates and programmable
+blocks.
+Because this challenge is in the hardware
+category, it totally makes sense that this
+is about digital circuitry and logic gates.
+Setting the game up is super simple, just
+follow the instructions.
+When we download the challenge files we can
+find a folder called real which contains various
+files like a map.sqlite a world.mt and other
+stuff.
+So how can we load this into the game?
+First I was looking through the folders of
+the file to see if something looks similar,
+to know where to place it.
+I copied it into the mods folders and some
+others, but nothing seemed to work.
+Then I had the idea to create a new world
+testgame in mintest, and looked at the logs.
+This showed me that there is now a folder
+called worlds, which seems like a good place.
+The challenge file is probably a world.
+So copy it over and restart the game, and
+there it is!
+We can load into the game.
+Awesomes spawn, we first just faaaaaalll down.
+But like with minecraft, I assumed there must
+be features in creative mode to fly and teleport
+around.
+And in the keybindings I was able to find
+shortcuts for flying, noclip and even faster
+movement.
+And from the mintest wiki I learned about
+the console and the teleport command.
+Awesome, now we can teleport back to the start
+and use flying.
+This is a recording from DURING the ctf.
+This was literally the first time I saw it.
+I just kept flying up… and was a bit shocked.
+I immediately made a screenshot and send it
+to my teammates..
+This is one of the reactions.
+Oh no…
+What?
+… The circuit that you have to reverse.
+FUCK!
+So I just kept flying around a bit, trying
+to see how big the circuit is and WHAT exactly
+the challenge is.
+After flying for a minute or so I found the
+first logic gates.
+And a few minutes later, I reached the end.
+Here you can see the gates better.
+So this should be an AND gate, this should
+be an OR gate, and this is an inverter.
+And here is the final output.
+So the challenge goal is clear.
+If you have watched my pwn adventure series,
+then you know already the Blocky’s revenge
+challenge.
+It’s basically the same.
+We have levers as inputs and at the end we
+have a single output.
+We just have to find the correct input that
+leads to a 1 at the output.
+So minetest is basically Blocky’s Revenge
+Revenge.
+But there is one difference.
+In pwn adventure the circuit was fairly small
+and could be reverse by hands in a matter
+of a few hours.
+As have teams done during the original pwn
+adventure ctf.
+However this mintest challenge is insane.
+No chance to do this by hand.
+But this also makes the challenge straight
+forward and we basically know exactly what
+we have to do.
+First we have to somehow extract the circuit,
+for example from the world map files.
+And then we have to solve it, for example
+with a SAT solver like z3.
+But just because the challenge direction is
+clear, it doesn’t mean the path is without
+obstructions.
+So.
+task 1.
+Parsing the world file.
+Because this is open source, we should find
+plenty of resources about this.
+For example I was sure people made map generators,
+like people would make minecraft maps.
+To draw a map you have to somehow parse the
+world file.
+So I was basically googling for a bit for
+mapping projects, details about parsing and
+eventually we found the official “Mintest
+World Format” documentation.
+And it seemed easy.
+There is a map.sqlite file.
+Minetest maps consist of MapBlocks, chunks
+of 16x16x16 nodes.
+map.sqlite is an sqlite3 database, containing
+a single table, called "blocks".
+It looks like this:
+So this table simply contains position as
+a single integer and a data binary blob.
+The documentation also gives us example code
+on how to turn x,y,z coordinates into the
+single integer position, and vice versa.
+And then we have the binary blob.
+Which is described in the MapBlock serialization
+format.
+I figrued somebody must have already written
+parsers for this to extract the map, so I
+spent quite some time looking for various
+github projects and scripts that deal with
+this file.
+And I found various things that have helped
+me to write my code, but nothing really worked
+for me right away, mostly because we have
+non-standard blocks from the mesecons mod.
+But eventually I got some first script parsing
+the data running.
+I thought it would be a good idea to visualize
+the map parsing, in order to verify that it
+works.
+So I used Pillow, the python image library,
+to draw pixels for the blocks I’m parsing.
+Here it is!
+I did this based on some metadata information,
+basically some strings, in each binary block
+that told me that there was mesecons related
+stuff in there.
+Because mesecons is the mod that implements
+the logic gates, I figured if I color every
+block that contains mesecons stuff, I should
+get an image of the whole circuit.
+I still wouldn’t know what component it
+is, like a connection or a gate, but I should
+get a shadow image of the circuit.
+Good enough for a first test.
+Doesn’t this look already awesome.
+You can really see the circuit emerging….
+I could even see that some blocks contain
+gates, so I even played with different coloring.
+And I thought I finish it soon….
+But at some point I noticed some weird things…
+it bothered me… and that was….
+Shouldn’t be the input levers be in it’s
+on row?
+Like they start here and then blocks further
+it starts?
+But when I draw it, the first layer here is
+just one long connected line?
+This really blocked me for a bit.
+Pun intended.
+And I wonder if you realize my mistake…
+The crucial line in the documentation is:
+Minetest maps consist of MapBlocks, chunks
+of 16x16x16 nodes.
+OHHHHHHHHHH crap… a block is a chunk.
+And a node is an actual block… what I thought
+I was parsing were single blocks.
+But in fact I was dealing with 16x16 chunks.
+So inside this chunks I have 16x16 blocks
+to deal with….
+So once I realized that I had to extend my
+parser and once I figured out how the format
+exactly works, I was able to draw each individual
+block…
+Here you can see my first attempts… now
+the map is also waaaay larger.
+And you can see the individual input lever
+blocks…
+This has cost me hours… but in the end it
+looks really cool.
+I didn’t fully have to render it because
+I knew my parsing was working so I could move
+onto solving it now.
+But if you are curious, I rendered the whole
+circuit and put it up on liveoverflow.com.
+So head over to the liveoverflow.com blog
+if you want to look at it.
+But how do we solve this huuuuge combinational
+logic circuit?
+First of all I decided to store the parsed
+data in a different format, so I don;t have
+to re-parse the sqlite file with all the chunks
+I’m not even interested in, every time when
+I want to test my script.
+That would be too slow.
+So I created a 2d GRID array or matrix and
+just used single characters to indicate what
+block (or node, as we should call it) is.
+Here is the large if-case that checks the
+type.
+So for a simple line I used a pipe or dash.
+For a crossover I used a +.
+For a corner I used one of these characters.
+And also here some letters for the gates.
+AND, OR, XOR and NOT.
+The pygame stuff around here, is just the
+pixel drawing code.
+And after I have created this 2d array, I
+saved it to a file grid.py.
+Then I created a new script trace.py and can
+simply import the grid, without doing the
+sqlite parsing again.
+And now we come to the actual interesting
+part.
+How do we solve this.
+As mentioned in the beginning, we need some
+kind of SAT solver, that can solve the boolean
+circuit equation for us.
+I like to use z3 for that.
+I have also used z3 in a previous video, I
+link that in the corner.
+So here basically it starts.
+I created the function trace which takes a
+coordinate and a direction.
+This is the coordinate of the final output.
+So this is the end of the circuit.
+And we are tracing to the left, in the way
+I have oriented the grid, the circuit goes
+to the left.
+This is the whole function.
+It’s a recursive function that basically
+walks the whole circuit, starting at the output.
+So let’s see how that works.
+We start here , with the direction d to the
+left.
+Now we have a while true that gets the character
+from the grid, and it will be a dash.
+So dash to the left means we decrement the
+coordinate on the x axis.
+We move left.
+And so we we keep doing that until we reach
+this gate.
+So now this character c is the AND gate.
+First we check if we have visited this gate
+before, this is just to optimize the algorithm.
+We don’t need to redo the magic, we just
+return the visited value in such a case.
+But what is the magic that we do.
+And this is here.
+So if we have not visited, we set visited
+to this.
+We call simplify.
+Simplify is a function by z3 to simplify an
+equation.
+I call this in every function just to let
+z3 simplify the equation we currently have
+in every step, not sure if really needed.
+But so we return here a boolean function.
+The boolean function we create here is an
+AND, obviously we have an AND gate, and the
+INPUTS to that and gate are of course the
+two paths going up and down.
+So the two input parameters to this and gate
+have to be traced too.
+We trace now the path down, and we trace the
+path up.
+It calls recursively the trace function.
+So this can only return, once we finished
+these trace calls.
+And these trace calls keep walking the circuit
+in the same way, and keep also calling trace
+on each new gate.
+You can see it slowly walks down the whole
+circuit recusively.
+And then at some point we reach the end.
+At some point a trace function will find a
+lever.
+And then it will return a Boolean variable.
+This is a z3 boolean variable with the name
+based on the lever’s coordinates.
+And so now the whole circuit collapes.
+This returns a Bool variable, which means
+the trace function that called this trace
+function can for example finally return the
+AND.
+And AND of boolean lever 1 and boolean lever
+2.
+For example.
+Now this created a boolean function about
+these two booleans.
+And they then return to the next layer of
+trace function which then pf course pass that
+return value to it’s new gate, for example
+an OR.
+And so you can see how that spans out the
+whole circuit.
+So at some point trace returns THE WHOLE circuit
+as a boolean formular.
+Here it is.
+This is the whole circuit printed.
+The output depends on an AND.
+Which itself has an input coming from a NOT
+and that not has an input from an AND. and
+so forth.
+And several layers deep we reach at some point
+our boolean variables, those are the levers.
+And now we somply ask z3.
+We want this whole trace to be true, we want
+the output to be true.
+Please solve this.
+That’s it.
+Z3 will do it’s solving magic and return
+exactly the value of the boolean variables,
+that make the output true.
+Just takes a few seconds.
+There it is.
+Those are the state of the levers.
+Sort them by number.
+And here is the binary input.
+That is the flag.
+We can submit it, and get the points.
+Nice!
+As you can see, pretty straight forward challenge.
+It’s more of a programming challenge,because
+the path is pretty clear.
+It’s not really security.
+But it’s really fun and you learn a lot
+about parsing custom file or data formats
+and generally practice the craft of using
+technology.
+However you need to know about something like
+z3, but that’s a typical CTF tool that you
+know about if you read writeups.
+I mean even if you just watch my videos you
+would have know about it from that video I
+mentioned earlier.
+However if you happen to be an electrical
+engineer, you might even know other tools
+to solve this.
+For example q3k solved it using a verilog
+netlist optimizer or solver - I don’t really
+know how it works.
+Verilog is the language you can use to design
+hardware and program FPGAs, we have also used
+that before in this video I link up here.
+And the design suites you use for hardware
+designs also come with tools to optimize and
+solve circuits like this.
+And so he transformed the data into a netlist
+usable by such a tool and let it solve it.
+Super clever usage of what is a normal tool
+for hardware development.
+Which also shows you, that there is real-world
+practical use of these kind of tools.
+This is not super esoteric or unrealistic.
+It’s gamified with a minecraft clone, but
+this challenge taught you a bit about the
+hardware world.

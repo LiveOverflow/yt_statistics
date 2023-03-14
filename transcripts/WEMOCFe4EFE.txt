@@ -1,0 +1,302 @@
+I know I f’ed up. I kept leaking the IP 
+of the server and tons and tons of people
+joined. And it really got out of hand. So I 
+decided to change the IP address. However,
+this did not stop them. They are still 
+coming. And now I’m trying to hide from them.
+Look what they did to my lovely spawn place. 
+All my chests and loot are gone. My bed is
+gone. And they keep mocking me with these 
+signs. And over here in my base. My animals
+are gone. my beautiful trees and decorations 
+are gone. And they even STOLE my beehives.
+On the other hand, THERE ARE TONS OF 
+AWESOME BUILDS NOW. What the heck is
+this? An ender pearl teleport service?
+And over here. This is the BEST thing on
+the server. This is so awesome! This is an item 
+sorter and storage system. I always wanted to have
+this and so I’m very happy this was built. 
+I believe it was __SEBASTIAN__? Thank you!
+Oh… I cannot find the items I put into. Okay I 
+guess it looks like the Sorter is broken again….
+et’s go investigate. How does it even work. 
+So from the chest the items go into a dropper
+and the items get passed along. Let’s try 
+to follow this path and find where they
+ended up. All of these chests and hoppers 
+are empty. But this looks like a dropper
+elevator. Using the redstone texture pack 
+we can figure out their orientation. And
+indeed. They point upwards. So the 
+items are probably transported up.
+Looking around a bit more I came across this 
+cart. And in the chest above it, there are
+the items. It looks like this cart is stuck, so 
+maybe that is why the sorter is not working again.
+Destroying the cart and placing it again, now 
+it’s moving again and the sorter appears working.
+It does stand on an activator rail so somehow it 
+didn’t get a signal. So maybe we just have to make
+sure it can be activated? And ohhh look at that. 
+Sb already added a button to do exactly that. I
+see. You know what, let’s extend this debug button 
+to the front so the cart can be more easily reset.
+I build a basic line of redstone with inverters 
+that basically act as extensions and then outside
+we place a button. And a sign to tell people they 
+can press it if the sorter appears stuck again.
+Awesome!
+Also by the way, very nice stone floor design and
+some nice plants here. I like this kind of design.
+Anyway. Let’s explore a bit more. Flying up to
+my old afk farm spot we can find tons of 
+more signs. It’s so crazy. And look at the
+INCREDIBLE liveoverflow logo in the sky. 
+No clue who built it, but it’s amazing!
+Remember, this server is all survival. Yes, 
+people can hack and cheat on here, but still,
+it’s still lots of effort that goes into 
+this. And I really really appreciate that.
+But now we come to the most crazy build of all.
+Do you recognize this?
+This is the spawn. This is the forest where 
+I had built the bedrock hole with a spawn
+protected perimeter. Some people had messed with 
+it with lavacasts, but look how it looks now!
+I DID NOT BUILD THIS! I DID 
+NOT PUT A HOUSE AND LAKE THERE.
+And the red concrete is actually a pixelated 
+version of my glitched recording logo.
+This is absolutely incredible. I watched them 
+build this. At first they had to clean up the
+spawn from any of the leftover lavacast. I was 
+traveling at the time and only had my macbook
+with me. So the recording is terrible. But they 
+started by flinging TNT into the build protected
+area with fishing rods, and then they started 
+to build flying machines outside the perimeter
+which then fly in, pickup the bad blocks 
+and fly them out the other side. It’s crazy.
+But they didn’t stop there. Some player 
+used the flying and pushing machines to
+build a jumping challenge course above 
+it with the concrete colored blocks.
+And then look at the footage of the house 
+getting built. What a crazy dedication.
+In this area the simplest most basic minecraft 
+task of “placing a block” becomes a complete
+engineering challenge. It’s amazing. Just 
+look at the effort that went into this.
+And the spawn was completed with 
+a trans and a raindbow flag.
+You know the internet is a toxic place. 
+Anarchy servers and other social places
+without any rules quickly fall into a complete 
+nazi and racist shitshow. But look at this,
+this server is a server project where I 
+try to attract skilled people and there
+are no anti-griefing plugins, no real rules. 
+And yes of course we have some griefing BUT,
+overall it’s a very positive community that 
+formed on here and dominates this server. Of
+course this might change at some point. And 
+then maybe I will also take the server down.
+But regardless of what happens in the future, up 
+until this point, I will remember this server as
+an example where when you gather a bunch of 
+super smart people and skilled hackers, you
+get an amazing place. It doesn’t immediately fall 
+into absolute chaos. And I think that’s beautiful.
+But you know what? Before everything turns 
+sour on here. It’s probably time to finish
+this game. Let’s go do the end and 
+defeat the final boss of minecraft.
+To get there we have to find a stronghold. 
+And how do we find it? Well… this is a
+server for hackers of course we just have 
+to fly to the coordinates 1337,1337. What
+did you expect? Trust me. That’s how it works.
+So here we are. 1337, 1337. And of course others
+have been here before me. So the stronghold has 
+to be somewhere here. I’m using a freecam mod
+because I’m too lazy to develop it myself and so 
+there we have it. And OH MY GOD. I just realized
+I forgot the eye of enders for the portal.
+So I had to fly back. I checked the sorter
+where luckily I found tons of ender pearls. 
+But I still needed some blaze rods. Which
+means we need to go to the nether. I went 
+on the seed map from chunkbase, entered the
+server seed and looked for a stronghold. 
+This one seems close by. Lets go there.
+While I travel there to find blazes for some 
+rods. I briefly wanted to mention how I got
+a seed with the stronghold near 1337,1337.
+You know when I saw the chunkbase website I
+was wondering how they get such a fast map 
+and structure rendering. I know from the
+seedcracking episodes how computationally 
+expensive world generation can be. So
+this really impressed me. how is that done?
+I started to investigate and eventually stumbled
+over cubiomes which is a c implementation of world 
+generation which can be used to bruteforce seeds.
+So for this series I wanted to find a seed 
+where a large variety of biomes as well as
+all possible structures are as close as possible 
+to spawn, and I want a text seed that starts with
+LiveOverflow. And additionally I want a stronghold 
+near 1337,1337. So I let this code run for a few
+days and eventually I selected a nice seed 
+which ended up to be the seed of this world.
+So now you know why the seed had these weird 
+numbers. I was bruteforcing seeds for particular
+patterns.
+Anyway.
+Small detour but we are back with the eye 
+of enders and can finally light the portal.
+So… are you ready?!
+Welcome to my tutorial on how to
+defeat the FINAL LEVEL OF MINECRAFT!
+Lets head in.
+As you can see I came prepared. Most importantly 
+are the water buckets because LOOK AT HOW MANY
+ENEMIES THERE ARE. But they are scared of 
+water. So you can place two water sources on
+the floor and start fighting all of them. 
+There will be quite a few waves of these
+monsters but you just have to keep fighting. 
+Hopefully your bought enough food with you.
+This is a very tough and long fight. 
+Believe me it can take a while.
+And eventually THERE! THERE IS THE FINAL 
+BOSS. HEROBRINE. LET’S GO AND ATTACK. ATTACK!
+Uhm… okay give me a second. Something is 
+weird. Let me check the minecraft wiki.
+“Once the player enters the End, the only way 
+back is to die or defeat the ENDER DRAGON??
+The dragon spawns naturally and flies around above 
+ten towers of obsidian arranged in a circle around
+the central Exit Portal. Destroying the crystal 
+while the dragon is healing damages the dragon.”
+THERE IS SUPPOSED TO BE A 
+DRAGON? WHERE IS THE DRAGON???
+I see… the dragon is missing because other 
+players have completed the dragon fight before
+me. WHO DO THEY THINK THEY ARE? Script kiddies 
+with their wurst or meteor clients they just
+downloaded somewhere. They can’t even write 
+a single line of code for their own hacks.
+These losers ruin my game. This has to end!
+And you know what. Remember all the afk bots
+standing around at spawn? They are awesome. 
+They don’t do anything. They don’t ruin
+anything. They just stand there. They can stay.
+But all the human players. GET THEM OUT OF HERE.
+Let’s write an anti-human plugin for the server.
+The idea I have is that humans move in weird ways,
+while bots and machines they always 
+walk in nice straight lines. So how
+about we restrict the movement to very cleanly 
+rounded values. None of this human imprecision.
+I don’t know how to develop a server plugin, 
+so let’s figure out how that works. As always,
+YouTube is a great place. I simply search 
+for a example plugin development tutorial
+but I’m mainly interested in how to get 
+a development environment setup. And
+essentially I ended up installing the intellij 
+minecraft plugin and then when you create a new
+project you can choose, for example to 
+create a bukkit or paper server plugin.
+From the basic example plugin tutorial I also 
+learned that you can subscribe to events. And
+looking through the API documentation about the 
+available events I found the playerMoveEvent.
+Using grep.app I can then search again 
+for useful code snippets to learn how to
+implement that event handler. In my case I look 
+for examples implementing the PlayerMoveEvent.
+Eventually I ended up with this code.
+If the position of the player changed
+I get the current location, get the X and Z 
+coordinate, multiple the coordinate by 1000 and
+cast it to a long. And then I use %10 to basically 
+check the last digit. So is the last digit a 0.
+If both coordinates are not a 0, we 
+detected a human player and we kick them!
+I hope that works.
+Let’s see it in action.
+So if we stand still, nothing 
+happens, but as soon as we move,
+we get kicked. Human player detected, and a code 
+snippet to show what the failed check was. Nice.
+You know, while we are at it. 
+How do server plugins even work?
+Let me quickly summarize what we 
+generally learned about servers so far.
+Minecraft has an official server, but 
+as you know most people run a different
+server implementation. I for example 
+use paper. And we learned that paper,
+as well as the other servers, are 
+basically patching the source code
+of minecraft. And to get the source code 
+they decompile the official server .jar.
+And you can guess it, plugin support 
+is added by patching those servers.
+So look again at our code when we are 
+creating a listener. this listener
+is registered with the server.
+And somehow when a player moves,
+our function, onPlayerMove, is called. 
+Where it passes in a PlayerMoveEvent.
+Let’s try to find where that happens. 
+Here I have a paper server development
+setup which we used before to figure 
+out a bypass for the flying detection,
+or how the creeper AI works. so let’s use this 
+again and simply search for the PlayerMoveEvent.
+And look here, here is a ServerGamePacketListener 
+creating this event object. When we go there we
+actually find a massive function, which 
+is called “handleMovePlayer”. So this
+is the minecraft function that is called 
+when a player sends a movement packet to
+the server. Here it does a lot of checks 
+and you can also see sometimes comments
+like these. //CraftBukkit or //Paper.
+These are code modifications added by
+for example bukkit or paper and to make 
+that clear they also add such a comment.
+And somewhere deep in that function 
+we have this PlayerMoveEvent code.
+So here a new PlayerMoveEvent object is created 
+with a reference to the current player and the
+from and to location, and then it calls into 
+the current pluginManager and calls that event.
+If we look up an implementation of the 
+callEvent code, we can for example find
+the simplePluginManager which simply loops 
+over the list of all registered listeners,
+Now it makes sense, right? in our plugin code 
+we registered a listener, so it gets added to a
+listener list. And then here it loops over this 
+list, checks if the plugin of that listener is
+currently enabled and then tries to call the 
+event handler function of that plugin. And
+that’s how our function gets called, and we get 
+the player and the position in our plugin code.
+Cool!
+I hope this explanation for server plugins
+helps you to better understand the limitations of 
+plugins and also why plugins work the way they do.
+I’m pretty happy with the plugin, it should really 
+help clean up the server from script kiddies,
+but I also need a bypass myself to continue 
+playing. So I will have to write some code now.
+But for a while, this is the end 
+for script kiddies on the server.
+And for those that seek a challenge. Try 
+to find the spot where hackers gather.

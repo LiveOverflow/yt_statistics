@@ -1,0 +1,260 @@
+This video is about a fun little side project
+that I did.
+We are going to have a look at an Auto Trading
+Bot that is being sold, or actually was sold,
+to people for the game Guild Wars 2.
+Which is awesome btw.
+Play it.
+So a friend mine told me that this bot has
+a funny little design issue I should check
+out.
+And so that’s what we are going to do.
+Guild wars 2 Auto Trading Bot, is a fully
+autonomous buying and selling trading post
+bot for Guild Wars 2.
+They offer a free trial and it can be run
+in the background, and obviously its supposed
+to make you a lot of gold.
+They also claim that because it doesn’t
+do any memory reading or writing, like hooking
+into the engine, that the bot would be hard
+to recognize by ArenaNet - the developer of
+Guild Wars 2.
+And there is a video how it works.
+You can see that you have a lot of different
+ways to configure it and when it’s running
+it will basically simulate clicks in the game
+as if you would perform those actions.
+So a very simple bot that doesn’t do anything
+really advanced.
+Obviously I don’t want to run this binary
+on my regular machine, because I don’t trust
+it, so I’m downloading a free Windows VM
+that microsoft offers for developers.
+First I want to get some tools I might need
+to analyse this binary.
+It’s very likely that it will communicate
+with a server, for example the Guild Wars
+2 API to pull item prices.
+But yeah, I admit, I already know from my
+friend that they also have their own server
+they communicate with.
+And a great free windows tool for that is
+Fiddler.
+On the download site of the bot it also says
+that the .net framework is required, so I
+assume it might be a .net binary, so I’m
+also downloading .net reflector, which is
+a tool to decompile and analyse .net code.
+Ok, so then we can download the bot and have
+a first look at it.
+We unpack the archive.
+And we find a couple of interesting files.
+There is the main .exe, here is a libarary
+to parse JSON data, a OCR, optical character
+recognition library, along with a folder named
+tessdata, whcih reminds me of tesseract which
+is a popular OCR framework.
+And they probably use to analyse the text
+in the game window.
+And there is a MouseKeyHook, which they might
+even inject into the game to simulate the
+mouse clicks?
+Well that would certainly be fairly easy for
+ArenaNet to identify, though I believe ArenaNet
+actually doesn’t care, because fighting
+against these kinds of things is always an
+arms race you just pour in money and cheaters
+will always find new methods.
+I think they are clever enough to fight cheaters
+and botters, that have actual negative impact
+for the game, on another level.
+You will see later that these botters here
+are absolutely irrelevant for ArenaNet.
+Ok so let’s have a first run.
+We start Fiddler and make sure we have SSL
+interception enabled and then start the bot.
+Uh, Windows Defender prevented the app from
+being run, because it’s not know.
+SmartScreen knows the hashes of programs a
+lot of people use and trust, so this is probably
+an indication that this bot is NOT a wide
+spread thing.
+Only a few people use it.
+Ah look there is a first request going out
+to the auto-trading-bot website.
+Check version.
+And it displays a Terms of Use prompt.
+So cute.
+As if they run any kind of legit company that
+cares about legal matters.
+Ok and then there is a login window, but we
+obviously don’t have a subscription for
+it.
+If you try to login we can see another request
+going out to check_login_data.
+Cancelling the login will start the trial.
+OK!
+So let’s do that.
+Mh it asks us for our API key.
+GW2 offers a JSON api that you can use to
+query your account’s information.
+For example there is this AMAZING site called
+gw2efficiency where you can use your API key
+to see all sorts of statistics and information
+about your character.
+Of course the bot would use it to look into
+trading post things.
+Maybe pull the current buy orders or so.
+And we can click a bit around and investigate
+the possible features.
+But we see no new requests so far.
+Ok, so far nothing too interesting.
+Like I already mentioned a friend told me
+about something funny here, so I know what
+to look for and we haven’t found it yet,
+so I keep exploring.
+It has to do with the server they are using.
+So far we have seen two API request to their
+server, but we don’t really have a full
+running bot here where we could see more.
+So let’s try to find other endpoints.
+Next I decided to see what .net reflector
+does with the .exe file.
+I pull it into here… ehm…
+GW2-ATB.exe is not a .net module?
+Oh Oh….
+That’s not what I was hoping for.
+Mh…
+Ok next I download IDA free 5.0 which can
+disassemble 32bit applications.
+BTW there is a new free version now, version
+7 which can disassemble 64bit.
+But here I have to use the old one for 32bit.
+Then I load the .exe into IDA and try to get
+a first feeling of it.
+I’m looking for hints if it might be packed
+or obfsucated, or maybe I can even find already
+what I’m looking for with the strings.
+I don’t have a lot of experience with Windows
+binaries, so I have a lot more assumptions
+and guesses than when I would look at a linux
+ELF binary.
+But I find the patterns up here kind of irregular
+and weird and I think that should be a sign
+that something fishy is going on.
+And especially because I can’t find the
+auto-trading-bot website or the API calls
+in the strings, which we know must be in there
+is most likely evidence for obfuscation.
+Ok…
+Let’s try something else.
+Let’s start the bot again and have a look
+at the task manager.
+We can actually create a dump of this process.
+I have never done this before, I actually
+don’t know what it does but I assume it
+dumps the process memory, I just knew the
+menu item was there.
+Please wait while the process is written to
+the file.
+And now we have a .DMP file here.
+It’s over 300MB, so I assume it’s a full
+memory dump.
+My assumption is that, if it’s a basic packed
+binary, then once the bot is running all the
+strings are unpacked and in cleartext in memory.
+So I hope that we can now fairly easily extract
+the strings from the dump.
+Though I’m bit unsure about it, because
+I don’t know if that’s like a raw binary
+dump or if it’s some kind of compressed
+file format that requires tools.
+But anyway next I’m getting a hex editor
+to look at it, and I think HxD is pretty nice.
+After installation just when I thought about
+opening the dump, I also noticed another functionality
+of the hex editor.
+Under Extras you can select “Open RAM”,
+and then I can select the Auto trading bot.
+So we can apaprently direcly read the RAM
+which hopefully contains the unpacked strings.
+And now we can simply perform text searchs
+in there.
+For example we know the API endpoints had
+/scripts/ in the path, so we can search for
+that.
+And look we find instances of that.
+Here is even the http url with the check_version
+API call.
+So looks like in this general address area
+we have interesting strings.
+So I’m just copying that part into a new
+file to more easily work with it.
+I call it now simply memory.dump.
+And then I can write a bit of python code
+to extract those strings.
+So we read the raw bytes.
+Each character has 2bytes, and so it’s always
+a null byte and the character byte.
+And each string is separated by a null byte,
+which means between each string are three
+null bytes.
+Makes sense right, so we split the whole data
+up like that.
+And then we we write out all strings that
+are in ascii range.
+And the output file is now easier to explore
+and we can search for the API calls.
+And there they are.
+There are the official guild wars 2 APIs,
+and there are also the auto-trading-bot script
+api calls.
+And look, we haven’t seen those calls before.
+Set and get_online.
+So we can extract all new endpoints we have
+found and have a look at each of them.
+Get online users sounds really interesting,
+so let’s see what happens when we visit
+the link.
+But it’s nothing.
+But if you have a look at the API calls that
+we know, then we see that they were POST requests
+AND included an authentication parameter.
+So what we can do with fiddler is we can select
+one of our previous succsessful calls and
+select “Replay” and we want to edit the
+request.
+And then we change the API call to get_online_users.php
+And that worked!
+The response contains all online bots.
+And the crazy thing is.
+It returns them with their GW2 API KEY.
+This is ridiculous.
+The bot developers gave us an easy way to
+track each bot user, not only the amount of
+online users, but also gave us their official
+Guild Wars 2 API key, so we can look up their
+characters, how much gold they have, what
+kind of items they trade, their character
+names, the guilds they belong to, everything.
+So this was in november 2017.
+And I have written a script that checks every
+hour the logged in users, and then uses their
+API key to pull their currently traded items.
+Knowing the items they are ordering and selling,
+and how much gold they have, I can calculate
+a liquid net-worth of the account and track
+how effective this bot actually is.
+So we can see how rich these players are,
+and how long they were active.
+Now in february 2018.
+about three months later, the bot has actually
+shut down and is not being sold anymore.
+Which is kinda sad, I had hoped to collect
+data for much longer timer, but at least we
+got some data.
+But the video is getting pretty long now and
+I would like to show you a bit more, so I
+create a part 2 bonus video talking about
+the findings.

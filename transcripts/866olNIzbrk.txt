@@ -1,0 +1,419 @@
+“What is a security vulnerability?”.
+I don’t think that there is an easy answer
+to this question.
+And so in this video I want to go over a examples,
+and share my thoughts.
+I’m really curious how you think about it,
+because my actual job is to find and report
+vulnerabilities, but I don’t really have
+a clear definition.
+For me it’s actually often just a “feeling”
+or an intuition that I have when I determine
+if something is a vulnerability or not.
+And I hope you find these examples thought
+provoking as well.
+Let’s start with a CVE.
+The Common Vulnerabilities and Exposures (CVE)
+system provides a reference-method for publicly
+known information-security vulnerabilities
+and exposures.
+So if something got a CVE assigned, it could
+mean that we all agree that it’s a vulnerability.
+But have a look at CVE-2018-17793.
+This is labeled as a “virtualenv 16.0.0
+- Sandbox Escape”, and doesnt make any sense.
+virtualenv is a tool to create isolated Python
+environments.
+The basic problem being addressed is one of
+dependencies and versions.
+Imagine you have an application that needs
+version 1 of LibFoo, but another application
+requires version 2.
+How can you use both these applications, If
+you install everything into /usr/lib/python2.7/site-packages?
+Also, what if you can’t install packages
+into the global site-packages directory?
+For instance, on a shared host.
+In all these cases, virtualenv can help you.
+It creates an environment that has its own
+installation directories, that doesn’t share
+libraries with other virtualenv environments.
+So this just helps you developing python programs
+and I use it ALL the time for the reasons
+that were just mentioned.
+However I can see that maybe somebody misunderstands
+the purpose.
+The name VIRTUAL environment, and it creates
+an ISOLATED python environment could be misunderstood.
+Also we use language like we “enter” the
+virtual environment and we sometimes use shells
+that indicate when a virtual environment is
+active.
+So It does sound like a typical virtualisation
+technology, which we do use for security reasons.
+For example using virtual machines to isolate
+malware.
+And a virtualbox escape is indeed a vulnerability.
+You escalate priviledges from the virtual
+machine to the host.
+However here you should immediately understand
+that this is not the same thing.
+This “virtual python environment” in quotation
+marks is just a way to structure python projects,
+and maybe the language is slightly misleading
+to an outsider but of course any code ran
+here can do anything.
+That’s why also the maintainers were so
+frustrated with the report and why so many
+people, including me, joked about it.
+Just because it’s called virtual environment,
+it doesn’t mean there is a virtual machine
+with the goal of privilege separation.
+So here we don’t have a vulnerability.
+Let’s look at a second example.
+I do quite a bit of ethereum smart contract
+audits.
+And in those audits, we of course, look for
+typical security issues like reentrancy attacks,
+logic bugs, and what ever.
+So from the ICOs point of view, they want
+to issue a token, sell the token for an initial
+amount of money, ICO (initial coin offering)
+to raise capital and use it to build something
+with that raised money.
+And the people buying those tokens hope that
+whatever this company builds, will cause the
+token later to rise in value.
+So from the ICOs point of view they mostly
+care about bugs that would allow others to
+steal tokens or even to just manipulate their
+token balance.
+That of course would mean huge financial losses.
+However just because this is the ICOs point
+of view, and the ICO pays for the audit, this
+is not my point of view.
+Smart contracts are meant to be decentralized
+contracts between different parties.
+So to me the point of view of somebody investing
+into that token is equally important.
+So let’s do an example of a vulnerable that
+I find thought provoking.
+sometimes an ICO will advertise that a token
+has a limited available amount.
+A fixed total supply.
+But then they might implement a function on
+the contract that allows the owner of the
+contract, so the ICO, to mint new tokens.
+This means they can, at will, just raise the
+number of available tokens.
+But this contradicts what they promised.
+They promised limited availability but actually
+implement unlimited availability.
+From the point of view of the ICO this is
+not really a security vulnerability.
+They are the owner, they are in control, why
+would they care.
+But from the point of view of an investor
+who would like to buy these tokens, I think
+this is a big issue.
+This contract is now very unfair, but the
+main issue is the contract contradicts promises
+that were made.
+So the issue could be titled “contract allows
+to mint tokens despite claim of fixed supply”,
+and that for me is a vulnerability.
+Okay… third example.
+A while ago a person wrote me that they found
+a session account hijack or something.
+I can’t find the original messages so I’m
+just telling based on how I remember it going.
+the person also included reproduction steps
+in the message.
+They were going like this:
+First, Login to this site.
+Then copy the cookie.
+Now imagine you go to a different computer,
+we use a different browser now.
+So we login here with a different account.
+You can see it here.
+Now we intercept this request again but replace
+the cookie from the first account.
+BOOM we got access to the other account.
+When people send me reports like this I don’t
+even know what to say.
+Like it’s like DoS attack on my brain because
+I try so hard to understand if there is a
+vulnerability.
+Of course there is none, this just how cookies
+work.
+And just because you describe reproduction
+steps that resulted into access to the other
+account doesn’t mean this is a security
+issue.
+You just literally explained how session cookies
+work.
+Btw this is the kind of weird crap bugbounty
+triage people have to read.
+Because people who don’t really understand
+it report stuff like that.
+And now try to explain to them that this not
+an issue.
+Which of course I did.
+Btw it was a regular PHP session id.
+And the person still didn’t quite get it.
+And they insisted this is a security issue,
+a session or account hijacking.
+They were arguing that this is just hex data.
+So just 0-9 and a-f.
+This is a lot less characters than a full
+alphabet from a-z.
+They were saying it could be bruteforced.
+Of course it cannot be realistically bruteforced
+it’s way too long, and thus this isn’t
+a security issue but this opens up an interesting
+discussions.
+Because let’s say the session id is one
+character shorter.
+Do we now have a Secrutiy issue?
+Let’s make it again shorter.
+Now?
+Now?
+Now?
+Well it think we can all agree that if the
+session id only had two characters, which
+means there would only be 256 possible values
+for a session id, that this definetly would
+be a security issue.
+This could be easily bruteforced in a matter
+of seconds and you could access the account.
+So we have this spectrum here and somewhere
+this example moves from being a vulnerability
+to it not being a vulnerability.
+And I’m sure we all would draw the line
+somewhere else, especially in those grey areas
+where you can argue with bruteforce speed
+limitations and so forth.
+Let’s look at a fourth example.
+XSS.
+So in cross site scripting issues you can
+somehow place javascript into a website.
+And that javascript can then just do anything
+in that site.
+So if your victim opens a site with your XSS
+payload, the XSS can do anything like stealing
+their session cookie.
+So one kind of XSS is what we call reflective
+XSS.
+This happens when part of the URL is directly
+echoed back into the content of the page.
+Now some browser vendors came up with the
+idea to implement a so called XSS auditor.
+This is a best effort defense where the browser
+tries to look at the URL and check if it contains
+something that looks like a javascript XSS
+injection and then see if it appears in the
+document itself.
+And then there are different strategies, the
+browser could for example block the whole
+page, or just try to block that specific script.
+But this creates two challenges.
+Because people quickly figured out you can
+abuse that.
+You could for example take a valid javascript
+snippet from the document, place it into the
+URL and the browser will think you injected
+it.
+But of course you didn’t but the browser
+doesn’t know that.
+So this is a false positive.
+So over the years those XSS auditors got refined
+but they just can’t be perfect.
+Because the browser can only guess and bypasses
+are found all the time.
+Though in several cases it actually does stop
+XSS attacks, which is arguably great for the
+user.
+However this caused a different problem.
+Edge actually stopped and removed the XSS
+auditor and just recently we saw another proposal
+to also remove the Chrome XSS auditor.
+And maybe you wonder why, but let’s read
+what it says here.
+XSSAuditor Retirement Plan Proposal
+We haven't found any evidence the XSSAuditor
+stops any XSS, and instead we have been experiencing
+difficulty explaining to developers at scale,
+why they should fix the bugs even when the
+browser says the attack was stopped.
+In the past 3 months we surveyed all (google)
+internal XSS bugs that triggered the XSSAuditor
+and were able to find bypasses to all of them.
+[...] Furthermore, we've surveyed security
+pentesters and found out some do not report
+vulnerabilities unless they can find a bypass
+of the XSSAuditor.
+And when I retweetetd this one person even
+commented.
+I used to work for a security vendor.
+We used to report XSS even if it got stopped
+by the auditor.
+A lot of clients got unreasonably angry about
+us doing that, so we stopped.
+The XSS auditor seems to be a nice first defense,
+but it was never meant as a protection or
+mitigation against XSS.
+XSS is not an issue in the browser, the issue
+is the webapp that doesn’t properly encode
+output.
+Triggering the XSS auditor means your site
+is vulnerable to XSS.
+Maybe the XSS auditor stops one attack, but
+this doesn’t mean it can’t be bypassed
+or your users use an old or different browser
+without the XSS auditor.
+And now it lead to a culture where clients
+or the defensive-side in general, say, that
+a XSS example that triggers the XSS auditor
+is not a vulnerability because it got stopped.
+So when people try to report vulnerabilities,
+instead of spending there time on finding
+more issues, they now have to spend time over
+and over again trying to argue why it is still
+a vulnerability, or waste time on trying to
+bypass the auditor.
+Even though the underlaying issue is the webapp
+failing to properly encode output.
+I always report XSS issues even when they
+trigger the XSS auditor.
+I don’t think it’s in the client’s best
+interest, for me to waste time on trying to
+bypass the browser.
+My job is it to find vulnerabilities or vulnerability
+patterns in the software of a client, so the
+client can fix the actual issues.
+That’s what they pay for.
+I have actually a small related series to
+a similar topic.
+Checkout my AngularJS playlist where I analyse
+a few angularjS sandbox bypasses.
+Several people constantly had to find bypasses
+to proof to clients that by simply updating
+angularjs it doesn’t fix the underlying
+issue.
+And this was successful, in the end the sandbox
+was removed, which allowed easier XSS without
+a bypass, because the nice-to-have sandbox
+was misused as a security mitigation.
+The client should just fix the underlying
+issue.
+So this XSS example shows that even if it
+might not be directly exploitable because
+something stopped you, it doesn’t mean it’s
+not a vulnerability.
+And I have actually even one more example
+that goes a step further.
+So here is example five.
+So there was once a mobile app which communicated
+over SSL with the server, and SSL was properly
+implemented in this case.
+As you know, SSL protects against man in the
+middle attacks.
+So even if you somehow man in the middle the
+network connection you cannot see, nor you
+modify the messages exchanged between the
+mobile app and the server.
+We can call this an ecnrypted TLS tunnel.
+Now the messages exchanged were actually encrypted
+with AES in CBC mode with PKCS5 Padding.
+And it turned out that the server was vulnerable
+to a padding oracle attack, because there
+were kinda verbose errors when you sent a
+corrupted message to the server.
+I don’t wanna explain how that attack works
+here, but it can be used to recover the encrypted
+data.
+So if you could somehow get your hands on
+an encrypted message sent from the app to
+the server, then you could abuse the error
+messages to perform a padding oracle attack
+and extract the clear-text data.
+Is that a vulnerability, that you can decrypt
+encrytped data?
+Well we had huge discussions about this because
+all of that happened inside of a TLS tunnel.
+so even if you were able to get a network
+man-in-the-middle.
+there was no way to actually get to the encrypted
+message.
+SSL or TLS prevents that.
+Now think about that.
+If there were no encrypted messages, just
+SSL.
+I would never report that “it uses SSL,
+that protects against MITM, this is safe”).
+Though I argue that because the client implemented
+this second layer of encryption, they wanted
+that additional layer of protection, and breaking
+that layer through a padding oracle, is a
+vulnerability.
+So I report that
+So…
+now we had five different examples that all
+have something weird about them.
+I hope they really help you to think about
+what a vulnerability is and how hard it is
+to define what that means.
+I don’t think I have a clear definition
+and if I would try to come up with one, I
+would find exceptions and contradictions easily.
+For me it’s actually mostly intuitive and
+a “feeling”.
+I think I know when something is a vulnerability
+and I know when it’s not.
+I would tell you that you should just read
+vulnerability reports to also learn that,
+but actually it’s not easy to build an intuition,
+because you would need the intuition in the
+first place to filter out the stupid reports.
+And I think this is what we see happening.
+Due to more and more unexperienced bug bounty
+reports we get flooded with vulnerability
+reports that are not vulnerabilities.
+And sometimes they might even get a bounty,
+because the receiving client might not be
+able to realize that the report doesn’t
+make sense.
+And suddenly you normalise a certain type
+of finding as it being a valid vulnerability
+for a bug bounty.
+And this creates this whole weird economic
+around it.
+When at some point a site or triage team rejects
+those reports because they realise it’s
+not actually an issue, then you have people
+complain and point at previous payouts.
+It’s really messy.
+All advice I can give is to stay sceptical
+about reports and when in doubt ask a few
+trustworthy professionals about their opinion.
+And hopefully over time you get the experience
+you need.
+Oh… and we haven’t even talked about severity
+ratings yet.
+But I don’t really care about that.
+I have a hard time to determine if a vulnerability
+is low, medium, high or critical in a certain
+context, so I don’t think that calculating
+a precise score like CVSS makes sense.
+I understand why for business tracking reasons
+the Common Vulnerability Scoring System exists,
+but I don’t know.
+I never used it and I feel like something
+is forced to be ranked, that cannot realistically
+be ranked.
+Well… let me know how you feel about this.
+And by the way, this is my view in late 2018,
+and my opinions on something like this can
+change, so keep that in mind before you angrily
+explode.
+And now let the hunger games begin.

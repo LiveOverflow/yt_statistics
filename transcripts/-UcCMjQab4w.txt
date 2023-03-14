@@ -1,0 +1,184 @@
+The first challenge I did from this competition
+was the secure filesystem, which we exploited
+with a hash length extension attack. And then
+we also solved this other crypto challenge
+“key server”, which was about breaking
+RSA signatures. So let’s continue the path
+and do the last crypto challenge, I wonder
+what we will have to break this time.
+Crypto 150 points. Secure Filesystem v1.92r1.
+That version number is already suspicious.
+But let’s read the description first.
+After the horrible debacle of the first file
+system, we got together again, invited our
+friend Mr. Wodka and waterproofed the secure
+file system. You can test it again, but this
+time it uses unbreakable encryption.
+The filesystem allows you to request the contents
+of one or more available files by using the
+following format:
+Which is basically the same like in the previous
+filesystem challenge.
+Token, then a hash symbol, followed by one
+or multiple filenames.
+And we get a list of example tokens and filenames.
+Here is how it looks when you run the challenge.
+You get the list of files, and if you supply
+the correct token and filename, you get the
+content back. And somehow we want to read
+passwd.
+Before I tell you the solution, let me explain
+my thought process here. Because I went into
+a completely wrong direction at first and
+somebody on IRC had to nudged me into the
+correct direction. I completely failed this
+challenge.
+So first I had a look at the version number.
+That seemed too specific to not be a hint.
+And it could have lead me to the correct solution,
+but I got distracted by the list of examples.
+Because there we can immediately notice, that
+the first part of it is always the same, which
+I interpreted to be some kind of block cipher.
+And I thought the first block always encrypted
+the same secret key or something - similarly
+how the bad hash implementation prepended
+a secret key in the first level.
+And the version number for me became the bit
+length of the cipher. The text said it’s
+strong encryption, so I went to look for ciphers
+with 192 bit options. I mostly looked into
+AES.
+But all attempts of manipulating blocks, for
+example for padding oracle didn’t work.
+Another lead I had was the waterproof filesystem.
+I figured maybe it is some kind of whirlpool
+hash? But that also didn’t make much sense.
+Then maybe it had to do with the vodka? Maybe
+there is a russian cryptographer named gorbatschow
+with some weird obscure encryption. But everything
+I tried just didn’t seem to be the right
+path. I kept running in circles and really
+wanted to give up.
+Then I got a slight hint to focus more on
+the version number again.
+And while I did find hints to elliptic curve
+cryptography when googling for the version
+number before, I ignored them. That was a
+mistake.
+It turns out, 192r1 is a curve parameter for
+ECDSA. Elliptic Curve Digital Signature Algorithm.
+Ok. So I know this elliptic curve stuff exists,
+but I never really looked into it as much
+as I should have. While RSA seems pretty straight
+forward, this stuff always seemed a lot more
+difficult to understand. So I started to read
+wikipedia.
+And there is even a section called “security”,
+where they say that Sony did not properly
+implement the algorithm on the PlayStation
+3, because one of the variables k was static
+instead of random. And apparently it means
+you can then break the signature.
+So let’s have a quick look at the algorithm
+and math itself.
+So the provate key is an integer randomly
+selected and the public key is the result
+of some fancy ellyptic curve multiplication.
+You hash the message you want to sign, like
+with RSA.
+And then you have to select a random k. And
+it must be securely random.
+Then you calculate a point on the curve based
+on that number.
+Then you do some more calculations, r and
+s. And the signature is the pair of r and
+s.
+So when we look at our example tokens, we
+can assume, that those are the two different
+values. R and s.
+And r is always the same, which is suspicious.
+If you look what r is, then r is basically
+x. And x is the x-coordinate of the point
+on the curve after the ellyptic curve multiplication
+with the secure random k. This means for every
+signature, the multiplication had the same
+result, which means, k was probably always
+the same.
+BOOM!
+That’s it.
+As the standard notes, it is crucial to select
+different k for different signatures, otherwise
+the equation in step 6 can be solved for the
+private key d.
+Given two signatures rs and rs-prime, employing
+the same unknown k, for different known messages,
+an attacker can calculate some fancy stuff
+and recover k. And then you can solve this
+equation for the private key d. Done.
+I’m not very good in math, but I knew that
+this is such a basic security issue, that
+I’m sure this came up in some other CTF
+competitions before. And surely somebody implemented
+this calculation in python already.
+That is generally a good hint for CTFs. So
+I googled specifically for CTF challenges
+with ECDSA, and sure enough, I find some example
+code. I can just copy that code, but I also
+wanted to understand what it does. So let’s
+do it step by step.
+Let’s start by getting the ecdsa python
+module, because we might reuse some functions
+and in the end use it to create a proper signature
+for the filename we want.
+Let’s copy two of the example tokens and
+messages and extract the values.
+So we got r and s from the first message.
+And r and s from the second message.
+Then I try to follow the wikipedia article.
+So first we check the two rs, if those two
+signatures are vulnerable.
+Then I wanna prepare most of the values as
+I need them. First I hash the message we want
+to sign and convert it to a number, so we
+can do calculations with it. Which is z1 and
+z2.
+Then we need n. N is the order of the curve,
+so we can get that value from the module.
+To find that I just look around in the source
+code of the ecdsa module.
+Next we gonna recover k like it says here
+on wikipedia.
+The first part is simply z1 minus z2, so this
+is basically just the hash of message1 minus
+message2, divided by the substraction of the
+signature.
+And because you all got some basic math education,
+you know that instead of division, you can
+also multiply the inverse. Like 6 divided
+by 3, is the same as 6 times ⅓.
+So we just multiply the inverse of s1 minus
+s2.
+And we can reuse the inverse modulo function
+from the ecdsa module.
+Everything happens here always modulo the
+n.
+Ok, now we got the k.
+So next we recover the private key dA. Which
+is super simple. It’s just a signature times
+k minus the hash, divided by r.
+And there we have it. K and the private key
+recovered. Now we just have to figure out
+how to plug this into python ecdsa to sign
+a value for us.
+Again, I just look at the source code of the
+module and find the correct classes.
+To test this I’m gonna sign a test message
+which we know the signature of.
+And print the original and our calculated
+signature.
+This looks perfect!
+Now let’s sign passwd, so we can get the
+flag.
+Copy the signature, send it to the board,
+and we get the flag.

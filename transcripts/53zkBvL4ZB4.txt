@@ -1,0 +1,177 @@
+Disclaimer: this gonna be a little bit of a ranty 
+video. Let me say sorry for that in advance.
+I love to help people and try to answer 
+every question I get, that’s why I have
+an educational YouTube channel. No question 
+is stupid and all this yadyada. But sometimes
+it’s really really frustrating. Not because 
+you are asking a beginner question or so,
+but because how you ask the question.
+Let me give you some horrible examples
+that can make me really mad and also why 
+they make me so mad. And hopefully then
+you will understand how to ask a technical 
+question, so that you get the help you want.
+So this one guy is stuck on a web CTF 
+challenge and seeks some advice. Of
+course I wouldn’t give hints or 
+solutions during an active CTF,
+but I wasn’t playing that one and I’m happy 
+to be used for some rubber duck debugging.
+So he writes:
+I am trying solve web 100 on ctf running
+Found bug
+And the URL
+Can you look?
+Mh… I don’t care about grammar and spelling 
+issues, I’m not a native speaker, so I don’t mind
+as long as I kinda understand what you try to say.
+But why do you make me respond to this with “yes”,
+and then make me wait for the actual 
+question. This is just wasting time.
+So I ask what is the bug you found 
+and I get this as a response.
+Stuck at sqli
+I try put single quote
+It gives bug
+What is the bug. What’s the error. Why 
+do you think that error means it’s a
+sql injection. Are there other typical sqli 
+characters that cause an error. Can you enter
+more characters to fix the corrupted 
+SQL string again to proof it’s sqli.
+We talk a bit more and he also says 
+there might be XSS. And sends me this:
+I don’t know how read bot
+In access log
+Its http:// localhost / bot
+Just tried interhtml
+What the fuck are you talking about. 
+Why do I have to guess what you did
+that this shows up in the access log. Well 
+I guess you maybe injected an image tag,
+or maybe a script tag and you triggered 
+this request to your server and you checked
+that in your access logs. But does that 
+mean you have CSRF, or is it actual XSS?
+Also you said you tried interhtml. 
+I have no idea what that is,
+that’s not valid javascript. Obviously he means 
+innerhtml. But what exactly was the payload you
+tried. In what context. On what DOM object were 
+you trying to accesss content with innerhtml?
+Computers and programs are deterministic 
+machines. They do exactly what they are
+told to do. So if you show me exactly what you 
+did, I may be able to think like the machine and
+tell you why it doesn’t work. But when you 
+make me guess and assume, I cannot give a
+definitive answer. Also I waste time having to 
+think about something you could just tell me.
+So I ask for the exact payload 
+and he sends me a link:
+Yes i copied inner html from this site
+I visit this site. I type in “inner” 
+into the search. Doesn’t show up.
+Should I waste now 2 minutes clicking 
+through all payloads guessing which one
+he might have used. And then think 
+about why it might have not worked.
+And I get these questions all the time:
+The program jump to shellcode but when
+the shellcode start it print 
+segmentation fault. Why that?
+I have no frkn idea why. There is an 
+endless amount of reasons for why this
+might happen and you don’t give me enough 
+information to actually answer the question.
+Maybe your shellcode is for the wrong 
+architecture, or your shellcode is not properly
+encoded, or you use an old version of your script 
+without the shellcode, or your address to the
+shellcode is wrong, or part of the shellcode is 
+overwritten, or the shellcode you use actually has
+a printf that prints the string “segmentation 
+fault”. I don’t know, how should I know?
+If you ask questions like this I can’t 
+help you, you don’t get the help you want,
+and I will feel really annoyed. And also other 
+people you ask, on reddit or stackexchange
+won’t be able to help you. And we want to help 
+you. We want you to learn and understand it.
+So… here an example of a great question where 
+I love to spend time on and try to help.
+I was wondering, in this video of yours:
+provides a link with an exact timestamp.
+The assembler listing says this, jump…
+And then a question. Explaining what 
+they would expect and that something
+else happens and they are confused. Great awesome.
+I can click on the link, watch the few seconds to 
+remember what I showed and then respond. Awesome.
+Somebody had an issue with an exploit. It 
+didn’t work. They got some kind of shell
+but whatever they typed it didn’t work. 
+And I got this screenshot here. Well,
+now I’m able to see what’s going 
+on. And why there is a confusion.
+This person accidentally had 
+a double quote in the payload,
+and actually this here was not a shell, it was 
+waiting for the unbalanced quote to be closed.
+Not a stupid question, I can totally see how that 
+can happen. A little mistake, and computers just
+do what you tell them to do, and I was able to 
+follow it precisely and determine the error.
+Well, to be honest that person only sent me a
+screenshot after I asked for 
+the exact terminal output.
+So… let me tell you how I wish you would send 
+me questions, and then I’m more than happy
+to respond. You want something from me, or from 
+somebody else, so please put some effort into it.
+Maybe before you write me, type your question
+into google. A lot of questions 
+can be easily answered that way.
+But if you are really stuck, 
+maybe follow those rules.
+Rule 1: If you are referring to a video, 
+include the link, ideally with a timestamp.
+I can’t remember what exactly I said a year ago.
+Rule 2: whatever you try to do, show me exactly
+your steps. For example if you do a buffer 
+overflow with gdb, just set some breakpoints,
+step through it, show the relevant parts like 
+memory addresses and register values and copy the
+whole terminal output and dump it into pastebin.
+Make it as easy for me to get to the problem.
+You can record a video about it. 
+Or dump everything to pastebin.
+I can’t read your mind, but 
+I can read a terminal output.
+Rule 3: tell me as much as possible about what you 
+think and know. If something unexpected happens,
+tell me what you would have expected. This 
+way I can better understand what the issue is.
+Rule 4: provide as much information as 
+possible. I don’t want to waste time
+asking for your shellcode when you have 
+an issue with your shellcode. You should
+have provided that code already from the start. 
+It’s better to provide too much data, than too
+little. Include anything you can think about.
+Rule 5: include the failed attempts. You tried
+something else before? Tell me about your 
+negative results. These are important to
+understand what you already tried so 
+I don’t have to suggest trying them.
+Ok. So I think you get the point. Please put 
+some time and effort into your questions.
+Collect as much data as possible and provide 
+every information, every line of code, command,
+terminal history, whatever that can 
+help me to understand what the issue is.
+Well, sorry for this rant but I got 
+really frustrated with some of those
+questions. And I hope from now on it will 
+be a bit more fun answering the questions.

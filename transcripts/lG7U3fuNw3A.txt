@@ -1,0 +1,271 @@
+Google Search is arguably the frontpage of
+the Internet, and it’s search bar has been
+hammered with untrusted user-input for decades.
+That’s why I would have never thought to
+ever experience something like a live XSS
+on Google Search myself. That was, until I
+was sent the following URL. I see this weird
+string in the search bar - coming from the
+q parameter - and then I clicked into the
+text box. alert(1). My colleague Masato Kinugawa
+has actually done it. And it’s such an interesting
+bug as well.
+To understand this bug here, we need to understand
+some background stuff first. If you have learned
+about the basics of reflective or stored XSS,
+you know that we generally advice you need
+to properly encode any untrusted data, depending
+on the context where it is placed into the
+page. Is it just placed in the DOM, inside
+of javascript, inside of an SVG, as part of
+a quoted attribute, ...? And so forth. And
+that task alone is in general not that trivial
+and we still see a lot of XSS because of that,
+but nowadays it is also mostly solved if you
+use proper web frameworks.
+However we still have a huge challenge when
+it comes to sanitizing HTML. Sometimes web
+applications want to allow certain kinds of
+HTML tags. You want bold and italic text,
+but no scripts. A prime example is HTML emails
+displayed and rendered in a webmailer. Or
+having a WYSIWYG editor for user’s to style
+text, but you don’t want them to be able
+to insert active elements such as javascript.
+And what I’m telling you now, will maybe
+sound counterintuitive. At least when I thought
+about this the first time, it seemed so wrong.
+We actually want to sanitize this in the client
+- in the browser - in JavaScript. But why?
+should you not use some kind of HTML parser
+library on your server and then sanitize the
+untrusted data there, before placing it into
+the webpage?
+Unfortunately, in the use-case where you want
+to sanitize HTML and allow certain tags but
+not others, you want to move the XSS prevention
+into JavaScript.
+Let me show you an example that hopefully
+highlights the challenge.
+Pause the video for a moment and try to explain
+how the following two HTML snippets should
+be understood by the browser, how does the
+hierarchy look like. Especially the fact that
+the tag seems to be closing here, but it’s
+also an attribute of the other tag. What does
+the browser do? Go Pause and try it!
+So first of all, this is kinda invalid HTML,
+right? There is no html, head or body element.
+But worse, the opened tags miss closing tags.
+So what do we do now? The browser could refuse
+to display the website because of HTML errors,
+or the browser tries to be smart and fix it
+for you.
+So let’s load the snippets in the browser,
+and examine the parsed HTML, the DOM tree.
+The first example is a div, with a script
+tag inside. and it actually looks kinda logical.
+Div opens, script opens, script tag has an
+attribute title and contains the string, this
+string happens to be a closing div tag, but
+doesn’t matter. It’s in the attribute
+string, right?
+And then the browser fixed it, by adding the
+closing script tag, then a closing div tag,
+and embedding the whole thing in a regular
+html document.
+Now look at the other example.
+We have a script tag, which contains a div
+tag. But that doesn’t really make sense,
+right? Because a script tag would contain
+javascript code, not other HTML tags.
+So when we look at what the browser did, we
+see that it took the script tag, placed it
+into the head. and the script source code,
+the javascript basically, is the div tag.
+And then we have the closing script tag. And
+then the quote and angle bracket are simply
+text after the script tag, and thus it is
+placed as text into the body.
+So both examples had a similar setup, but
+you experienced two weird things.
+First we have the browser fixing the HTML,
+by adding missing closing tags. And we experienced
+the weird parsing behaviour.
+Because when we humans look at this, we kinda
+feel like it’s a div tag inside of a script
+tag. But that doesn’t make sense, because
+the browser expects javascript inside of the
+tag. Thus it switches the parser from an HTML
+parser to a javascript parser. And now any
+characters following it are interpreted as
+javascript source code, at least UNTIL we
+reach a closing script tag. So it’s perfectly
+logical that the script ends here.
+Right?
+So you see browsers are very weird and it’s
+non-trivial to parse HTML. And this behaviour
+is actually abused in a class of XSS, called
+mutation XSS. Some of these mutations or behaviours
+are included in the HTML specification. And
+others are unique to a certain browser. And
+thus implementing a sanitizer library for
+the server, trying to cover the behaviour
+of EVERY browser and for all the different
+browser VERSIONS, that makes no sense. Probably
+impossible to maintain.
+That’s where we come to client side sanitization.
+The basic idea is, we can actually use the
+browser’s own parser, to parse the string
+and then we can sanitize it. Clever idea,
+right?
+Now getting the browser to parse an HTML string
+in a way that it doesn’t execute scripts
+embedded in it, is not that easy. But there
+are some techniques.
+Luckily there is already an awesome and maintained
+javascript library to cover all that. Called
+DOMPurify. It’s maintained by Mario Heiderich
+from Cure53. Coincidentally it’s also where
+Masato Kinugawa works at.
+Let’s have a quick peek into the source
+code to look at one example what DOMPurify
+might use to parse HTML. And it’s right
+here in the purify.js, where it creates a
+“template” tag element.
+What’s so special about it?
+Let’s see.
+I have here a browser javascript console and
+now let me create a div element. And then
+I’m going to assign a string to the innerHTML.
+And this is basically our untrusted user input.
+And so I’m using here a typical XSS vector,
+an image tag with a non-existing image and
+an onerror event that executes alert.
+When I execute that line, we see the failed
+image request and the alert(1) has popped
+up.
+The reason for that is, when we do innerHTML,
+the browser takes the string and parses and
+interprets it. It finds this image tag, tries
+to load the image and fires the onerror.
+But let’s do the same with the template
+element. We create it.
+Now assign the payload to the innerHTML of
+it. And… nothing. No alert(1).
+BUT we can now take the template.content and
+list all the children. We see there is one
+child. The image tag. The browser parsed it
+and now it’s available in the DOM for us
+to work with. For example we could now make
+sure that the image tag has no onerror attribute
+and we just delete it. Then we can use innerHTML
+again to extract the sanitized SAFE html and
+use it in the real document. For example we
+can now add it into the div and of course
+nothing happens. Very clever, right? And that’s
+basically how DOMpurify works.
+But then came Masato. Masato is an incredible
+XSS researcher and he found a weird browser
+or HTML quirk. Which lead to an issue in DOMpurify.
+Let’s do the template.innerHTML trick again,
+but this time with masato’s google XSS payload.
+We assign it. And now let’s look at the
+content document tree it parsed.
+We have a noscript element and inside we have
+a p tag. Which has a title attribute with
+a string. That string contains a closing noscript
+tag and an img XSS vector, but it ignored
+it, like our earlier example with the div.
+It is parsed as an attribute. And so now,
+when we sanitize this, we look at this and
+we determined: “it’s safe”. There is
+NO XSS here. No javascript would be executed.
+Perfect, so let’s assign it to the div.innerHTML.
+BUT WHAT THE F’?
+It triggered a request to load the image AND
+the alert(1) popped up. How is that possible?
+Let’s examine the div. How does the DOM
+look like. WHAT? This makes no sense? This
+looks totally different. Now it’s like our
+second example with the script tag, remember?
+Noscript opens, then comes a bit of text which
+happens to be the p title, and then it encountered
+a closing noscript tag. Which meant the image
+tag after it is now a real HTML tag. It’s
+not contained in the attribute anymore.
+Why did the innerHTML on the div parse the
+string differently than the innerHTML on the
+template? In our original example we understood
+why the different parsing happens. The script
+tag just behaves differently because it contains
+Javascript, while the div tag can contain
+other HTML tags. But this case is weird, because
+how can the same tag be interpreted in two
+different ways?
+The answer to that lies in the official HTML
+specification.
+The noscript element represents nothing if
+scripting (so javascript) is enabled, and
+represents its children if javascript is disabled.
+It is used to present different markup to
+user agents (so browsers) that support scripting
+and those that don't support scripting, by
+affecting how the document is parsed.
+And here you see how the noscript element
+should be parsed if javascript is disabled
+or if javascript is enabled.
+And our browser of course has javascript enabled,
+but it turns out that javascript in the template
+element is DISABLED. So there the browser
+parses the given string differently.
+And this is exactly what happened to google
+as well. Let’s circle back to the google
+search xss. I have modified the payload and
+added a debugger statement. This will trigger
+a breakpoint in the javascript debugger, when
+the XSS is executed. By the way, this is a
+good tip when trying to debug a more complex
+DOM XSS to see where and why it fired. So
+here we are.
+Now we can see the call stack where we are
+coming from. And going a layer up, we see
+that the string b is assigned to the innerHTML
+of a.
+b looks already sanitized, because the browser
+has added closing tags to it. But as you know,
+this is still evil. And so it triggered the
+XSS here. But where is the root cause?
+So of course, this was fixed INCREDIBLY fast
+by google. Just a little bit after I got the
+XSS URL the issue was fixed - but I still
+had the old page open. So I extracted the
+old vulnerable javascript code and the new
+fixed code, and diffed them. Looking through
+the new changes, we find that here an innerHTML
+was replaced with an additional XML sanitizer.
+So we can also set a breakpoint there in the
+vulnerable version and have a closer look.
+So here we hit it. And if we scroll up a bit,
+we find that google also creates a template
+element. This is google’s sanitizer, and
+it works in a similar way.
+Now to provide a bit more context, this javascript
+looks a bit hard to read because of ugly variable
+naming. But google’s javascript code is
+actually open source. So here is Google’s
+common JavaScript library - closure-library.
+And this is the commit that fixes the issue.
+But it turns out it was a rollback of another
+change. On the 26. September 2018, a nintendo
+switch fan, made a change and removed the
+additional sanitizer step. I have heard that
+it was due to some interface design issues
+they had. Anyway, that introduced the issue.
+So the XSS existed for roughly 5 months in
+THE google javascript library, and likely
+affected many many google products that relied
+on that sanitizer.
+What an absolutely crazy XSS. I know, I know,
+I always say that something blows my mind.
+But this just blows my mind.

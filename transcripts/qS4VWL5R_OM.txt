@@ -1,0 +1,265 @@
+Let’s say you work for a company and your
+manager is mad that there are pirated versions
+of your product out there. He tells you to
+secure their intellectual property and make
+the program uncrackable. Is that possible?
+Last video I claimed that every program is
+crackable. But that was old me. Maybe I learned
+more in the meantime, so let’s try it out.
+First problem is, that the license key was
+inside the binary. The simplest technique
+we had was to extract all strings and we found
+the key.
+In the repository on github you can also find
+the source code of this simple license check.
+So our first attempt to make this secure would
+be to not have the key inside. We can do this
+by writing an algorithm that scrambles the
+key. You can come up with very creative ideas.
+And then you can give your secured binary
+to a friend and ask him to crack it. Or write
+a keygen. That can be really fun.
+The first idea I have is to simply sum up
+the ascii values of the key, and compare it
+to a magic value. So let’s modify the original
+program. First we have to define a new integer
+value that will store our calculated sum.
+So int sum and set it to 0. Then we will add
+a for loop with the counter variable i, which
+starts at 0, with the loop condition that
+it continues to repeat this loop as long i
+is smaller than the string length of the key
+that we can supply via argv[1]. And in each
+repetition we will increment i by 1. Now we
+want to sum up the value of each character,
+so sum += argv[1][i]. As you know a computer
+understands only numbers. So each character,
+as you know from the ascii table, is a number.
+But the compiler knows, that argv is defined
+as a character sequence. So to not get any
+complaints we cast this value to an integer
+like that. Now we want to find out what the
+sum of our original key is. So let’s add
+a printf with %d in the format string and
+the sum as parameter. Now we can compile it
+and execute it with the original key. So here
+is the sum of all character values for this
+key. Let’s go to the code again and change
+the key check. We remove the string compare
+and replace it with a check that sum has to
+be that number.
+Remove the debug printf and try it. So here
+it says that it’s a wrong key, and here
+it says that it is a correct key. Now try
+strings, and you will not find this key anymore.
+How can we crack this now?
+Let’s open it with radare2. Analyse all,
+seek to the main function and print the disassembly.
+So let’s look for the Success or Fail message.
+Here it is. And then we can check where the
+branches are coming from to find the check
+if the license was correct or not.
+Ok so this compare and jump decides if we
+print Access Granted or if we follow it Wrong.
+You can also see this hex value that is used
+for the compare. I like to use python to convert
+between hex and decimal. So that’s exactly
+what we have in our c code.
+So open the file again in debug mode and add
+a wrong license key. If we start the program
+it says it’s wrong. great. Now let’s set
+a breakpoint with db at this one compare and
+reopen the file in debug mode. Now dc to continue.
+Now we hit the breakpoint. with dr you can
+see that rip is at the jump. With dr rip=
+we can set rip to the address we want to execute
+next. And obviously we want to print the success.
+So we have cracked it again.
+Ok so we have found out, that if you can find
+this one compare where it is decided if you
+have a valid license or not, you can simply
+bypass it.
+But we are hackers, we love challenges. And
+patching a jump is just boring. So let’s
+write a keygen.
+So first we have to reverse the algorithm.
+I will open the source code next to it, so
+we can compare. I Seek to main function. And
+enter visual mode.
+Ok so we already know a little bit about this
+program from the other video. So here we can
+see the compare if we have supplied a license
+key.
+Then comes a printf. Like in our c code. After
+the printf we set the sum to 0. And also the
+for loop is initialised with the index counter
+i to 0. And you can see that in the assembler
+code to the left. Two addresses are set to
+0 with a mov. And the address is calculated
+with the base pointer address, that’s just
+another fancy register. And then the first
+variable is at offset -0x18 from that, and
+the other one, well, radare replaced the number
+with a name and calls it local_2_4 variable.
+But behind this name is just another number.
+Now when we look closely we can find a branch
+that loops back up. So those blocks here are
+our for loop. And at the end of the for loop
+is a add instruction that adds 1 to this local
+variable that was set 0 earlier. So that is
+the increment of i. And this local variable
+that radare identified is i. We can rename
+the variable with “afvn locale_2_4 i.
+In this block we have a strlen call. And afterwards
+we compare two registers and it either continues
+with this main block or leaves. So that is
+the for loop condition here.
+Now comes a little bit of an ugly part if
+you have never seen this before. But if you
+practice that it’s easy to see. Don’t
+worry if you get lost for the next minute.
+This just requires some practice.
+So first it loads a value from an address.
+Which radare assigned a name to. This name
+came up before near the strlen. And if you
+compare these two assembler blocks they are
+similar. You can see that it adds 8 to the
+loaded value. So usually that means the value
+that was loaded is an address. Because we
+have 64bit, we often divide memory in 8 byte
+chunks.
+Imagine an array in memory, it might use multiple
+8 byte chunks. The first chunk, which is the
+first value in the array is simply there where
+the address points to. This means that if
+you want to get the second value in the array
+you have to add 8 to the address. Now it points
+to the 2nd array entry. So this is argv[1].
+Remember we start counting at 0. So argv[0]
+would be the first array entry. argv is basically
+a variable that contains an address which
+points to an array in memory. And this address
+is loaded into rax. And then we add 8 to it,
+to move it to the second entry in that array.
+Now this second entry itself is another address,
+which is pointing to a string. In our assembler
+code we can see that the address of this string
+is loaded, from the location rax is pointing
+to. Remember, the brackets around the register
+means, that the register contains an address
+and we access the value that is stored at
+this address.
+Ok so rdx down here now has the address where
+our string begins. Now we know that the next
+line loads the index counter i into eax. Each
+ascii character is 1 byte big. So similar
+how we can move an address to point to the
+next array entry by adding 8, we can move
+this string point to the next character by
+adding 1. So when we take the counter i, which
+might for example have the value 3, and add
+it to the address that points to the start
+of the string, it will then point to the 3rd
+character. Next we load 1 byte from the current
+address in rax. This is the value of this
+particular character. And then we add this
+value in eax to a local variable at offset
+-0x18 which we earlier set to 0. So this is
+our sum! Whoa. I know it seems tedious and
+confusing. And crazy. But if you do this a
+couple of times, and also debug this step
+by step with gdb, and look at your registers
+in each step and inspect the memory addresses
+it becomes clear. So now we know that this
+is a loop, that goes over each character of
+the string and adds the character values to
+a variable. Now when the strlen compare branch
+goes the other way, we leave the loop and
+the sum is compared to hex 0x394. Cool!
+If your brain turned off during the previous
+part, Turn in ON again. let’s do this again
+but thismtime you can ignore most of the stuff
+again and work backwards with educated guesses.
+So you see that this address gets compared
+with a certain value. So look where this value
+came from. Ahh it has to do something with
+this add. Now you can reload the binary in
+debug mode with ood. I will use ABCD as an
+example key. Press p to display the addresses,
+place a breakpoint. Then use V! to switch
+to fancy mode. And then execute it. Now always
+continue with :dc and look at the register
+rax that gets added. So in the first loop
+its 0x41. If you know your ascii table you
+know that this is a capital A. You can also
+use Python as a handy tool to convert back
+and forth. And next time it's 0x42, that is
+a Capital B. And then it’s 0x43. So it clearly
+just Iterates over the supplied string. See,
+now you know that happens, without having
+to read assembler line by line.
+So let’s recreate this in python.
+Let’s write a function called check key.
+It takes a key as parameter. Now we define
+a character sum and set it to 0. Then we loop
+over all characters with for c in key. Then
+we add the ascii value to the sum with ord
+of c.
+Then we print the current key and it’s sum.
+Then we return the sum.
+Now let’s do some example keys. With yy
+you can copy a line. And with p you can paste
+it again. I deliberately use A, B, C, D because
+their numerical value always increases by
+1.
+Cool. You can see how the sum is always 1
+bigger than the previous one. Now let’s
+use a very naiv randomized keygen to try different
+keys, until we find one. This can be obviously
+made much more intelligentlt, because of the
+linear behaviour of this function. But it
+will still look cool.
+So import random module and create a endless
+loop.
+Our key starts with an empty string. Now we
+select a random character from an alphabet
+with random choice and append it to the key.
+Now we check this key. If this key’s sum
+is already too big, we reset the key and start
+fresh. And if we hit the correct value, we
+print this key.
+I will modify the print in the check_key function
+to make it look cooler.
+Now save it and run it. Oops… something
+is wroong… Ah… I had the compare the wrong
+way around. We reset the key when it’s already
+too big. Ok now…
+DAMN that is fast. Even though it’s a very
+bad algorithm, we quickly find many many keys.
+Let’s see if they work. Oh yes they work!
+Cool, huh?
+So we have learned now, that we can hide licence
+keys by using an algorithm to verify if a
+key is valid. This whole algorithm becomes
+useless when we find the assembler code that
+decides if it was valid or not. In our case
+it’s a simple compare/jump that we can patch.
+Obviously you can make that a bit more complex,
+for example doing a license key check in different
+places. But generally that’s how you can
+defeat that.
+Now if we like a challenge, or we don’t
+want to patch a binary, because whatever,
+there are many reasons for why you might want
+a valid key. We can use static analysis and
+reverse engineer the license check algorithm
+and write a keygen to generate valid keys.
+Obviously this algorithm also can become very
+complex, but generally if you put a lot of
+work in it, you can figure it out.
+Now you tell that to your manager, but he
+is a smart ass and tells you: “then stop
+people from being able to reverse engineer
+the binary”. Then you drag yourself back
+to the desk and you come up with a new creative
+how to stop somebody from debugging and reversing it

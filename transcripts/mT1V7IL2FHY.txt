@@ -1,0 +1,209 @@
+This is the 10th episode.
+And as you can see in the title, I am counting
+the episodes in hexadecimal.
+I am wondering if the google algorithm will
+screw this up with the suggested next video
+is wrong.
+Anyway, I want to explain in this video why
+hexadecimal is cool and why you should use
+it, when it comes to computers.
+I will also show you how I convert values
+back and forth and how I often work with them.
+Ok.
+So.
+our computers work in binary, 0s and 1s.
+Because it is a representation of the physical
+behaviour of our circuits that we have transistors,
+that are like switches and they are either
+turned on or off.
+A single value that is either 0 or 1 is called
+a bit.
+You may know that a byte is 8 bits.
+But maybe you wonder why that is.
+Well, this was not always the case.
+Early computers might have had 6 bits per
+byte.
+That we use 8 bits for a byte nowadays is
+just how history turned out.
+It was IBMs fault with the System 360 that
+heavily pushed for an 8-bit byte.
+Also some people say octad instead of byte
+to make clear that they mean 8 bit.
+An interesting example is ascii, because you
+will notice that it actually only uses 7bit.
+But because we now generally use 8bit bytes,
+we kind of waste the first bit.
+We humans grew up with the decimal system.
+We are used to counting with symbols from
+0 to 9.
+But that is rather arbitrary.
+Sure, we have 10 fingers.
+But we could also count in 12ths, because
+we have 12 finger bones and we can use the
+thumb to point to which number we are at.
+This is the Duodecimal system and we actually
+use it on our clock.
+So If you would have grown up with counting
+in hex or binary, it would feel as natural
+to you.
+Instead of thinking of numbers as something
+fixed, think of it as a tool.
+And you can use whichever number system makes
+sense for a particular problem.
+So our computers work with bits.
+And for our modern computers we have defined
+that we generally work with bytes of 8 bits.
+And 16bit, 32bit or 64bit architectures just
+play with this value to keep it nicely divisible
+by 8.
+When we look at data as raw bits: 0000 0000,
+we quickly see that a byte takes a lot of
+space if we display it in that way.
+Maybe decimal would be a cool representation.
+It certainly would take less space to display
+them.
+I will use python now to show you how we can
+convert binary to decimal numbers.
+We simply say that this string represents
+a number in base 2.
+Let’s do it for a couple of examples with
+a simple for loop.
+Ok.
+Well.
+Takes less space.
+Though, it kinda bothers me that the biggest
+value with 8 bits, is a weird number in decimal.
+A number without any interesting properties
+or meanings.
+Let’s have a look at those numbers in hex.
+Hex numbers use symbols from 0-9 and A-F to
+describe a number.
+We can extend our loop in python.
+And now you can see how pretty hexadecimal
+numbers are to represent 8 bits.
+The biggest 8 bit value is also the biggest
+value in hex that can be represented by two
+digits.
+If we would add 1 more bit, so that we have
+9 bits, we would also have to add another
+character.
+And not only that, if you look closely, it
+also nicely represents the two individual
+nibbles, that means 4 bits.
+So a 8 bit number in hex can be represented
+by 2 symbols.
+And each symbol refers to one nibble.
+So this makes it very very clear and easy
+to read.
+And now you can understand why the decimal
+representation is not very fitting for this
+kind of stuff.
+Can you tell me what is the maximum number
+that an unsigned 32bit integer can represent?
+Well I don’t know in decimal.
+I just know that 32bit is 4 times 8 bit and
+thus max int is 0xFFFFFFFF.
+Now let me quickly show you some cool tricks
+with python to convert stuff back and forth.
+Python has some builtin functions to convert
+numbers.
+For example hex() and bin().
+And also to parse a binary or hex number with
+the int() function and specifying which base
+it is.
+If you have a binary string, this means that
+maybe not every value in this string is a
+nice ascii printable character, you can use
+encode and decode on the string to get the
+hex representation of the characters.
+So hex 41 is a capital ‘A’ in ascii.
+A much more powerful and important functionality
+is offered by python structs.
+Which I use all the time when I deal with
+binary data.
+First import struct.
+And then we can use struct.unpack on our data.
+In this case I define that this data is an
+unsigned Integer.
+And you can see I can convert this binary
+data now to an integer number.
+If you look closely you may wonder why the
+capital A seems to be at the end of the number.
+The reason for that is that we have a little-endian
+system.
+bit’s can be interpreted in two ways.
+Either the first or the last bit can refer
+to the least-significant bit.
+I think the picture on wikipedia makes this
+very clear.
+This can be very important when you receive
+data from a big-endian system, because then
+you have to be careful how you interpret this
+data.
+But with python struct it’s easy and we
+can define as which endian system we want
+to interpret this data.
+If you watch some of my CTF exploitation challenge
+videos, you will see me using python structs
+a lot.
+Because it’s great to convert addresses
+and other data back and forth.
+For example if we want to overwrite an address,
+we have to supply the data as a string.
+So we can use struct.pack and pack a number
+as a binary string.
+So the hexadecimal system makes working with
+computers much more simple and you should
+get used to it.
+But we just talked about positive numbers.
+From 0 to 0xFF.
+But how can we represent negative numbers.
+Maybe you have heard of the signed bit, that
+the first bit tells you if it is a negative
+number or not.
+Though, it’s not as simple as simply reading
+the remaining 7 bit and decide if it’s positive
+or negative based on the first one.
+-1 is actually 0xFF.
+Well it does have the first bit set, but it’s
+not -127.
+This wheel maybe makes it a bit more clear
+how negative numbers are actually interpreted.
+The operation to convert their absolute value
+into the negative value, so for example 255
+(0xFF) to -1 is called Two’s complement,
+you can read that on wikipedia.
+And you can also very easily negate a given
+number by negating all bits and adding 1.
+Many functions return -1 on error.
+At first it sounds weird, but now you know
+that this is just all Fs.
+So when you read data and you only get 1s
+(or Fs in hex) you might read an errror.
+What about numbers with a fraction.
+Well.
+Don’t get me started on that.
+It get’s really ugly.
+But you can guess that representing a value
+with many digits behind the comma can get
+very creative if you have only 0s and 1s.
+Now before we end let’s get a summary of
+the terminology:
+we start with a bit.
+0 or 1.
+4 bits are a nibble. 8 bits are a byte.
+And in hexadecimal we can represent a byte
+with two digits.
+on 32bit architecture a word refers to 32bit
+or 4 bytes.
+But on 64bit architecture a word is 64bit,
+or 8 bytes.
+And a double word is obviously the double
+amount of that.
+As you can see, a computer only has bits.
+And how we deal with those bits is up to our
+interpretation.
+I know this was a bit shorter and less technical
+video, but I thought it fits and next time
+we will dive deep and exploit our first buffer
+overflow.

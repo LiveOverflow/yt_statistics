@@ -1,0 +1,220 @@
+welcome to video right up from the
+internet version CTF 2016 this video
+will be about three web challenges that
+I saw besides those three web challenges
+I have also solves three crypto and
+three exploitation challenges for which
+I will also make a video so let's start
+with the first web 50 challenge called
+mess of hash student have developed a
+new admin locking technique adopted it's
+secure but its hash hasn't been
+crackable we get a URL to the login page
+and also a sip file with the source code
+the zip file contains a readme which has
+PHP code snippets inside so we see that
+there's a certain admin user and the s-1
+password seems to be a hash and we also
+get the two functions clean hash which
+is cleaning up a little bit replacing
+some characters and we have a function
+called my head which does md5 two times
+over the input string with a certain
+salt and obviously because this is our
+login the password has to be compared
+and usually you would compare the hashes
+from the input and if you know a little
+bit of PHP then you know maybe about
+this crazy handling of types in PHP
+because PHP automatically converts
+certain times into other types
+when possible and you can see that the
+result is true those two different
+strings are true because PHP comes up
+with this great idea to automatically
+convert the string into a number and 0e
+and a certain number is a very very tiny
+number it's basically zero as you can
+see here so it's basically comparing two
+zeros with each other two numbers so now
+we just have to brute-force the input
+that after two rounds of md5 with the
+salt produces a similar number that will
+be compared so let's look for generating
+some random strings in PHP so that we
+can simply brute-force this so let's
+copy that code here to generate the
+random string and then let's just simply
+create a while loop around get
+generating random strings applying the
+hash function to it and then compare it
+to the admin password and if that
+comparison is correct with then print
+the password and just simply exit main
+are also a little mistake here at the
+wire loop missing parentheses and then
+we can simply copy this code and paste
+it into a PHP shell and now the loop is
+running and we are slowly brute-forcing
+it let's open another one and create
+another instance to utilize multiple
+cores on the system to brute forces so
+this will take a little while and it
+actually took longer than I thought it
+would but in the meantime we can start
+working on another challenge so let's
+check out the web sixty challenge
+the title is replace with grace regular
+expressions are pretty useful especially
+when you need to search and replace
+complex terms so let's look at the
+service URL and if you know a little bit
+of PHP rec X's you will know that if you
+fully control the x string that is
+passed to for example preg match in PHP
+that you can have remote code execution
+and there's the special rec X modifier
+called prec replace evil which you can
+already see those caution things that it
+can evaluate PHP code so let's write the
+expression with the slashes and
+basically we want to match any character
+and we add the special evil modifier to
+records the next line really doesn't
+matter much but the third one is
+important because this is where the
+matched string would be passed to and we
+can use backticks because backticks will
+execute a system command in PHP and as
+you can see we successfully executed LS
+- la and then we can see that there's a
+file called flag dot PHP which we then
+can simply read with cat so here is the
+flag let's submit it and correct flag so
+let's move on to the next web challenge
+web ad and it reads old school blog I
+stumble across this kinda old school
+block I bet it's unhackable I mean
+there's only static HTML so let's have a
+look at the block and it looks pretty
+boring there seems to me not much to
+interact with but if you Lee read those
+blog posts you'll find that he had been
+looking at a tool called git and if you
+have to use git before you know that
+gate creates a special folder called git
+which is usually hidden when you
+or something but you can see that dot
+get if you try to access that one it
+gives us a forbidden because we are not
+allowed to read the directory rather
+then not found like we did with some
+arbitrary random string so there seems
+to be a dot git folder available now
+let's explore how a git repository looks
+like so I simply go to my github and
+clone my YouTube repository here and
+then we can explore the git folder what
+kind of files are included there when we
+look at this dot git folder there's
+quite some stuff with fine we can
+display the whole hierarchy inside those
+folders so first of all there are those
+objects stored in different subfolders
+and they are hashes and they are
+unlikely to be the same on this remote
+service but there are other files that
+are static or have the same name in
+every git repository so in as a first
+step we try to download those files so
+I've created here a text document with
+typical files and photos from that get
+repository and I've added the URL and
+then I just basically make a shell
+script out of it and W get all those
+files so let's make the script
+executable and execute it and download
+all the files cool some of this works
+and downloads some other files don't
+work so let's explore what kind of files
+we were able to download and what kind
+of information they contain you can find
+good documentation online on how git is
+structured so I did a little bit of
+research while doing this challenge so I
+know that in this logs folder there is
+this file head which contains
+information about the commit history the
+you can see here the commit text as well
+as different kinds of hashes so now you
+can slowly make your way through the
+gated jungle I know that from this
+research that those hashes here
+reference objects which obviously
+contain in the object subdirectory and
+it works like that that the first byte
+or the first two characters here from
+this expert presentation is one
+subfolder and then the remaining hashes
+are sorted in there so that's kind of
+like a little bit of hashing algorithm
+if you in hashing in the original sense
+meaning of the word
+hashing of organizing data so we can use
+this and download these objects as you
+can see they exist and now we can even
+start using regular git commands like
+git log and we see this git log of
+commits and who made those commits but
+it also has another cool tool called git
+fsck
+which helps you to find missing files or
+corrupted files and yep you can see the
+output of here and you see that there
+are a couple of broken links and missing
+blobs and trees and those are more
+object hashes that are missing with git
+log - P we should be able to see the
+full changelog of the files so basically
+the file contents how it changed but you
+get an error that there are those
+missing objects so we just gather those
+hashes and also download them so just
+copy them into the shell script and then
+I also remove the ones that appear twice
+and then I add the W get minus R command
+to also download these objects so let's
+run the script now and we see that we
+download even more objects so let's get
+back into the git repository and now
+let's try get lock minus P and it
+actually says here that it works now
+there's no error so let's do again get
+fsck and see if they are still stuff
+missing and we get more hashes that are
+now missing and we can basically do the
+same again seems like only three also
+are missing so let's just copy them here
+in the shell we don't have to execute
+this script and yeah so we download more
+let's have a look at the get command
+output now and boom we get the changes
+of the files and you can see that
+apparently in a previous version of the
+site there was the flag included and now
+we can just copy this and we get correct
+flag let's see if we found a valid hash
+for the first challenge but PHP is still
+running hasn't found a hash yet so we
+just have to wait okay
+now quite some time later we've
+apparently got an output that should
+produce a ballot hash that bypasses the
+comparison in PHP so let's go to the
+login page again and then we can enter
+the admin username which we know from
+the readme file
+and then just copy the password that we
+apparently found and indeed we were able
+to log in and we got deflect and we get
+incorrect to play

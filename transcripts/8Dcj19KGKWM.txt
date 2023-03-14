@@ -1,0 +1,232 @@
+The topic of this video is very special to
+me because it's the slogan of this channel.
+"explore weird machines". So in this video
+I want to introduce what a weird machine is
+and use it to explain return oriented programming.
+But let's start from a clean slate. Please
+forget the term return oriented programming
+and weird machine. And let's start with something
+else.
+I really want to show you this really weird
+programming language I made. It's a really
+terrible language. But let me show you some
+example programs.
+Here is a simple hello world. In this programming
+language you first have to initialize the
+program, and then you can start writing actual
+instructions. So here we SET the variable
+four to the string Hell.
+And then we store that variable four in memory
+location 1.
+Then we set variable four to O SPACE W O,
+and store variable four again in memory location
+2. And lastly we set the variable four to
+rld! and store that value in memory location
+3.
+Cool!
+Next we want to print it. To do that we have
+to prepare the two parameters for PRINTF.
+The fist parameter, that will be the destination
+variable, is set to the memory location 1.
+The memory locations are continuous memory,
+so printing from location 1 will print the
+whole string.. And the second parameter of
+printf will just be set to 0. It's just a
+printf of the hello world string. No printf
+format modifiers and parameters here.
+And at the end we exit. All in all a bit ugly
+language, but makes somewhat sense, right?
+pretty simple.
+So let's run this program!
+First we have to compile it with this python
+compile script that I wrote. python compile.py
+helloworld.weird, that's the source code,
+and the name of the outfile, so helloworld.binary.
+Let's quickly look at the produced binary
+in the text editor. It starts off with some
+readable characters, 1, 123 and a lot of AAAAAAAs.
+But we also can find our Hello world snippets
+in there. HELL o WO RLD. The other values
+are just jibberish.
+But let's run it! To run it you have to simply
+cat, so print the binary file and pipe the
+output into the interpreter, called invoice.
+Okay, I know the output is really confusing.
+but that's just part of the weird invoice
+program. so just ignore that invoicing menu.
+Because all the way down here at the bottom
+we can find our output! HELLO WORLD!
+Awesome!
+Let me show you some other examples. This
+here is a simple ECHO program. It reads a
+string from standard input into memory location
+1. And then also prepares printf with the
+memory 1 location to print that string. Again
+we can try this out by first compiling it,
+and then we have to output the binary and
+pipe it into the input of the invoice program.
+But not only that, we should also execute
+cat so the input doesn't close and we can
+send more input that we type to the program.
+Just some linux commandline foo, don't worry
+about it. but fact is when we execute this,
+the program waits for input, we can type something
+in, and the output is here! It worked!!! and
+please, again ignore the invoice jibberish
+menu around it.
+Let's do another example. I'm really proud
+of this one.
+This will read a string into memory location
+1. Then it will execute String to integer
+on that value. So we have to enter a number.
+The result, so the raw integer number will
+be in the result variable.
+Then we initialize the variable four with
+zero, and add the result, so the number we
+entered to it. Then we store that value into
+memory location 2.
+Then we read another number as string and
+convert that string also to an integer. Now
+we load the old value from memory location
+2 back into variable four, and then we add
+the new converted integer in result to the
+variable 4.
+And then we prepare printf, but this time
+we have two parameters. The first one is of
+course a format string. The programming language
+has a few hardcoded format strings like this
+string 1 here. And as the second parameter,
+we have our variable 4. Cool. Let's try it!!!
+We compile the sum program. And execute it
+again with cat. Then we enter the first number.
+Then the second number. And we get the calculated
+sum output.
+Okay... you ask yourself probably what is
+up with this weird programming language. Why
+am I showing this here? Well... the only reason
+why I showd it was, because I need you to
+fully agree with me, this is a "programming
+language", right? We can write programs, and
+then we can somehow compile them, and then
+they get executed. Simple... but also very
+weird looking.
+So let's have a quick look at the invoice
+program. It's actually a regular simple c
+program. When we just execute it alone we
+can for example add an invoice, enter an amount
+in euro and add a comment. We can add a few
+more to just get a feeling for the program.
+And can then select options like calculating
+the sum of all invoices. Or we can just finalize
+and exit. After entering our name we get a
+nice list of our invoices.
+Soooo... wait... what? This is an invoice
+managment system? So how can this program
+execute these other programs? wat? that doesn't
+make any sense?
+Let's look again at the binary of one of our
+compiled programs. We know this is given as
+input to the invoice program, so let's just
+try to copy that. And maybe we also run it
+with GDB. So run the invoice program. Then
+we select 1. Add an invoice. It asks for the
+amount and we enter 123. And then comes all
+theese AAAAAs... let's copy those and add
+a bit more data at the end.
+BOOM! Segmentation fault? RIP, the instruction
+pointer is 42424242, so BBBB. We have caused
+a buffer overflow and overwrote the return
+pointer on the stack. BAM!
+Maybe you think now, ahh... this was just
+a buffer overflow, and our programs were just
+shellcode in assembler. But nope! when you
+check the security flags you see that the
+non-executable flag is used. And looking at
+the memory layout you can also see that the
+stack or heap is not executable. So how can
+we execute these programs even though we can't
+inject assembler as shellcode?
+To answer this question I would like Sergey
+Bratus to introduce the concept of weird machines
+from his talk "What hacker research taught
+me".
+Lesson 2, is what I call "composition creates
+weird machines" parallel universes of computers.
+Any complex system turns out to be casting
+mini shadows. and of these shadows only one
+is what you intended. that is the development
+environment you work on. everything else is
+a weird machine. Whose instructions are actually
+combinations of your well designed features.
+But it will run the attackers code. And do
+exactly what we defined as undermining your
+trust assumptions. leading to behaviour that
+is entirely unexpected by the designer of
+the machine.
+So think of stack overflows. Think of heap
+overflows which are a bit more interesting.
+In each case you have a component of your
+actual machine that is executing instructions
+that the exploit crafted input can trigger.
+That you did not intended to be executed in
+that fashion. It's a whole universe of weird
+machines.
+So exploitation is from that point of view,
+programming of that weird machine via crafted
+input most often.
+And so here is one case study from 1997 when
+a technique called return-into-libc was invented
+to what the academia now calls return oriented
+programming. And it took about 10 years to
+propagate.
+All the work in these series of techniques
+is done by code fragments already present
+in the trusted code. So no new untrusted executable
+code is introduced. No new attacker code is
+introduced. All the manipulation. All the
+activity is done by parts of the machine that
+you thought were your friends. Well no, they
+are traitors, lying and wait.
+In 2008 when academia finally got a firm understanding
+of this brand of technique, it was dubbed,
+malicious computation, to distinguish it from
+malicious code - which is what your exploit
+(assembly shellcode) is.
+The concept of weird machines is so beautiful
+and that realization was very impactful to
+me. Thus it became the mantra ar slogan of
+my channel.
+Return Oriented Programming is one example
+of using a weird machine. And the weird machine
+we have here is implemented in the invoice
+program. The invoice program implemented one
+intended machine, the invoice management system,
+but also implemented an endless amount of
+weird machines due to a stack buffer overflow.
+The developer has crafted a weird machine
+without even knowing it. A weird machine so
+powerful that it can execute basically anything.
+So powerful we can create a programming language
+that only runs on this single weird machine.
+Isn't that amazing?
+And remember, we do this WITHOUT injecting
+arbitrary assembler instructions - we don't
+have shellcode here. We are using the technique
+of return oriented programming to achieve
+arbitrary execution. And it's so weird. And
+it's so beautiful at the same time.
+In the next video I want to look closer at
+the weird programs that I have written, and
+what the compiler does, and how exactly this
+is executed. And if you haven’t already
+guessed it, let me give you a small teaser,
+you could call these “instructions” actually
+“gadgets” *wink* *wink*. So next video
+we will learn how return oriented programming
+works.
+But in the meantime, please go watch the talks
+I have linked below and read the papers I
+have linked. For me, they belong to the most
+important computer science and hacking or
+IT security papers.
+https://www.cs.dartmouth.edu/~sergey/hc/rss-hacker-research.pdf

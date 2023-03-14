@@ -1,0 +1,344 @@
+I HOPE YOU GUYS LIKE ZERO-DAYS. Because this
+involves a zero-day in bash.
+SUIDBASH was a pwnable challenge at the Google
+CTF Finals 2019 and none of the teams solved
+it. The challenge description only says “Yes,
+it’s exactly what you think”, there is
+a server to connect to via netcat, and there
+is a file to download. It’s a small .patch
+file that you can apply to the bash source
+to add a new functionality. And who would
+be better to talk about this challenge, other
+than the challenge author, Ian Pudney.
+But before he tells us more about it, I want
+to quickly mention. You need to know what
+S.U.I.D, suid, or setuid means. If you don’t
+know that, please checkout my binary exploitation
+playlist, specifically episode 0x0b. Starting
+at around 3:45.
+So let’s have a quick look at the challenge
+server. We connect with netcat and even though
+it doesn’t look like it, we have a shell
+here. When we type “id” we can see that
+our user is called user and has the user id
+1338.
+With bash -i we can also get a bit nicer prompt.
+Let’s look at the files with ls.
+And we see a flag file, a read_flag.sh shell
+script and the suidbash binary. And it’s
+noticeable that all these files belong to
+the user flag_haver. So we as user don’t
+have the permission to read the flag. But
+there is suidbash which is “a tool for running
+setuid bash scripts”. And you can just pass
+in the script as an argument. And we have
+this get_flag.sh bash script, which has the
+setuid bit set. This script simply asks for
+a password, then calculates the sha256 hash
+of it, and compares it to this hash. If your
+password is correct, you get the flag. Because
+this is a good CTF, you know that there is
+no guessing bullshit bruteforce wordlist crap
+involved. So you can assume that you don’t
+have to touch this.
+But theoretically, if you had the password,
+then suidbash, so this modified version of
+bash, would execute this setuid script, which
+then runs as the flag_haver user, and thus
+can read the flag.
+So your goal is to somehow exploit suidbash,
+or this get_flag script, to get the elevated
+privileges of the flag_haver user and read
+the flag yourself.
+Now if you would try to create your own script
+and just cat the flag, then obviously this
+wouldn’t work. That would be to easy.
+So let’s checkout the code in the provided
+.patch file. first you can see it renames
+the real main() function from the original
+bash, and adds a new main(). In there it does
+a couple of things, for example looks at the
+file permissions of the bash script, to see
+if there is a setuid bit. And after some additional
+checks are passed, it prepares arguments,
+which are later passed to the original main().
+If you look at the prepared arguments you
+can see, that if your script is allowed to
+run with setuid permissions, then it sets
+the -p flag. But if you are not allowed, it
+will NOT set -p.
+So what is -p? The man page for bash writes:
+“If the shell is started with the effective
+user id not equal to the real user id, and
+the -p option is not supplied, [...], the
+effective user id is set to the real user
+id. “
+So this means, by default, bash will revert
+the actions of setuid, and drop the privileges
+back to the real user id. But...
+“If the -p option is supplied at invocation
+[...] the effective user id is not reset”
+So this is basically the patch. If there is
+a setuid script and it passes some checks,
+it will execute real bash with -p, and for
+any other scripts, it will keep the default
+behaviour of dropping the privileges.
+So how do you now exploit this? Well… no
+team solved in the end. So obviously I couldn’t
+solve this either. And the vulnerability here
+is very tricky. As Ian said at the beginning
+of the video, this involves a 0day in bash.
+But luckily I had the privilege to sit down
+with Ian and hear the story behind this challenge.
+So let’s listen and with what we learn from
+him, we can then go and solve it.
+The challenge was initially based on an actual
+binary that existed called suidperl. In linux
+you can’t set suid bit on scripts. Or rather
+you can but it doesn’t work. And so with
+perl they produced this binary that would
+allow you to execute a setuid perl script
+as root. Or whichever user owns it. However
+it had some vulnerabilities. One of them was
+… on linux there are actually three user
+ids. There is the effective user id, which
+controls your permissions. There is the real
+user id, which is not set from a setuid binary
+- so it knows what user you are coming from.
+And then there is the saved uid. Which exists
+only as a place where a uid can be put so
+that you can drop privileges and still be
+able to come back to it later. And suidperl
+did not correctly set the saved uid.
+I have a question about the saved uid. Isn’t
+that kind of ineffective? Because any process
+that would taken over with dropped privileges
+could just also take the saved?
+You bring up a good point there. Yes!
+When suid perl wanted to drop privileges to
+whatever user the script was owned by, it
+needed to set the effective user id and the
+saved user id. But it only set the effective.
+Meaning the process could take the saved uid
+and get back those privileges. And the saved
+uid was root. Because suidperl was owned by
+root. And so now it was root.
+Okay. And so this challenge is basically implementing
+the same behaviour, just for bash scripts?
+Yes! That was actually initially the challenge.
+I have written effectively a suidbash that
+did exactly that. But then, bash has this
+behaviour where if you start it from a setuid
+context, or mor formally where the effective
+userid does not equal the real user id. It
+will by default drop its privileges down to
+real. And this had been the exact same bug,
+where it does not correctly set the saved
+uid.
+Ohhh.
+Which means that it’s possible for a bash
+script to recover its dropped privileges.
+Here is the thing so. There is no builtin
+that allows you to call setuid syscall. And
+if you ever fork a child process with exec,
+that child binary doesn’t have the saved
+uid.
+Mhmh.
+So you have to find a way to make bash itself
+recover the privileges.
+And it turns out, bash has the ability to
+load builtins at runtime. I know of literally
+no legitamately use of this feature,. The
+only time I have ever seen it used is in a
+github repo by tarvis ormandy for doing exactly
+this. Call foreign function interface.
+It sounds actually like a doable challenge.
+But yeah, the patch itself doesn’t have
+the vulnerability. The patch itself is just
+to facilitate the challenge. But the actual
+bug is somewhere completely else. So the patch,
+the code, doesn’t reveal it.
+Correct.
+Yeah okay makes sense.
+So yeah, let me check in with you later in
+the CTF when a couple of teams have solved
+it, and when I had a look at it as well. And
+maybe we can talk about, maybe you hear even
+about how some of the teams have solved it.
+That would be interesting.
+Spoiler alert, nobody has solved it. Alright.
+Thanks!
+Okay, obviously we know the solution now and
+we can try to solve it! You should now try
+it yourself! Maybe the CTF server is still
+up, or you can set it up locally. Here I use
+an ubuntu VM with a vulnerable bash version.
+First we need a target user, so I create alice.
+Then we make alice the owner of the bash binary
+and set the setuid bit.
+Now we would imagine, if we execute bash as
+a regular user, we would become alice. But
+when we enter id, we see that bash dropped
+the alice privileges and we are just user.
+We can also see here the effect of -p. If
+we do that, and then execute id, we see that
+bash doesn’t drop the privileges and we
+have the effective userid of alice.
+But we are attacking the case without -p.
+Btw it’s important to use this new user
+alice for this, and don’t try makit it a
+root owned setuid.
+Ian told me that for historical backwards
+compatibility reasons, the setuid() function
+has different behaviour. When it's running
+as root, it sets all three uids. If it's not
+running as root, it sets just the effective
+uid. So, the vulnerability exists only if
+it's running as not-root. He said there's
+a reason why he called this the "world's least
+useful vulnerability".
+You can also create a test flag file as alice
+and prevent others from reading it. You can
+use this to test if you got the alice permissions.
+Now is your last chance to pause and try it
+out yourself! 3 2 1. Okay.
+So after this interview I sat down for a while
+and tried to figure out the details. And Ian
+already mentioned the technical challenge
+here, because you need bash itself to call
+the setuid syscall, to recover the saved uid
+privileges. You can’t create a c program
+and execute it, because upon an exec the saved
+uid is lost.
+And he mentioned that bash has this feature
+to load builtins at runtime. And this is a
+way to get your own code executed inside of
+the bash process. And this was actually the
+hardest part. To figure out how to create
+your own bash builtins in c. It’s really
+difficult to google for that. It took me quite
+a bit combing through github and looking for
+example, until I figured out that it’s very
+simple. Basically the enable command in bash
+allows you to load a shared library and it
+then attempts to call a function in it. And
+in a shared library you can define a constructor
+which is execute upon loading it.
+So we basically just create a dynamic library
+with a constructor that calls setuid with
+the id of the user we target. In case of my
+alice ubuntu example it would be 1001, and
+in case of the challenge, flag_haver has the
+uid 1339. Then you use gcc to compile this
+first into an object file, and then into a
+shared object, a dynamic library.
+So let’s try this. We execute bash again
+and we see that we can’t read the flag and
+we clearly don’t have alice’s permission.
+Now we load this dynamic library with enable
+-f and libpwn.so and asd.
+You can see there is an error, that bash enable
+tried to find asd_struct. That’s stuff you
+would have to include if you would want to
+create an actual builtin and load it. Be don’t
+care because our constructor was already executed
+and you can see it updated the effective user
+id. When we now check id, we see that we have
+the euid from alice.
+We recovered the dropped privileges from the
+saved uid!
+And now we can read our test flag.
+Eazy!
+Now we just need to reproduce this on the
+challenge server. And this is again a bit
+tricky, because there is no proper editor
+like vim. So you have to use this trick with
+cat to get the file content copied over.
+So here I create the library source code and
+you can see the call to setuid for the flag_haver.
+Then we compile it with the two steps we already
+know to a shared library.
+Because suidbash executes shell scripts and
+doesn’t give you a proper shell, we now
+need to create a script that simply loads
+this shared library with enable -f.
+And then it should be able to read the flag.
+Make it executable and then call suidbash
+with this script. ready?
+boom! There it is. It worked.
+Here is the flag.
+Zero days are the best days. CVE 2019-18276
+And we get a small message from Ian.
+I’m pretty sure that if you combine “world’s
+least useful vulnerability” with “affecting
+every computer on the planet”, those cancel
+out and you end up with just “vulnerability”.
+Right? That’s how it works?
+I like that!
+Also, what’s old is new again. Thies challenge
+was inspired by CA-1996-12, “suidperl”.
+But then, after writing the challenge, I decided
+to check whether bash’s automatic privilege-dropping
+feature has a similar issue. Turns out: it
+does.
+I dug up this 1996 CERT advisory document
+from carnegie mellon.
+Vulnerability in suidperl. Original issue
+from june 1996.
+“The CERT Coordination Center has received
+reports of a vulnerability in systems that
+contain the suidperl program and that support
+saved set-user-ID and saved set-group-ID.
+By exploiting this vulnerability, anyone with
+access to an account on such a system may
+gain root access”
+Fascinating.
+Also you may have heard that John Hammond
+was also there. He should also upload some
+videos about the CTF and the events. So checkout
+his channel. He also talked with Ian and I
+threw in a question. Because I wanted to know
+how this bash vulnerability was discovered.
+Who found the 0-day in bash? How was that
+discovered?
+Was that you?
+Ok, So, I found the zero-day in bash for the
+suidbash vulnerability. So I made suidbash
+just like suidperl. I made it do all the same
+things. And have the same privilege dropping
+bug. But then I was like: “well, bash has
+that privilege dropping feature. What if it
+has the same vulnerability?” and it did.
+NICE!
+WOW!
+You ran accidentally into it?
+Tripping over my zero-day.
+You were thinking of introducing a vulnerability,
+that was actually in there.
+Actually at work, a lot of the vulnerabilities
+I find are either I just stumble across something.
+Or I see something in some documentation and
+I’m like “that looks like something somebody
+could mess up. I’m going to investigate
+and see if they did.
+Nice. that’s super cool.
+Yah, I think that’s the core of research,right
+you look for something, how can it be messed
+up and then you go out and see if people mess
+it up. Indeed.
+And by the way. This vulnerability has somewhat
+of an emotional component for me too. Because
+when I started learning binary exploitation,
+I played things like exploit.education, io,
+overthewire and so forth. And when you exploit
+a setuid binary and execute bash, the result
+would be dropped privileges. And it was very
+frustrating when I first ran into this and
+because I didn’t understand what’s going
+on. your exploit was successful but somehow
+you still couldn’t access the next level.
+And so it’s funny to think back and realize
+that I could have used this vulnerability
+to recover the privilege in my shell and solve
+it after all. I wonder how many people feel
+the same way.

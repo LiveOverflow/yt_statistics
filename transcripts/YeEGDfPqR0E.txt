@@ -1,0 +1,206 @@
+where we use afl and afl++ to fuzz sudo. These 
+fuzzer started with some testcases given to them,
+and two testcases included the program 
+name sudoedit, while the others only
+sudo. The vulnerability we are looking for is in 
+sudoedit. So this is an interesting experiment,
+how quickly do the sudoedit based fuzzers find the 
+vulnerability, and how long, does it take for a
+fuzzer that doesn’t have the initial information 
+about sudoedit need to find that particular
+functionality? Anyway. Fuzzers have been running 
+over night now. Let’s check their status.
+*yawn*
+I just woke up. And of course first 
+thing is to check the fuzzers?!
+OH! We have found one crash? Mmhhhh…
+First of all, I would have expected
+that the sudoedit fuzzers would have found 
+a crash MUCH faster. And I’m surprised that
+the afl version didn’t. Also it’s a bit a 
+concern why this fuzzer is stuck with slow
+execution speed and large amounts of timeouts.
+While I quickly moved on from here and continued
+my research and investigation, I can tell 
+you from the future, that I have actually
+let this fuzzer run on the side for over a 
+week or so, and eventually this fuzzer came
+out of its rut and got back some speed. But it’s 
+interesting how that this happened. Also the AFL++
+that only had a sudo testcase and didn’t know 
+about sudoedit, eventually found sudoedit
+The last new path times are also kinda high. 
+Over 1h here, which means the fuzzer hasn’t
+found any new code functionality in over 1 
+hour. Which can be an indication that maybe
+the fuzzer explored everything it could easily 
+find. But it’s ahrd to say if 1h is a lot or
+not for sudo. I lack the experience.
+Anyway. Let’s look at this crash!
+First I want to check the crash input file itself,
+and look at it with hexdump.
+Huh?! I would have expected that
+it found a variant of the vulnerability with 
+sudoedit -s or so. But apparently it didn’t
+However, the input does have a backslash. So 
+maybe we found another variant to trigger the
+sudoedit bug? Or maybe this is a false 
+positive and this is not really a crash.
+So let’s try it. I copy this crash to 
+/tmp/crash, then I cat it to send the
+file data as input to the instrumented afl 
+sudo binary. And we get a malloc error.
+invalid next size (unsorted). Aborted.
+Interesting.
+Now maybe this is just again a thing with our 
+instrumented binary. So let’s try it with our
+neat afl2sudo wrapper, which setups the arguments 
+and calls the real installed sudo. And when we do
+that, we also also malloc() error. Awesome!
+Now I’m getting excited. But let’s also
+now switch the user to the unprivileged user. 
+Remember sudo is intended to run as setuid, called
+from an unprivileged user. So let’s try this again 
+and see if we reach this seemingly crashing code.
+And INDEED! We also get a malloc error. perfect!
+Let’s look at this in GDB.
+For that I install the gdb extension gef. 
+You can also use pwndebug we used last time.
+But I just wanted to show another extension.
+In this case I gdb debug the afl2sudo wrapper,
+as we need it to properly setup the arguments. 
+And then we pipe in the input. The binary will
+execute now, setup the arguments and then exec 
+the real sudo binary. And then we crash! It’s
+not really a crash, it’s an abort(). It’s a 
+forced crash. Apparently malloc detected an
+inconsistency with the next size and decided 
+to bail out and stop the execution, before
+something worse happens. But this still means 
+we should have corrupted something on the heap.
+So here is the backtrace, those functions were 
+executed and eventually lead to the abort.
+These functions are from malloc, so from 
+libc. The last function from sudo itself
+was sudo_getgrouplist2_v1. And when we 
+use “up” to go into that stack frame,
+gdb can also show us the source code line 
+that caused the crash. And in that case this
+function tried to reallocate something. But then 
+malloc detected a heap inconsistency and aborted.
+This means, we should have caused 
+some kind of heap corruption.
+This is exciting, but we need 
+to understand this crash better.
+Is this a variant of the sudoedit vulnerability? 
+Or is this maybe a new and different sudo crash?
+I’m too scared to say it is. Because 
+most likely it is not a new 0day.
+But the testcase did not contain sudoedit. 
+Mhmh… But let’s not get prematurely excited,
+we need to investigate it more.
+You can find the crashing input on
+github in the episode folder, so feel free to play 
+around with it, Maybe you figure out what happens!
+So pause the video now. Before I 
+spoiler it to you! Go try it yourself!
+The first quick test I make is to see 
+if the latest sudo version on ubuntu,
+that has fixed the known issue, also crashes. If 
+that’s the case, we would know it must be a 0day.
+To do that I take the afl2sudo code we wrote 
+and use it outside of docker on the host system,
+I just have to adjust the sudo binary location. 
+Then we can compile it and use the crash we
+found to execute the sudo wrapper.
+And we don’t get a crash. Awww…
+Of course I’m hoping to discover a cool 0day, but 
+it was kinda clear to me. It would have been too
+crazy. So it might be a variant of the sudoedit 
+vulnerability. But still a curious variant,
+because it seems to not include sudoedit? 
+Remember, sudo shows different behaviour
+when executed with sudo or sudoedit.
+So this is really curious to me.
+Anyway. This testcase we have is pretty complex 
+and probably most of the data in here is useless
+garbage, so I would like to minimize it. 
+Minimizing it can give us a shorter proof
+of concept crash that’s much easier 
+to work with and to understand.
+In the AFLplusplus readme you can find a 
+section about “Minimization of test cases:”
+I have no experience with any of 
+them, kinda want to try them all.
+But I guess it start with the actively maintained 
+halfempty project from googleprojectzero.
+To use it we have to create a small wrapper 
+shell script, that checks if the input crashed
+the program or not. The example checks for 
+the return value 139, which is the value for
+a segmentation fault. But in our test case 
+we don’t have a segfault. We have an abort,
+which has a different number. We can check 
+the return value with echo $?. and it is 134.
+So let’s modify the script accordingly.
+And then we can call halfempty with the
+minimizing shell script and our crashing input.
+But somehow it doesn’t work. Strategy failed.
+“Try it yourself to verify it’s working. 
+Use this command”. And I did. And it seems
+to work. The return exitcode of 
+the script is 0. it should work.
+That’s weird. So I give up.
+Let’s move to another method.
+How about afl-pytmin wrapper. It seems to be 
+a wrapper around afl-tmin. So let’s try it!
+Adjusted the tmin path. Let’s go.
+Done?!
+It created an empty output file?
+Huh? Maybe empty input also crashes it?
+But testing that empty file doesn’t work either.
+Okay. uhm… let’s just use the minimizer that
+comes with afl. Afl-tmin. You have to give it a 
+crashing input file, a location where to write the
+minimized file, and the instrumented binary.
+Now let’s run it. And it goes pretty fast,
+which I thought it meant it must have 
+failed too. But when looking at the file
+with hexdump, WOW! It is very clean now.
+0edit and then -s
+and a backslash. This looks 
+like the sudoedit vulnerability.
+Let’s try that one with sudo. We can switch to the 
+regular unprivileged user. Then we symlink sudo to
+0edit, then the program runs with the 0edit 
+program name. And when we now call it with
+the parameters like in the input file (keep in 
+mind that here in the shell you need to escape
+the backslash) IT WILL CRASH!!
+Like sudoedit crashes.
+It’s very curious though, that just calling 
+./0edit shows the sudo help stuff, not how
+sudoedit showing the sudoedit help stuff. 
+But still seems to go into the sudoedit
+argument parsing code and then crash. mh.
+We can also play a bit with the name and
+try different variants. And it’s really weird why 
+it works. It’s not like the name can be anything.
+It's weirdly specific to be “edit” 
+with at least one character before it.
+I already mentioned in a previous video that 
+there is this check that only compares the end
+of the programname to be edit. But I only 
+knew this from exactly these testcases.
+So this is where I learned about this behaviour.
+Now that we have a minimized testcase, we can 
+investigate this further. As mentioned last video,
+we are crashing when sudo tries to call realloc. 
+It detects that some metadata value is invalid.
+which means the heap metadata was corrupted and 
+overwritten some time earlier in the program.
+So now we need to figure out
+where exactly the heap corruption happened. 
+You can give it a try yourself. How would
+you find the true location of the overflow? 
+Next video I show you how I have done it.

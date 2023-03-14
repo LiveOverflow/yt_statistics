@@ -1,0 +1,637 @@
+Let me tell you the story behind an iOS jailbreak.
+More specifically the security vulnerability
+being called Sock Puppet that was exploited
+for this jailbreak.
+I hope you will see the incredible work that
+goes into finding these exploits.
+Maybe you have seen this Recently tweet by
+Ned Williamson shared this tweet:
+I managed to get kernel_task port using only
+CVE-2019-8605 for iOS 12.2 (tested on iPhone
+6s+) :) Still needs quite a bit of work for
+stability.
+Huge thanks to @_bazad for his assistance
+in achieving a goal I have had for over a
+decade...
+First of all, congrats Ned for achieving your
+goals.
+And since Ned’s tweet you have maybe seen
+new jailbreak releases using, what some call,
+the “Sock Puppet” exploit.
+So in today's video I want to explain what
+is behind the bug CVE-2019-8605.
+And this is only possible because Ned is so
+awesome that he jumped on a call to explain
+the bug to me.
+And by the way, he is also releasing an article
+about his research over at the Google Project
+Zero blog.
+I will make sure to link it below.
+So I hope you are as excited as I am.
+Let’s head in
+Let’s start at the beginning.
+How did Ned discover this kernel bug?
+You should probably know that Ned is a very
+experienced researcher.
+Last year he successfully exploited Chrome
+69 together with saelo and niklasb at Hack2Win.
+A Full Browser exploit is of course a chain
+of multiple bugs, and I think his main contribution
+was a sandbox escape exploiting the Chrome
+IPC.
+The inter process communication that is used
+by the separate components inside of chrome
+to communicate with each other.
+And he found this bug with a special fuzzer
+and fuzzing methodology.
+Fuzzing something like an IPC mechanism is
+quite challenging and requires considerable
+engineering efforts.
+Earlier this year at OffensiveCon19, he gave
+a talk with the title “Modern Source Fuzzing”.
+In this talk he describes his technique and
+approaches to fuzzing complex software stacks
+like the Chrome IPC.
+It’s about source fuzzing, so you obviously
+have the source code for Chrome, but it’s
+still very challenging - just because it’s
+open source doesn’t mean it’s easy to
+find bugs.
+But he was able to get his fuzzer into places
+where other fuzzers maybe haven’t been yet.
+And this is absolutely relevant for this iOS
+exploit, because at the end of this talk he
+says this:
+Let’s talk about XNU really quick.
+This is my new project.
+I just started.
+Same exact technique - very different attack
+surface.
+And I try to discover how far can I take this
+thing and where does it stop working.
+And so I want to test XNU networking and so
+what I did was, I took the whole network subsystem
+of XNU, compiled it with the instrumentation
+for libfuzzer and stuff, and then tried to
+make this self-contained library in userspace.
+And then of course when you link it there
+is all the rest of the kernel missing, and
+so it says like a thousand functions are missing.
+So what I did was I just stubbed all those
+functions out to assert(false) and just crash
+when I call them.
+So that way I could start running and working
+with this thing.
+And if it hit code I needed to work I either
+put the real implementation in or I would
+stub it out or put my own mock implementation
+or whatever.
+So he announced that he was working on XNU,
+specifically fuzzing the networking stack.
+And what a surprise that CVE-2019-8605, sock
+puppet, is a bug in the XNU network stack.
+That’s where the name comes from.
+Sockets.
+Network sockets.
+So if you are interested about his fuzzing
+technique to get an idea of how he did it
+watch this talk and keep an eye out on his
+twitter.
+He also wants to open source that fuzzer too.
+Before we head into technical details, let
+me just clarify something.
+You might wonder how he is able to do source
+code fuzzing when iOS is a proprietary closed
+source operating system by Apple.
+Well…
+Here is the official Darwin XNU repository
+by Apple.
+And they write:
+XNU kernel is part of the Darwin operating
+system for use in macOS and iOS operating
+systems.
+XNU is an acronym for X is Not Unix.
+XNU is a hybrid kernel combining the Mach
+kernel developed at Carnegie Mellon University
+with components from FreeBSD and a C++ API
+for writing drivers called IOKit.
+So iOS as a whole is obviously more than just
+XNU with a lot of closed source, but when
+we talk about Kernel bugs and Kernel exploits,
+then you can do research on the open source
+parts of XNU.
+And Ned was targeting the network stack.
+So what did his fuzzer find?
+Let’s have a look at his original report
+in the Google Project Zero Bugtracker.
+This was mid March.
+Issue 1806: XNU: Use-after-free due to stale
+pointer left by in6_pcbdetach
+When we take a look at the proof of concept
+code he has attached here, we see that he
+is creating a RAW Socket.
+Raw sockets are very low level and allow you
+to craft any kind of network packet, any kind
+of protocol, and so it’s kinda risky to
+allow regular users or regular programs to
+do that.
+Normal users shouldn’t need to do that anyway,
+because you can specifically create TCP sockets
+instead for when you want to do stuff like
+an HTTP request.
+TCP sockets are on a higher layer - they are
+fine.
+This means his original report wouldn’t
+be usable for an iOS jailbreak, because you
+would need root privileges.
+Maybe that’s also the reason why it was
+initially reported with severity High - not
+severity critical.
+You can only attack the kernel when you are
+already root.
+But roughly two months after this initial
+report in mid may, he tweeted
+When I reported  I could only reproduce
+it on macOS with root user.
+That’s what we just learned, raw sockets
+require root privileges.
+But,
+I've found a way to reach it from the app
+sandbox on iOS.
+Don't update to 12.3 needlessly, while I continue
+to investigate!
+So lets hop onto the call with Ned and let
+him introduce the variant of the bug that
+can be triggered as a regular user.
+Alright, so here is the minimal testcase pretty
+much.
+And so the interesting thing is, my fuzzer
+produced this exactly as is.
+I just added prints to help test on iOS.
+Basically I have this protobuf message that
+describes all the types of syscalls and the
+type of arguments they can have.
+And this is exactly what came out of it.
+What he says here about the protobuf messages
+has to do with his fuzzer, if you watch his
+talk from earlier you will know about it.
+Protocol buffers are from Google and used
+for serializing structured data – think
+XML, but smaller, faster, and simpler.
+And he uses protobuf to basically define the
+building blocks the fuzzer can use.
+In this case his fuzzer is creating syscalls.
+Because syscalls are what you as a user can
+use from userland if you want to talk to the
+kernel.
+So any kernel exploit usually means you call
+naughty syscalls.
+And here in his code you can see socket()
+and setsocketoptions() and disconnectx(),
+which are all syscalls.
+And so I looked at it.
+And I realized that it created this socket.
+It created this TCP socket.
+Then it enabled this option that let’s you
+setsockopt after disconnecting.
+And if you wonder how he find this new variant,
+he told me that after improving the protobuf
+grammar for his fuzzer, specifically to improve
+the setsockopt syscall, his fuzzer found this..
+And so about three months after the initial
+report, in mid June, he tweeted:
+I've just found SONPX_SETOPTSHUT which lets
+you call setsockopt after a socket has been
+shut down...
+I missed this earlier! tl;dr  "a freed zone element has been modified
+in zone kalloc.192",  inside the app
+sandbox on iOS 12.2.
+No more <12.2 root bug needed.
+So you can see it took quite a while, even
+for him to really understand the bug.
+To take it from a crash triggered as root,
+to something that can be called not only from
+user, but also from inside the app sandbox
+on iOS.
+The app sandbox has more restrictions on the
+syscalls you can call.
+And he also briefly mentions here the underlying
+functionality that caused an issue.
+SONPX_SETOPTSHUT (which is a flag you can
+enable in the socket options) lets you call
+setsockopt after a socket has been shut down.
+Quick refresher of his original bug title:
+“Use-after-free due to stale pointer left
+by in6_pcbdetach”.
+Internet 6.
+So IPv6.
+PCB - protocol control block.
+Detach.
+So detaching/disconnecting a socket.
+And somehow there was a stale pointer that
+could be abused in a Use-after-free.
+User-after-free means that some code freed
+an object in memory, and then another part
+still used it.
+User… after… freed...
+Which means instead of the original object,
+there could now be random data there and it
+might crash because of that.
+Or with some heap grooming you can maybe control
+exactly the data that is there.
+And that could lead to an exploit.
+Okay… so now I hope you have somewhat of
+an idea where the journey is going.
+Now let’s Ned take over again.
+Anyways…
+Let me actually try to pull up the bug.
+So it’s in6_pcb.c
+And it’s gonna be, Yep.
+I guess I searched for it last time.
+There is kind of the programming error.
+And then how it manifests.
+So the programming error is that basically
+down here when we are detaching the TCP session
+from a socket we try to free all the information
+related to whatever we were doing before we
+disconnected.
+And so you will see here “Ok let’s free
+the buffer containing our some type of options
+and then we null it out”.
+And then we free this.
+Here if we had some options set we free them
+and null them out.
+Free null..
+Free null.
+So you might notice there is some kind of
+pattern here, of, it looks like we intend
+to use these again alter.
+Because we are nulling them out.
+Or at least that should be a hint that it’s
+probably possible.
+Otherwise if we were just destroying this
+object, there would be no need to null it
+out, we just have to free it.
+So the problem is here.
+So, there it is.
+So we can see like, ok if we had ipv6 options,
+so if it’s not NULL, we go ahead and delete
+everything and free the buffer.
+But then the problem is we didn’t actually
+clear thi this.
+So this should have been set to NULL. the
+problem is if we can keep using the socket
+after it was destroyed.
+And access this pointer.
+It will have been freed by this function but
+we can continue interacting with it.
+So yeah it’s tricky.
+So the interesting thing is, how you continue
+to interact with it.
+Alright.
+Let me try to recap the bug with my words.
+Let’s say you have this struct A, which
+can hold a struct B and C.
+When you want to use it, you first malloc
+the size for A, malloc returns a pointer,
+so the address to the memory that we can use
+for it now, and we remember it in varA.
+And then we can access b and c and malloc
+them as well.
+So malloc returns the address where we have
+space for B and C.
+Now when you are done with using A, you have
+to make sure you free everything properly.
+So you free b and c.
+And afterwards you free A. Perfect.
+This would be an option and this is how Ned
+originally thought of as the socket options.
+However it turns out that socketoptions can
+be reused.
+So what if we would want to reuse A?
+Then we would just free b and c, but leave
+varA alone.
+Now if we would design our program that it
+would just alloc b and c again once we need
+it, it would be fine.
+But in larger applications, especially how
+it was designed here, we actually check if
+b and c is set.
+And only if they are not set, then we allocate
+new memory for B and C.
+But if you want to do that, you need to make
+sure to NULL the pointer when you free the
+object.
+Freeing the object just tells the heap allocator
+that the memory can be used for something
+else.
+But the pointer to that memory still is stored
+in b and c.
+So this here would be a use-after-free situation.
+Even though we freed the memory, this check
+here sees a pointer stored in b and c, thus
+not allocate it again, and it will be used
+as nothing happened.
+That’s why there was this pattern of Free
+null..
+Free null.
+All the inner options are freed, and then
+nulled.
+Freed and then nulled.
+So the problem is here.
+So, there it is.
+So we can see like, ok if we had ipv6 options,
+so if it’s not NULL, we go ahead and delete
+everything and free the buffer.
+But then the problem is we didn’t actually
+clear this thing.
+So this should have been set to NULL.
+Every other option is properly freed and nulled.
+Except the in6p_outputopts.
+It’s as if we did properly set b to NULL
+after the free, but we forgot to null C. Thus
+c could lead to a use-after-free.
+the problem is if we can keep using the socket
+after it has been destroyed.
+And access this pointer.
+It will have been freed by this function but,
+you know, we can continue interacting with
+it.
+So now let’s look at the Proof of Concept
+again.
+We create a ipv6 TCP socket.
+Then we prepare the socket options with the
+special flag SONPX_SETOPTSHUT enabled.
+That will allow us to reuse the same socket
+options.
+And then we actually set this option onto
+the socket s with setsockopt.
+From the man page we know that this means:
+To manipulate options at the sockets API level,
+level is specified as SOL_SOCKET
+This is followed by a second call to setsockot,
+but this time specifically to set the IPV6
+options.
+And here he just changed the minmtu size to
+-1.the minmtu value doesn’t really have
+significance, other than maybe being a simple
+option, I think he just wants to set any IPV6
+output option to trigger the allocation of
+this ipv6 output option struct.
+This thing actually creates a IPV6 option,
+so when you set that it will see “oh that
+pointer is null” let me allocate a struct
+representing the options.
+And then I go ahead and set this minmtu value.
+Then comes the disconnect.
+This disconnect is what actually triggers
+the free that we saw.
+We disconnect the socket with disconnectx.
+This is actually a weird syscall.
+Probably Ned was also surprised to learn that
+this exists.
+Because of the history of XNU it shares a
+lot of the syscalls with for example Linux,
+or I guess Unix.
+Socket and setsockopt are syscalls you might
+even know.
+But disconnectx is non-standard.
+It is not part of POSIX.
+It’s a weird unique syscall for XNU.
+This will trigger the free of the inner options
+as Ned has explained.
+But that one single option, that IP6 options
+for outgoing packets in6p_outputopts was not
+NULLED.
+Now we call sesockopt again.
+And then normally this setsockopt would say
+“oh hey, this socket is already disconnected
+I wont set the options for you”.
+But because this option was turned on.
+And this is a thing the fuzzer found which
+I had missed doing my manual review of the
+bug.
+It actually generated this struct data completely
+from scratch.
+I actually made it look cleaner, but it was
+just generating a buffer here.
+And feeding this buffer and size in.
+And so it found that there is this option
+SETOPTSHUT, that lets you keep setting options
+after you’ve disconnected.
+So that means that we can keep getting and
+setting the struct that was freed.
+So from that we basicallyhave a read and a
+write on a freed struct object.
+Which is really powerful.
+So calling setsockopt on the same socket,
+reuses the previous socket option.
+In this case we want to change the minmtu
+value again.
+This means we take the socketoptions and then
+we would follow the pointer into the ipv6
+output options.
+But that pointer is dangling and might now
+point into other memory.
+And now writing the minmtu value into this
+other memory, could corrupt data.
+But you don’t know what and the kernel might
+crash or never crash.
+However when you use something like the addresssanitizer
+option on your build, then this debug feature
+would catch this attempted write into freed
+memory.
+And so that’s why the fuzzer found that
+calling setsockopt again, will trigger this
+address sanitizer crash.
+However when we think about exploiting this,
+we maybe want to consider what happens when
+we do getsockopt.
+So get the socket options.
+To get for example the current minmtu value.
+That would also follow the dangling pointer,
+read the minmtu value, but because it points
+now into old memory, it could read whatever.
+When we get the ipv6 options.
+Basically reading the data srtaight out of
+the opt.
+So this is the freed thing and we can just
+read this field from it.
+This is the thing that is used after freed,
+right?
+So the dangling pointer thinks its pointing
+into memory that has this structured object,
+but it got freed.
+So there is random data at all these fields
+now.
+Or if you can control what will be exactly
+there, by spraying allocating objects in the
+kernel, then maybe you can exactly control
+what values are here.
+So you can see all these fields.
+We can get and set them after the whole object
+has been freed.
+So if we do a heapspray and reclaim this object
+with controlled data.
+Then you can imagine that we can get this
+integer and it will just read the integer
+back to us.
+And then we can see whatever we sprayed there
+and we know that our spray succeeded.
+So that’s the basic idea of use-after-free.
+Before accessing that dangling pointer again,
+you just somehow spam allocation of other
+data in memory.
+And you carefully choose that data, so that
+if you get lucky, and the pointer points into
+your data, you can control every field.
+And as a fairly safe test to see if it worked,
+you can always spam the memory, then read
+this integer with getsocketopt and check if
+it’s what you expected.
+If a random object happened to be there instead,
+you would see, “yeah not my value”, and
+try again.
+And maybe next time you get lucky.
+And over here we can then just replace one
+of the pointers and keep spraying until we
+see that this matches a known value.
+And then we can get, we will actually access
+the pointer here.
+And because we know the spray succeeded we
+have some controlled pointer here and read
+arbitrary memory.
+And then by the same idea if we reclaim this
+and set... it’s actually packet info, that’s
+what I used.
+So we can get this to read 20 bytes of this
+fake packet info pointer.
+It will just read it straight back to us in
+userland.
+We can also set this thing, and if we set
+it to null-bytes it will actually free this
+buffer.
+You can’t really set arbitrary bytes, but
+because you can free this really easily, you
+know, arbitrary read and arbitrary free is
+already a already really nice primitive.
+So I was actually surprised about that.
+There is a Use After Free.
+And you could fake socket options, which contains
+pointers you control, and now you want to
+somehow abuse this.
+I would have thought, being able to control
+those pointers you can somehow easily get
+arbitrary read and write.
+But seems like the socket output options struct
+is not super perfect and Ned was only able
+to find this arbitrary read with getsocketopt
+and and arbitrary free.
+I think this should be the place for the free.
+If you somehow trigger this clearing of options,
+and that pointer is set, it will call free
+on it.
+So we can free any allocated memory in the
+kernel we want.
+But I was still looking through the code myself
+to better understand what you can control
+with the initial use-after-free and actually
+ran across this line here.
+This is a memcpy from a buffer you control
+into the pktinfo.
+That looks like an arbitrary write.
+But actually Ned was talking about it during
+our call and I had forgotten about it.
+Only when I rewatched the footage I noticed
+it.
+So here is Ned talking about a few of the
+options you have with the Use-After-Free.
+So if we look at I think it’s this function.
+Yeah ipv6 set packetopt.
+So here is where we set the packet options
+. So this is the freed thin, the opt, right?
+The ipv6 packet opt.
+So what happens is.
+Here is packet info.
+So when we go and set it.
+And you will see that these other ones are
+really constrained.
+So we can write an integer between 0 and 255,
+yeah so that’s not that useful.
+Or negative 255.
+We have these very highly constrained writes
+into this struct.
+And then the other things that involve, like
+taking a pointer that we controlled and writing
+it, you can see here there is actually a root
+check.
+So this is no good from the userland sandbox.
+Basically the only thing we can really call
+without any complexity to set something here
+is this packetinfo.
+The interesting thing is, so when I first
+looked at this it looked like, okay as long
+as I can bypass some of these checks here,
+I’m actually be able to bcopy straight into
+this thing.
+It looks great.
+It turned out that this sticky thing will
+be turned on in the normal case with packetinfo.
+So you have to pass this 2292PKTINFO through,
+you have to go through this old mbuf based
+packetoptions.
+Like a socketoption setting mechanism.
+And it turned out that had some of it’s
+own checks in it, so we couldn’t get in
+here with controlled data anyways.
+Doesn’t really matter.
+But moral of the story is, it looks like we
+can write arbitrary stuff here, but in reality
+the only thing we can really hit is this guy.
+And this is extremely easy to hit.
+So basically, if we don’t specify an ipv6
+address, and that’s just null-bytes, and
+we also don’t have an interface index.
+So essentially if this whole struct is just
+0 bytes, We can hit this thing no problem.
+And that is the function I just showed you
+earlier, that will lead to this arbitrary
+free.
+This means if you know the address of some
+other object the kernel uses, you can force
+it to be freed.
+Which is basically a targeted use-after-free
+for anything you want.
+And then you can do a heap spray for that
+and control that structure.
+And that structure can be the holy grail.
+And thus this arbitrary free primitive can
+be turned into something very powerful.
+This awesome.
+I really learned a lot from this.
+Now this is of course not the whole exploit.
+This is just the bug itself explained.
+So the questions that you should have now
+are:
+First.
+How do you actually spary objects in kernel
+memory.
+Malloc is of course allocating in userland
+and there is no kernel alloc syscall.
+So you need to abuse something else to allocate
+buffers for you.
+And second, what do you then do with the arbitrary
+free.
+What other kernel object do you target and
+how do you find it in the kernel memory to
+point your controlled pointer to?
+If you are curious about all of this, make
+sure to follow Ned on twitter, and also check
+the description of this video.
+I will make sure to link the related stuff.
+And otherwise, thanks to everybody on Patreon
+for supporting the making of these kind of
+videos.
+And it would mean a lot to me if you share
+this video with your colleagues and friends.
+Or internet strangers.

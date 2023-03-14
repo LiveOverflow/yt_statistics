@@ -1,0 +1,374 @@
+A7 - gee cue elle was a hard misc challenge.
+It combines a database query injection with
+optimizing the algorithm to perform the attack.
+So also partially a programming or computer
+science challenge.
+When I first read the title I mispronounced
+it as “gi que elle”, so a more german
+pronunciation and I totally didn’t get what
+it tried to hint at.
+But more about that later.
+Let’s get started.
+A7 - gi que elle,
+We installed a fancy automatic attack protection
+system to be more secure against automated
+attacks from robots and hackers, so it can
+be fully A7 compliant.
+And a hint with .yaml tilde.
+So the first thing I did was look up a7 again.
+because of the “fully a7 compliant” comment,
+I immediately thought it’s probably that
+OWASP thing.
+So what is it again?
+OWASP Top 10.
+A7 insufficient attack protecion….
+Ohhhh that thing.
+What a bullshit item on that owasp list.
+If you want to read about some infosec drama,
+search for a7 controversy.
+And this challenge is certainly a reference
+to that.
+Anyway, I took this as a hint that I should
+use some automated attack tool.
+Which in retrospect I think was wrong.
+But whatever.
+The description has a few more hints, but
+we will get back to that in a minute.
+Let’s first check out the site.
+The challenge here links a .html file with
+the following content.
+So part of the subdomain can be random.
+It’s obviously to give every player a unique
+site.
+We will see that come up later.
+On the site itself we can find a simple login
+field and when we inspect the html, we see
+a validation pattern that tells us the username
+has to be admin and the password has to follow
+a more complex pattern.
+It’s basically a valid flag pattern.
+CTF curly braces then some characters that
+start with quotas, and if you paid attention
+you can see that the subdomain is basically
+that part here, and then followed by 64 characters.
+So it seems like if we find the correct password
+for the admin user, we have found the flag.
+Like I said I though the a7 hint meant to
+tell me to use some tool, so I used nikto
+which basically does something like dirbuster
+and it found an app.yaml file.
+It turns out I could have found that myself
+if I had looked into the robots.txt, oh well.
+That qa entry here threw me a bit off but
+ignored it mostly.
+And this is where the second hint comes into
+play.
+The yaml tilde.
+So if you didn’t know what that means, some
+editors such as emacs or maybe vim create
+files to track your current progress in case
+you don’t save and it crashes or so.
+Then it can be recovered.
+And some editors create a file with the same
+name but append a tilde.
+And that’s basically what happened here,
+the developer apparently opened the file in
+an editor and it created that tilde file and
+for some reasons it didn’t get deleted.
+The yaml file is really interesting, it’s
+basically a web application config file for
+google app engine and it tells us here where
+the app that handles the page lives.
+I might also google a little bit to learn
+more about app engine to understand the structure
+of this file.
+So basically I’m hunting now for the application
+sources.
+In the google app engine docs I find a hello
+world example using main.py, so I tried that.
+And with the tilde there as well, I can leak
+the content.
+So now we got the sources.
+The code doesn’t look too big, but there
+are some dense areas.
+A first thing you might notice is, that there
+is something about quotas and an abuse detection
+system.
+Mhmh…
+And when I looked at the code, there was a
+lot of time calculations and I hoped I didn’t
+have to understand that right now.
+So I continued.
+Here the login post request.
+That must be a very important part.
+And indeed, I immediately noticed a query
+language injection.
+You see this here the colon 1 together with
+the parameter here is safe, but this direct
+python string manipulation with percentage
+s is unsafe.
+We can inject another single quote and break
+out of the string and screw with the query.
+So is this an SQL injection?
+Well.
+kinda.
+not really.
+As you can see here in the function name it’s
+gql.
+Google query language.
+At this point I still didn’t get that the
+title of the challenge was supposed to hint
+for that.
+Gee cue elle.
+But.
+Oh well.
+So what can we do with that, ideally we want
+to be able to log in.
+So what kind of features could we use in the
+query language.
+If you look up the grammar of the query language
+it’s really short and there is not much
+you can do.
+So we are here in the WHERE condition and
+all we can do is append more conditions with
+AND.
+There is not even an OR.
+And we could sort or limit the result but
+that’s not really useful.
+So no SQL UNION SELECT to inject a password
+we can control to bypass the authentication
+or so.
+The only output we have is either wrong username
+or wrong password.
+So it’s going to be a blind injection.
+The idea is if we make the query return a
+password, then the password we supply would
+be wrong and if we make the query return no
+password, we would get the wrong username
+error.
+We can play with this.
+GQL doesn’t have advanced string stuff like
+SQL.
+For example there is no WHERE password Like
+A%.
+Where password like B%.
+to slowly bruteforce the first character.
+But we can basically simulate that with greater
+or lower than.
+So you can inject a compare if the password
+is bigger than A, and if that’s the case
+the query returns the password and we get
+wrong password error.
+But if the password was not bigger than A,
+then the password might start with A or another
+char that’s lower than that, then the query
+would not return a password and we get the
+wrong username error.
+So we can in fact slowly bruteforce the password.
+So I start writing some code to do that.
+The comparison works by ascii value, so the
+order of chars is how they appear in ascii.
+So lowercase a is bigger than capital A.
+So I was writing that code but I quickly ran
+into the “Abuse detection system”.
+I was banned for 90 seconds because I either
+triggered two errors in 30 seconds, or made
+more than 13 requests per 30 seconds or it
+took me longer than 2240 seconds.
+Oh damn.
+Because with every request we get an error,
+we can only perform one request every 15 seconds.
+To not trigger the 2 errors in 30s rule.
+And not only that, we only have 2240 seconds
+time for that.
+That’s only 150 requests.
+But the flag is already at least 64 bytes
+long.
+We know parts of the password just not the
+main part.
+This means we have only like 2 requests per
+character.
+We will never bruteforce the password with
+those restrictions.
+So I started to review more of the code and
+long story short, I couldn’t find a bypass
+for the abuse detection system.
+Also the password is dynamically generated,
+but it’s safe.
+It’s hmac with a secret key and the first
+part of the hostname.
+Which means if you know the secret key and
+I give you a valid flag, you can verify that
+it’s valid.
+The first part generates the second part.
+So also no tricks possible there.
+Basically I had following options in mind:
+Bypass detection system
+Find an issue in the dynamic flag/password
+generation
+Better gql injection
+Try to optimize the bruteforce
+Like I said first one lead nowhere, second
+one was also unlikely, third one too, the
+query syntax is just so short, which means
+the only viable way is optimization.
+So an obvious first improvement to the bruteforce
+with greater and lower is to do a binary search.
+Basically we have an oracle that tells us
+with a guess of the password if the real password
+is greater or lower.
+Which means we can lower the amount of requests
+necessary.
+My first implementation did this per character.
+Each character has 64 options and with binary
+search you can find the right guess in about
+log N steps.
+So about 4.1 steps necessary per character.
+Which means we need roughly 262 steps in total,
+which doesn’t work, because we only can
+do up to 150 requests in the time we have.
+So I was stuck there for a while.
+A lot of time went into fixing programming
+bugs and testing it and because it’s so
+slow.
+with 1 request every 15s it is just took ages.
+But then when I did another round of auditing
+the code I noticed something.
+So error requests, of which you can only have
+two every 30 seconds, are only counted on
+exceptions.
+And if you look closely in the login code
+you can see that only a wrong password triggers
+an exception.
+Wrong username is just a regular request of
+which you can have 13 per 30 seconds.
+That’s the key!
+We need to optimise the binary search to favor
+wrong username over wrong password.
+So how do we do that?
+Well in binary search you always select the
+center of your search area.
+This means there is a 50:50 chance that your
+item is either greater or lower.
+So how can we skew that chance.
+Well instead of picking the center, we pick
+something more towards one side.
+For example if we do a 75:25 split, we have
+a much higher probability that our item is
+going to be lower than that new index.
+In our case we can have 13 requests in 30
+seconds but only 2 of those can be errors,
+so we have 2 divided by 13, roughly a 85 to
+15% split.
+Awesome.
+Also I optimised the string generation by
+working with numbers rather than a character
+string.
+So basically our string we want to brute force
+has an alphabet of 64 characters.
+So it’s like a base64 number system.
+Which means we can convert between base10
+and base64.
+Don’t confuse it with base64 encoding, I’m
+really talking here about the mathematical
+numeral system base 64.
+Maybe you had to convert base 10 to base 16
+or base 3 in school, that’s basically what
+I did.
+So I created two functions to convert a base64
+number to a base10 number and vice versa.
+So now I can treat the binary search as a
+search of a number.
+The highest value is basically lowercase zzzzzz,
+which is a huge number.
+And this is the code I came up with.
+I use the requests module to perform the gql
+injection request.
+Then I define the alphabet for the flag in
+ascii order.
+Here are my functions to convert from base64
+to base10 and vice versa.
+And a function to display a number line to
+visualise the search.
+And here are the important search variables.
+At the beginning the highest number is basically
+zzzzzzz
+And lowest is obviously 0.
+The current flag we will check, so the search
+index is initialized with 85% from the top.
+So that it’s skewed towards higher values
+and our real password is probably lower.
+And those are lists to count the exceptions,
+so wrong passwords and regular requests I
+make.
+At the beginning of the search loop I have
+a look at the lists that remember all exceptions
+and requests and remove the requests that
+are older than 30 seconds, because they don’t
+matter anymore.
+But if we have had more than 1 exception in
+the past 30 seconds, or had more than 11 regular
+requests, we are going to sleep for a second.
+Then we clean up the list again and maybe
+sleep again, until the condition is not true
+anymore.
+Then we are allowed to perform another request.
+So we convert the current search index to
+the flag string and perform the request.
+Some nice log output
+And then we check the result.
+If it was wrong username, then our guess was
+bigger than the real password, so we can set
+the highest possible value to that and move
+the search index down a little bit.
+But always move it in the 85:15% ratio.
+If we get wrong password, we get an exception,
+so we rememebr the time we had the exception
+and we also know our password was greater
+than our guess, so we take the upper part
+and move the search index higher.
+And that’s it.
+We just have to let it run now.
+Doesn’t it look beautiful?
+Here you can see how the search index, the
+X always skews to the higher values and how
+the search space is narrowed down.
+And there is a nice ratio now of wrong username
+and wrong password requests.
+This takes now a while.
+Basically 2240 seconds or 37 minutes.
+But we will still just barely make it in that
+time.
+So I started many instances in parallel and
+hoped that at least one will succeed.
+And this is where I started to become nervous.
+Because the end of the CTF was approaching
+and I was not sure if it will work, I didn’t
+have one successful run yet.
+Will the flag I find work or will it break?
+Will I do my calculations right?
+Do I have bugs?
+And about 10 minutes before the end two processes
+approach the final guesses.
+There we go, search space is apparently now
+0.
+We found our flag.
+hopefully.
+So I tried to enter the flag, super shaky
+hands because I had to be fast with minutes
+left but it didn’t work.
+Wrong flag.
+Also I couldn’t login with this flag.
+It was not correct.
+DAMN.
+But I had a hunch what the problem was.
+I probably didn’t quite get the calculations
+correct, so I was probably 1 or 2 numbers
+off.
+So i just adjusted the last character of the
+flag and after a few attempts, I got the right
+flag.
+Damn that was close.
+But really happy at the end, because just
+FYI, I spend probably like 12 hours on this
+challenge.

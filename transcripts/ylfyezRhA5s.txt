@@ -1,0 +1,235 @@
+Probably the most fundamental principle of
+building secure systems is to never trust
+user controlled input.
+Every data coming into your application, that
+an attacker can fully or partially or maybe
+potentially control has to stand up to the
+utmost scrutiny.
+And one data source is often trusted, even
+though it should not be.
+And that is the system time.
+So I was playing this awesome game Magikarp
+Jump.
+Which is this cool pokemon mobile game.
+But unfortunately once you depleeted all your
+actions, you have to wait for a while.
+A problem I have is, with anything I do, I
+always imagine how something could have been
+implemented and maybe even play around with
+it to see if my theories were right.
+So let’s explore this a bit.
+obviously there are many different ways one
+could implement such timers, for example when
+you launch the game you load the current state
+of any action, and when you wanna do an action,
+a request is performed to the server asking
+to do something.
+And the server would respond with “yup,
+you can do that.
+And here is your timeout”.
+The UI will be blocked until the timer ran
+out, but even if you would do the same request
+again, trying to cheat, the server would say,
+“nope” a timer is still running.
+So in this case the concept of time for this
+game is located on the server.
+Whatever the client says, the server knows
+it better.
+And that’s what you want.
+But.
+If you have to wait for every response from
+the server to see if you are allowed to do
+something, the game will feel slow and sluggish.
+And also some games don’t want to require
+always an online connection, because that
+is annoying.
+So obviously to solve the speed issue, you
+could do asynchronous requests and have some
+logic in the game that predicts the outcome
+of the server, so the UI can feel fast and
+in case there is a mismatch between what the
+game expected and what the server at some
+time responds, for example when the player
+tried to cheat, then the game backs out and
+says “NOPE.
+restart.
+Gotta sync the state again.”
+But sometimes requests fail, and then the
+user would constantly see those out-of-sync
+errors, and it’s really annoying.
+So you can invest a looot of time in optimising
+this to make the user experience good and
+keep any critical logic on the server.
+But you will quickly notice that it’s not
+a trivial engineering tasks and you have to
+think of so many edge cases and how you want
+to handle them, that your deadline, or your
+laziness, probably makes the decision on how
+you implement this for you.
+Not to mention that timezones and people who
+travel and all this crap makes programming
+with time really annoying.
+And the simplest solutions that will feel
+fast and thus goodfor games are the most cheater
+friendly implementations.
+you do any validation on the client.
+that’s fast and once in a while you push
+the current state to the server, just to save
+it.
+So if the application crashes or is deleted,
+the user can simply restore the latest save
+from the server.
+A lot of this communication can be protected,
+you can use encryption and signing to prevent
+a man in the middle attack so a cheater can’t
+easily modify the traffic to manipulate your
+savegame.
+And when running on a non jailbroken phone
+the user also doesn’t have a lot of options
+to modify values in memory.
+Obviously this is a bit different on a desktop
+machine.
+But the bar to cheat becomes higher and if
+your game has no big monetary incentive for
+cheaters, like selling valuable digital goods
+or accounts, you can be fine.
+But there is one data source everybody can
+easily control on the phone and is also trusted
+by these simple games, and that is the time.
+So what happens in magikarp jump is, you can
+simply forward your clock or date, go back
+into the game and the timers all reset.
+You can again perform any action.
+And suddenly cheating is super simple and
+didn’t even require any intrusive actions
+that could be considered hacking.
+And this is true for soooo so many mobile
+games.
+But it’s not only a threat for games.
+Software licenses often have a limited time
+period they allow you to use it.
+Where is the time information coming from?
+Does the software require always online so
+you can query your own trusted signed timestamp
+from your server, or do users complain about
+needing an internet connection to use your
+tool so you use the local system time?
+Here is an example, look at this software
+some of you may know, JEB2 is an awesome android
+decompiler, I love it.
+But it only “Works without an Internet connection”
+when you pay the higher price.
+And my speculation is , that you are compensating
+or lowering the risk of piracy related to
+very easy license restriction bypasses this
+way.
+I don’t really know that’s just my suspicion.
+But it’s obvious, that when you have an
+offline machine how do you verify that something
+expired?
+How would the software know?
+The only source of time is the system time
+which can be controlled by the user.
+So many demo version restrictions that run
+out after 30 days can be bypassed like this.
+But this goes even further.
+Where is the system time information even
+coming from?
+Why is your clock accurate.
+Why does it know the correct time when your
+PC didn’t have power for a week.
+And I mean you probably know that’s what
+NTP, the network time protocol is for.
+NTP is a networking protocol for clock synchronization
+between computer systems over packet-switched,
+variable-latency data networks.
+In operation since before 1985, NTP is one
+of the oldest Internet protocols in current
+use.
+And what do we think, when we hear about old
+protocols?
+They are generally from a time where transport
+security was not really a concern.
+Let’s read a short summary I found about
+this in the paper “Authenticated Network
+Time Synchronization”.
+Early versions of NTP (NTP, NTPv1 and NTPv2)
+had no standardized authentication method.
+NTPv3 added an authentication method using
+pre-shared key for symmetric cryptography.
+And the negotiation of keys and algorithms
+must be done out-of-band.
+That term comes from radio frequency bands.
+So an out-of-band is activity outside a defined
+telecommunications frequency band.
+Because you suspect the enemy is eavesdropping
+on the one you use.
+And that’s why: NIST offers a secure time
+server, and (symmetric) keys , which are transported
+from server to client by postal mail.
+That sounds crazy but of course, if you cannot
+trust your network, that’s why you want
+crypto to protect your NTP packets, you can’t
+send the keys over this network.
+Upon a request, NIST will reply with a key
+number and a key value.
+The reply will be by US mail only unless the
+requesting organization or individual specifies
+that a reply by FAX is acceptable.
+A reply by e-mail will never be used.
+That’s sooo interesting.
+Anyway.
+Establishing pre-shared symmetric keys with
+billions of client PCs and other NTP-synchronizing
+devices seems impractical.
+That’s why, NTPv4 introduced a public-key
+authentication mechanism called Autokey which
+has not seen widespread adoption; and unfortunately,
+Autokey uses small 32-bit seeds that can be
+easily brute forced to then forge packets.
+A more recent proposal is the Network Time
+Security (NTS) protocol.
+And just as en example, when I look at my
+NTP packets on my mac, I see that there are
+no authentication or crypto fields used.
+You could run your own NTP server and deploy
+autokey or preshared authentication keys with
+your client, but then how does your server
+get the time.
+Is the server located in a trusted network?
+You see it gets very complicated very fast.
+And this is a problem because think about
+SSL certificates.
+They generally have a time when they start
+to become valid and when they expire.
+And I mean how do you determine that a SSL
+certificate expired?
+Where do you get the time from?
+Think about it, what if you get ahold of an
+old expired certificate and you want to perform
+a man in the middle attack, the browser would
+still flag this connection as insecure because
+it expired, but what if the attacker now also
+controls NTP and changes the system time quietly
+so the browser starts to trust it again?
+Now the user doesn’t modify the local time
+but an attacker through a network protocol.
+But the good thing is, browsers are very aware
+of that and for example Chrome has a trusted
+time source from google.
+And they try to determine whether your system
+clock is off.
+And in that case refuse to do SSL until the
+time is in sync again.
+But other systems that are not as complicated
+as browsers, other protocols that use certificates
+might not have this kind of logic.
+So overall it’s a mess.
+Time is complicated and a lot of issues can
+happen because of it.
+So if you develop an application that requires
+a sense of time, keep these things in mind,
+have a general mistrust in the system time
+and try to work around them to find other
+clever solutions that lower the risk of manipulated
+time information

@@ -1,0 +1,323 @@
+In this video I want to tell you about the
+time splitter tools speedrunners are using
+to track their time and how this relates to
+game hacking.
+But before, let’s play some more Pwn Adventure
+3, because we need to learn about something
+first.
+In a previous video we were able to use the
+tool Cheat Engine to find the variable of
+the selected skill in memory.
+But if tried this yourself you might have
+run into an issue when you close and reopen
+the game.
+Because in that case Cheat Engine would just
+show question marks.
+Or it might show random other values.
+This is because the data is not located at
+the same address anymore.
+For example ASLR changes the addresses of
+the memory regions.
+So how do we deal with that?
+Let’s attach Cheat Engine again to the game,
+and throw away the current address list, because
+it will be useless.
+But now that we know the values of the skill
+number variable, we can directly search for
+the value.
+So first slot selected would be a 0.
+We found 64million.
+Then let’s select the second slot.
+Search for value 1.
+3300 possible values left.
+We can see that some values are already different
+again, so we can just scan again for the 1.
+Switching to the third slot, so we search
+for 2, One left!
+Okay… we found it again!
+This time we want to ensure that we find this
+value every time when we restart the game.
+In theory the game itself has to know where
+the value in memory is, right?
+We can again think about this from a programmers
+point of view.
+There could be a global general game object.
+And that game object has maybe a reference
+to the world object.
+And the world object has a reference to the
+player.
+And the player then has the variable for the
+slot number.
+And if you know somewhat how that is implemented
+on the lower level, you know that objects
+are somewhere in memory, so they have an address.
+And their variables are located at some offset
+from the start of the object.
+So basically you just have to always follow
+those pointers and offsets until you reach
+the end.
+And of course, the awesome tool Cheat Engine
+has a feature called “Pointer Scan” that
+can help you with that.
+So let’s do “a pointer scan for this address”.
+This is the address we want to get to.
+And then there are a lot of settings that
+you can control when searching for these pointer/offset
+paths.
+We will leave it mostly at the default settings,
+except that we change the restrictions for
+the base address.
+“Base address must be in specific range”.
+The base address is where the pointer chain
+has to start.
+The root.
+The one fixed address.
+And with this setting we can define a range
+where it has to be.
+From last video we know the code that accesses
+this variable is from the GameLogic.dll.
+So it makes sense to guess that this .dll
+maybe has some global variables pointing to
+some objects which we can use.
+So I looked at the memory map again to find
+the rough memory range and add it there.
+Now let’s search.
+Depending on the size of the memory, this
+can take a while.
+Fast forward, here we are.
+We found over 20000 possible pointer paths.
+And look at this one.
+Apparently at this address here, so from the
+base address of the dll, we go up hex 0x97e48.
+There is some address, and when following
+that address and go to the offset hex 0x110
+there, we find the address (or pointer) to
+our variable.
+We can also sort based on other columns here,
+that helps us to discover other possible nice
+pointer paths.
+So we can add another possible path.
+Also do you notice how the last offset here
+is hex 0x110?
+Remember when we looked at the assembly accessing
+this slot id value, it was from offset hex
+0x180 from ESI. and we had ESI assumed to
+be the player class.
+So it’s a bit unexpected that we find here
+addresses, where the slot id appears to be
+at the offset 0x110.
+But looking at the list you can also find
+pointer paths where it has the expected offset
+hex 0x180.
+Because I trust the assembly offset a bit
+more, than guesses by cheat engine, I decided
+to rescan the pointer list for pointers with
+the last offset 0x180.
+This is very similar to how you scan for values
+- now we just scan for better pointer paths.
+But let me show you how you can check if you
+have reliable pointer paths or not...
+Let’s close the game!
+So now the process is gone and memory is of
+course unknown.
+Then let’s start the game again.
+Login….
+Select the character… and we are back…
+Attaching to the new game process - and we
+want to keep the current address list.
+Now look at the address list.
+The hardcoded address now points somewhere
+else in memory and there is a 0.
+We know that this would be wrong.
+The third pointer path also seems to point
+into bad memory.
+So that one wasn’t reliable.
+But these two pointer paths here seem to successfully
+point to somewhere with the value 2.
+And that looks correct, because we have selected
+the 3rd slot.
+Let’s delete the wrong ones.
+It could also be a good idea to redo this
+process of playing the game, closing it, restarting
+and so forth a few more times, just to be
+sure that the pointer path is really 100%
+reliable.
+And if not, you redo the path scan and select
+a different one.
+But why did we do this?
+What’s the purpose of the pointer path?
+Well, this is very useful for when we want
+to write programs like trainers, bots or cheats.
+We can write code that gets the address of
+the GameLogic.dll, and then follows that pointer
+chain to find the address of that value.
+Which you can then use to change it.
+The skill selection is maybe not the most
+useful variable.
+But of course we can imagine that we find
+a lot of other values like that.
+Maybe we could even find the address of the
+position to teleport or move around.
+But that is something for another episode.
+I have a special idea for that.
+I want to talk about something else now.
+I know a lot of people don’t like cheaters
+and maybe wonder why I would make a video
+like that.
+But I want to show you that this can also
+be used for more productive things.
+Would you have guessed that these hacks are
+used by speedrunners ALL THE TIME?
+Here is for example the current BioShock Infinite
+World-Record speedrun by glurmo.
+And let’s look at the timer when the map
+changes… it made a split and moved to the
+next one...
+So have you ever wondered how these automatic
+time splitters from speedrunners work?
+They don’t seem to have to press a button
+when they progress in the game, it seems to
+happen automatically.
+Let’s have a look at a tool called LiveSplit.
+LiveSplit is a timer program for speedrunners
+that is both easy to use and full of features.
+It has this feature: Game Time is automatically
+read directly from an emulator or PC game,
+and you can use it by switching to Game Time
+under Compare Against.
+Do you have a guess how they might be able
+to do that?
+Let’s checkout the Auto Splitter documentation:
+LiveSplit has integrated support for Auto
+Splitters.
+An Auto Splitter can be one of the following:
+A Script written in the Auto Splitting Language
+(ASL).
+A LiveSplit Component written in any .NET
+compatible language.
+The Auto Splitting Language - ASL is small
+scripting language made specifically for LiveSplit
+Auto Splitters.
+An ASL Script contains a State Descriptor
+and multiple Actions which contain C# code.
+So what are State Descriptors?
+The State Descriptor is the most important
+part of the script and describes which game
+process and which state of the game the script
+is interested in.
+This is where all of the Pointer Paths, which
+the Auto Splitter uses to read values from
+the game, are described.
+Pointer Paths!!!!
+We know pointer paths!!!
+And they are used here to read values from
+the game.
+Like we read the selected skill number from
+memory!
+Let’s read just a little bit further:
+The optional base module name BASE_MODULE
+describes the name of the module the Pointer
+Path starts at.
+Every *.exe and *.dll file loaded into the
+process has its own base address.
+Instead of specifying the base address of
+the Pointer Path, you specify the base module
+and an offset from there.
+If this is not defined, it will default to
+the main (.exe) module.
+This is exactly what we also figured out with
+Cheat Engine.
+We have figured out a pointer path from the
+GameLogic.dll as the base module, to the selected
+skill ID.
+Let’s look at an example .asl file.
+This is the file for Bioshock Infinite.
+Here is the state definition.
+And apparently from going from the base address
+to hex 0x14154e8, and then following that
+pointer going to offset 4, we find a float
+that contains information about the “map
+loading”!
+And the integer that tells you which map is
+being loaded, needs apparently three offset.
+And you can see how those values are being
+used.
+This is the function that checks if the timer
+should be started, and it will check if the
+map is loading, and if the map that is being
+loaded is number 15.
+Cool, right!
+This means LiveSplit is doing the same stuff
+that also cheat tools are doing.
+They have to somehow interact with the game’s
+memory.
+So here for example we have the ProcessExtensions
+class.
+In here we can find a createThread function
+which calls WinAPI.CreateRemoteThread.
+Let’s have a look into the Windows API documentation.
+Use the CreateRemoteThreadEx function to create
+a thread that runs in the virtual address
+space of another process.
+Create a thread that runs in ANOTHER process.
+So this is a typical windows function that
+you can use to inject and run your own code
+in a target process - in this case the game.
+This is exactly what you would do when you
+want to write your own cheats.
+You write malicious cheat code that you run
+in the context of the game’s process.
+If you browse a bit more around the sources,
+you can also find other helpful functions
+like WriteDetour.
+The comment here says
+// allocate memory to store the original src
+prologue, bytes we overwrite with jump to
+destination, along with the jump back to source.
+So you can use this to overwrite part of the
+game’s code, jump to your own code, and
+then jump back.
+This is also called a “hook” a function
+“hook”.
+And that’s exactly the same kind of stuff
+you would do for any kind of game hacking
+or cheating.
+I mean LiveSplit is literally game hacking.
+But it’s not only game hacking, this is
+what also malware might use to hide it’s
+code, or steal data from a running program.
+And browsing a bit more you can even find
+code that seems to hook keyboard presses in
+order to detect global keybord shortcuts,
+probably for when you are in the game and
+want to interact with LiveSplit.
+But this could easily be changed to log keypresses
+for a keylogger.
+You get the idea...
+Just to make it 100% clear, I’m not saying
+LiveSplit is cheating or malware.
+I’m just saying that it uses the same programming
+techniques.
+I think you can see that learning about game
+hacking, reverse engineering and how the basics
+of cheating works, is useful!
+The cool thing is that game hacking can be
+really fun.
+Because you play around with games.
+But the skills you learn are applicable in
+many other areas as well.
+I hope this shows you how interconnected the
+skills are.
+And how learning one topic can benefit you
+somewhere else.
+And I also hope it shows you that some skills
+that on the surface might seem only be useful
+for malicious purposes, be it online game
+hacking or malware development.
+They can also be used for awesome useful tools
+like LiveSplit.
+A tool that has probably had tremendous positive
+impact on the joy of thousands of people.
+And I wouldn’t be surprised if the developers
+of that tool haven’t had a history in game
+hacking themselves.

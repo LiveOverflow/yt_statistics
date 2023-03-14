@@ -1,0 +1,105 @@
+Hey,
+I’m LiveOverflow, and I’m the inventor
+of security.txt
+NO!
+GET OUT OF HERE!
+I’m LiveOverflow, I’m the inventor of
+security.txt.
+Let me explain what it is.
+Security.txt is a proposed standard which
+allows websites to define security policies.
+The security.txt file sets clear guidelines
+for security researchers on how to report
+security issues.
+
+Security.txt is a simple text file that you
+can find on many websites in the .well-known
+directory.
+But before we talk more in depth about security.txt
+- my invention - I wanted to quickly talk
+about the .well-known directory.
+I would actually be surprised if you didn’t
+know, because this directory is actually “well
+known”.
+There is even a standard for this.
+And of course as computer interested people
+we read ALL standards for fun.
+So this is old news for you.
+But because it’s so much fun, let’s check
+it out together again.
+This memo defines a path prefix for "well-known
+locations", "/.well-known/"
+Many of you probably know the robots.txt file.
+Which provides easily accessible policy information
+about how a bot accessing the website should
+behave.
+So this file provides useful metadata information
+for bots.
+Now you could imagine that there are many
+other cases where such a file could be useful
+for other kinds of … things.
+And you could maybe endup with tons of these
+files in the root directory.
+so at some point there was this suggestion
+to place these files into their own URI path
+called .well-known.
+Now you shouldn’t just place any file in
+there, because it should be a well known useful
+file, so there is a procedure to register
+well-known URIs.
+Basically send a request for registration
+to the wellknown-uri-review mailinglist.
+So security.txt is such a policy informational
+file, which registered a well-known uri.
+Let’s check it out.
+We can go to the mailinglist archive and see
+here other requests.
+let’s search for my request….
+Oh… not found?
+I’m sure I registered it.
+Am I going crazy?
+Ah.
+I forgot.
+I’m a smarty pants.
+We did it over IANA in 2017.
+This will get done as part of the RFC publication,
+no need to track separately.
+Security.txt is not an RFC yet.
+So security.txt is not a full standard yet.
+It’s still in the process of becoming one.
+But what is it actually about?
+Security researchers and bug bounty hunters
+have often been very annoyed at finding the
+correct contact to report security issues.
+Some people simply try to write an email to
+security@.com but that’s just
+a guess.
+Some have bug bounty programs, but you frst
+have to find the correct page.
+There is not an easy clear place to find this
+information.
+And so this is where security.txt comes in.
+This text file describes a standard to help
+organizations define the process for security
+researchers to disclose security vulnerabilities
+securely.
+Here is for example the file from our domain
+securiytxt.org.
+If you want to report a security issue for
+this domain, you can contact me here.
+And here is my PGP key for encryption.
+It’s that simple.
+Simple, but very useful.
+And what is awesome, we are already see wide
+adoption.
+For example here on Dropbox, Facebook and
+even Google.
+I’m so proud of my invention.
+And so now it’s on its way to becoming an
+actual internet standard.
+it could become a real RFC within this year.
+Anyway.
+Hopefully MY INCREDIBLE INVENTION makes the
+life of bug hunters and security researchers
+easier.
+And maybe you even adopt it in your company,

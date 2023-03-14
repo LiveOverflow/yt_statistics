@@ -1,0 +1,203 @@
+Now that we solved the photomanager challenge
+in the United Exploitation area, I thought
+about checking out casino.
+Should also not be too hard with 150 points.
+Welcome to our casino, Riscure Roiyale!
+Please enjoy your stay by playing a game,
+or drink something at our bar.
+Reach 1000 credits and you will be rewarded
+with a special prize.
+We have seen loads of cheaters lately, so
+we have extra guards walking around.
+Do not feel threatened by them, they will
+only kick out the people that cheat.
+Of course, once you earn a lot of money, they
+will start investigating the matter.
+Better spend some money at our bar if this
+happens.
+PS.
+we all know casinos are scams.
+As you know I’m hanging out on the rhme2
+IRC channel and I wittnessed a conversation
+some time ago by somebody who worked on the
+challenge and asked if it’s possible to
+just reach the 1000 credits through playing
+and just getting lucky.
+But this person also said they tried running
+it for days(?), I think.
+And didn’t work.
+So while it’s not a real spoiler, it does
+safe us some time to not explore that path.
+You could have also come to that conlcusion
+reading the PS, but it’s not that clear.
+Anyway, lets flash the challenge on to the
+board with avrdude and connect to it over
+serial with screen.
+Welcome to the caison!
+Get a currecny of 1000 and we give you the
+secret key.
+That’s what we want.
+Occasionally we give away coupons for free
+drinks.
+We have guards walking around, looking for
+cheaters.
+Don’t get caught cheating.
+Or we will take our curreny back.
+Currently we got 50 credits.
+And no coupons.
+And the menu offers to play, to cheat, go
+for a drink at the bar, request some free
+money or restart.
+When we pick Play, we can choose between roulette
+or spin the wheel.
+If we pick roulette we can enter a number
+and in this case I entered the wrong one,
+the ball landed on 28, and we lost.
+And we are down one credit.
+If we spin the wheel, it seems like we have
+a chance to win the secret key, and I guess
+that’s what the person on IRC just tried
+to do over and over again for hours.
+But, casions are a scam, right?.
+But we did win a coupon.
+Awesome.
+Let’s try roulette again.
+Nothing.
+And obviously if we pick cheat, we get kicked
+out.
+So let’s start over.
+Spin the wheel.
+And oops, we lost all credit.
+But when we ask for free money, we get another
+50.
+Maybe we can just get up to 1000 this way
+;)
+Let’s request more money.
+Ah.
+only lets us go up to 550.
+But that’ already pretty awesome.
+So let’s go playiiin… spin the wheel.
+Won 10.
+If we keep goign like this we get to 1000
+for sure!
+Another coupon.
+Maybe lets go for a drink at the bar.
+We can type in our drink now.
+Club Mate of course!.
+We hand in the coupon and get that drink.
+So here we have some string input, that’s
+definetly something to consider exploring
+further.
+Without a coupon it seems to only offer us
+milk or beer.
+So let’s pick the only viable option.
+Beer.
+didn’t do much.
+So mhmh… if we cant get 1000 by just playing
+and getting lucky, the only interesting input
+so far seems to be going to the bar if we
+have a coupon.
+So let’s write a script to explore that
+input further.
+So this is the menu structure.
+To choose a drink we need to get a coupon.
+So upon starting it up, we read the menu until
+its done with printing it, then we select
+play, and we read until the menu is finished
+with printing.
+Then we spin the wheel, and with a bit of
+luck we get a coupon.
+when we try that now it seems to work fairly
+well, but we can have bad luck and loose all
+credit.
+We could also see what happens if we succeed
+with the roulette.
+So let’s change the menu selection to roulette
+and pick a number and try that over and over
+again until we hit it.
+Maybe that can give us a coupon, by only consuming
+1 credit for each spin and we don’t loose
+everything like with the wheel.
+So we make a loop to try it over and over
+again, until we read that we have now one
+coupon.
+Let’s let it run, aaand yes!
+That works.
+So we can now add user input, so we can then
+play with the drinks at the bar.
+Ohh that works.
+Cool.
+so let’s see what happens if we enter a
+lot of AAAAs.
+It looks like there is limited space, as you
+can see the echoed back As are way less than
+what we entered, also we don’t get an error.
+So let’s do that again, but this time enter
+a different payload.
+Always when a program prints out user input,
+you should try out format strings.
+So let’s enter some percantage x.
+And what a surprise!
+We print some numbers.
+This worked!
+And if you decodde those hex values you will
+see, that it’s the input string we entered.
+The %x itself.
+To leak data with format strings it would
+be cool to place an address into our input,
+and then use %s to use that address as a string
+location.
+This way we could dump the whole memory.
+So let’s enter some recognisable characters
+and see where they are.
+And it’s easy, the start of our string is
+already where the format parameters will be.
+So the first x printed AB, and the second
+x printed CD.
+If we now use %s instead, it will use hex
+4142 as an address and print the string at
+that location.
+AHAH!
+AB and CD are already valid string locations.
+And by sheer luck we already hit a string
+in memory.
+The guards are keeping an eye on you.
+That’s awesome, so this definetly works,
+now all we gotta do is create a loop that
+simply tries to print as many strings as possible,
+but tryiong different addresses.
+So let’s create a loop, that simply counts
+up all the addresses.
+And just leak strings from everything.
+I guess it’s best if we do it this way.
+We open a new connection, than we first try
+to get a coupon.
+So we spin the roulett multiple times.
+If we succeed we continue to try out an address,
+and then repeat.
+Also I add some code to really extract the
+leaked string, and then we can move the address
+forward based on the length we leaked, so
+we don’t like read the same string at different
+offsets all the time.
+It’s faster this way.
+Oh and we also know that AB and CD were valid
+addresses that leaked strings, so let’s
+use that as a start address.
+And in case we run out of credits and didnt
+get a coupon, we just reset the game again.
+So let’s run it.
+This looks really good.
+We leak all those strings awesome.
+But In let it run for a bit and never saw
+a flag.
+And decided to maybe it’s betetr to start
+from the beginning.
+So I et the start address to 0101, because
+I didn’t want to have nullbytes in the string,
+so that’s the first valid address, and suprisingly
+there it is.
+We found it almost immedaitly!
+Awesome.
+So let’s hand in the flag!
+Casino solved!

@@ -1,0 +1,410 @@
+What exactly is a Network Protocol?
+I like to make videos that I wish I
+had when I was younger, and the term 
+“protocol” really confused me back
+then. Only after I got more experience with 
+networking, packets and sequence diagrams,
+it finally clicked for me. And I want to 
+try to explain it now to my former self.
+
+What is a protocol? We need to start somewhere, 
+and I always like to start with wikipedia because
+it provides a good base that we can build 
+upon. But let’s ignore the computing category.
+You know, computers are a modern invention, so 
+obviously a lot of terminology is borrowed from
+the non-technical world. For example in another 
+video we looked at web servers and compared it to
+restaurant servers. So this time, let’s see 
+what protocol means in non-computer terms.
+In sociology and politics, “protocol” can mean: 
+“a formal agreement between nation states”.
+And that already is a good definition that 
+will help us. But even better might be,
+that `protocol` can also mean `Etiquette`.
+And “Etiquette is the set of conventional rules 
+of personal behaviour in polite society, usually
+in the form of an ethical code that delineates 
+the expected and accepted social behaviours”
+Sounds confusing, but let’s simplify 
+and slightly rewrite this sentence:
+“A protocol is a set of rules of 
+behavior. Usually in the form of
+a code that describes the expected behavior.”
+And that is a really good definition of a computer 
+protocol. Just a set of rules on how computer
+systems, or programs, should behave.
+I know this feels very abstract,
+but let’s go through one practical example 
+to see how this is the case in reality.
+Let’s start with HTTP - the Hyper-text 
+Transfer Protocol. Clearly it is a protocol.
+You may have seen an HTTP request before, you can 
+for example use the browser devtools to kinda see
+it. But better is an HTTP proxy tool like Burp 
+Suite or Fiddler. And when I open this website you
+can see here the raw HTTP request. So this text 
+is really sent by the browser, the HTTP client,
+to the web server. And the webserver understood 
+this message, and responded with an HTTP response.
+Which again the browser understands how 
+to read. And the fact that the browser can
+send some weird text like this, and the server 
+understands it. And then the server responds,
+and the browser understands this response. That 
+is thanks to the fact, that the HTTP protocol
+is well described. The RULES of behavior of HTTP 
+is described. There exists a “formal agreement”,
+between these two parties on how to communicate 
+with eachother. And here is that document.
+This is the RFC 9112, it’s an Internet Standard, 
+it was written by the Internet Engineering Task
+Force (IETF), or specifically it was updated by 
+these authors here, working at these companies
+apparently. And they describe in here how 
+the HTTP protocol version 1.1 is supposed
+to work. And this is an extremely detailed 
+rulebook. It really tries to explain everything.
+Actually, let’s take on the role of a server 
+for a moment, somebody sends us this text,
+and according to this RFC rulebook we now 
+try to understand what was sent to us.
+So how can we understand this HTTP Message?
+This syntax notation might be confusing
+when you have never seen something like 
+this. But it’s actually pretty simple,
+and hopefully when you see me walking through 
+it, it becomes somewhat clear how to read it.
+So here we can see that an HTTP message 
+actually is made up of multiple parts.
+The first part is called “start-line”, followed 
+by CRLF - which stands for carriage return and
+line-feed, which basically just means a newline. 
+So we have a section called start-line followed
+by a newline. But what is a start-line exactly? 
+Well, obviously this is described as well. a http
+“message can either be a request from client to 
+server, or a response from server to client.”. So
+either the start line is a request-line or 
+a status-line. In our case we have an HTTP
+request, so it the start-line is actually a 
+request-line. And what is a “request-line”?
+We can find this here. It;’s no surprise, 
+a request line also consists of multiple
+parts. By the way SP stands for “space”. 
+Which means we have a method, [space],
+request-target, [space], HTTP version.
+And slowly we start to really understand
+each component of the HTTP request.
+We know that we have a GET HTTP method,
+[space], the request target, in our case 
+/test, [space] and the HTTP version HTTP/1.1.
+Of course this is still not enough. The rabbit 
+hole goes deeper. Everything is clearly defined
+in this rulebook. For example “the 
+request method is case-sensitive”.
+This means, if we change the method from 
+uppercase to lowercase, it should not be a
+valid HTTP request message anymore. We can 
+test this. If we send a request like this,
+we can see that the server responds 
+with HTTP 400 Bad Request. It is a
+bad request because we didn’t follow exactly 
+the rules as it was defined in this document.
+And I think you slowly get the idea. 
+This RFC is a very long document,
+describing all the rules of behavior, almost like 
+a contract or formal agreement for how the hyper
+text transfer protocol is supposed to work.
+Of course these rules are just written in text,
+but I think you can imagine that you can 
+take this text, and develop a program that
+exactly implements those rules. Write code that 
+automatically does what we just did by hand.
+And it’s really important that 
+we have these detailed rulebooks,
+because thanks to this internet standard, you can 
+have different programs to fulfil the same roles.
+Whether you use browsers like Chrome, Firefox or 
+Safari, or command line tools like curl or wget,
+it doesn’t matter. Because all of the 
+implement the rules for how HTTP works,
+they can all be used to talk to a server, like 
+nginx or apache, which also implements HTTP.
+I hope this already gives you a really good 
+understanding of what it means to have a protocol.
+Protocols are important to computers, 
+like languages are important to humans.
+We humans made up rules for languages, 
+grammar, sentence structures,
+and if I speak a language another humans 
+understands, we cancommunicate with eachother.
+So if you have two different programs, 
+like firefox browser and nginx webserver,
+and they speak the same language, HTTP, 
+they can communicate with eachother.
+And actually, when you implement a web API for 
+your own website. You also just invented a new
+protocol! For example twitter has an API to look 
+up tweets. Obviously there is no standardized
+protocol on how to do that. So twitter had to 
+invent their own protocol. Usually we call it an
+API, but you see, it’s also just a set of rules.
+Specifically you do that using the HTTP protocol.
+The HTTP protocol already solves part of the 
+problem, which is how to communicate between a
+browser and a webserver. But in order to get 
+the tweets, you have to use HTTP in a very
+specific way, so you have to send an HTTP 
+request to this endpoint with these values.
+And then you get back the tweets. This is really 
+also just another protocol on top of HTTP.
+This stacking of protocols on top of eachother. 
+HTTP uses TCP. And for example the Twitter API
+uses HTTP. This is something very common 
+and can be seen a lot. OSI layer model and
+so forth. Keep this in mind because in 
+another video I want to talk more about
+this. But to not make this video too long, I 
+want to just focus on the layers individually.
+I think this should already help a lot to 
+understand what it means to have a protocol,
+but it’s not everything. And so next, 
+let’s look at the Transmission Control
+Protocol. TCP. Hopefully you have heard of 
+it before. From TCP/IP, tcp sockets, or so.
+Obviously there is also an RFC for it. A detailed 
+document describing exactly what the transmission
+control protocol TCP is. And very similarly to the 
+HTTP RFC, in here we also describe the language,
+the messages that systems send to each 
+other. The nice thing about HTTP was
+that it was really text based. Actual english 
+words you can read. Unfortunately with TCP,
+it gets a bit more complex because now we 
+actually work with actual bits and bytes.
+So raw binary data. But here is is described. 
+This reads a bit different than the http syntax
+from before, but it’s also pretty simple.
+This is basically a TCP message. And it
+also consists of multiple parts. The source 
+port, destination port, sequence number,
+acknowledge number, some flags, a checksum, and 
+some data. BUt all of this is binary data. You
+could count here how many bits each value uses. Or 
+simply see below. For example the source port is
+16 bits long. So two bytes. Same the destination 
+port. Or the sequence number is a 32bit number.
+But binary data is a bit annoying to work with. 
+Luckily we have tools like wireshark which decode
+and show us this data in a human readable way.
+Let me quickly setup a small experiment.
+I sniff all network traffic on my system. Then I 
+open up http://liveoverflow.com in the browser,
+so we sent an HTTP request. Then I filter for the 
+http protocol in wireshark. And we see now the
+request and response. As you can see, wireshark 
+recognized that this is HTTP request and response
+data, but we are not interested in HTTP. we want 
+to learn more about TCP. And as you can see here,
+HTTP is actually sent and received using TCP.
+And here we can see the source port, the
+destination port, the sequence number, acknowledge 
+number, different flags, and so forth. You can
+find here all the data as described in the RFC.
+But actually this doesn’t show us everything about
+TCP. When I right click on this entry, and I say 
+“Follow TCP Stream”, we can get all TCP packets
+related to this HTTP request and response. 
+And suddenly we see a lot more TCP packets.
+And here we finally learn about the second 
+important part of what is a protocol. A
+protocol is not just the message itself, but 
+it also describes rules on how and when these
+messages are used. Let’s see this for the 
+case of TCP. Maybe you have heard of the
+three-way handshake. SYN, SYN-ACK, ACK.
+Fun fact: in reality it’s four steps,
+but because steps 2 and 3 can be combined in a 
+single message it is called a three-way handshake.
+Anyway. As you can see here, or in more 
+detailed in the section to establish a
+connection, it works by system A 
+sending a SYN TCP message to B,
+including a sequence number, 
+100. Sync Stands for synchronise.
+And then B responds back to A 
+with an ACK packet. Acknowledging,
+so confirming the reception of the particular 
+sequence number. But then also includes their
+own SYN packet with a sequence number. And now B 
+waits for A to send back an acknowledge for that.
+After that, actual data can now be sent. 
+And we can see that nicely in wireshark.
+The browser sent a TCP SYN, 
+server responded with a SYN,
+ACK, then the browser responded with 
+another ACK. After that data could be sent,
+so now the browser sends a TCP 
+packet with the added HTTP data.
+Maybe you wonder why do we 
+need this weird exchange of
+syn and synack packets. Why is 
+the TCP protocol defining this
+weird back and forth. Why not just one 
+packet. Maybe send HTTP text directly?
+Well, there are good reasons for why somebody 
+invented TCP and why we we decided to use it.
+.
+First of all,
+a computer only has one internet connection. 
+So when a computer receives some data, which
+program on the computer should get this data?
+This is what the port is for. The TCP packets
+were sent to port 80, which allowed the operating 
+system to forward the HTTP data to the webserver
+program. So with a port number you can run 
+a lot of different programs on the computer,
+using the same network connection.
+That explains why we have ports.
+But why do we have this complex 
+sequence of packets back and forth?
+Why not just send the data with 
+additional port information?
+Well… you just described UDP. The User 
+Datagram Protocol. If you compare UDP packets,
+or UDP messages to TCP messages, you can 
+see it’s very similar. It has a source port,
+destination port, checksum, and data. But it’s
+missing other parts like the flag which 
+indicate if it’s a SYN or an ACK packet.
+And the UDP RFC is very very short and it’s 
+old. It never had to be updated. This is because
+UDP is extremely simple. It’s just this 
+message, no sequence back and forth required.
+So why don’t we use that instead? Well… here 
+comes the reason for why somebody invented TCP.
+For example, if we would send an HTTP request 
+using UDP to a server, you would wait. You
+wait. And nothing happens. Does the server even 
+exist? Mh? Maybe we wait a moment longer? Oh,
+there we received a UDP packet. But… wait… is 
+that even the correct response to our initial
+UDP packet? Or did an attacker just send 
+us a fake UDP response? I don’t know.
+This is what TCP tries to solve.
+TCP first sends a syn, with a sequence
+number. If we get an TCP ACK packet back, with the 
+sequence number +1, then we KNOW for a fact the
+server really received this packet. And that’s why 
+in this sequence diagram, the client now knows,
+yes this connection works. The server can 
+receive and respond to my TCP messages.
+BUT the server doesn’t yet know tif the client 
+can receive it’s response. So it also sends a syn
+packet with its own sequence number. And when the 
+client responds to that packet with another ACK,
+including the correct sequence number, the server 
+is now also sure, the client can receive all
+packets. So the connection can be considered 
+established, and you can start sending data.
+And using these sequence numbers, which you can 
+increment for each packet, you also can recognize
+when data is missing. When you receive sequence 
+number 105 and 107, you know you are missing a
+106. Maybe it arrives out of order a bit later, 
+or you have to ask for it being retransmitted.
+And that’s why the TCP protocol is so much more 
+complex and requires a very detailed description
+of exactly how each system has to behave.
+Here in the RFC is for example also a
+TCP connection state diagram.
+However “This diagram is only
+a summary and must not be taken as the total 
+specification. Many details are not included.”
+I know this looks really complex, and the 
+details are very very complex - I would
+not want to implement the TCP protocol myself. 
+But you can see here what a protocol really is:
+A computer protocol is a collection of 
+rules, and definitions and specifications
+of how systems can communicate with each 
+other. And each protocol tries to solve
+specific problems of communication.
+But of course, if you cannot find a
+suitable protocol for you, you could 
+theoretically always invent your own.
+Also so far we just focused 
+on classical networking,
+like TCP and HTTP. And I always worry if you 
+just focus on one area you forget the bigger
+picture. And there is so much to gain from 
+having broader knowledge. So before we end
+this video let me show you one other protocol, 
+completely unrelated to classical networking.
+And that is UART. Universal asynchronous 
+receiver-transmitter. This is something
+from the hardware world. If you ever done like 
+arduino programming, or hardware hacking, UART,
+or serial, is something you might recognize. And 
+while it doesn’t have the protocol in the name,
+it really is a protocol. Look when I search for 
+“protocol” on the wikipedia article for UART,
+you can even see it once being called a 
+“protocol”. It’s a classic example of we
+humans just making up words to mean something, 
+and meanings change, or synonyms are used. So
+while typically UART is not referred to as a 
+protocol, it really is also just another protocol.
+ANd this protocol works basically with single 
+wires. One wire to transmit, and one to receive.
+And the sender and receiver have to agree on 
+exactly the protocol. Which means, what baud
+rate to use, and how many data bits, or how many 
+stop bits. There are variations. But as long as
+both systems agree on the configuration, you can 
+use UART, so using a single wire, with bit 0 or 1,
+whether it’s high or low voltage, you can follow 
+the UART protocol to transmit entire bytes.
+I know I brushed over it, but it doesn’t matter if 
+you understood this. All I want you to take away
+is that protocols are really important because 
+when systems communicate we need rules on how to
+do that. Protocols are everywhere, and they are 
+very different. Some protocols are text based,
+like HTTP. while some protocols are 
+based on raw binary data like TCP and
+UDP. Or some protocols even talk about the 
+expected voltage levels of wires like in UART.
+Some protocols just have a single 
+message, like a UART frame or a
+UDP packet. Other protocols can define 
+a lot of back and forth interaction,
+like the whole sequence diagram of how 
+connections are established with TCP.
+Or to just throw another new topic into here. To 
+use the twitter API you first need to follow the
+OAuth protocol. Which is a protocol defining 
+how using HTTP requests and responses, in a
+specific way, you can authenticate or authorize 
+yourself to twitter and then use their API.
+You can see, protocols are everywhere around you. 
+It’s really nothing special, they are just a set
+of rules on how systems communicate with each 
+other. So anytime something sends or receives
+data, you know it is using some kind of protocol. 
+And just to make a small bridge over to hacking.
+In order to attack a system, we need to be able 
+to communicate with the system, and that’s why
+it is important for us to learn about different 
+protocols and how to use them. Kinda obvious.
+I hope this video about “what 
+is a protocol” was interesting.
+If there are other terms from computer 
+science that you find difficult to grasp,
+or you don’t know what they mean? Or 
+maybe you are a teacher at a school
+and you know about concepts your 
+students struggle with the most?
+Let me know in the comments below. Maybe 
+I will cover that topic next. Thanks.

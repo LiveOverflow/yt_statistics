@@ -1,0 +1,347 @@
+Now that we have a good basic understanding
+of webkit internals, let’s improve on our
+knowledge by looking at the actual exploit
+from Linus.
+We already saw it executing perfectly on Safari
+in an earlier video, so this time let’s
+just focus on the implementation.
+So the index.html simply has a link to pwn.html,
+and there we see a few javascript files being
+included.
+Ready, logging, utils, int64 and finally pwn.js.
+We will eventually learn about all their purposes,
+but I’d say let’s start with the pwn.js
+This is quite a long script, it has over 530
+lines of code, and it does all the fancy stuff
+to get to arbitrary code execution.
+So it will take some work to understand the
+different steps.
+But let’s start at the top and look for
+the actual vulnerability that is being exploited.
+[ad] This series on browser exploitation is
+supported by SSD Secure disclosure.
+Checkout the description for more information
+[/ad]
+I want to start by looking at the first two
+functions, addrofInternal and addrof and I
+copy them into a new script test.js.
+The comment here says addrof primitive, and
+what that means is super important, but I
+will get to that another time.
+For now just accept that this function addrof
+is supposed to return the actual memory address
+of a javascript object.
+So we should be able to call addrof() with
+an object and that should give us the address
+in memory of it.
+We can quickly test it.
+Instead of running JSC as a javascript interpreter
+we can also pass the test.js file to it.
+Also if you run into this error, symbol not
+found, then in case of mac you need to set
+the Dynamic Loader framework path to the debug
+build directory.
+And then it works.
+here we get the output.
+A super weird float number.
+It looks weird but let’s quickly decode
+it with python.
+We can use struct again, first we pack it
+back into a raw byte string and then instead
+of decoding it as a double we decode it as
+a 64bit integer, and then we display it as
+hex, there we go.
+That is the real address.
+We could even print describe() of this object
+before we call addrof, which is this debug
+function inside of JSC to let us get some
+memory info, and when we then execute that,
+we see that the address is correct.
+So these two functions somehow were able to
+leak the memory address of this object.
+But how?
+The addrof function calls the addrofInternal
+function multiple times until the result of
+it is not an object and also not the double
+13.37.
+Apparently linus had to wrap the addrofInternal
+because it sometimes fails.
+Don’t know why, but this works.
+Well okay then.
+Anyway, this means the magic should happen
+in addrofInternal.
+It starts by creating an array with a single
+double 13.37.
+If we peak ahead at the return, we see that
+it calls AddrGetter(), which should return
+the first element of the array.
+And so now the check in the wrapper makes
+sense.
+If it’s still 13.37, then we try again.
+So somehow this first element of array should
+change into the address of the object.
+Anyway… we also have a regular expression
+object, reg, with the option y.
+The y option stands for “sticky” which
+is a special option for how the regex should
+behave.
+Now if you remember, the bug description for
+this webkit exploit, you know that the bug
+happens because of an optimization error in
+the way RegEx matching is handled.
+so this regex is obviously crucial.
+Next we see a function getarray, which just
+returns the array... and actually this seems
+like redundant code for me.
+Not sure why linus assigns the array to array
+like that, because the array never changes,
+so I remove that.
+In the same way, this comparison in here seems
+weird too.
+It takes the val and checks if it’s null.
+But we always pass in something for val, so
+it should always be false…
+And actually from just testing it I notice
+that it’s not even needed at all.
+Can be empty.
+Maybe just left over from during testing and
+development.
+Anyway…
+this addrgetter function is actually called
+in this for-loop below, 100.000 times.
+And the comments says “force optimization”
+and from my video about the JIT compiler,
+we know that this way we can force that this
+function is JIT optimized.
+The for loop in this function here is actually
+not doing anything, but serves a special purpose.
+From a commented exploit by saelo, about a
+similar issue, and an exploit linus got a
+lot of inspiration from, saelo does the same
+and has this comment: “// Some code to avoid
+inlining…”.
+The JIT compiler could also inline some functions
+for optimization, but if they are more complex
+like that, it can be avoided.
+I guess.
+However I also removed this loop as a test
+and it looks like the exploit still works.
+So that’s probably just one of these pattern
+that you do it just to be 100% sure, but in
+this case also not needed.
+So this leaves us with this.
+It simply calls the match function on the
+regular expression and then returns the first
+element of the array.
+So the first thing I was really confused about
+was this weird Symbol.match thing.
+I have read a lot of javascript in my life
+but I have never seen that construct.
+But it turns out that this is actually just
+a standard thing for regular expressions.
+The mozilla developer docs writes:
+The symbol.match well-known symbol (“well-known…
+aha”) specifies the matching of a regular
+expression against a string.
+This function is called by the String.prototype.match()
+method.
+Okay, so this is just fancy people javascript
+for calling match().
+And I figured that you can also just write
+it the typical way of taking some string “abc”
+and then calling match() with the regular
+expression reg.
+So what this means is, this function simply
+calls a regular expression match and returns
+the first element of the array.
+And that code is jitted.
+So this is now compiled to machine code.
+And because we know the JIT compiler optimizes,
+we also can understand that because the JIT
+knows that the array is a double array, that
+it just returns a double, without checking
+if this is still really a double array.
+However this should not be a problem, because
+as soon as something would have side effects
+inside of that jitted code, it would be discarded,
+right?
+Well.. let’s continue.
+Next we create a new javascript object, regexLastIndex
+and assign a function to the toString method.
+And here we then set the first element of
+the array to an object.
+Now this of course changes the array once
+executed.
+Remember the Javascriptcore internals video,
+when we played around with adding different
+types to an array?
+So when we use our debug environment again
+to check the type of the array with the 13.37
+double, we see that it’s an array with doubles.
+And in memory we can also find that element
+here.
+This is the 13.37.
+Now if we modify the first element of the
+array and set it to an object, and describe
+the array again, it changed to an arrayWithContiguous.
+And if we look at the butterfly address now,
+we see that now the first element is a pointer
+to that object, somewhere else in memory.
+I guess you can slowly see where this is going.
+Now back to the exploit code.
+We then assign this object with our toString
+function to the regex property lastIndex.
+So at this point we just prepare this function
+that will set the first element of an array
+to our val, but it’s not executed yet.
+However if lastIndex would be accessed, maybe
+this toString is executed.
+The lastIndex is a read/write integer property
+of regular expression instances that specifies
+the index at which to start the next match.
+So internally regex might read from this property
+to know where to start the next match.
+And well, javascript (or weakly typed programming
+languages) are fun, so instead if it being
+an integer now, it’s now this object which
+has a tostring method that will do this array
+assignment.
+And now we trigger the bug.
+Now we just DO IT!
+We call AddrGetter again.
+And we know that addrGetter is now jitted
+optimized code.
+This machine code will now execute a regular
+expression match with our regular expression.
+BUT
+Something is different.
+Before when we were jitting that function,
+we hadn’t modified the lastIndex property
+yet.
+But now we have.
+And remember the “y” for sticky in our
+regex?
+The sticky property reflects whether or not
+the search is sticky which means it (searches
+in strings only from the index indicated by
+the lastIndex property of this regular expression)
+So the internal regex code now has to look
+at the lastIndex property, but it notices
+“oh that’s not a number, that’s an object,
+so let’s try to convert this somehow, and
+let’s execute toString() on it to see if
+we can get anything that looks like a number
+and this now triggered this assignment.
+The array now got updated and the first element
+set to our object val.
+And the bug happened.
+The javascript engine does not bail out of
+the jitted code.
+It thinks that the array didn’t change and
+returns the first element of the array as
+if it were a double.
+But in fact it’s a pointer to an object
+now.
+And when we return that, and print it, we
+leak the address of the object.
+Amazing, right?
+But let’s go one layer deeper into the rabbit
+hole and have a closer look.
+From the webkit blog about the debugging stuff
+we learned about different environment variables
+for debugging and I decided to checkout “JSC_reportDFGCompileTimes=true”
+So this should tell us when something is optimized
+by DFG or FTL.
+I also add a print to the wrapper loop that
+keeps attempting to trigger the bug, to see
+how many attempts it takes.
+And this is when I noticed that in the first
+attempt that failed, the addrgetter function
+is optimized twice.
+Once with DFG and then FTL.
+But in the next iteration where it worked,
+it only did DFG.
+So I was thinking, maybe we ran that loop
+too much!
+And actually going down from 100.000 to 10.000
+iterations to hopefully stay only at DFG JIT
+level, yes, the bug works right away!
+So we can actually remove the wrapper that
+retries and just call this directly!
+Even more clean now.
+The next thing I did, was using the JSC_dumpSourceAtDFGTime.
+So that shows us all the javascript sources
+that will be optimized.
+And this is super interesting because it really
+shows us the issue.
+So here is the source of our AddrGetter function
+that we optimize.
+And that code uses string.match.
+And so below we also see that it inlined and
+thus also optimized this regex match javascript
+code.
+Now that maybe sounds weird, but it turns
+out that JavaScriptCore implements a lot of
+normal builtin functions not in C++ but also
+in Javascript.
+So here in builtins StringPrototype.js we
+find the source code of the match function.
+So this is also being optimized.
+And when you look at that code you can also
+see it simply calls out to the matchSymbol
+function of the regex - basically what linus
+had directly in his exploit.
+And then we can also see that it inlined and
+optimizes the symbol.match code.
+Which can be found in the RegExpPrototype.js
+file.
+Here it is called just match.
+And look at this.
+The code here has a function call to “hasObservableSideEffectsForRegExpMatch”.
+And if it has side effects, it will call matchSlow,
+but if it determins that it doesn’t have
+side effects, it calls regexpMatchFast.
+And so in our exploit case it looks at a few
+different things and decides that it has no
+side effects and takes the fast path.
+Now looking at the patch for this vulnerbaility
+we can see that they added a check to this
+hasObservableSideEffects function.
+and this new check, checks if the lastIndex
+property of the regex is a number.
+And in our exploit case, we set it to an object
+with this toString function.
+Which means in the case of the patch here,
+it would fail this test and would instead
+of the fastPath take the slowPath.
+That’s how they fixed it.
+Now how and where exactly the slow path does
+not result in the same issue, I don’t really
+know.
+As you know I’m just learning this too and
+the code is not the easiest to read and reason
+about.
+However I do know that the fastPath, so regExpMatchFast
+is in fact, a so to say, instruction - it’s
+its own opcode, at least inside of the DFG,
+the Data Flow Graph.
+In the DFGAbstractInterpreter for example
+we can see a big switch case that takes a
+node from the graph and checks it’s opcode.
+And in here we have the regExpMatchFast opcode
+as well.
+And now compare it to the one above, the RegExpTest.
+Here you can see the function clobberWorld
+which means if this operation is used, the
+JIT can’t trust the structures of objects
+anymore.
+And the comment here actually says why:
+“Even if we’ve proven known input types
+as RegExpObject and String, accessing lastIndex
+is effectful if it’s a global Regex”.
+So I guess here they thought about that accessing
+lastIndex could execute arbitrary javascript
+leading to side effects, and thus destroy
+any assumptions, however it was forgotten
+for regexMatch.
+Relly really cool, right?

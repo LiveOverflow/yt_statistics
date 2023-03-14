@@ -1,0 +1,376 @@
+This video is part of the Cyber Security Challenge 
+Germany 2020. Intro_pwn is a series of memory
+corruption challenges, which are hosted on some 
+server and you need to exploit the binary to gain
+remote code execution and read the flag file from 
+that server. I will show here a potential solution
+for the first part- pwn1. The second part of the 
+challenge is a small variation of this solution,
+and the third part is adding another small twist. 
+If you are just starting out, this video could
+already be a bit advanced, but I still recommend 
+you to watch it, to get an idea about the goal. I
+link a lot of resources that are more or less 
+related to this below, so you can study. This
+is a complex topic at first and does require a 
+lot of time dedication to absorb everything. So
+don’t worry, it takes time.
+Now let’s head in.
+This is a Linux exploitation challenge, 
+but I’m solving this challenge on my mac.
+To do this I’m using a workflow using docker, 
+which I have introduced in previous videos,
+which are also linked below. So the provided 
+files contain three folders, for each stage.
+Pwn1 pwn2 and pwn3. We will solve pwn1.
+You can also see a docker-compose.yml file,
+which can be used to run the challenge for local 
+testing. It basically runs a local server. The
+Makefile shows how the challenges were compiled.
+Inside of the pwn1 folder you can find the
+test flag, the pwn1 binary, the 
+pwn1 c source code and ynetd,
+which is just a server to host the challenge.
+So let’s type “docker-compose up” which will
+build the three challenge containers and run them. 
+Once that is done you can see with docker ps the
+three containers running. Their service is exposed 
+via the port 9100, 9101 and 9102. But part one is
+9100, so we can use netcat to connect to it.
+“Enter your name”
+The name is printed and 
+then enter your magic spell.
+And that’s it.
+As I have introduced in some docker videos before,
+I’m using here this ctf container to develop the 
+exploit. Now this container is also running and we
+can use docker exec to get a shell in it. And now 
+we have a linux environment to create the exploit.
+Let’s have a look at the pwn1 source code.
+Here at the top you see that the program
+was compiled with disabled stack protection.
+But it’s better to use the tool “checksec”
+to see the actual mitigations of this program.
+So we can see it has Full RELRO, no stack canary,
+non executable stack and PIE. 
+Which means ASLR for the binary.
+Now back to the source code.
+If we check main(), we see it first calls
+these ignore functions. They are called ignore_me, 
+because they are just setting some stuff up to
+make the challenge work, but are not important 
+for the exploitation. So feel free to ignore them.
+The important function here is 
+welcome() and afterwards AAAAAA().
+It should also be surprising to see 
+this unused WINgardium_leviosa function,
+which simply executes a shell. The capitalized 
+WIN is a hint, that you somehow have to redirect
+code execution to this function to WIN. If you 
+are able to execute this, you get a full shell,
+thus you have remote code execution and 
+can access the flag file on the server.
+This challenge has already a few exploit 
+mitigations turned on, and it’s not super
+straight forward to solve. But I have made 
+a video about a much simpler challenge,
+which is also linked below. I want to explain 
+to you now, how I approach this challenge and
+what kind of mental model I’m building.
+So. The program starts in main(). Now
+let’s find the first interesting place. And 
+that’s obviously gets(), which reads a string
+of arbitrary length from the input, into the 
+buffer here. The buffer is a local variable,
+so stored on the stack. Which means we 
+have a buffer overflow vulnerability here.
+So this is what I’m thinking: we start at main and 
+eventually reach a dangerous gets(). This gives us
+the ability to overwrite data on the stack, due to 
+the buffer overflow. Now in my mind I go through
+typical data stored on the stack. And the return 
+pointer is such a critical value. If you overwrite
+it, the function will when it returns, jump to 
+whatever address you have overwritten it with.
+Which means we could theoretically overwrite it 
+with the address of WINgardium_leviosa. But we
+have a problem, because from checksec we know the 
+binary is compiled with Position independent code,
+PIE, which means it’s affected by ASLR. We 
+don’t know the address of the WIN function
+in memory. There is actually another small 
+exploitation trick - you might not need to
+know the full address, you could also try 
+with a partial overwrite, and thus kinda
+cheat your way out of ASLR. But I want to see 
+if we have other options before I try that.
+So for now this avenue seems 
+useless. We don’t know the address.
+The next interesting function is printf, because 
+our user input is directly passed as the first
+parameter to printf. This gives us a so called 
+“format string vulnerability”. Which means you
+can enter format modifiers, such as %p %x %s or 
+%n into the input. If you don’t know what they do,
+simply look up a basic c programming tutorial how 
+to print variables with printf. Under the hood,
+printf simply assumes the variables you want 
+to print with these modifiers are written into
+registers or are placed on the stack (depending on 
+how much you try to print). Which means we can for
+example use %p or %x to leak arbitrary values 
+from the process, more specificall the stack.
+Let’s test this. We start the program, it 
+asks for the name, and then spamming a few %p.
+And now it prints the name, where 
+it then interprets those %p,
+and you can see how it leaks a lot of hex 
+values. You can even find here our own input,
+because our buffer with our input is on the stack, 
+and we leak stack values. The AAAA are here,
+the 0x41414141. And the BBBB is here 0x42424242.
+Another cool trick with a format string
+vulnerability is using %s. That prints 
+a string. It’s implemented in a way,
+where printf expects a pointer on the stack and 
+prints the data wherever it points to. Because we
+see our own data here on the stack, we could place 
+an address on the stack, and then use %s to read
+the value wherever it points to. So we can not 
+only leak stack data, but read arbitrary data.
+However this again requires us to know valid 
+addresses. So ASLR stops us from absuing this.
+However, of course there are small tricks here 
+too, maybe there is already some useful address
+on the stack that you can simply reuse, but that’s 
+again a rather creative and uncertain technique.
+For now we assume, we can’t do that here.
+There is another format modifier that is useful,
+it’s %n, which is kind of the reverse of %s. This 
+also expects an address on the stack and then
+writes a number to wherever that points to. The 
+number is the amount of printed character. So it’s
+somewhat a write-anything-anywhere, but because 
+of ASLR we don’t know valid addresses. Not useful.
+Which means that leaves us with leaking 
+values from the stack, that might be useful.
+Now what do we execute next. Well when we 
+follow the code we can see that eventually
+it asks for a magic spell, where it 
+uses the unsafe gets() function again.
+So we have again the ability to overwrite data 
+on the stack. And of course, we could again try
+to overwrite the return pointer, but because 
+of ASLR it still doesn’t help us? But wait,
+things are different now. At this point of the 
+execution, we had a printf before, which allowed
+us to leak values from the stack. Which means 
+we might be able to leak a randomized addresses,
+which defeats ASLR. We can then calculate 
+the random address of WINgardium_leviosa
+and overwrite the return pointer with it. 
+And then we won, we would get a shell.
+This seems to be a pretty good 
+plan. So let’s implement it.
+I’m creating a new python script, exploit_pwn1.py 
+and I’m using the python library pwntools to make
+a lot of stuff easier. If you use the docker 
+workflow, it is already installed there.
+So from pwn import everything.
+And then I start by developing an
+exploit locally. So I’m starting a new process 
+of the pwn1 binary. You need to make sure you
+place the script in the same folder.
+And then for a quick test we can
+call p.interactive() to get an 
+interactive input output shell.
+In the terminal I then use docker exec to 
+get a shell inside of my docker container,
+and move to the folder where the challenge 
+is in. Here I can then execute this script.
+And you can see here, pwntools creates a nice 
+shell for us where we can send input and read
+the output. So we can for example enter the 
+format string %p where it asks for our name.
+Cool.
+From our mindmap,
+we know we first want to leak data from the 
+stack. So let’s write some code for that.
+First of all we want to read the output of 
+the pwn1 process until it asks for our name.
+So recvuntil “enter your witch name”. And then we 
+use sendline, to send our malicious format string.
+I’m using python list comprehension to quickly 
+create a format string of my desired length. It
+will be pipe seperated. 32 times the %p for now.
+And then we can switch again to interactive.
+We can test it. It runs, and we 
+get the output. The data leaked
+from the stack nicely separated by pipes.
+So this means we can now use recvuntil again
+to read output until we are asked for the magic 
+spell. And then split that string by the pipe.
+This gives us basically an array, or list, of 
+the leaked data. Printing it so you can see.
+Let’s run it. Here is the list of leaked data now.
+We know from our mindmap, that we need to leak an
+address that corresponds to an address of 
+our binary. So something that also points
+into the code. In order to defeat ASLR 
+for it. But looking at the leaked data,
+it’s not easy (without educated guesses and 
+experience) to see which could be such an address.
+So what we can do is we can use 
+gdb debugger to help us with that.
+The process is still running, because 
+it waits for our magic spell input,
+so we can attach to it with gdb -p, and 
+getting the process id of that pwn1 process.
+And then let’s look at the virtual 
+memory map of this process with vmmap.
+Here you can see the memory start and end 
+addresses, where our binary is placed. So
+the whole binary as it is is loaded into 
+memory here. So there is no shuffling of
+addresses inside of the binary. ASLR only 
+affects where the memory starts. So the
+first few bytes of the address here are random.
+So any address, in this case, starting with 0x5614
+would be our binary. Let’s look at the data we 
+leaked from the stack? Can we find such a value?
+Mhmhm… actually doesn’t seem like it.
+So maybe we didn’t leak enough
+values. Let’s try it again with more %p.
+Run everything again, here is the leak.
+Let’s attach gdb and get the virtual 
+memory map again. And now we look
+for addresses that start with 0x55ca.
+And indeed! We can find now one in our
+stack leak. If we are curious, we can check what 
+that address is. So disassemble at this address.
+It turns out it belongs to the main() function of 
+our program. Actually it points here, right after
+the call to welcome. So this is actually the 
+return pointer that was pushed onto the stack
+when the welcome function is called. And when 
+welcome returns, it will return to this address
+and continue execution here.
+Cool!
+Now we have defeated aslr, because we 
+know one address from our binary. And
+this allows us to calculate any other address 
+we want. In our case we need the address of the
+WINgardium_leviosa function. So where is that 
+one? With printing that we can find it here.
+And now we can do simple math. This address 
+minus this address, gives us this offset. 0x135.
+And we can add that now to our exploit.
+So MAIN_TO_WIN_OFFSET is 0x135
+The MAIN address we leak is the 4th item from 
+the back. So LEAKS[-4]. And it’s a hex string,
+so we need to convert it to an integer.
+And then we can calculate the WIN function
+address by subtracting the offset from main.
+Awesome.
+Now we move onto the next part of the 
+exploit, the buffer overflow. Which
+is caused by the gets() in the AAAA function.
+First of all we want to find out the offset, how
+much input we have to provide, until we overwrite 
+the return pointer. To do that we can create a
+unique sequence pattern, that we can use to easily 
+calculate it. It’s also known as a De Bruijn
+sequence. I’m generating here a sequence that 
+is somewhat longer than the buffer is defined.
+Before we send the (hopefully) crashing input, 
+we can add a raw_input, which pauses the python
+script here until we hit enter. This gives 
+us time to attach gdb to see what happens.
+So let’s run it. It’s waiting now before it 
+sends the payload. We attach gdb and continue.
+Send payload.
+Oh… no buffer overflow happened? Wut?
+Let’s look at the code again.
+AHHHH OOPS!. See here I was too
+fast. I wasn’t walking slowly and carefully. 
+And didnt’t properly analyze the situation.
+Here is a check, that the input has to be 
+Expelliarmus. If it’s not the magic spell,
+we run into an exit() and that 
+function terminates the program,
+without ever returning from this function. So even 
+though we overflow the buffer here at the gets(),
+because we never return, it doesn’t matter.
+You might wonder how we can still send a long
+payload, if it requires this short string 
+as a password. But there is a trick. Strcmp
+expects strings to be null-terminated. And 
+gets actually doesn’t stop at a null-byte
+when reading our input.
+So we can easily prepend our
+cyclic pattern with the Expelliarmus 
+password, followed by a null-byte.
+Now let’s try it again and attach gdb.
+There we go. Now we crash.
+And we can see here on the 
+stack our unique pattern.
+The return function tried to read this value 
+from the stack, and use it as an address to
+continue execution there. But that failed.
+With this string we can now calculate
+the offset, how much padding we 
+need to reach this stack value.
+Cyclic_find is the function, that given the 
+string, calculates that we need 251 bytes.
+So wen can make a string of 251 As.
+AFter the padding we can now control
+the return pointer. Which we obviously want 
+to point to the WINgardiuam_leviosa function.
+P64 is a function that takes an integer, and packs 
+it into an 8 byte raw string. So we can add that
+address after the padding.
+Let’s try it out.
+To make sure it works, I attach gdb 
+again. And trigger the overflow.
+ARGH. we ran into a segfault. But if 
+you look closely, you can see that the
+segfault is happening inside of WIN. So we 
+did successfully redirect code execution,
+but we run into the same issue of the system 
+function, as described in a previous challenge
+video I made. It’s all linked below. We need to 
+use the same trick again. We need to make the
+stack pointer aligned, so it has a 0 at the end.
+So we add another gadget to our exploit. I’m just
+using the return of the WIN function, which 
+has an offset of 0x36 from the start of WIN.
+So we can now define a RET address by calculating 
+WIN+0x36. And add that before the WIN address.
+This should work now!
+I’m changing the exploit
+from the local process execution, to talk to the 
+remote challenge server, by using the ip and port.
+In this case it’s the local challenge server 
+we started with docker-compose at the start.
+Let’s run the exploit agains it!..
+Uhm.,.. This doesn’t seem to have worked… crap..
+Uhm… let’s just try again. Fingers crossed 
+it was just weird stuff. Okay! Now it worked.
+We have a shell, we are the ctf user on the 
+challenge server. And we can read the flag.
+Excellent.
+Now go ahead. Try
+to recreate the same exploit for the first part 
+of the intro_pwn challenge. This is the solution
+here, but you need to execute it yourself to 
+get the real flag. And when you have done this,
+then move on to part 2 and part 3, which are 
+very similar, but slightly differ and make
+it a little bit more difficult. So you need to 
+do some additional research and experimenting.
+As I mentioned, a lot of resources are linked 
+below. And don’t worry if you don’t get it. It’s
+hard at first and requires a lot of practice 
+and SUFFERING. SUFFERING AND FRUSTRATION IS A
+HUUUUUUGE PART of hacking.
+Now. good luck!

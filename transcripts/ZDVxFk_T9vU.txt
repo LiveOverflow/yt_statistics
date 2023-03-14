@@ -1,0 +1,240 @@
+We are reaching the end of 
+the sudoedit exploit series.
+We have researched the bug and understood it well 
+enough to write a first proof of concept exploit,
+overflowing the service_user struct name, which 
+leads to a shared library of our choice being
+loaded. Which then is executed as root. But 
+the whole thing just worked on our test setup.
+Now it’s time to move what we know over to 
+a real target. Ubuntu 20.04. Focal Fossa.
+I just selected a bit older Ubuntu 
+version which still had a vulnerable
+sudo version. And our goal is to create 
+a working exploit against that version.
+So after downloading and installing everything 
+and confirming that sudoedit is still vulnerable
+on this system, let’s copy over the files and 
+scripts that we created in the last video.
+Specifically we want asd5.py and the gdb_watcher 
+to collect crash information and find the
+backtrace with t_search and nss_lookup_function. 
+And we need sudoenv2 and sudoenv3.
+Sudoenv2 is the regular one, just calling 
+sudoedit. And sudoenv3 is the one with getchar
+waiting for the user to hit a key, before 
+it calls sudoedit. Also all the paths of
+the scripts have to be adjusted. In my case 
+I place everything in the Documents folder.
+And then there is one last setting to change. When 
+we crashed sudedit as a test, we got this popup
+from the system: a problem, or rather a crash, 
+was detected. This appears because the core files,
+so crash information, is set to be forwarded 
+to apport. because we want to have a lot of
+crashes and do not want the crash reporting to 
+interfere, lets disable this apport service.
+If you paid close attention, you might notice 
+that I forgot to copy the malicious shared
+library inside the XXXX folder. Our exploit 
+strategy is to make sudo dlopen this library. So
+yeah. You can imagine I run into weird 
+issues until I realize that mistake. Anyway.
+We are basically ready to roll!
+Executing asd5.py as the user,
+and the gdb_watcher as root to 
+collect the crashing stacktraces.
+And let that run. Maybe you are wondering why 
+the stacktraces look different to before. That’s
+because we are running against a sudo version 
+without debug symbols. We run against the
+standard sudo version on Ubuntu. We didn’t build 
+this one ourselves. That’s why we don’t get any
+function names from sudo. But libc has symbols, 
+so we can see the functions where we crash
+in libc. And that’s enough for us, because we 
+are looking for nss related crashes in libc.
+Btw I also found a small issue that could have 
+been the problem in the last video. Here is a
+typical backtrace, and we want to extract the 
+function names. Some of them are just there, and
+others have the address before. And my logic was 
+very basic and I only extracted the ones that had
+an address. You can see that in the data we logged 
+in the fengshui cases a few episodes ago. Here you
+can see the filename was nss_lookup_function, even 
+though the actual top function was tsearch. Now
+that is not a huge issue, we can still see in the 
+file that we crashed in tsearch. But I was also
+limiting the filesize to not collect megabytes 
+of data. And now look at this backtrace. The top
+most functions here are nss_new_service and 
+nss_load_library but nss_lookup_function is the
+first with an address. So a t-search crash could 
+have the same filename as this one. eventhough
+they are different crashes. And so if this 
+one is more common, and fills up the file,
+any rare tsearch crash will never be logged. So 
+that is the theory I have why it didn’t work.
+But I didn’t verify and maybe sudo in the docker 
+container just doesn’t have a heap layout where we
+can find the condition we want.
+Anyway.
+Back to our Ubuntu VM. This script 
+is now properly logging the crashes.
+And it took a few hours, but eventually I found 
+a tsearch crash. Actually I found two diifferent
+cases. When I saw that I was sooo excited. 
+Because to me that meant we already won!
+So I did what we basically did two episodes 
+ago. We extract the test case and put it into
+a new script asd6.py. Did you expect a better 
+name? We should also use the sudoenv3 wrapper,
+because it waits with getchar before 
+exec-ing sudoedit. This way we have time
+to use a root shell to attach gdb to this setuid 
+process. And with gdb we can see what happens.
+Now if you look closely, the backtrace is 
+different from the backtrace we had in our
+docker research. These nss_next2 calls are 
+totally new to me, never seen them before.
+But keep in mind that nss is acting based on the 
+information in etc/nsswitch.conf. And the group
+and passwd information is only backed by files 
+in ubuntu docker. While the actual full Ubuntu VM
+also has systemd. So the whole objects 
+allocated for handling nss stuff is
+probably different on here. Leading to different 
+objects overwritten and crashing. But I’m just
+geuessing. I don’t know to be honest.
+Eitherway we seem to crash in the right
+function. Nss_lookup function and tsearch.
+Though another issue I noticed was that
+we didn’t really overwrite the values in 
+the ni struct, but we overwrote the whole
+pointer to ni. And that is not what we want.
+But do you remember this? We had something
+similar before. And the backtrace was nss_next2. 
+And we know that the ni struct has a next pointer.
+If this pointer was overwritten, so if 
+a particular ni struct was overflown,
+and we take this pointer and pass it to the 
+next function, we would have exactly this case.
+So I assume, this value would be the next 
+pointer of another ni struct. So maybe we could
+still turn that into the condition we want.
+But let’s look at the second tsearch crash.
+Maybe that one is better? it was coming from 
+getgrouplist and actually that is closer to
+the crash we had before. This one made me feel 
+more “comfortable” because it was more familiar,
+so I wanted to start with this condition, but 
+it had the the same issue. The ni pointer is
+6b6b6b6b … so I assume the same, hopefully 
+there was another ni struct with this as
+the next pointer. And now I just did 
+exactly the stuff I did in episode 15.
+We already know we how we want to overwrite the 
+struct. We basically want to set them all to zero,
+and then control the name.
+6b is the lower-case letter k,
+so we assume we overflowed the struct with the 
+ks. We can use a pattern from this website here
+to find the offset. Replacing the ks with 
+the pattern. and Letting it crash again,
+now we get the pattern value and we find the 
+offset. So let’s replace that with zeroes.
+And that is just the iterative explorative 
+loop I do now. Always look at the crashes,
+looking at the offsets, and trying to get an 
+ni struct with the pattern I want. Eventually
+I crashed in a different place, and that one now 
+looks EXACTLY like the crash we had in episode 15.
+We are in nss_load_library and another ni 
+struct is partially overwritten. Now we just
+have to perfectly control the overwrites. 
+Here setting the name to XXXX/liveoverflow.
+And now we just need to get library and known 
+to null as well. Now it should work. At least
+I thought so? I don’t see the expected output…
+Oh I just noticed I forgot the XXXX folder with
+the malicious shared library. So let me fix that.
+Let’s try again.
+And there we have it! We executed code as root!!!!
+We did it. I cannot believe it. We
+actually did it. We created a root 
+exploit for Ubuntu 20.04 Focal Fossa.
+Now what we could do is just clean it up a bit. 
+Trying to see which values we can remove that
+do not matter for the exploit. You can always 
+just remove something and see if the exploit
+still works. Some of the environment variables 
+seem irrelevant. And we can replace the long
+strings with shorter string multiplication.
+And I also noticed some of the attempted
+null overflows are unnecessary as well.
+In the end, this is the minimized testcase.
+Awesome.
+For further testing I also created another
+unpriviledged test user, just to see if the 
+exploit is stable. And when executing it as
+the test user, it also just worked. PERFECT! We 
+are done. This is the end of the sudoedit series.
+But there is one last treat I have for you. 
+When I ran the bruteforce script to collect
+crashes earlier, I did actually log all the 
+crashes that were nss related in a file.
+Including the offsets lengths for the 
+buffers. And we can now grep for all
+the tsearch crashes and look for patterns!
+Do you see how almost in all cases where we
+crashed in tsearch, the argument used for 
+sudoedit -s was around 232 characters long
+the first environment variable 
+following it, was in the lower hundreds.
+AND the TZ environment variable 
+is around 213. Pretty precisely.
+We were bruteforcing length values up in the 
+multiple thousands for all of these variables.
+and only when we got lucky where the argument 
+-s was roughly 232 characters long, the second
+environment variable was in the lower hundreds 
+and the TZ variable was roughly 212 to 215.
+Only then we got the tsearch crash!
+So you can do a bit of math
+probability calculation how likely 
+it was to find that exact crash.
+If we now modify our bruteforce script to restrict 
+ARGV1 and the first env variable to those lengths,
+we suddenly get constantly crashes in nss 
+related values. AND TONS of more tsearch crashes.
+I think it’s interesting to see the probabilities 
+of fuzzing and finding the correct values
+for the crashes we want. Try to keep that 
+in mind when fuzzing. You never know which
+changes to the fuzzing could have significant 
+impact on the type of crash syou find.
+That’s it. That was the sudoedit vulnerability 
+research step by step in excruciating detail.
+I’m grateful for everyone of you who stayed with 
+me until the end. I hope you are as excited as I
+am to have developed this exploit together, 
+and that you learned more about the process
+of vulnerability discovery and exploitation. I 
+definetly learned a lot as well. Thanks again
+for all the Patreons and YouTube members 
+supporting this kind of series. I hope you
+all are satisfied with this result.
+And now that the series is complete,
+I would highly appreciate if you would share 
+the github link with all the videos and files,
+or directly the youtube playlist, with friends 
+and colleagues so this series doesn’t go to waste.
+By the way, on my second channel I have 
+watched the episodes also on stream.
+They are very long videos and I used them to 
+provide additional context and answer questions.
+So if you have trouble understanding a certain 
+episode, maybe checkout those videos. Or join me
+live for the next one on twitch.tv/liveoverflow.
+Thanks for sticking around!

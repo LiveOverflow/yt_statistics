@@ -1,0 +1,178 @@
+In a recent episode of Minecraft:HACKED I talked 
+about three different hacks as if they were new.
+But apparently they were already known.This 
+was the reach hack, the cat teleport exploit
+and the velocity exploit. How Laaaame.
+Well… Last episode we talked about reach,
+so in this one I want to address the cat 
+coordinate exploit. Apparently the cat coordinate
+exploit was already known from 2b2t, and it’s 
+actually exploiting the teleportation of the cat,
+not the look at method as I claimed… well…
+Let’s investigate.
+
+There is a famous 2b2t tamed cat or dog 
+coordinate exploit. Apparently on 2b2t if
+you find a tamed cat or dog which is sitting, 
+and you pour water on it it teleports away to
+the owner. And apparently you get sent the 
+target entity location with the Teleport
+Entity packet. So simply by making a tamed 
+animal port to their owner, you will know
+WHERE it teleported to. Which obviously is an 
+easy coordinate exploit. BUT I don’t know what
+to tell you. It doesn’t work on 1.19.2, or 
+at least doesn’t work on the paper server.
+Actually you made me so insecure about it, 
+that I even went back and tested it again.
+Let me show you. Here I extended my hacking mod 
+with a packet logger where I can log incoming
+and outgoing packets. And then I created a 
+superflat world with basically no distractions
+and started setting up the experiment. Which 
+means I took a bunch of cats and tamed them.
+First of all, the first part of the tamed animal 
+coordinate exploit still works. When a cat is
+sitting it doesn’t teleport away. The reason for 
+that is the code I showed you last episode.. When
+a cat was ordered to sit, the AI goal to follow 
+the owner cannot be started. So we never reach
+the AI code where it decides to teleport to the 
+owner. However, pouring water over a cats makes
+the cats suddenly change their AI. I think it’s 
+this function in LivingEntity. The hurt function.
+when a cat is under water and is running out 
+of air, the hurt method is called, which can
+lead to the cat changing their ordered to sit 
+state. Suddenly they are not sitting anymore.
+Which means the AI goal to follow the owner can be 
+executed and they teleport away. So far so good.
+BUT, there is no teleport packet sent to the 
+player who witnessed the teleport. I tested this.
+Again let me show you. Here we have the test 
+setup with tamed cats and with another client
+I stole a cat in a boat. As we know, if the cat 
+is in a boat or on a leash, the AI goal is never
+entered, so it doesn’t teleport away.
+Now I’m activating the packet logging
+of incoming packets and we see constantly 
+packets about some entities, maybe the cat,
+or maybe the boat. Let’s destroy the boat, 
+and the cat disappears. Teleports back to
+the owner. We can now have a look at the packets 
+that were received during this test. One of them
+should be this mysterious teleport packet, right?
+Let me clean it up and only look at the unique
+packets. So those are all the kind of packets we 
+received. We got a BlockUpdate probably because
+I accidentally punched the ground. But here are a 
+few entity related packets which we can look up on
+wiki.vg to see which ones contain coordinates. 
+Maybe one of them leak the teleport location.
+Knowing the possible packets, I can also 
+now implement a bit more verbose logging.
+Basically I go through every potential 
+packet and print the data included. So
+for example when we get an entityPositionpacket 
+we print the x,y and z coordinate. Or when we
+get just an entityPacket, the packet contains 
+RELATIVE coordinates, and I print that too,
+indicated by the aquiggly line. Anyway.
+Let’s just run the experiment with more verbose
+logging again. Stealing another cat and flying far 
+away. Preparing the packet logging. Now you can
+see actual coordinates printed of entities.
+By the way, we are here roughly at around
+-590-ish. And the owner of the cat is location 
+at around 0. So let’s see. Destroy the boat.
+Cat teleported away. And Let’s copy out 
+the packet trace to have a closer look.
+So we get a few EntityPackets with 0, is that 
+the location of the owner? Well obviously not.
+The owner is not exactly at 0,0. Also y would have 
+to be -60. As mentioned before, squiggly lines,
+these are relative coordinates. So here is no 
+movement at all. If we would see however here
+numbers of around positive + 600, so from our 
+current position -600, to get to zero would
+need a delta movement of +600, then it would 
+leak the location. But there is no such packet.
+And all the other entity position 
+packets are from our area here,
+-618 and so forth. They are probably the 
+other animals that spawned around here.
+As you can see. At least with paper 1.19.2, this 
+does not leak the coordinate of the owner when
+a tamed animal teleports to them. This is maybe 
+an old bug on 2b2t, but not on modern minecraft.
+So let’s come back to the cat coordinate exploit 
+that was used to find me. As far as I know,
+this was a novel bug. It does NOT abuse 
+a teleport packet. Instead it exploits
+the fact that the cat sometimes looks 
+at the direction of the owner. And by
+keeping the cat leashed you can still 
+make it look into that direction.
+If the cat is sitting it doesn’t work, so you have 
+to force the cat to change its sitting state with
+water, BUT you don’t want it to teleport away. 
+You really need to be careful. And that’s why
+you leash it. This will still cause the cat to 
+look into the direction, but never teleport.
+So to me this is still an unknown and novel bug 
+in minecraft. I know that Pixelpro discovered
+this himself. You can pause and read this 
+summary of how it was discovered here. But
+of course others might have discovered it before 
+and we just didn’t know about it. In that case,
+please send me some links or documentation about 
+that. I always find this very interesting. But
+eitherway, it definitely is not the 
+2b2t teleport exploit like everyone
+was saying. So I guess it is my fault for 
+not properly explaining it in that episode.
+So… now we are here. Cats revealed the 
+location of my base. And then somebody
+decided to redecorated the base in a different 
+style. I don’t think it looks really cool so
+obviously I have to find a new spot.
+But if I go to a different spot,
+how can I protect my location? I have no clue 
+where all my cats are that I tamed. So in order
+to protect my location, I added this code 
+to the server plugin. The CatsSuck class.
+On a timer, it occasionally checks 
+all loaded entities whether they
+are tameable. I loop over all 
+of them. And if I’m the owner,
+if they were tamed by me, then I 
+overwrite the owner with this other
+uuid. Now they should never look at me anymore. 
+Hopefully this will protect my location this time.
+Now let’s come to the community showcase. First 
+one is by TudbuT. What you are looking at here is
+his Elytra Flight 3d Pathfinding using a modified 
+A* algorithm. He added lots of optimizations
+because A* is usually HORRIBLY slow and 
+essentially unusable since the complexity grows
+extremely quickly per dimension and cave size. For 
+example the algorithm is "crawling" along walls
+instead of scanning every block. A big challenge 
+was also making it not try to search in unloaded
+chunks because it’s not easy to differentiate 
+between air blocks or just not loaded chunks.
+Pretty cool I think. I also love the visualization 
+of the pathfinding. Kinda relaxing to watch.
+The next showcase is a cool 
+trick from my sheep challenge.
+So the intended way to solve it is to 
+spawn the sheep and use a reach hack,
+or TPAura or whatever it is called 
+to kill the sheep far away. However
+here they solved it differently using two 
+players. One player triggered the sheep,
+the other caught it in a boat, quickly 
+teleported with it over to the first player,
+and then the first player hit it. Listen to 
+them being excited to having pulled it off.
+Really cool as well!

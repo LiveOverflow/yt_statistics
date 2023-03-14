@@ -1,0 +1,286 @@
+Let’s continue with our Fly Hack for Pwn
+Adventure 3.
+So far we have created a project in visual
+studio to create a dll.
+And that code is based on code by Guided Hacking.
+We also already managed to read the player’s
+position and print it.
+So we just have to use the camera view direction,
+then move the camera’s position into that
+direction, and we can fly….
+Right?
+Welll….
+It would be great if it were that easy…
+you will see…
+Let’s have a look at that camera view direction.
+The first thing we should be super confused
+about is “WHY THE HECK ARE THERE 4 VALUES”.
+Why do we have 4 values for the direction?
+In 3d Space a simple arrow, consisting of
+three Points should be enough?
+Well, that would not include the rotation
+around the view axis.
+But it could also be values of yaw, pitch
+and roll - the aircraft principal axes.
+But we have four values…
+So not sure if that is it.
+But let’s try to investigate.
+Maybe we can make sense of the values by carefully
+moving and observing.
+For example we could look all the way up,
+and then turn the camera.
+If there is one value representing that axis,
+we would see it not changing.
+But…..
+every damn value changes.
+Same with looking all the way down…..
+This makes no sense….
+So this took me quite a long time to solve.
+A lot of trial and error.
+I was really determined that it should be
+yaw, pitch and roll.
+Kinda ignoring the fourth value….
+But of course it’s not….
+What we have here are quaternions.
+In mathematics, the quaternions are a number
+system that extends the complex numbers.
+They were first described by Irish mathematician
+William Rowan Hamilton in 1843 and applied
+to mechanics in three-dimensional space.
+Mechanics in three-dimensional space sounds
+about right.
+But what does it mean to extend the complex
+numbers.
+If you had complex numbers in school, then
+you know about i.
+I is defined to have this interesting property,
+that squaring i, so i*i, results in -1.
+Normal numbers don’t do this.
+Squaring any number, be it negative or positive,
+the result is always positive.
+So that’s why i is so interesting.
+And with quaternions we extend on this and
+add even more weird numbers.
+You can see some of the properties here in
+the Multiplication of basis elements.
+All of them squared are actually -1.
+But j,k and i are not the same.
+In fact i times j is k.
+But j times i is -k.
+Absolute madness.
+I have to be honest with you.
+I had quaternions in university when I took
+a class on computer graphics, but I didn’t
+develop an intuition for it.
+It feels like absolute magic to me.
+But quaternions are super useful for 3d programming.
+Unit quaternions, also known as versors, provide
+a convenient mathematical notation for representing
+orientations and rotations of objects in three
+dimensions.
+Unit quaternion is similar to a unit vector.
+A unit vector has the length one.
+So a unit quaternion also has the length 1.
+That’s at least how I think about it…
+that’s probably not mathematically correct
+Oh and also quaternions are not vectors, they
+are versors.
+Anyway.
+Compared to Euler angles (so those are your
+regular damn angles in degrees) they are simpler
+to compose (hahahha… simpler) and avoid
+the problem of gimbal lock.
+(gimbal lock occurs when you rotate axis such
+that suddenly two axis line up exactly, and
+because now two axis are the same, you lost
+a full axis degree of movement.)
+Quaternions have applications in computer
+graphics, computer vision, robotics, navigation,
+molecular dynamics, flight dynamics, orbital
+mechanics of satellites and crystallographic
+texture analysis.
+You see, there are a lot of applications where
+they are useful.
+But that still doesn’t make much sense,
+huh?
+If you were interested in any of these fields
+before, does it worry you now?
+Feels a bit scarry?
+But let me quote an article called “How
+I learned to Stop Worrying and Love Quaternions”
+For a while it seemed like everywhere I looked
+there was a quaternion staring back at me.
+You'll find them representing the orientation
+of every object in Unity.
+In fact any time you have an orientation or
+rotation, you are very likely to run into
+a quaternion.
+Here's the thing though: It turns out, quaternions
+really aren't that scary.
+You can think of one as simply a rotation
+delta.
+It represents the shortest path to get from
+one orientation to another.
+Either from some "forward" origin direction
+(in which case, it's an orientation) or the
+direction and magnitude to rotate another
+orientation (ie, you could have a quaternion
+that represents rotating 90 degrees clockwise
+about the Y axis), in which case, it's a rotation.
+So in our case it very likely is an absolute
+orientation.
+A direction of some forward origin.
+And the author of the blog says.
+Treat them as a magic blob and use a library
+to handle everything.
+Do you hand craft each IP-packet in binary
+before you send it out through the network?
+No.
+Who cares.
+We're computer scientists and the entire field
+is built on layers upon layers of abstraction.
+And I just take this by heart now.
+Well, if you followed this channel for a while,
+you know that I generally encourage you to
+actually break through those layers.
+Break the abstractions.
+Look deeper.
+Make sure you actually understand it.
+But this of course has limits.
+If you get frustrated or stuck, maybe it’s
+time to move on.
+You can always revisit it later.
+I decided that for me, it will be another
+time to break this layer.
+And maybe even you can point me to an awesome
+tutorial, or make a tutorial, so I can finally
+understand it.
+But for now, I’m just continuing to copy
+and paste other people’s code.
+And hope that it works.
+So basically we assume this to be now a quaternion.
+A versor.
+Which means we should be able to use it to
+rotate a 3d vector.
+So if we take a regular forward 3dunit vector,
+we should be able to to use the quaternion
+to rotate it.
+And then that resulting vector should point
+into the direction we are looking.
+Which we can then ADD to our current position.
+Making us fly into the looking direction.
+So how do we rotate this 3d vector with quaternion?
+I have no clue.
+That resulting formular somebody would have
+already written.
+It’s just a question of the orientation
+of the vector used.
+By anyway.
+I was googling for quite a while - maybe in
+that time I could have just researched how
+it works myself and come up with the equation
+system.
+But in the end I found this game development
+forum thread.
+say i have a quaternion which defines the
+direction my camera is pointing at, how can
+i extract the right/up/front-vectors from
+that quaternion?
+And the user dobbs responded with this…
+Oh…
+I just noticed this happend 18 years ago.
+18 damn years…
+I was 10 years old when these madlads were
+doing gamedev.
+I’m wondering where these people are today.
+Did they ever become game developers?
+Anyway…
+I tried out different formulas and in the
+end the left vector worked.
+Left vector sounds probably weird, but we
+don’t know what the base vector for the
+direction is used by the game engine.
+It doesn’t matter.
+This works.
+I won’t bore you now with the programming
+part.
+But here is the finished code.
+In this version we are now getting the base
+for the dll and the exe.
+Here we use the patch function to actually
+copy the assembly code of the camera update
+to the restoreCode array.
+The reason for that is that when we NOP it
+to fly around, we want to be able to restore
+it too.
+And then here we get the camera position and
+the quaternion.
+But we also get the player position from the
+dll.
+This is the one we can use to actually teleport
+the character around, and not just move the
+camera.
+With control left we can still enable or disable
+the hack.
+And then it either NOPs out the camera update
+code, or restores the original code.
+I have also added a speedup functionality,
+the longer we move.
+Which goes down again if you don’t move.
+And here is the first quaternion math code.
+This is exactly the code from the forum.
+y*y. z*z.
+And so forth.
+This will be the direction vector d.
+Then depnding on the key press, in this case
+right mouse button which just flies into that
+direction, we multiply the speed, to stretch
+the vector forward.
+Finally we add the new direction coordinates
+onto the current camera position.
+Moving it forward.
+And for the WASD keys, where we only move
+on the plane.
+So we can usee almost the same code, we just
+ignore the up/down axis, so z is 0.
+And then depending on w,a,s or d, you might
+flip one of thee vector directions.
+Space and shift can be used to move the camera
+up or down.
+Oh… and every 100 updates, we also teleport
+the actual player position to our current
+camera position.
+But -64,002f lower.
+Because the camera is on the head height,
+while the player position is calculated from
+the feet of the model.
+The distance I have measured by comparing
+the z coordinate from the player and camera.
+Anyway.
+That’s it!
+We can compile the DLL, inject into the game,
+enable fly hack, and start flying….
+Isn’t this awesome?
+Now just enjoy the sight.
+I’m a little bit proud of this.
+By the way, there is a small issue with how
+I do it.
+The code that updates the player’s camera,
+and the code we have overwritten with nops,
+is actually used by any kind of game object.
+So if that function is Nopped when the game
+tries to move or rotate an object somewhere,
+it will just end up at the origin coordinates
+0/0/0.
+You can especially see that when you enable
+the hack, so nop the code, then log out, and
+log back in.
+Now our character is also in position 0.
+And you can see all these game objects, like
+the bush you destroy with fire, or the chests
+are all located here.
+But whatever.
+It’s still fun to just fly around and explore
+the island.
+Thanks again Guided Hacking for helping me
+out with this!

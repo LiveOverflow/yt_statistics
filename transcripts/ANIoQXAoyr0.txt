@@ -1,0 +1,225 @@
+Hey, welcome back.
+So last video we started to reverse the exploitation
+qualification challenge from RHme3 and we
+had just figured out a rough plan for exploitation.
+So rewatch this if you don’t know what’s
+going on.
+But we also pickup here just where we are
+about to develop the exploit.
+And while this is about a specific challenge,
+the technique to get to the final shell, is
+very similar for a lot of CTF challenges.
+So even if you are not doing this challenge,
+it could still show you some generic techniques.
+Remember in the last video that at the start
+I was already thinking of what probably our
+goal is going to be?
+So in the spirit of doing this whole challenge
+from the reverse.
+Let’s think about which Global Offset entry
+we could overwrite.
+Ideally I would love to overwrite a function
+there with system(), which has a string for
+the command to execute as first parameter.
+So we are looking for another function that
+has a similar pattern.
+Some people contacted me and had issues once
+they got so far to have an arbitrary write
+and could overwrite an entry of the GOT, what
+to do now?
+They tried to use ROP gadgets and so forth,
+but most of the time, at least for the eaiser
+exploitation challenge, it’s mostly enough
+to somehow execute /bin/sh to get a shell.
+In a previous stream I did I showed how to
+find a one-shot execve gadget that just calls
+/bin/sh, so check that out, but another technique
+is to just look for a fitting function.
+So system() takes a string as the first parameter
+as a command to execute.
+So what would happen if you overwrite puts()
+with system()?
+Well then everytime the program would call
+puts(), it would actually try to execute the
+string as a system command.
+Makes sense, right?
+But it’s not really useful, so in our case
+we are looking for functions that might have
+a user controlled string as the first parameter.
+Let’s see.
+Strcpy could work in some cases.
+Or strlen, or puts.
+But also free could get passed a pointer that
+coincidentally points to a string.
+For example if the name is freed, and the
+parameter would be a pointer to that name
+string.
+So there are a lot of options, and of course
+it could break the program, so you have to
+be a bit smart.
+But I chose strlen in the end, as it’s getting
+called on a string that is read by the user.
+Infact it’s reading the name input here.
+So that’s great.
+So to recap.
+We want to overwrite strlen with system, so
+we can execute /bin/sh when we enter /bin/sh
+as a name.
+To do that we need an arbitrary write, and
+the name pointer in the player structure could
+do that for us, if we control it.
+We also know we have a use after free, which
+means we interpret a value on the heap as
+a pointer, eventhough the player should be
+freed.
+So hopefully we find a way to overwrite that
+freed memory with data we control, and thus
+control the name pointer.
+Sounds like we are almost there!
+We just have to find a sequence of operations,
+where we get control of this pointer.
+In general this should happen when we create
+some players, select one, remove some and
+add some again.
+So I just sat there for a bit and just played
+around with different name lengths to somehow
+make one name overlap with the pointer.
+But it kinda didn’t work right away.
+I think that’s because the modern heap uses
+different kind of chunks, namely fastbins
+and so forth.
+And they are maintained differently.
+So in many cases the malloc of a new chunk
+would skip the freed space.
+But I’m not 100% sure what exactly happened.
+I just suspected that must influence it.
+But if somebody could link me a writeup that
+has a better understanding of the heap and
+goes into that issue, I would love that.
+Anyway, I guessed that this should still be
+the solution, so I just have to find the correct
+case where the overlap would happen.
+And at some point I did!
+So it happened when I register 2 players with
+32 byte long names.
+Selected the second one.
+Deleted the 2nd and first one, then allocate
+a new player, with 19 bytes.
+And when we then show the selected player,
+we get a segfault!
+I got the 19 bytes from playing around with
+the lengths and it perfectly overwrites the
+name pointer.
+You can see the segfault happened in printf,
+probably because the pointer was pointing
+into invalid memory.
+Which would be a success.
+But also you can see our debug prints before
+the segfault and you can compare the state
+of the memory where the player was selected
+and still healthy, and the overwritten object
+we now used.
+So you see the name of the third player we
+created smashed the stats and the name pointer.
+From here on now it’s easy to write the
+exploit.
+We just have to do one minor thing, and that
+is defeat ASLR of libc.
+Because even if the binary is not using ASLR,
+other system libraries on an ASLR enabled
+system will have randomized addresses.
+But that’s easy with the name pointer we
+control, because we can not only use it to
+write data, but also read memory when we show
+the player and try to print the name.
+So we can read a libc function address from
+the global offset table and then calculate
+offsets from there.
+In our case I would like strlen, so we can
+take the GOT address of strlen and use that
+in the name we use to overwrite the name pointer.
+But let’s just start developing the exploit.
+I’m writing it in python.
+So first I setup a socket to connect to the
+port 1337.
+I also implemented a recv_all function that
+reads data until no data is read in a certain
+timeframe.
+So until there is a timeout.
+Then we can simply send the inputs, that correspond
+to the menu selections that trigger the bug.
+So here.
+add player.
+Name.
+stats.
+Select player.
+Delete the two.
+And then create a third player and include
+the address we want to set the name pointer
+to.
+In our case the address of the global offset
+strlen entry.
+And then we send a 5, which does show_player,
+thus printing wherever the name pointer points
+to.
+And then we do some stuff to extract those
+raw bytes, because it should point into the
+global offset table and print the address
+of strlen.
+After that we use the cool telnetlib trick,
+that just simply hands over the socket to
+us, so we can send and receive data.
+And when we run it doesn’t crash and outputs
+the strlen address.
+We can also now press 5 again to see how the
+player looks like.
+And these weird bytes here are the address
+of strlen.
+And so we extract those.
+Now we want to calculate the base address
+of libc.
+The address where the libc binary is loaded
+to.
+To do that we can simply open the provided
+libc, or your local libc, depending on if
+you develop the exploit locally or for the
+remote server.
+And then you look for strlen and copy the
+address.
+It’s different for not ASLR binaries that
+have their loading address specified, but
+in this case the addresses start at 0, so
+this is the offset inside the binary where
+this function starts.
+So when we now take the absolute address that
+we leaked from the server and subtract the
+offset, we get the address where libc starts.
+And then we look up the address or offset
+for system, and when we add this offset to
+the libc base, we get the absolute address
+of system on the server.
+We can run it, and there it is.
+That’s the address of system on the server.
+And then we can use the edit player, edit
+name function, which will then change the
+name, but the name is pointing into the global
+offset table of strlen, so we will overwrite
+that address.
+Some of you might have thought that wouldn’t
+work because you noticed a realloc on the
+name, but in fact that realloc only happens
+if the string you entered is longer than the
+string already stored.
+And the address of system is not longer than
+the address of strlen, so we bypass the realloc
+and just write to it.
+And now next time we change the name, we can
+enter for example /bin/sh, and then it will
+call strlen on this input, but strlen was
+overwritten with system in the previous name
+change, and thus executes bin/sh.
+And we drop into a shell.
+So now we can simply find the flag file and
+read the secret.
+There we go.
+Done.

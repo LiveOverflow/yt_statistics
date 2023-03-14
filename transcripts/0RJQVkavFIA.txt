@@ -1,0 +1,769 @@
+Let’s talk about how I made a “massive”
+multiplayer game with Unity called “Maze”.
+The twist of this game is that you actually
+need to cheat to solve the challenges - the
+goal is to teach people about game hacking
+and if you are a game developer hopefully
+this also gives you a better idea about how
+this looks like.
+Btw, this is part three in my devlog series.
+In the first video I explained how I learned
+Game development with unity and in the second
+video I talked about game design and building
+my first hackable game.
+But that was an offline game and in offline
+games it will always be easy to cheat and
+uncover secrets and especially with Unity
+it’s pretty easy, so I decided to make an
+online game.
+An online game has the advantage that we can
+have an authoritative server that renders
+cheating on the client useless.
+If you intend to play the game yourself and
+try the hacks without spoilers, then don’t
+watch this video.
+It will reveal quite a lot.
+Chapter 1 - Using Networking Provider?
+Let’s start with the elephant in the room.
+The networking part.
+So implementing Networking for a game is a
+whole profession for itself.
+And every game has unique requirements too.
+Specifically for Unity there is the deprecated(?)
+UNet.
+And through research I also found alternative
+providers of networking solutions for games.
+But the problem for me is, not only does that
+cost money, these libraries are also a lot
+of magic, they abstract away a lot of functionality
+AND generally you need to run that on their
+servers and services.
+But if I make a game that is hackable I need
+to 100% understand the protocol and the server
+setup.
+I don’t want that people attack a third
+party service or find bugs in the protocol
+itself.
+At least when I don’t know if that’s possible.
+I’m also guessing that a lot of these protocols
+work by serializing objects and deserializing
+them on the server, which introduces a huge
+attack vector and could even lead to remote
+code execution on the server.
+This obviously depends on how the objects
+are serialized and deserialized, but my issue
+is that it’s unknown to me and I would have
+to do a lot of research to reverse engineer
+what these libraries are doing, to see if
+I can use it for my purpose.
+So it was very clear to me, right from the
+start, that I need to implement the server
+myself.
+Chapter 2 - Language to Implement Server?
+Let’s ignore for a moment the general architecture
+of a game server.
+And speaking just about the practicability
+for ME to write one.
+I have heard a lot that golang is super cool
+for networking.
+But I can’t really write go, never really
+used it.
+So I was contemplating if THIS PROJECT could
+be the perfect opportunity to learn go!
+This is what I like to do when learning a
+new programming language.
+I’m not just sitting there and say “I”m
+learning go now”.
+I always need a project, a purpose, a goal,
+for what I want to use the language for.
+So this would be perfect.
+But I also was a bit in a hurry, because our
+hacking competition, for which I wanted to
+create this game, started on the 1.
+March running for 3 months, and I only started
+to learn Unity at the beginning of January.
+And when I started this online game it was
+already late February.
+It didn’t have to be ready on the 1st of
+March, but this meant I have at maximum around
+2 months time for it.
+But not full time.
+I still have regular work and YouTube and
+stuff to take care of.
+So I decided, I just stick with the one language
+I have the most experience with.
+And that’s Python.
+Or to be more precise, Python 2.
+Just kidding.
+I did switch to python 3 now.
+RIP.
+Chapter 3 - The Server Architecture
+There is a lot of talk regarding UDP vs. TCP
+packets for games.
+And we will talk about that.
+But that’s just the transport layer.
+I think it’s a bit more important to talk
+about how you structure the server in the
+first place.
+And just assume you have clients that spam
+the server multiple times per seconds with
+some kind of position update packet.
+So how do you share these position updates
+between all clients, with minimal overhead,
+good performance and low latency.
+I have never done something like this and
+so I wanted to share what went through my
+head.
+I’m FULLY AWARE that my solution is not
+the best.
+And I’m SURE there are much better ways
+to implement it than what I came up with.
+But it’s really hard to decide because you
+lack a lot of important data.
+For example how many players at the same time
+should be able to see eachother on a server?
+What is reasonable memory and CPU usage per
+client on the server?
+Do you have a single beefy machine with 100gb
+of RAM?
+Or do you need to split it up on multiple
+small machines?
+So the first question I had was, how do I
+share the position information between all
+connected clients?
+I have to make this clear again, I have no
+experience building such an application and
+where the bottlenecks really are and I’m
+just drawing from my limited knowledge and
+hoping that my educated guesses are not super
+wrong.
+So keep that in mind before you flame me something
+I do, but I am very interested in proper feedback.
+Anyway.
+If the server is a single process, and maybe
+each client has a thread, I could use some
+shared memory with some kind of array to store
+all client positions.
+I could even have some easy functionality
+to relay, or forward, the position update
+from one client to all other clients within
+that process.
+Obvious first problem, it wouldn't easily
+be scalable to multiple machines.
+Or even multiple processes.
+Using Python as the server has the issue that
+I’m bound to the GIL, the Global Interpreter
+Lock.
+So I was also concerned that a single process
+would not be able to switch between threads
+or whatever fast enough doing the networking
+for each client, so that a single client could
+microfrezze or even block the whole server.
+You can see, using a single process I would
+get no benefit from a multicore system.
+The solution to that issue is obviously using
+multiple python processes, but that would
+mean I don’t have shared memory to share
+the position data of the connected players.
+But I had an idea for that.
+The other issue is in general, the single
+core performance per process, but I was thinking
+to solve that with async coding.
+I have also not really much experience with
+async in Python, and how efficient that is.
+But In mind I imagined that being able defer
+functions when they are needed, and have the
+eventloop take care of maximum ultilization,
+that would make at least the single process
+efficient enough.
+But what about the sharing of player positions
+now.
+I could use any kind of database.
+Like MySQL, and each client just writes it’s
+position to one row in a table.
+But I imagined that to be rather slow.
+And I was more thinking towards some “database”
+that is intended for super fast access.
+Read and write.
+What kind of databases would that be?
+Well I thought any data storage used for caching
+on webservers should probably be great for
+my purpose, and so I was going for redis.
+Redis is an open source, in-memory data structure
+store, used as a database, cache and message
+broker.
+So not only could redis simply hold any kinds
+of information, I could use it as a message
+broker to share important messages to the
+other clients.
+Like “another client updated it’s position”.
+At least that’s what I thought.
+I don’t know if redis is the fastest, I
+don’t know if it’s the best scalable,
+I don’t know if I used it right, but I know
+that redis is used in massive production deployments
+and certainly could be scaled crazily, and
+so for my small usage of maybe a couple of
+dozens or hundred of players it should be
+good enough.
+And now that I use redis, I can easily spawn
+multiple python processes as game servers,
+and all of them access the same redis instance
+to exchange layer positions.
+So to summarize.
+The idea was to spawn multiple python processes
+to handle multiple clients, and redis is used
+as a backbone to distribute the game’s position
+data, on general game data across all players.
+But position data is only one of the important
+information.
+Authentication information, profiles and items
+stored, they are accessed rarely and it might
+sense to have that stored in a slow but atomic
+safe database.
+Though for me I didn’t really care about
+that because it was just for a hacking competition,
+and if players loose their account or whatever,
+it doesn’t matter.
+So I just used redis.
+Chapter 4 - UDP vs TCP
+The question that everybody wants to know.
+UDP or TCP.
+The big difference, that probably everybody
+knows is that UDP is “connectionless”
+protocol, which means a client simply fires
+UDP packets to a server, and if some of them
+do not arrive or in different order, that
+doesn’t matter.
+TCP on the other hand ensures that every packet
+arrives and in the correct order.
+Now when we think about position updates from
+a player, which might happen multiple times
+a second, yeah we don’t care if all of them
+arrive.
+But we probably still care about the correct
+order.
+Imagine you walk forward, and then suddenly
+an old packet that tells the player is 10meters
+back arrives, and resets the player there.
+So we already have to implement some kind
+of sequence identifier so that we can know
+if we received an old packet or not.
+And then there are actions a player does we
+NEED to be sure that it was received.
+Imagine a player unlocks something, sells
+an item, gets a drop, whatever.
+That’s like a one-time thing and we want
+to be 100% sure that this arrived.
+And in that case we would essentially reimplement
+TCPs ACK packets, to acknowledge we received
+something.
+And also implement that the client remembers
+the packets it sent, and for which it never
+received an acknowledgement for, and then
+do the re-transmission of the missed packets
+after a sensible timeout.
+Also when the client or server closes, exists,
+crashes, the other side doesn’t realize
+that.
+The client would just happily keep sending
+UDP position update packets.
+All things that you need to consider and handle.
+So I don’t think TCP is a super bad choice,
+because it means you don’t have to care
+about a lot of things.
+It makes it a lot easier.
+So for small games it’s a very good choice.
+But.... because PwnAdventure3 was already
+TCP based and I have actually never implemented
+anything with UDP, I thought it would be fun
+to use UDP instead.
+Chapter 7 - The Network Protocol
+Now that I know I’m gonna have bunnies running
+around, and I’m using UDP, it was time to
+think about the protocol.
+Basically what kind of packets do exist that
+the server and client exchange.
+And this was also an iterative process.
+I started out with some basic stuff that I
+need, but this was growing and changing over
+time.
+I didn't really plan this much to be honest.
+Basically it went like that.
+The protocol itself is gonna be binary data.
+Simply using python structs to pack and unpack
+binary values.
+Easy peasy.
+Don’t need anything fancy.
+And I also checked that I can pack and unpack
+binary data in C#.
+Chapter 8 - Position Packet
+So the first packet I thought about was obviously
+the position packet.
+And here you have three options.
+You could simply send absolute position data.
+XYZ.
+And rotation of the character.
+You could also send a delta, saying, I moved
+2m forward.
+But that requires that the packet must be
+acknowledged, If one delta packet is lost,
+client and server get out of sync.
+Or you can even simply transmit the action,
+and the server tells what happens.
+So for example the client says “the forward
+button is pressed”, then the server checks
+for how long and performs that movement.
+Delta packets or even actions are more effort
+to implement.
+They also have some advantages, namely with
+regards to cheating, because the server is
+more authoritative and can really decide on
+each action if it is valid.
+While when it’s a simple position information,
+the server loses a lot of context what actually
+happened to reach this position, so can’t
+be super accurate verifying it, at least in
+3D games, where it maybe leaves room for some
+hacks.
+Because I need something simple, and I want
+to leave room for hacks, for me it was clear
+to simply transmit the current position.
+And now we come to this iterative process
+designing this.
+Let’s say the server receives such a position
+packet.
+How does server know which client sent it.
+There is no open socket connection.
+Anybody could spoof any UDP packet.
+So we need some kind of identifier.
+Which should be unique and not guessable.
+Chapter 8 - Login Packet
+Knowing that I need some kind of identifier,
+I created a LOGIN packet, which takes some
+kind of authentication information from the
+player, and then generates a secret session
+id.
+Like a session cookie on a website.
+The client then must include this secret session
+id in every packet, to identify itself.
+If you want to do this properly you would
+now create some kind of registration website,
+where players can register an account.
+And with those credentials they can then send
+the LOGIN packet to get their session id.
+But I was too lazy for that and simply used
+a single secret without prior registration.
+If a player “logins” with a new secret
+that hasn’t been seen before, the server
+creates a new character.
+If it’s a known secret, it simply uses the
+character already stored in redis.
+Basically it’s implicit registration with
+only a password.
+No checks for collisions.
+It’s shitty but good enough.
+Remember, I optimize here for laziness.
+Not prettiness.
+This also bit my ass during livestreaming
+the game on twitch.
+TWO TIMES I accidentally showed the login
+window where it shows you your secret.
+NO!
+I’M AN IDIOT.
+Luckily the accounts were only test accounts
+and didn’t actually have anything unlocked
+AND it also wouldn’t really be an advantage.
+It’s not like you could get access to flags
+through that.
+Chapter 9 - Heartbeat Packet
+Now that I started implementing those first
+packets, I also realized that I need to be
+able to identify if a client exits the game
+or, if the server crashes.
+Now the server constantly gets position updates
+from a player, which should be enough to implement
+a timeout if there was none for a period of
+time.
+But the server might not always have packets
+for the client, especially if you are alone
+on the server like I always was during testing.
+So I implemented a heartbeat packet.
+Now which direction do you do the heartbeat?
+Does the server send heartbeats to the client
+and the client answers, or does the client
+send it to the server and the server answers?
+I decided to initiate it from client mainly
+because during implementation I noticed that
+it’s not so easy to initiate packets from
+the server.
+I would need some kind of loop or thread that
+orchestrates when to send a heartbeat.
+That would be overhead and complexity.
+On the client on the other hand there is already
+code that updates players positions every
+time.
+Games generally work with a gameloop, in Unity
+namely the update function which is called
+each frame.
+So it’s much easier to periodically send
+a heartbeat from the client to the server.
+And then the server responds.
+YUP!
+Got it.
+Chapter 10 - UDP Reflection Attack
+So while I was implementing the server in
+python and doing the client component in Unity,
+I thought more about the issue of UDP reflection
+or UDP amplification attacks.
+UDP is connectionless which means anybody
+can spoof IPs in UDP packets and so the server
+might send a response back to the spoofed
+address.
+This doesn’t really happen for TCP, because
+there is this handshake back and forth, and
+you need to be able to receive the response,
+in order to get to the exchange of actual
+data.
+But a small reflection still can be abused
+with TCP, because obviously you can spoof
+the IP of the first SYN packet, and then the
+server responds with the SYN,ACK to that IP.
+But it’s a very small packet though, and
+if I want to attack a victim server with a
+bandwidth of 1GB/s I need to send 1GB/s to
+a server which then reflects basically reflects
+1:1 the SYN,ACKS to the victim.
+But real threat comes with UDP being able
+to AMPLIFY the traffic.
+If a small UDP packet causes a huge response,
+it can have a 1:10, 1:100 or even larger amplifications.
+So by sending 1GB/s to a vulnerable UDP server,
+I could create traffic of 10GB/s directed
+at a victim.
+So I needed to make sure I don’t have small
+packets sent from the client to the server,
+that cause the server to respond with large
+amounts of data, to a spoofed IP.
+When I thought about how to resolve this I
+realized I can use the clientsecret that I
+mentioned previously.
+On any important packet, the client has to
+include a secret, this secret is then used
+to fetch the information for that player from
+redis.
+So I decided to remember the source IP when
+the player logins and check it every time
+when a new packet arrives.
+If the IP suddenly changed, because somebody
+spoofed it, I outright ignore the packet.
+I don’t even respond, I just don’t do
+anything.
+This means the login packet can still be used
+for reflection, but you can’t prevent that.
+It’s like the TCP SYN packet.
+It’s very small so it doesn’t offer any
+amplification, and that’s just how it is.
+Chapter 11 - UDP Client in C#
+Maybe it would be good to share a few words
+on implementing the UDP client in C# for Unity.
+I have to warn you, though my code is incredibly
+ugly and bad.
+Please don’t use this as some kind of template,
+okay?
+I didn’t have much time and I was just rushing.
+If I would take this more seriously I would
+have to refactor the code.
+Anyway.
+I have a ServerManager script which is the
+core for the networking.
+Here you can see for example that I reference
+the player character, as well as the prefab
+which will be used to spawn the other players
+on the map.
+In the start function I trigger a Couroutine
+which makes a delay login.
+I don’t remember why I would do this.
+This then calls login, which gets the gameserver
+and possible ports and then creates a new
+UdpClient and connects to it.
+After that we start a receive thread that
+will wait for UDP packets sent from the server
+to the game.
+Then there are three more coroutines, one
+is to actually perform the login, with the
+login packet, and the other two are basically
+queue workers.
+I show later what I use them for.
+In the login loop we get the player’s secret
+and hash it.
+The reason is basically we only need a very
+strong 8 byte random secret for the login
+and the chosen player password could be longer,
+so we hash and reduce it to 8 bytes.
+That is fairly random and unique.
+Then we prepare the raw byte packet sent to
+the server.
+One byte for a the ascii character value of
+“L”, for Login, then comes the 8 byte
+user secret, followed by one byte encoding
+the length of the username and then copying
+the username.Length.
+Now if you are into security I know I know
+this looks like a bufferoverlow.
+But the username is restricted to 32bytes
+on the login screen.
+And it has no security relevance here.
+Anyway.
+After that we send the packet to the server.
+And wait for 2 seconds.
+And you can see that this happens in a while
+loop, and this loggedIn flag is set by the
+receive thread, in case we receive the answer
+to this login.
+If we don’t receive it, we try to login
+again.
+So let’s look into the receive thread, this
+is basically just a big loop that tries to
+receive bytes from the server.
+I also added a very simple “encryption”
+layer to the protocol which you can see here.
+The first byte is the key.
+And then we simply xor each byte with that
+key, and also modify after each byte the key
+a bit.
+Very simple and with the Unity game reverse
+engineering tools easy to get.
+After that we just have a big if-welse case
+that checks what type of packet it is.
+And then unpacks the binary data and handles
+it.
+For example if we receive a packet with a
+capital L, it will be the login response and
+we are logged in.
+Here you can also see it returns unlocks encoded
+in two bytes, which will tell the game if
+you have certain things unlocked.
+Here is for example the code that handles
+position data from other players.
+This might include many players, so there
+is a loop.
+And it simply gets the player id, the player
+coordinates and rotation angles, as well as
+some info if the player is grounded or has
+other triggers, those are used to determine
+if there should be a certain animation played.
+This information is packed into a npc event
+object and placed into a queue.
+Oh…. this is actually a bug….
+I changed this to a map as you can see here
+below.
+The reason for that was, that initially it
+was a queue, but what if the queue is consumed
+too slow and new information arrives, then
+the older player position should be ignored.
+Also I had a bug where the queue was only
+consumed once a frame, and when there were
+multiple players it would start fill up the
+queue more and more and more, and very slowly
+only consume it, thus you would later see
+actions by other players that happened long
+in the past.
+I didn’t notice this bug when I was testing
+alone.
+But only when I did a first stream about the
+game and we kinda realized this behaviour.
+Anyway.
+Right now I still place it in the queue and
+never consume, thus probably create a very
+hefty memory leak….
+Oooops… let’s comment that out.
+Anyway.
+The reason why I don’t update the player
+objects position right here in the thread
+is, that you cannot do that . This thread
+is not allowed to access objects from the
+Unity thread.
+So that’s why I use an even object and in
+the consumePlayerQueue coroutine we loop over
+all the available keys in this player dictionary
+and then for example set the new position
+for that particular player.
+And we would also trigger here the animations.
+Fun fact, the attack animation for example
+cannot be triggered ingame.
+You have to hack the game and send the packet
+yourself, in order to trigger this animation.
+But this is one of those eastereggs players
+could find to show off to other players.
+Lastly I wanted to mention that in the NPCControlelr
+script, the script handling each other player,
+the incoming position update is not directly
+applied, but kept in a variable and then “slowly”,
+relatively, within a couple of frames, animated.
+So it gives a sense of fluid movement.
+Not strict teleporting new positions.
+Chapter 12 - UDP Server in Python
+Now let’s look at the server code a bit.
+As I mentioned I implemented it in Python,
+and there are multiple instances of this code
+running.
+But I tried to make each server as efficient
+as possible to handle multiple clients.
+But, like with anything I code, I’m not
+sure if this is the best design.
+It makes sense in my mind, but I have not
+profiled this, I have no data, but as I said,
+I used asyncio, to process packets as efficiently
+as possible.
+Here you can see that the main server class
+is derived from asyncio.DatagramProtocol,
+so a UDP server.
+And here is the datagram_received function,
+which is called when a UDP packet arrives.
+And I immediately pass the data as a task
+to the asyncio event loop.
+Then eventually this is processed here.
+This functions starts by trying to decrypt
+the received packet, with the basic XOR shown
+in the C# client.
+And after that there are basic if cases checking
+the type of the packet.
+For example here it sees a login packet, which
+then gets handed to the packet_handler_login
+function.
+There it takes the usersecret, and uses it
+to get an associated internal ID.
+It also checks if this user is already loggedin,
+and in that case rejects the login attempt.
+Eventually it gets the unlocks of the user
+and creates the login response packet.
+But it also performs a teleport, which basically
+sends back the spawn position for the player.
+The packet handler for receiving position
+data is actually the longest, because this
+is also were cheating could happen.
+Think about speedhacks and teleports.
+Here you can see how the binary data from
+the packet is unpacked to get the positions
+and rotation angles.
+And it also checks if the received packet
+is newer than the past packet,
+And then a distance is calculated based on
+the old and new position.
+As well as the speed based on the old time
+and the new time.
+If a certain speed or distance is exceeded,
+a hacker is detected and the player is teleported
+back to the original position.
+Besides that I also implemented wall collision
+detection here on the server.
+I have created a picture that color encodes
+where players can walk and are not allowed
+to walk.
+So the walls.
+And the player’s position is translated
+to a pixel on this image and then the color
+is checked.
+If the player is on a white pixel, so on a
+wall, the player is teleported back to the
+original position.
+I also use these color encodings to implement
+other stuff related to challenges and locations.
+For example when you discover a certain area,
+it will set the correct unlock.
+And this will give you access to the teleporter.
+This is also used to check if you entered
+a teleporter, and if you have the correct
+unlock, and in that case teleport you to that
+location.
+You might also see here code that says send_flag(),
+those are the secret flags that players can
+get when they solve the hacking challenges.
+Chapter 14 - Distribute Player Position
+When a player sends their current position
+to the server, the other players somehow have
+to be informed about that.
+And this caused a bit of a headache.
+My first attempt was to implement this directly
+in the position packet receive handler.
+Basically adding a loop that goes over all
+logged in players, gets their connection’s
+IP and port and send them a UDP packet with
+this player’s position.
+And this worked fine until I used a second
+process.
+As soon as I had multiple processes I noticed
+that if a client is connected to one port,
+so one of the processes, but receives the
+packet from a different process, it didn’t
+arrive.
+And I actually don’t know what the exact
+issue was.
+I’m not super experienced with networking.
+My guess was that it had to do with the NAT
+from the client’s router, and it didn’t
+recognize where the packet should go.
+I tried to solve this by also setting the
+source port of the UDP packet, but it just
+didn’t work.
+I also didn’t investigate this further.
+There was another idea I had, which was, we
+could spawn an additional thread per client,
+that observes a message queue, for example
+we could use redis as a message broker for
+that, and when a new position update comes
+in, it gets sent to that client.
+But the server is kinda stateless so far,
+and doesn’t really allocate or hold anything
+of a client.
+Redis holds the state.
+So I didn’t really like that.
+So instead of this push design, I actually
+implemented a pull design.
+I was thinking the player is sending it’s
+own position packet to the server all the
+time anyway.
+So we can just answer to that packet with
+the position information from the other players.
+Not the coolest solution but works.
+In the end I actually moved this into the
+heartbeat handling instead, because the player
+sends the positions multiple times a second,
+which is necessary to have these cheat checks
+on the server, but the other players don’t
+matter too much.
+So let’s use the heartbeat which is sent
+less often, but this way we don’t spam the
+server and client too much.
+I thought this way we could handle a few more
+players.
+Even though it’s not the best in terms of
+seeing other player’s movements.
+Chapter 15 - HTTP Server Component
+Besides the Python UDP Server and the C# UDP
+Client, I also created a minimal flask web
+service to be used as a backend.
+On there you can get a list of all players,
+see if they are online, what they have unlocked
+and also configure some stuff about the game.
+For example the ports for the UDP servers
+and where these UDP game servers are hosted.
+So this webapi is accessed to get some information
+by the game before the login UDP stuff happens.
+Here I also draw a heatmap of where players
+walked as well as show players that are currently
+online.
+I have also created a heatmap animation from
+the first few days of the game’s release.
+It’s super long, but kinda cool to see.
+For example here somebody already figured
+out how to teleport around and uses it to
+scan the whole maze to create a map.
+Pretty cool.
+In this video we covered a lot of technical
+aspects.
+So in the next video, let’s talk about the
+level design and the challenge design.
+Full of spoilers, but just wanted to share
+what I was coming up with.

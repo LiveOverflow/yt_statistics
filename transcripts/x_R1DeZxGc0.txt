@@ -1,0 +1,540 @@
+In today's video we will learn how to research 
+vulnerabilities in CPUs. Specifically side-channel
+vulnerabilities. You might have read about them 
+in the news as they keep popping up in any and
+all CPUs. But I haven’t really looked at the 
+technical details of these issues before, because
+they always seemed so complex. BUT then Intel 
+contacted me and asked if I could showcase some
+Intel CPU hacks. So hats off to Intel and their 
+project circuit breaker for sponsoring this video,
+they belong now to one of the very few 
+companies who sponsor a video talking about
+vulnerabilities in their own products. That’s 
+still crazy to me, times really are changing.
+Anyway, let me share with you how you could 
+find vulnerabilities in CPUs yourself.
+Sorry, before we can get to the hacking part, we 
+have to understand two concepts first. Caching,
+and speculative execution.
+So let’s start with caching.
+You probably know that inside of the CPU 
+we have caches, they are used to cache
+memory access to make reads and writes super fast. 
+But I have never really played around with caches,
+so I wrote this code. This program is written in C 
+and it measures memory access time in CPU cycles.
+So here you can see a list of memory accesses, 
+but this particular access was super fast.
+Every memory access took hundreds of 
+cycles, but this one took less than
+100. The reason for that is because this 
+particular memory was already in the cache,
+while the other data was not. You can see here why 
+it can be important to optimize your code around
+cache access, because if you don’t, your 
+code could be, like here, 3-4 times slower.
+Anyway. Let’s have a bit closer look into the code 
+of my test program. First of all, this function
+here. rdtscp(). As you can see, there is actually 
+some inline assembly. But it’s short. It executes
+the instruction rdtscp. So what does that do?
+Here is an Intel technical paper called
+“How to Benchmark Code Execution Times 
+on Intel Instruction Set Architectures”,
+and in there Intel explains how you can use the 
+rdtscp instruction to benchmark your code. So to
+measure how fast or slow your code is. And so the 
+CPU is actually counting up a timer each cycle,
+and this instruction simply gets the 
+current amount of CPU cycles into the eax
+and edx registers. So this function simply 
+returns that current value. Basically a timer.
+But now to the main code. First we allocate 
+a big chunk of memory. 256 times 4096
+bytes. And overwrite everything with null. In 
+case you wonder, no, these values here are not
+random, they have a reason. 4096 bytes is actually 
+the page size for Intel CPUs. A page is like the
+smallest amount of memory you can deal with. If 
+you want to read just 4 bytes from some address,
+the CPU will actually load the complete 4096 
+bytes page where this address belongs to. So we
+basically have a big memory array with 256 pages.
+Ok. After that we have a bit more magic code,
+these are intel specific C functions, but 
+they are basically also just wrappers around
+specific intel assembly instructions. Here on 
+this site you can also look at the documentation
+and description of these functions in more 
+detail, if you want. But basically they just
+help us to make sure that we flush all loaded 
+memory out of the cache. So after this loop,
+the memory we allocated only exists in RAM, it’s 
+not inside of any internal CPU cache anymore.
+But now look what we do afterwards. Here we 
+write 0xff into some memory. Now you know
+4096 is the page size, so essentially 
+we write 0xff into the 42th page.
+And now comes our access measurement code.
+We loop over all 256 pages, and for each
+page we take the current time, then we access 
+the memory by incrementing it. And right
+afterwards we take another time measurement. The 
+difference, so how long, how many cycles it took
+to access this memory page, is now compared to a 
+previous value. If access was faster than before
+we remember the newest lowest time and the 
+current page number. In the end we want to
+find the page with the shortest access time.
+And then at the end of this loop we simply
+print the page that was accessed the 
+fastest. And there is no surprise,
+the 42th page access was super fast! Because, 
+before we took the measurement, we loaded this
+page into the CPU cache, by writing to it.
+Awesome, we just saw the impact CPU caches
+can have and how we can measure it. And 
+that will become super important soon.
+But let’s quickly go back to the “How to Benchmark 
+Code Execution Times” whitepaper from Intel,
+because I just noticed something interesting 
+in there. They quote here a sentence from the
+big Intel instruction manual, which is 
+a perfect segway into the second topic.
+“The RDTSCP instruction waits until all 
+previous instructions have been executed
+before reading the counter. However,
+subsequent instructions may begin execution
+before the read operation is performed”
+Huh?! Instructions coming AFTER the 
+rdtscp instruction, might actually be
+executed by the CPU BEFORE the 
+rdtscp instruction is finished?
+This could mess with the accurate time 
+measurement, that’s why intel mentions it here.
+The instruction waits until previous instructions 
+have been executed, so they recommend to basically
+call it twice. this “implements a barrier to 
+avoid out-of-order execution of the instructions”.
+Out of order execution. This is where CPUs do 
+some really crazy stuff to run faster and faster.
+Maybe you have heard of CPU pipelining before. 
+Basically every instruction requires multiple
+CPU cycles to execute. I found this a bit 
+older graphics from 2008 about the Intel
+processor pipeline. So first an instruction is 
+fetched/loaded from memory, then the instruction
+is decoded in the silicon, and then there is 
+more. It also depends on what the instruction
+does. But the point is, instead of doing these 
+steps for each instruction after another,
+you can pipeline them. Meaning the part of the CPU 
+that is responsible for fetching the instruction
+can already work on the next one, even though the 
+previous instruction isn’t fully completed yet.
+Sounds like a simple optimization, but actually 
+there are lots of challenges. For example when
+you have a conditional jump (an if-case). Do 
+you execute these or these instructions in
+the pipeline? So the CPU might mispredict 
+what to pipeline and it has to throw away
+the instructions when it realizes it. And here is 
+where it gets more complicated. The intel graphics
+I showed you is so old, because this basic 
+pipelining concept is kinda outdated. Today's
+state-of-the-art CPU optimizations go a huge step 
+forward and it’s called Out-of-order execution.
+The basic idea is, not every instruction depends 
+on the previous one. For example this loop. We
+have a for-loop incrementing i, and it also 
+increments the global variable a. In the assembly
+code you can see it loads a into eax, adds 1 and 
+writes it back. And for the i loop variable it
+just executes memory add directly on the address.
+As you can see, the assembly code is sequential,
+first it increments a and then increments i. But 
+they are independent, the order doesn’t matter.
+Incrementing i first, and then a, 
+would have exactly the same result.
+And now think, what if the i variable was already 
+in the cache, but the global variable a was not.
+Now we would have to wait ages here, until this 
+code loaded the memory from RAM, even though
+the following code doesn’t really depend on it.
+So… why not execute the increment of i, as well
+as the compare and the conditional jump, while we 
+wait for the memory load from RAM. Stuff could go
+wrong when we do that. Maybe that code has a bug 
+or tries to access something it cannot access. OR,
+in this case we have a conditional jump. The 
+CPU might guess if it continues execution here
+or here. And that’s why it is called “speculative 
+execution”. The CPU just speculates a bit of the
+code that might run next, and start executing it 
+in parallel. And if that code had a bug and caused
+an error, or it predicted the jump wrong, it would 
+throw away anything it speculatively executed.
+And the program would run normal slow. But in 
+our example, everything was fine with that code,
+and so when that first instruction is finally done 
+loading the memory, we can bring the speculative
+results from the “shadow world” over into the real 
+world, and overall the code completed very fast.
+So by executing instructions out of order, 
+we could get a really really fast CPU.
+And this is exactly what modern Intel 
+CPUs do to achieve the speeds we want.
+So to summarize, we just learned about 
+two concepts. The first one was caching,
+so memory pages are loaded from RAM into CPU 
+caches when we access them in our code. And
+we can measure that. We can measure if a page 
+was loaded into the cache or not. By looking
+at how much time it takes to access these pages.
+And the second puzzle piece we need, is the idea
+of speculative execution, the fact that the CPU 
+might execute instructions in a different order.
+We can measure if a page was loaded into a cache.
+And the CPU might execute 
+instructions out of order.
+We can check if a page is loaded in the cache.
+And the CPU might speculate on some instructions.
+We can check if a page is present in the cache,
+And the CPU might have speculatively executed
+some bad code.
+Huh.
+What if we get the CPU to speculatively access 
+some data it shouldn’t be allowed to access.
+Of course it will throw away any execution 
+result, because you cannot access it,
+but by that time it might have loaded 
+something into the cache already.
+And we could measure? Is this a side-effect, 
+a side-channel, we could measure and exploit?
+Of course I’m not the first one with this 
+idea. Check this out. Anders Fogh wrote this
+blog post in july 2017. “Negative Result: 
+Reading Kernel Memory From User Mode”
+You are probably aware of the various CPU issues. 
+There were tons of news about them. But keep in
+mind, this is a blog post from BEFORE the 
+world learned about this new class of CPU
+vulnerabilities. It’s incredibly fascinating to 
+look back at this now. In this article Anders
+first introduces the different layers of CPU 
+caches, down to the RAM. And explains that
+“The latency of a data load in 
+the L1 cache is around 5 clock
+cycles whereas a load from main memory 
+is typically around 200 clock cycles.”
+After that he introduces 
+speculative execution. And even
+references a talk he gave at the 
+Ruhr University in Bochum in 2017,
+explaining a lot of details about the intel CPU. 
+The people sitting here probably didn’t realize
+that this is cutting-edge research that is 
+about to “explode” roughly a year later.
+And now we come to Anders attack 
+idea: “Abusing speculative execution”.
+Let’s say we have two moves, one tries to move 
+a kernel address and the other move tries to
+move a normal address. This one doesn’t work, 
+you cannot access kernel memory and this would
+throw an exception. But here is how Anders thinks 
+about it in terms of the out-of-order execution:
+“If there are no dependencies, both will execute 
+simultaneous. And while the second will never
+get it’s result committed to the registers 
+because it’ll be discarded when the firsts
+mov instruction causes an interrupt to be thrown. 
+However, the second instruction will still execute
+speculatively and it may change the [internal] 
+state of the CPU in a way that we can detect it.
+So he constructs this example here. Three 
+lines of assembly. You move, or load,
+a value from a kernel address, mask it 
+to only get one bit. And then access
+a memory page. To understand what is special 
+about this example, you have to imagine
+the two worlds, the real world and the shadow 
+world (or speculative world). In the real world
+you cannot access the kernel address. This code 
+will segfault. But before we know this sefaults,
+the CPU might execute that code in parallel 
+in the shadow world. It maybe loads that
+kernel value and uses that value to access some 
+memory. And this could maybe affect the cache?
+“If the last two instructions are 
+executed speculatively the address
+loaded differs depending on the 
+value loaded from the kerneladdress
+and thus the address loaded into the cache 
+may cause different cache lines to be loaded.”
+So even if this code segfaults in the real world,
+it might already be to late. And in the 
+speculative world this code was executed,
+loaded a value in the cache, and we can measure 
+it. And that was a really crazy idea Anders had,
+so he started experimenting with 
+that idea but ultimately it failed.
+“it seems likely [...] the illegal reading of 
+kernel mode memory, but do not copy the result
+into the reorder buffer. So at this point my 
+experiment is failed and thus the negative result.
+While I did set out to read kernel mode without 
+privileges and that produced a negative result,
+I do feel like I opened a Pandora’s box.”
+And ohh yes he did. He was so close! But since 
+then a lot has happened. Today we know about
+this new class of CPU vulnerabilities. 
+And in this video I want to highlight
+one particular research in more detail. And 
+that is RIDL. “RIDL: Rogue In-Flight Data Load”.
+So let me introduce you to Sebastian Österlund,
+Co-author of the RIDL paper who will tell 
+us the story of how RIDL was discovered.
+“I’m Sebastian Österlund, a phd student 
+at vusec in Amsterdam. And one of the
+co-author of the RIDL paper. My background 
+is operating system security, side channels,
+fuzzing, whatever. System security in essence.“
+Most of the time when people explain 
+vulnerabilities, and that is often the case with
+research papers, it only covers and explains 
+that particular vulnerability. And those are
+complex topics. So for an outsider like me, it 
+is really helpful to understand what was the path
+that lead to a discovery like this. What 
+were the building blocks to build this.
+And so I wanted to go back to the 
+beginning, how did all of this happen.
+“So I think this blog post by 
+anders voigt was one of the
+starting points really. It had negative results
+blog posts about speculative execution things. 
+And then other people started looking into it.”
+“And then there was another 
+paper by Giorgi. Is one of the
+co-authors on ridl. So he had like this negative 
+results paper called speculose. I think he was
+missing one small step why it 
+wasn’t working basically. “
+As you can see, the world was about 
+to discover this new class of issues.
+Thanks to people like Anders and Giorgi who shared 
+their research ideas and results, even though
+they “failed”. They had a feeling, there must 
+be more. And so sharing the negative results,
+the failed attempts, allowed other researchers 
+to build on top of that and ultimately discover
+MDS. This is textbook science. Collaboratively 
+the world started to figure this out.
+In the moment, not so amazing for intel 
+though. Oops. But it’s tough, how could
+hardware engineers predict something like this 
+years ago when they designed these CPUs. When
+it took this much scientific collaborations 
+of security researchers to figure this out.
+Anyway. Lots of challenges and new 
+developments ahead for intel now.
+But RIDL was not the first issue that was 
+published. if we look at the timeline, then
+at the point of the RIDL discovery, 
+there were already other known MDS
+issues. So the researchers like Sebastian had 
+already a much better understanding of the
+Intel CPU microarchitecture and were able to dig 
+deeper. For example one of the known weaknesses
+at the time was Foreshadow and Foreshadow NG. And 
+a colleague of Sebastian played around with that.
+“One of my colleagues stephan was actually 
+working on something. It was looking at foreshadow
+NG stuff and see how it interacts with like 
+this tagged TLB entries that are tagged by
+process identifiers. And see if you can 
+somehow circumvent that and leak stuff
+across processes. Because you have 
+these checks that go on in parallel
+while it is resolving virtual addresses 
+and there is like a race condition.
+No worries. I didn’t understand a 
+word either. But it doesn’t matter,
+because the only thing you should 
+take away from this is that,
+clearly Sebastian and his colleagues 
+know a lot more about CPUs now,
+and they had many new ideas to mess around 
+with. ideas for attacks they wanted to try out.
+And Stephan wrote a test program. It’s one out 
+of many they have written, you have to imagine,
+they always come up with weird ideas to test. And 
+this is the story of one of those weird ideas.
+“He had this program written to do it. And in the 
+end it had a bug. So it was creating two threads
+and they were going to have a shared page. So 
+they have the same virtual and physical address.
+But he mapped in the page after creating the 
+threads. So one process had like a null-pointer.
+And the other had valid memory. So we were leaking 
+this secret value that was only one thread. And we
+looked into that. Wait it is not even 
+using a valid virtual address. It is
+just deferencing a nullpointer. 
+How can this happen? It’s insane.”
+Sebastian is saying threads here, but I think 
+he speaks “Intel language”. He means processes.
+And you see that when you have a look at this 
+code. In the main function it calls fork(), so
+it creates a child process and a parent process. 
+So let’s see what the two processes do. The child,
+or victim process, is very simple. It simply 
+has a while loop that writes a secret value
+0x42 into this secret memory.
+And now we look at the parent. I hope
+this code looks familiar. Compare this to the 
+cache testing code from the start of the video.
+First we create a big buffer with 256 
+pages. We clear the buffer and then we
+flush the pages out of the cache.
+At the end we can see a loop going
+over the 256 pages measuring the 
+access time. Like in our cache test.
+The only difference is the magical part 
+in between. This is the RIDL attack! But
+they didn’t know it yet. They tried to 
+test something else but had a bug here.
+So the code here is loading a byte from the 
+secret variable, and uses the byte as an offset
+into the big buffer. So this will load one of 
+the 256 pages. So to figure out what the byte
+was we loaded, we can measure the access times. 
+The page with the shortest access time tells us
+what byte was loaded here.
+Here is the bug.
+Sebastian said they wanted to map the same 
+memory in the child and parent process.
+That’s why both processes access the secret. 
+The child writes to the secret, and the parent
+reads a byte from secret. BUT the memory is 
+only allocated in the child. In the parent,
+secret is still a null pointer.
+If we run this program in a debugger like GDB, we
+will get a SEGFAULT. we can see the register is 0, 
+so it tried to load a value from a null-pointer.
+But stephan didn’t notice that. BECAUSE of 
+this code at the start of the parent code.
+Here they setup a SEGFAULT handler. So 
+when the process receives a segfault,
+this handler code is executed, and this will 
+simply update the RIP, the instruction pointer.
+Basically this is skipping the exception. 
+Little “oops”, but continues the program.
+That’s why when you really run this program, the 
+parent process doesn’t crash. There are constantly
+segfaults happening here, but the handler 
+ignores them. So they didn’t notice their bug.
+So what is happening now? This code executes 
+100.000 loops. In each loop it flushes the
+buffer, and then tries to read a byte from a 
+null-pointer. This of course causes a segfault.
+In the REAL WORLD. But remember the shadow world, 
+the speculative execution world. The idea is that
+here the CPU executed this code speculatively. 
+And used some byte, loading some page into the
+cache. Of course eventually the CPU realizes it 
+cannot access the null-pointer, it will segfault,
+the segfault handler ignores that error and 
+recovers execution, but then we come here.
+We measure the cache access times of the pages. 
+And if access to a page took less than 80 cycles,
+it must have been in the cache. So we increment 
+a counter for that page and remember that.
+If we let it run for a while, and keep in 
+mind, in parallel the victim child process
+always keeps writing 0x42. This is the 
+result. Here we are printing how often
+certain pages appear to be in the cache.
+why the f’ was 42 loaded in the cache.
+They just discovered an unexpected 
+behavior, what they would soon call “RIDL”.
+So because of a coding bug, doing something 
+weird that shouldn’t be possible, reading a
+byte from a null-pointer, they leaked a value 
+from another process. They didn’t know why.
+It’s kind of a weird process with things like 
+this. You start with something that works,
+and then try to work back. 
+How does it actually work.
+Which I guess is very like 
+experimental science, I guess.
+I love it. It’s almost like physics in the 
+1700s. Where you make some weird observations
+and experiments at home and work your 
+way backwards to figure out the science.
+Then you can start reading these CPU architecture 
+manuals. And all of the sudden we saw the intel
+manual mentioning “line fill buffer”. It was just 
+mentioned one-off somewhere. And then you start
+looking in patents, to basically reverse engineer, 
+because this is not public information. Then
+stephan spent insane amount of time to create this 
+whole diagram for the skylake microarchitecture.
+So yeah, this graphics here, which looks so 
+“official”, is something they reverse engineered.
+They learned about line fill 
+buffers from the intel manual,
+but how this all works they had to piece 
+together the puzzle from reading Intel patents.
+So these line fill buffers are internal CPU 
+buffers. Like caches, they temporarily hold some
+data, and it’s used to improve memory performance. 
+And they realized that, accessing a non-existing
+address, caused a value from the line-fill-buffer 
+to be used during speculative execution. While
+code was executed out of order, it used this value 
+from the buffer, to load a page into the cache,
+and this is a side-effect that can be 
+meassured. To figure out what the byte was.
+This is the story of RIDL.
+Of course this is complex stuff and there 
+are a lot of details I brushed over.
+But I feel like I finally cracked the 
+secret of finding these CPU vulnerabilities.
+If you look at all of them, they 
+all kinda follow the same pattern.
+For example, let's compare RIDL and Foreshadow.
+1. Prepare a buffer with some pages 
+and flush them out of the cache.
+2. do something weird that is executed in the 
+shadow world, the speculative execution world,
+that might have the side-effect of loading 
+a specific page into the cache. And then
+3. measure the cache access times, 
+to figure out what value you leaked.
+Absolutely fascinating. You can really 
+see how this initial idea from the
+failed research blog post and paper 
+grew into really clever techniques.
+And of course this goes beyond intel CPUs. 
+The technical details might be different,
+but the same underlying ideas and techniques can
+be adapted to other CPUs and even 
+entirely different architectures!
+Thanks so much Sebastian and your colleagues 
+for sharing this story. I hope I was able to
+do it justice. And thanks again Intel for being 
+brave in sponsoring a video like this. It still
+blows my mind - Intel wants more people to 
+learn about vulnerabilities they had in their
+products. That is truly a forward-thinking 
+security strategy and shows confidence.
+So checkout Intel’s ProjectCircuit Breaker 
+over at projectcircuitbreaker.com. This is
+an effort by Intel to foster a community 
+of hackers and researchers around security
+research on Intel products. And this video is 
+part of it, so go checkout their site and keep
+an eye out for any of their upcoming events, 
+content and capture the flag competitions.

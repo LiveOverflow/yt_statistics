@@ -1,0 +1,501 @@
+When the CTF started we looked at the challenges
+and I already suspected, just because it’s
+in-style right now, that there could be an
+ethereum smart contract challenge.
+And there was!
+Acoraida Monica.
+So I didn’t even look at the rest and just
+decided to go for it.
+In the end I didn’t solve the challenge
+during the two days of CTF, so in this first
+video I want to tell you about my failed attempts,
+and the second part will be about the crazy
+solution.
+Acoraida Monica, weird name but there is a
+reason to it.
+The description says:
+“I exhausted all the words, couldn’t describe
+her beauty”, so many handsome charming men
+say that.
+That girl is Acoraida Monica.
+Her cute comes from her intelligence.
+She only admires who are smarter than her.
+So she designed this Q&A game and delegate
+someone to publish it on an Ethereum chain.
+Anyone who solves her pizzle could win 1 million
+Ether and … maybe her heart.
+Description:
+Web3 http provider to access the private chain
+(which uses geth) and the IP and port.
+Target contract has this address
+Player account address is this
+Query the source code for a specific contract
+can be done via this server, simply pass in
+the address of the contract
+The Goal is, drain the target contract, transfer
+ALL the Ether to your account, which means,
+The balance of the player account should become
+at least 1 million Ether, and the balance
+of the target smart contract should become
+0.
+If these two conditions are achieved, the
+admin account will send the flag inside a
+transaction coming from this address sent
+to your player address.
+We can download some files and they contain
+a genesis.json file, the player account private
+key and the target contract’s source code.
+And we must not scan the IPs and ports because
+that is not the challenge.
+Just to make this 100% clear, this is not
+1 million real ether, this is a private ethereum
+chain just for you.
+The gensis.json defines the Genesis Block
+of you private ethereum network.
+Every blockchain starts with the genesis block.
+In the downloaded files we can find this genesis
+block and it contains the chain Id, real ethereum
+has the chain id 1, and this is the current
+mining difficulty, so 0, and the first genesis
+block will also initialize several accounts
+with ether.
+19ba was our player address, so we already
+have a big number of ether, but this is of
+course in wei, so converted to ether it’s
+200 Ether.
+The other account 4927 is the admin account.
+And cf, I don’t know.
+The other file we get is the AcoraidaMonicaGame
+contract, which is deployed to address a9e6.
+But if you paid attention you might have noticed
+that in the challenge description we got another
+contract hinted at here, 5e35, which when
+we open the site in the browser reveals a
+Logger Agent contract.
+A big issue already was that I didn’t have
+geth and web3 installed to properly test and
+connect to the private network.
+And that alone cost over an hour.
+However in the meantime I did of course review
+the smart contract code.
+To do that I use remix, which is a very convenient
+IDE to test and develop smart contracts.
+When you add the game contract you can see
+that it expects exactly the solidity compiler
+version 0.4.25.
+So we have to select that compiler here.
+Each compiler is actually implemented in javascript
+so it simply downloads that .js file.
+Loading… and now the contract is compiled.
+Acoraida Monica admires smart guys, she'd
+like to pay 10000ETH to the one who could
+answer her question.
+Would it be you?
+A sample question “Who is Acoraida Monica?”
+and a sample answer with some weird characters
+“You beat me!”
+And here is a logger address defined, 5e35,
+which is actually the LoggerAgent contract
+we got earlier.
+So let’s add that as well.
+“Acoraida Monica is cute”, “So is her
+logger”.
+The first code you will see is the constructor
+and it already starts weird.
+This is inline assembly.
+Solidity is a programming language that is
+compiled to ethereum bytecode, so it can run
+on the ethereum virtual machine.
+Here I already knew: “oh crap this is going
+to be ugly”, especially because there is
+a jump, so this is redirecting code execution
+to somewhere else.
+I really didn’t like that and not sure how
+to appraoch this properly yet, so I kinda
+ignored it at first.
+Next we have a modifier, onlyHuman.
+Modifiers are snippets of code that can be
+reused by multiple functions and usually implement
+access control.
+So this snippet is supposed to ensure that
+the address that is calling a function like
+TheAnswerIs on this contract, is a human and
+NOT another contract.
+This check is implemented using a short inline
+assembly snippet using extcodesize, so it
+checks the size of the code of the sender
+address.
+So if another smart contract, which would
+have code, would return here a value larger
+than 0, it’s code has a size, so then it
+would not be allowed.
+A human, with just a regular ethereum wallet
+would not have code.
+However when I googled about that, just to
+be sure that’s correct, I found this stack
+overflow answer, basically implementing the
+reverse, is this address a contract.
+but the comment down here was interesting.
+“As far as I'm aware, this is the best method
+we have for checking whether an address is
+a contract right now.
+But anyone using this solution should also
+know that it's possible for a contract to
+return 0 from EXTCODESIZE if the function
+call was made from within that contracts constructor.
+This means that you can't blindly use EXCODESIZE
+to prevent other contracts from interacting
+with yours, it must be used with caution.”
+This was already a great hint.
+The contructor is very special and is not
+a regular function, we will learn more about
+it later, and so at this point in time the
+contract will be soon deployed, but is not
+yet, thus doesn’t have a codesize.
+Other than that we find three functions.
+Start, New Round and TheAnswerIs.
+So for Start() you can pass in a question
+and answer.
+But only if no answerHash has been set yet.
+Because it’s set in here this function can
+only be called once.
+The answer that is passed in is hashed with
+keccak256 or SHA3, and the current questioner
+is set to the address who called start.
+Next function NewRound can only be called
+by the current questioner, and has to pay
+at least half an ether with the function call.
+NewRound takes a new question but instead
+of a answer as string it takes an answer hash
+directly.
+And then simply sets the new question and
+answer.
+It will also call functions on the logger,
+which appears to trigger events, so people
+can get informed that AcoraidaMonica has submitted
+a new question and a new Answer.
+So Start and NewRound appears to be functions
+that monica or the admin would call.
+And we the user are probably meant to only
+interact by calling TheAnswerIs.
+This function is also payable and expects
+at least 1 ether to be sent there and it makes
+sure that the hash of the answer submitted,
+matches the currently stored hash.
+Which means the answer was correct.
+And in that case WE become the new questioner
+AND the balance, all the ether of this contract
+is transferred to the person who answer the
+question correct.
+And then the logger is called to create the
+event to inform people of the winner.
+Okay, appears simple right, we assume that
+the admin started the game with a question
+and answer, and if we can answer it, we will
+get all the ether of the contract.
+And of top of it there is a small issue because
+the Start method doesn’t take a hash but
+the actual string of the answer, which means
+the correct answer is publicly recorded on
+the blockchain and we should be able to get
+it out of the transaction.
+So the attack plan was clear.
+We try to look the transactions, extract the
+answer, then we submit the answer and we win
+the challenge.
+The problem was though, that the game server
+had issues and was often unavailable and down.
+So it was a bit annoying and difficult to
+play around with the challenge.
+But in the meantime we could locally test
+this with remix.
+So we can go to the run tab and use the Javascript
+VM which implements a ethereum virtual machine
+to debug the contract.
+Deploying requires a byte sequence as parameter
+for the constructor.
+But even if we enter one, the transaction
+execution will fails.
+It’s probably failing because of the ugly
+jump in the constructor.
+So for a first testing round I simply commented
+out the constructor code.
+Transaction mined and execution succeed.
+And now we have here a deployed AcoraidaMonica
+contract.
+And remix is super cool because it now exposes
+all the functions that we can use to interact
+with the cotnract.
+Simple getter functions like version, sampleQuestion,
+sampleAnswer and so forth is also executed
+as a function on the contract, as you can
+see here.
+And now we can also try to call start.
+"A Question?" and "an answer...".
+And now that we executed start, we can query
+the question again and now a question is set.
+Oh and important is the fallback() method.
+It’s defined here, and it’s just an empty.
+The fallback function is kind of like a default
+in a switch/case statement.
+It actually is but that goes already into
+the ethereum solidity internals.
+But basically if you try to call an unknown
+function on this contract, this will be executed
+instead.
+So we can use that to just send 10 ether to
+the contract.
+You can see now that our admin address has
+only 89 ether left.
+It had cost a bit to deploy and call those
+functions, and then 10 ether we just sent
+away.
+Now we pick another account and try to answer
+the question and see if we can transfer and
+win this ether.
+So we simply send 1 ether, and answer the
+previously set question.
+But the transaction failed.
+VM error: revert.
+It was not successful.
+But we can click on debug and then step through
+the code to figure out why.
+And it all looks good until we reach the logger
+call.
+And here it fails.
+Which makes sense because we did not deploy
+a logger contract.
+Especially not at this hardcoded address.
+And we can see in the bytecode execution that
+solidity compiled code to check the codesize
+of logger, and then checks if the return was
+zero.
+So because there is no contract, it’s zero
+and the execution is reverted.
+But of course with the real deployed contract
+on our private chain for the challenge this
+should just work.
+So that’s a possible attack we can try out,
+if we find out the answer.
+So maybe it’s time to look at the Logger.
+The logger address is hardcoded here, and
+the game contract also defines the function
+for the logger contract here.
+But don’t get fooled because we know from
+the address which we can use to get the souce
+code, that the target logger contract is actually
+the LoggerAgent.
+So how does it make sense that this game contract
+calls AcoraidaMonicaWantsToKeepALogOfTheWinner
+on a contract that doesn’t even define that
+function.
+The magic lies in the fallback function again.
+Like I just explained the fallback will be
+executed when you try to call a function that
+doesn’t exist on that contract.
+And in there we find a call to _delegateforward,
+which takes an address, which it gets from
+a call to implementation, and in there we
+find more assembly.
+Now this assembly is a bit easier to understand
+because there are no weird jumps, it’s just
+a delegate call.
+It’s a very typical smart contract pattern
+and it basically turns the loggeragent into
+a proxy contract.
+Essentially this delegatecall just forwards
+the function call that was received, to the
+address here.
+Implementation.
+Because you cannot change smart contract code
+once deployed this allows a developer to always
+change the address of the implementation and
+the proxy contract will always forward it
+there.
+So if sb wants to change the logger, just
+deploy a new logger, and then change the address
+via this upgrade function call.
+This means the loggerAgent, the proxy contract
+will always have the same address, but which
+code is actually executed can then be changed.
+And the actual logger that is called is just
+this here.
+It has some events.
+Let’s look at it a bit more closely.
+So the constructor is a bit more normal.
+It will simply set the owner to the address
+of the person who deploys it.
+And here is a modifier for access control
+again, which checks that the caller is the
+owner.
+So these functions to change the owner with
+setOwner or to upgrade the contract and set
+a new implementation address, can only be
+done by the owner.
+That looks safe.
+However the way how the storage is implemented
+here is super weird.
+It uses assembly storagestore and storageload
+to handle the owner and the contract address.
+The storage in ethereum is a simple key,value
+store.
+So here it loads a key, and here it stores
+a new value for a given key.
+And so I thought it was super suspicious that
+the owner and logger contract address was
+handled through that, instead of just letting
+solidity and the compiler manage that.
+So I thought that must be part of the solution.
+On top of that I stumbled over another weirdness
+by accident.
+When solidity compiles a contract for the
+ethereumVM you have to keep in mind that like
+any VM or CPU code execution starts at the
+program counter or instruction pointer 0.
+So there is no concept of a function, it’s
+just assembly bytecode being executed.
+So in order to have functions to call, the
+solidity compiler actually creates a big switch-case
+statement for all functions.
+This switch case statement actually works
+with function signatures.
+The signature is 4bytes taken from the keccak
+hash of the function including their parameters.
+And hashes are pretty unique and that would
+be fine, but solidity only uses 4 bytes of
+it.
+So there can be a collision.
+And it turns out that the logger function
+AcoraidaMonicaWantsToKeepALogOfTheWinner with
+the signature 0x0900f010
+Is exactly the same as the signature of the
+LoggerAgent’s update() function - 0x0900f010.
+This means, when the game contract tries to
+call AcoraidaMonicaWantsToKeepALogOfTheWinner,
+which is called on the LoggerAgent, instead
+of going into the fallback method, then to
+the delegatecall and thus forwarded to the
+actual logger, the upgrade function is executed.
+Because that function will have the matching
+signature.
+And this is not a coincidence.
+These collisions don’t really happen accidentally.
+The name Acoraida Monica is so weird, because
+the challenge author probably bruteforce names
+until this logger function had the same signature.
+This must be on purpose.
+Now in the meantime the challenge network
+was available again, so I wrote a small block
+and transaction logger in node using web3.
+So here I simply start by getting the first
+block of the blockchain and enumerate over
+the transactions attached to thos block.
+And dump the transaction itself and the result,
+the receipt.
+And then I recursively call getBlock, to get
+the next block.
+Now I now this code is ugly, because I don’t
+understand javascript and promises and asynchronous
+calls and stuff.
+So I know.
+You don’t have to tell me.
+But it worked for me in the moment.
+Here is the output that I got.
+The first transaction deployed the Logger
+Agent, you can see that, because in the receipt
+it has the known loggerAgent address.
+This input of the transaction is the code
+that deoploys the contract.
+The next one is the logger contract itself.
+Again we know that from the receipt that contains
+the deployed contract address, and we were
+able to use it to retrieve the code of it
+with the browser.
+The third call is another contract creation
+of the game contract.
+It had a huge input.
+But again, resulting contract address is the
+known game contract.
+Oh and in all these calls you can see that
+the FROM address is FROM the known admin account.
+And the TO address for contact deployments,
+so where the transaction is sent to, it is
+null.
+The next transaction was actually sent FROM
+the admin TO 5e35 which is the loggerAgent.
+So this is a contract function call and do
+you recognize these bytes in the input?
+This is the upgrade method.
+And the parameter for it is this address.
+And this address was what we just learned
+the regular Logger contract.
+So this is setting the implementation address
+for the logger, where it actually delegates
+the call to.
+The next transaction was weird.
+It was another contract creation because the
+to field was null.
+The resulting contract f71c was new to me.
+But we could also get this code via the browser
+API.
+So this a and b contract simply calls Start
+on the game contract.
+Super weird.
+And the next transaction is from the admin
+to the game contract, so another function
+call, using this function signature and when
+we just decode this hex to raw bytes we can
+see there are ascii strings in there.
+A question “In Madagascar, you cannot take
+a picture of a lemur with gray hair.
+Why?”
+“You need a camera instead of gray hair.”.
+So this looks like the question and answer
+that is used for the game contract.
+And the admin also sent along a lot of ether
+with this call.
+The value here.
+So this is the ether we are supposed to steal
+from the game contract.
+But any way, this means we should have everything
+to solve this challenge now, right?
+We simply call TheAnswerIs with this answer,
+and we should get the ether transferred to
+us, right?
+We can check if it worked by using the web3
+api with getBalance to check the ethereum
+balance of the contract and our own game account.
+Wrote a bit more code to do that, but when
+I tried it, something was weird.
+I didn’t get the ether.
+We just lost our 1 ether we had to sent for
+the game contract.
+Whuat?
+The code is clear here, we should get the
+money?
+Did I answer the question wrong?
+While this video is pretty short and sounds
+straightforward, this was roughly my state
+of knowledge after the first maybe 10-12 hours
+of concentrated work.
+So at this point the CTF area was closed for
+the day, and I didn’t have access to the
+private network anymore to work more with
+the web3 API.
+We were back in the hotel and continued working
+on challenges in one of our rooms.
+So over night and early next morning I kept
+chasing down possible other attacks regarding
+the function collision, the weird storage
+methods and if I could somehow confuse owner
+and implementation, and if the delegate call
+of the loggeragent could somehow be abused
+and so forth.
+A lot of different ideas.
+But I still kinds ignored the weird constructor.
+I was just scared or intimidated by it AND
+the rest was sooo fishy anyway, that I thought
+the solution would be somewhere else.
+But at some point I accepted.
+Sh*t…
+there is more to this challenge.

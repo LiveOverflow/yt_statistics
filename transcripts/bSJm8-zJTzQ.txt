@@ -1,0 +1,261 @@
+The Same-Origin Policy is one of the most 
+important aspects of web security. And
+there already exist many tutorials, articles and 
+examples about what the same origin policy is,
+but this is the LiveOverflow channel, and I 
+thought it would be interesting to look back
+at the origin. When was the concept introduced 
+and why? I believe understanding this backstory
+can really help you to understand modern 
+web security. So let’s boot Windows 95.
+Hach,
+wasn’t it awesome when you could 
+hit cancel on a password prompt
+and still access the computer? Amazing.
+Anyway. In the early 90s, the internet
+was very basic and easy to understand. There 
+were basically two components. A webserver
+and the browser. On your local computer you would 
+install the browser and given a URL, a Location,
+the browser will send an HTTP request 
+to the server requesting this resource.
+Then the server somewhere on the internet responds 
+with text, but not just any text. HTTP stands for
+HYPERTEXT transfer protocol. And this HYPERTEXT 
+can be for example an HTML document. Which is
+basically a textfile but it has this HTML code. 
+and the browser is a program that interprets this
+HTML code and renders a nice website interface for 
+you. But the real power came from being able to
+link these resources together with anchor tags. 
+You can have links to other documents and other
+websites. Clicking on such a link made your 
+browser change the location. Information was
+now truly inter-connected and easy to browse. 
+But this was just the beginning. Around 1994-95
+amazon appeared on the Internet. This was the time 
+when more and more real services appeared. Online
+banking. Online shops. Web mail. The technology 
+was advancing fast. On the browser client side,
+HTML gained more features, for example FORMs. 
+People could enter text into forms and submit
+the content to the server. And of course server 
+software advanced as well. And engineers had to
+come up with solutions to problems. For example 
+how could you store items in a shopping cart on
+the computer of a customer? So for example in 
+June 1994, developers of the Netscape browser,
+invented cookies. Of course cookies 
+had to be invented sometime.
+Here is how cookies were described:
+“As you browse the web, any cookies which 
+servers might send to your copy of Netscape
+are stored in your computer's memory. When you 
+quit out of Netscape, any cookies that haven't
+expired are written to a cookie file so they 
+can be reloaded next time you run Netscape.”
+and “Netscape Navigator does not send any 
+cookies to any web server they're not for.”
+Here for example I have an old version of 
+Netscape and I created a simple login page
+with cookies. And as you can see it works, 
+we can login as an admin. Amazing technology.
+Okay… I hope I haven’t lost you so 
+far, because now it gets interesting.
+Here are the release notes of the 
+first beta version of Netscape 2.0.
+“LiveScript is currently implemented only
+on Windows. Other platforms 
+will be supported in Beta 2.”
+Unfortunately the link to this LiveScript 
+documentation seems lost. But shortly after,
+looking at the release page of beta 
+version 2, we can read the following:
+“Built-in JavaScript:” LiveScript 
+was now called Javascript.
+“Netscape Navigator now includes a built-in 
+scripting language, called JavaScript.
+JavaScript is developed based on the JAVA 
+language, which extends and enhances the
+capability of HTML documents. JavaScript supports 
+most of JAVA's expression syntax and basic control
+flow constructs, but without JAVA's strong 
+type checking and static typing. JavaScript is
+embedded in HTML documents with a SCRIPT tag, and 
+there is no compilation needed to run the script.
+JavaScript Documentation is now available.“
+And here is the documentation. With a 
+nice table comparing JavaScript and Java.
+As we know today, this changed everything. The web 
+now has event handlers, can react on clicks and
+mouse overs. You can define objects or work with 
+time and dates, you can also access forms and
+text inputs from the user. all in the browser 
+directly. JavaScript made websites dynamic.
+So here I’m using Netscape 2.0, released September 
+1995 with the first support of JavaScript.
+Now, websites back then made heavy use 
+of frames. They are the predecessor to
+today's iframes. And in the JavaScript 
+docs you can see for example the HTML
+code for a frameset with two columns. And 
+each frame references a different URL.
+This is how you can implement a navigation 
+bar and the content of a page. Here for
+example the elvis presley site. As you can see, 
+frames are really integrated in the browser.
+Look how the frames are really part of the window 
+interface. And you can resize them as well.
+And of course, look at the documentation, 
+JavaScript can also interact with frames.
+So let me show you some code here. Here 
+is a frameset with two different websites.
+As you can see, they are different 
+domains. One domain is the login
+page I showed you briefly before. And 
+the other frame is an attacker page.
+Let me load this URL now in Netscape, and 
+have a look at that. These two are different
+websites. But the attacker website knows 
+the username, password and session cookie
+from the login site. If we look at the attacker 
+website we can find the responsible javascript.
+After a brief timeout, to give the other site 
+enough time to load we call stealPassword. And
+steal password simply follows the frame hierarchy. 
+It goes to the top frame, then accesses frame 2,
+the window object, goes to the 
+document, from there it gets the first
+form of the document and extracts the username 
+and password value from the text input element.
+And of course it can also access document.cookie. 
+The resulting text is then placed into the text
+area debug output here. Theoretically we could 
+send this information now to the attacker.
+Wow. From today's perspective, 
+this is absolutely insane.
+Just visit a malicious website, and using frames 
+it could load for example your banking website,
+and steal your cookies, passwords 
+or even perform transactions.
+But to defend these developers a bit, 
+this is an absolutely novel attack vector.
+Keep in mind at this time, something like 
+cross-site scripting didn’t exist yet. They
+just invented javascript. Hackers just started 
+to realize the power of JavaScript. But also
+it didn’t take them long to realize the issue.
+A few months later they released Netscape 2.02
+with a fix. Let me just install the updated 
+version to show you. By the way, how old are
+you all, did you ever install software on Windows 
+95 yourself? Is this a throwback for you? Or do
+you see this for the first time. Let me know 
+in the comments. Anyway… here is Netscape 2.02
+and so let's open the attack website again. But 
+we get an error. Forms cannot be indexed as an
+array. This error means we cannot access 
+the forms of the other website anymore.
+Even removing this error line and trying to 
+access the cookie of the other site it fails.
+Let’s have a brief look at the release notes, the 
+Security updates in 2.02. Relating to JavaScript :
+“Due to an implementation problem in Netscape 
+Navigator 2.0, a privacy concern existed because
+it was possible for a server script to access the 
+listing of local file names and directories on the
+user's machine. [...] Navigator 2.02 fixes 
+this problem by refusing to allow a script
+from a server to view file names and directory 
+listings from the local user's machine.”
+Oh! Okay so that makes sense. A browser can also 
+browse the local filesystem. What a cool feature.
+So Instead of framing another website, we could 
+also frame a local folder. Here the C: drive.
+And look at the javascript code, we simply 
+access all links on the page and extract it.
+I guess THIS is what they actually realized is 
+an issue. This might have been the FIRST ever
+javascript related vulnerability. This is history.
+So this sentence now makes sense: “it was possible
+for a server script to access the listing of local 
+file names and directories on the user's machine”
+So as you can see, the problem of accessing 
+data from other websites isn’t explicitly
+mentioned here, the concern was: “access to local 
+files and folder names”. And they are not clear
+“how” they fixed this. Because you can of 
+course still list all files. So somehow
+they made it so the other script cannot 
+access the frame with the filenames anymore.
+But how they addressed it becomes a bit 
+clearer in the release notes of Netscape
+3 : “Navigator version 2.02 and later 
+automatically prevents scripts on one
+server from accessing properties of 
+documents on a different server.”
+So here Netscape just invented the same origin 
+policy. Javascript running on one origin,
+or “server” cannot access 
+the data of another server.
+Today we know the impact of this decision. All 
+these client-side vulnerabilities like Cross site
+request forgery, XSS, clickjacking, all that stuff 
+is related to this core security principle of the
+same origin policy. However at the time in 1995 it 
+wasn’t obvious that it would be such a big deal.
+Because this was the time where hackers had 
+much more powerful vulnerabilities at hand.
+Look at this even my test script is causing 
+netscape to crash with a segfault. And when
+I load the framed site first, and 
+then open the attack site directly,
+it still somehow can access the data of the 
+other frame, even though it’s not there anymore.
+And refreshing the page, we crash again. 
+Probably a use-after free issue or something.
+And JavaApplets were also a thing. Which 
+allowed for direct arbitrary code execution
+when visiting a website. Here is a bugtrack 
+mail from 1996. “Yet Another Java security bug”
+“There is another serious security bug in 
+the class loading code for all currently
+available Java browsers: Netscape up 
+to and including versions 2.02 [...]”
+“Using this bug, an attacker can bypass
+all of Java's security restrictions. This 
+includes executing native code on the client,
+with the same permissions as the user of the 
+browser. No preconditions are necessary other than
+viewing the attacker's web page, and the process
+can be made completely invisible to the victim.“
+As you can see, this “lame” attack of listing 
+some local files. Or even accessing the session
+of another site. It was taken seriously 
+and they agreed this is a security or
+privacy issue and fixed it, but the world was 
+fighting with a lot worse stuff at the time.
+But still. all the work done around this time 
+would influence web security up until today.
+Let’s shutdown Windows 95 until next time.
+I hope you found this interesting, because
+in a future video we are going to explore how 
+all of this evolved into what we know today as
+“cross-site scripting” attacks. So make sure to 
+subscribe if you want to learn more about it.
+And of course, thanks to my patreons and 
+youtube members for supporting these kind
+of videos. It takes a lot of time to 
+research and dig into these topics.
+You know I’m not just presenting an article or 
+a wikipedia page. I spend a lot of time reading
+mailing lists and web archives and trying to 
+connect the dots. So thanks for your support.
+And huge shout out to the web archive. If 
+you don’t want to support me on patreon or
+youtube membership no worries, but please 
+consider donating to the web archive.
+To me it’s so incredible how much internet history 
+was preserved thanks to them. We need to make sure
+this resource exists long into the future.
+It’s now safe to turn off your computer.

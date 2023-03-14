@@ -1,0 +1,389 @@
+In this video I want to show you a really
+really interesting Cross-site scripting vulnerability
+in google docs. This was reported to Google
+in May by the bug bounty hunter Nikolay and
+was rewarded $4133.70. Nikolay found this
+issue during the time he received a Google
+VRP grant, which is Google paying money for
+his work, even if he finds nothing. But if
+he finds something, like this issue, he gets
+the bounty too. And in this video we will
+not only look at the bug to see how it works,
+but hear from Nikolay how he found it AND
+I even got a chance to talk to Google engineers
+to learn their side of the story “why did
+this vulnerability exist in the first place?”.
+I think this is awesome and this is only possible
+thanks to Google sponsoring this video.
+Okay, let’s start with the bug report from
+Nikolay and click on his proof of concept
+URL.
+On this website we can see an iframe embedding
+a google spreadsheet, and just a short moment
+later, we see an alert popup showing the affected
+origin “docs.google.com”.
+So let’s have a look at the reproduction
+steps. How can we do the XSS ourselves. First
+we have to create a spreadsheet and add some
+data to be used by an annotation chart. And
+then add that chart. When you make changes
+to this chart and look at the requests sent
+by google docs, you can find a POST request
+to SAVE the settings of this chart referenced
+by this CHART_ID. And there is this big JSON
+blob which also contains options for this
+chart. Nikolay now wants us to modify this
+request and inject the following range option,
+which specifies a ui.type and set it to hlc.
+We forward the request, and the first important
+step is done. This is very weird, why do we
+do that? We will get to that in just a moment
+but first let’s follow the remaining steps.
+Next we have to share the spreadsheet, get
+the URL of it and create a malicious website
+that iframes this document. And then add code
+to our website, to execute a postMessage call
+to this iframe, specifying a URL that points
+to a javascript with an alert(). okay? If
+you don’t know what postMessage does,
+“it enables cross-origin communication between
+Window objects; e.g., [..] between a page
+and an iframe embedded within it.”
+Because of the historical issues of javascript
+accessing other websites, and the introduction
+of the same origin policy, there exists now
+the postMessage API that allows you to exchange
+messages with other websites. But those websites
+then also need a postMessage listener to react
+to it. This way you can have safe communication
+between different sites. But apparently the
+postMessage handler from google docs is dangerous,
+because it takes a link to some javascript,
+and executes it. This malicious website can
+simply ask Google docs to execute any script!
+That is insane?! But obviously google docs
+doesn’t do this by default, that would be
+very bad. And that’s where the super confusing
+ui.type set to hlc comes into play. Check
+this out, it gets crazy.
+If you look into the waffle-js-prod-code javascript
+sources and search for hlc, you can find an
+hlc() function, which indeed adds an on message
+event listener, where it takes a URL parameter,
+and simply creates a script element, with
+this URL as the source and then appends the
+script to the document body, which will trigger
+the execution of this script.
+Okay, well, this still makes no sense, because:
+yes, we have a function that does register
+this dangerous postMessage handler, but how
+is this hlc() function even executed?
+And this goes into what gviz, the graph visualization
+library from google spreadsheet, does with
+the ui.type option.
+Deep inside the library there is a function
+which handles this ui.type option. It gets
+the specified ui.type “hlc” as a string
+and looks for an actual existing function,
+object, variable, or whatever, and when it
+is found it calls new on it. So it expects
+the ui.type option to specify a name of a
+constructor for some kind of ui.type class.
+But Nikolay realized that you can make it
+instantiate arbitrary other objects, and he
+found this hlc() function, which gets executed
+when used here as a constructor. WHAT?!
+So to summarise: by specifying “hlc” as
+a ui.type in the options, Nikolay can force
+google docs to execute this hlc() function,
+which registers a postmessage handler that
+takes any url and creates a script tag of
+it. When then embedding the spreadsheet into
+his own website, it allows him to inject an
+arbitrary script into google docs. Leading
+to this Cross-Site Scripting issue. WOW!
+Okay. so how the XSS is executed is clear
+now. But now I have even more questions.
+How did Nikolay find this ui.type option and
+that it gets executed as an arbitrary constructor?
+How did he find the weird hlc() function?
+Why does this hlc() function even exist, what
+is the legit use of this?
+So many questions… And I’m glad I could
+talk to Nikolay and Googlers to answer them.
+So let’s meet the legend - Nikolay.
+Findings like this one here rarely come out
+of the blue. This is clearly a very involved
+exploit and there is probably prior experience
+and history to this. So let’s hear about
+Nikolay’s previous work.
+“I started to test the gviz library, so
+google visualization API, and I just take
+care of all the points of integration within
+like google systems. Spreadsheet, former fusion
+tables, data studio, public data explorer,
+they also use this gviz. And I reported actually
+a lot of bugs in terms of library itself and
+some bugs were also related to integration.
+So library itself doesn’t contain it, but
+taking into account the way integration is
+made, it’s possible to exploit as an XSS.
+Also all the issues were XSS only.”
+This is very important. He knows that gviz
+is a javascript library used across many google
+products to draw all kinds of charts, and
+so he is somewhat specialized on that. He
+also noted that there are generally two classes
+of issues he finds. Issues directly in the
+library itself, which could affect all uses
+of it. And there are issues of, what he calls,
+“integration”, where the library is maybe
+used in an insecure way.
+Also all of the issues are XSS issues, but
+that’s no surprise, gviz is a frontend drawing
+library. What else would it be…
+Anyway. Let’s have a small detour and look
+at a different, but related XSS issue that
+Nikolay found in the past. On some site that
+used gviz, he found a way to set arbitrary
+chartTypes in the config. Then when I had
+a call with Google Security engineers, they
+showed me this ChartWrapper example. Which
+only now during making of this video I realize,
+is exactly what Nikolay was talking about.
+Here is the chartType. And you can see that
+the chartType is a string. The googlers then
+told me that gviz internally calls the google
+closure library function getObjectByName.
+So this resolves the string to an actual class
+or object. In this case the ColumnChart class,
+so that it can then be instantiated. Notice
+the similarities to ui.type of this new XSS?
+We saw that the ui.type as a string “hlc”
+was also resolved to an object and then instantiated
+with new. Turns out, handling the ui.type
+and handling the chartType, results in the
+same code path. Back then he realized, if
+he can control the chartType string, he can
+pass an arbitrary object path and it will
+be resolved and executed.
+Some people call this a javascript gadget.
+This is not directly XSS but it’s a gadget
+that allows you to basically call some other
+existing function. So now you have to think,
+can I execute something that gives me even
+more power. And he found a very interesting
+function called “drawFromUrl()”
+“So if this method is called, the javascript
+uses the json parameter from the address bar
+from GET parameter. And it is used as a JSON
+array for a ChartWrapper. So if I call this
+method, I can provide the GET parameter JSON
+and say chartType is table, data source URL
+is that stuff, view, whatever.”
+So being able to set an arbitrary chartType
+and pointing it at this weird drawFromUrl()
+function, which will eventually execute, allows
+him to create a NEW CHART, with options he
+fully controls, based on a GET parameter.
+And now I’m not sure, but I think you can
+just select options that basically create
+a chart with some HTML rendered parts and
+trigger a XSS through that.
+This has a lot of similarities with this XSS
+issue right? But this happened in the past.
+And this obviously was fixed.
+“I reported this issue. This issue was accepted,
+so I get the bounty, then this issue was fixed.
+I reported one more issue how to get rid of
+this fix, it was fixed again. And the last
+fix that was applied, that there is only a
+whitelist of allowed chartTypes or names that
+can be supplied as a value of chartType parameter.
+That fix was applied, as far as I remember,
+let’s say two years ago, 1 ½ year ago.
+But recently, before I found this bug we are
+talking about, due to some reason I don’t
+know, maybe there were no regression testing
+or some piece of old code was merged with
+the new branch, I don’t know this. I noticed
+that, currently now, it is allowed one more
+time. It was allowed in the past, to provide
+any string you want. There were no checks
+and whitelist, for this case, the option ui.type”
+So he found that old XSS via the ChartType.
+It got fixed. A whitelist was introduced.
+And this is where we come back to our current
+XSS, triggered by the ui.type. Because this
+whitelist got removed. So of course I wanted
+to know from the Google Engineers, WHY? What
+happened?
+They jokingly told me that the SECURITY TEAM
+was actually responsible for this. This was
+not a regular engineer. The original whitelist
+fix was tied to a safeMode flag that you can
+set for your chart. When turned on it sanitizes
+any HTML rendering and also restricts the
+calling of arbitrary other constructors through
+for example chartType. But then recently a
+google security engineer came in and wanted
+to restructure this code by moving this flag
+away from the local setting PER CHART, and
+have it be a global setting for when the library
+is loaded. Basically have a legacy and safe
+mode for the entire library. And the googler
+admitted that he forgot to wire this new global
+flag to all the same places where the local
+flag was used. Causing this issue to regress
+and resurface.
+Okay, so the blurry picture about this bug
+slowly clears up. But there are still remaining
+questions. When I first got to read this bug
+report I was wondering where the ui.type even
+comes from. Inserting this into the options
+seems sooo arbitrary. And you can’t simply
+read the source code, because gviz is not
+open source. You can use it, and it has a
+lot of documentation on how to create charts,
+but the ui.type is mentioned nowhere. And
+the library is compiled, minified and thus
+kinda obfuscated and difficult to read. So
+you might be burning to hear how Nikolay found
+this ui.type option in the first place. And
+this is where he went back in time again and
+explained to me how he found the other issue
+with the chartType because it led to the ui.type.
+“I found it just by looking at the deobfuscated
+source code and looking at the places when
+like chartType is getted from somewhere and
+injected to somewhere. I found a lot of such
+places. Let’s say 20, 30. And go step by
+step, doing like this reverse engineering
+and checking from what place? Can I influence
+it, or is it hardcoded or is it getted from
+something? And that was the reason actually
+I found this ui.type. It’s not documented.”
+So he actually simply used tools like jsbeautifier,
+or what I learned from a googler jsnice, to
+read through the compiled code and kinda reverse
+engineer it. And that’s how he learned about
+the internals.
+“Ui.type is actually undocumented option
+of control behaviours. So if you are creating
+a control, basically they have nothing to
+do with annotationChart itself. Because you
+can just provide chartType or controlType
+as a real control. I mean, rangeSelector or
+NumberRangeFilter or StringFilter or so, just
+the documented controls from the visualization
+library. And if you are providing this ui.type
+option it is overriding the controlType.”
+That is just incredible to me. The dedication
+and perseverance after many years of already
+looking into this library and STILL finding
+new XSS issues. Huge respect.
+So. It’s clear now how he found the undocumented
+ui.type option. He analyzed the code path
+of the controlType option and found that there
+is the undocumented ui.type that can overwrite
+it. And we know what it leads to: gviz simply
+gets the object based on the provided name
+and interprets it as a constructor calling
+new on it. Nikolay also told me he reported
+this once before, but then used the old code-reuse
+technique with drawFromUrl(). Which was then
+fixed by removing this gadget function. But
+that’s not a proper rootcause fix. That
+just removes one of the usable gadgets. So
+logical progression is now to ask, WHAT OTHER
+FUNCTION CAN I CALL?! Here is what nikolay
+said about that:
+“Initially, I mean 3-4 years ago when I
+found the drawFromUrl XSS, I just looked at
+all methods within google.visualization. Not
+looking at other stuff. And that issue with
+drawFromUrl was found using this approach.
+After it was fixed I just started thinking
+about what can I call else. If I do not have
+the drawFromUrl method, what can I do?”
+And yes, then you just start by going through
+ALL the available functions, one by one, and
+look if they are useful to you. And eventually
+you come across this hlc() function that registers
+a postMessage that you can abuse to inject
+an arbitrary script. Amazing!
+I think now I understand Nikolay's side of
+this bug. It’s clear to me how he found
+it, how he approached it and how he thought
+about it. But I also had the chance to talk
+to Google. And so I wanted to know, why the
+heck does this function even exist?! And it
+turns out, it’s the fault of Security Engineers
+AGAIN!
+Let’s look where hlc is used. It’s actually
+NEVER CALLED. It’s only used once, here,
+where it is embedded as a string. This dlc()
+function creates an iframe, a sandboxed iframe
+only allowing scripts to be executed, where
+it embeds this function. This might look weird,
+but this is actually a security mitigation.
+This is a so called JSONP sandbox. JSONP is
+this horrible design idea to make cross origin
+exchanges work. Basically instead of returning
+simply JSON, which with default same-origin-policy
+couldn’t be read by another website, an
+API endpoint can wrap the data into a function
+call. Then when the other website wants this
+data, it simply creates a function of that
+name, embeds this as a javascript, which is
+then executed and passes the data to you.
+So not only is JSONP used to get around the
+browser same origin policy in a hacky way,
+because you can often control the function
+name, thus able to place arbitrary javascript
+in here, it can be used as a CSP bypass or
+even many websites create XSS issues through
+that. So google doesn't want to execute these
+jsonp scripts on the main page for security
+reasons. And instead creates a sandboxed iframe
+where they register an event handler, which
+they can use to send over the possibly dangerous
+JSONP endpoint, it gets executed, and the
+iframe can respond back with the data. If
+something evil happened in this iframe, it
+doesn’t affect the site around it. It’s
+a very clever security mitigation. Unfortunately
+it also created a gadget function which Nikolay
+could re-use with his first gadget, the arbitrary
+object creation. Resulting in XSS.
+So google fixed gviz by using a proper whitelist
+again and also added an origin check for the
+postMessages in this gadget function, so it
+can’t be abused in this way anymore.
+Awesome.
+Before we wrap up this video, I also asked
+Nikolay about his background because I think
+it’s always interesting where people are
+coming from. Does he have a lot of developer
+experience, because he can work through compiled
+javascript code so well. But...
+“I do not have like real developer background.
+So I never was a developer. I have basic understanding
+of Javascript language, understanding of arrays,
+methods. But I am not a developer so I do
+not have very huge domain expertise in development
+itself. A lot of time ago I was a Quality
+Assurance engineer. Then manager of software
+development. But I never was a developer.
+Quality Assurance, interesting. Especially
+when you look at his company, This is QA!
+On here he also writes “Our audits are powered
+by people, not by automated tools.”. And
+I think this XSS is the perfect example, because,
+NO automated SCANNER TOOL would have EVER
+found this. No chance. It’s so complex and
+intertwined that you need a human like Nikolay
+to review that.
+What an amazing XSS. And what I love especially
+about it, is, that it’s all the Google Security
+Team’s fault.

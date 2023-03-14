@@ -1,0 +1,331 @@
+Let’s not waste much time, this is part
+3 of the key verification reverse engineering
+from Pwn Adventure 3.
+And so if you want to know more about how
+we got here, you should watch the previous
+videos.
+Our input is now in this 15 byte buffer, so
+let’s have a look what happens here.
+This obfuscated function here is very prominent.
+CjPQTPNW.
+It also appears to take 3 parameters.
+A constant, maybe a length again, the buffer
+with our input, but then also an unknown address.
+We know it’s an address or pointer that
+is passed to the function because of lea,
+load effective address.
+So let’s check out that function.
+Oh, this is very similar to the memset we
+reverse engineered in the last video.
+But there are a few more lines here.
+We have here a very obvious for-loop again,
+because the loop variable is initialised here
+with 0, then we have the condition here with
+smaller than the value coming from here and
+down here is the increment. +1.
+And the value that is compared in the condition
+is coming from here, so edx and that was our
+constant passed as a parameter.
+So yeah, that is a length.
+Our buffer was rsi, and the unknown new buffer
+was rdi.
+And inside the loop we see the address of
+our buffer being loaded and then a byte loaded
+from an offset based on the loop iterator.
+Then we load the new buffer address and write
+the byte to it.
+And the rest was the for-loop increment.
+So, what well known function is implemented
+here?
+This is obviously memcpy!
+Cool, so our input buffer is simply copied
+here.
+So this function performs several memcpys.
+disassemblers offer various features for you
+to make the assembler code slowly understandable.
+I’m sure you know of IDAs Hex Ray’s decompiler
+for example.
+Which is totally awesome and super helpful,
+but that doesn’t exist for every architecture
+and doesn’t produce great code everytime
+so it’s good to practice with just having
+the assembler.
+You can always go to more advanced tools later,
+but if you only use those, then you won’t
+really get a good feeling for low level stuff.
+Also these tools are super expensive while
+something like Hopper or Binary Ninja are
+pretty affordable or even radare which is
+free.
+So of course disassembler have the feature
+to add comments.
+You can press semicolon do add one and we
+can basically write here pseudo code of what
+we just learned.
+Binary Ninja also has another pretty cool
+analysis feature and that is the intermediate
+language.
+It has severl different views for those in
+the options and some of those produce pseudo
+like code on various levels of analysis.
+So let’s look at some.
+So this is Low Level IL.
+You can see that instead of assembler instructions
+you get these assignments instead which is
+maybe nicer for you to read.
+Here you can also see if only bytes or whole
+dwords are used.
+Then there is Medium IL.
+This even has a few more analusis and understands
+parameters for the functions here.
+It figured out that it takes 3.
+And it also created some default variables
+based on the registers used in assembler and
+also adds some types.
+Let’s work with that, that is pretty close
+to what we did in python last time.
+So let’s start by going through the code
+and renaming some stuff.
+We can also give it types.
+We know the size of the buffers from the length
+of the memcpy, which is 12.
+Oh 12 characters?
+This is interesting, because we know that
+our buffer is actually 15 bytes long, so it
+only copies the first 12 bytes.
+This function takes a lot of parameters.
+Mh…
+But what does this next construct mean here.
+We don’t know what var_7c is or var_7d.
+Let’s go back to the assembler view and
+try to understand this.
+We can open the built in console in Binary
+Ninja to do a quick calculation.
+0x74 - 0x5f to see how far away those buffers
+are.
+But 21 is larger than the buffer, so this
+is not pointing inside of this buffer.
+And the other new buffer we know here is 0x80,
+so 0x80 - 0x74 that’s 12.
+this address seems to be it’s own new buffer
+address.
+But this one here 0x75 points at the last
+character of this new 12 byte buffer.
+It takes that char, and it with 3, so it only
+keeps the lower two bits and moves it back
+into the 12th last character.
+If we look at the medium IL view again we
+also understand this now.
+Here the last character is taken and directly
+anded with 3.
+And here it is moved back.
+Ok now we have here a second memcpy.
+This time only 4 bytes are copied.
+But what are these two buffers, I mean the
+one is the destination and thus empty, but
+the other one is the source and should have
+content.
+Mhmh…
+Again medium IL is not very helpful here.
+So let’s go back to assembler.
+So rsi and rdi are typically used for source
+and destination, so this buffer is the destination.
+And the source here is coming from this add.
+And rsi before was our input buffer.
+It adds 0xb so 11 to it and this is the source.
+So here it copies the last 4 bytes from our
+buffer.
+Offset 11, 12, 13 and 14.
+Rsi and rdi are again just used by memcpy
+and it copies 4 bytes.
+But before the memcpy the 4 bytes are loaded
+in eax, shifted by two to the right, and moved
+back.
+And then it’s loaded again xored with 0x2badcode
+and moved back.
+And then we do the memcpy so we copy that
+result into the destination buffer.
+Next we load the address of where this string
+PWNADV3 is stored into rsi.
+So it’s again the source of a memcpy.
+Here the destination is loaded which is the
+new buffer that contains the xored result
+from before.
+But then adds 4 to it so we move the index
+after the xored bytes from before and then
+we copy the 7 new bytes after it.
+Cool.
+Now it’s getting interesting.
+We load a lot of constants now.
+So this seems to be a single null-byte.
+But then afterwards are all consectutive bytes.
+So this is initialising a buffer.
+5,6,7,8,9,a,b,c,d,e,f,a0
+12 bytes.
+And these three also belong together.
+These bytes look fairly random, so I call
+this buffer random_buffer for now and down
+here I call it 101.
+And then we call SJnUAhG.
+Another obfuscated function.
+If we switch to medium IL again we see how
+many parameters it takes.
+That looks like a serious function.
+And based on the variables we named before
+we can also se now which parameters are passed
+to it.
+It takes 4 constants, an empty new buffer
+and our buffer that is filled with data from
+our input.
+So I assume the final result will be written
+there.
+Before we look more into it, let’s quickly
+peak ahead.
+So right afterwards is another for-loop.
+We are looping for 0xc, so 12.
+Which means we loop over 11 bytes which would
+match with the sizes of buffers we handled
+before.
+In the loop it then loads a byte from the
+buffer that we used before as well as the
+empty buffer we assumed will have the final
+result
+Ok, we take a byte from each of them and compare
+them.
+If they are correct, we stay in the loop,
+but if it was wrong, we set the key_correct
+return value to 0 and break out.
+Ok so that’s basically a memory compare,
+it just compares these two buffers.
+This is the final check if we pass the key
+verification or not.
+This means the actual magic is happening in
+this obfuscated function SJLnUAhG.
+Let’s have a look at it!
+Okay, this looks fairly simple on first sight.
+Not that many blocks.
+And a simple loop.
+We see another memset and memcpy but also
+a new unnamed function.
+So how does this look like?
+Oh damn, this looks pretty similar.
+More memset and memcpy and another loop.
+But this time with two unknown new functions.
+pCsLWByS and pzsMuHFR.
+So let’s look into the first one.
+Okay, this looks like a simple loop again.
+Very similar to memcpy or memcmp just quite
+a bit more instructions inside the loop.
+And the other function has a bit more going
+on.
+But also not that much.
+OH, but there is another unknown function
+hidden, but this one is also pretty short
+again.
+Another loop.
+Okay phew…
+All together it’s quite a bit of code.
+And to be honest with you, I spent quite some
+time trying to understand it but I just didn’t
+get it.
+I couldn’t figure out what this algorithm
+does after several hours of staring at it.
+The cool thing is we also have the same code
+compiled for Mac, Windows and Linux.
+So you can actually look at any of those to
+see if maybe the compiled result is easier
+to understand on another system.
+But I have to admin.
+I got weak.
+I knew that there are writeups out there and
+I got so frustrated and felt really stuck,
+so I’m sorry.
+I had to look it up.
+So here is the writeup from 0xebfe.
+He writes: “This task is a standard keygenme.
+Solving it would get you 500 points, which
+is a bit high for the difficulty.”
+WHUUAAT???
+Too high?
+I’m so stuck, why is he saying that it is
+much easier.
+Let’s continue reading.
+“This routine takes entered DLC key as argument
+and return 1 if passes all checks.”.
+The checks are:
+The length has to be 25 chars,
+The alphabet is this, and there is a checksum
+charcater.
+So cool, we figured that out too.
+He also shows a cool compaison between the
+standard base32 algorithm and the custom one
+used here.
+You can see how the bits are mapped.
+“Afterwards a function woth obfuscated sumbol
+name decrypts the custom Base32-decoded bytes.
+“The function takes two big numbers.
+0x10001 and 0x3c9921… and so forth, as arguments
+and decrypts the buffer.
+It is obviously a RSA decryption routine.
+N module is 90 bits only so it can be factored
+in seconds.”
+WAIT WHAT!?
+Obviously RSA?
+How is that obvious?
+This is exactly the information I was looking
+for.
+There is one tiny detail though that I f’ed
+up.
+Remember that I named this buffer 101?
+But the constant isactually 0x10001.
+And that constant is very common with RSA.
+If you have ever looked at an SSL key it’s
+very likely that you have seen it.
+I know that this is a typical public exponent.
+And so the only explanation I could tell myself
+why it is obviously RSA is, that you can assume
+this when you see the constant 0x10001.
+But I was an idiot, I mistook it as 101, so
+maybe that’s why I didn’t get it.
+But even then I feel like it’s kind of a
+lucky guess or based on other experience.
+So I wrote 0xebfe on twitter and asked him.
+And he confirmed that.
+“The 0x10001 (65537 in decimal) is used
+often as public key exponent.
+It is almost standard e value.
+“When I see 0x10001 one can assume it’s
+RSA scheme because this value is used so often.”
+I kind of agree with that.
+Cryptographic algorithms often rely on well
+known constants.
+For example MD5 has some initialize buffer
+values that are very obvious and recognizable.
+So when you see these you can assume there
+is MD5.
+He also then added that “In addition to
+that you can try to factor N module.
+If it has 2 prime factor - it is probably
+RSA”.
+And so this big constant would obviously be
+N and we can extract those bytes, assemble
+the large number, use python to covnert it
+to decimal and submit it to factordb.
+That website has a huge database of numbers
+and it can tell you if a factorization is
+known for one.
+And yes, here is are the prime factors for
+N. Essentially now you know the RSA private
+key, that’s why you should have much larger
+keys.
+But yeah.
+Theoretically we can now implement a keygen,
+but I’m not satisfied.
+I know the RSA algorithm.
+I know the math involved and if I had realized
+that there was exponentiation or modulo exponentiation
+implemented here in assembler, I would have
+probably realized that it’s RSA.
+So we need another video where we dig into
+this RSA implementation.
+I owe myself that.

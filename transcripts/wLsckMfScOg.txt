@@ -1,0 +1,597 @@
+welcome to a video write-up of the
+readme Ponyville challenge from the 32
+c3 CTF just as a like full disclosure I
+didn't solve the challenge myself during
+the CTF but I spend a lot of time on it
+and in the end I worked through
+write-ups from other people and now I
+researched a lot and now I really fully
+understand this how it worked and
+understand so much more about like how a
+binary slowed it into memory and how
+everything looks like so that was very
+cool experience for me
+and so now I want to give you this kind
+of different write-up not in written
+form but in video so maybe that helps
+somebody else to also see like how you
+can how to use certain tools to achieve
+those things so let's get started first
+thing I do is I copy the link so I can
+download it later and what I use for
+debugging is vagrant vagrant is a
+virtual VM wrapper around VirtualBox so
+there's a way current file that
+specifies how the virtual machine should
+look like and then we couldn't setup
+that sets up it with tools and
+everything my VM is based on a VM that
+is from github I have the address here
+but I extended it a lot change change to
+a little bit around it so now I'm just
+starting up DBM and then I can connect
+to it with vagrant SSH especially
+because I use Mac so it's very important
+for me to have easy accessible VMs
+especially with Linux stuff available
+there's also this shared folder which is
+automatically shared between the Mac and
+DVM so whatever is put into the shared
+folder I can access on both and now I
+use double you get to download the the
+link that I earlier copied and unpack it
+and yeah that's the readme file and
+first thing I obviously do is I do file
+on the Whitney
+to see that it's an elf 64-bit Ubuntu
+what am I saying
+leonov's executable and again as I said
+I this is not a live recording of me
+solving it for a first time I knew the
+solution and I recorded myself and now
+give commentary to it
+well here here I did strings on the
+binary to have a first look and I found
+this 30 to c3 fake flag in there which
+obviously looks interesting so we
+probably have to get the flag from the
+real binary so then I decide to open it
+in either but I'm stupid because I
+actually have a real Idol license but
+only at a standard and either standard
+doesn't support 64-bit fail so then I
+use hopper which is a great fairly
+low-cost disassembler which is actually
+worth buying
+and I immediately look for the strings
+because I mean those give us like the
+points in the application where the
+interesting stuff is happening and
+there's this fake flag which is in the
+data set which you can find any data
+section and the other strings are like
+near the code stuff in the read-only
+data area so the flag is in the data
+section because that's also writable
+this in the and those strings are in the
+read-only data section well and then I
+realized maybe I should quickly try out
+how how actually the source has to be
+interacted with and it asks you for a
+name and will print the name and then it
+asks you to overwrite the flag and it's
+always a good idea to just maybe throw a
+lot of characters at it and see if
+something interesting happens but well
+yeah doesn't doesn't look like anything
+is happening there then I open binary
+ninja because I recently got beeped at
+her access and I thought now let's check
+it out let's see how it's looking but
+then I got confused because it didn't
+show me the function that Hopper was
+able to find and for a second I was a
+little bit startled what to do next and
+that's why it's good to never trust like
+one tool and why it's good to
+use different tools because some tools
+will fail other tools will work or will
+be more convenient so in this case for
+example I use hopper to find the address
+and then I can jump to this address in
+in binary ninja but it didn't recognize
+it as a function but I think it was come
+on P basically like in in Idaho or
+hopper I can specify that I want this
+this data here interpreted as a
+procedure and so now it also created a
+call graph for it and here's the initial
+hello string and you can also see the
+printf that is following right below it
+and then there's a gets call and gets is
+a very awful function you should check
+the main page as this funny bucks
+section here that says never use gets
+because you know it's just awful and
+that is clearly the vulnerability that
+we have in our program which means we
+can basically overwrite the whole stack
+and then it prints the nice to meet you
+with the percentage s and then I
+realized oh it showed back the whatever
+we type in I should have also checked
+obviously if there's a format string so
+just here show again that there's no
+form string vulnerability obviously here
+but you know that's maybe a good thing
+that you should usually do check if
+there's phone ringing exploit well yeah
+and then now I start to have a little
+bit look at the call graph and we follow
+like the arrows and where it precedes
+and after the gets it will go to get
+character and then it will check if that
+character was a new line basically if
+you hit Enter
+if you didn't hit enter so if you
+entered any other character and then
+this by it
+the value of the current character will
+be moved at this address and that is the
+address of the flag so and and that is
+after the override new flag
+string that gets printed so we are
+literally like move the the characters
+that we then enter then written at the
+location of the flag and RBX is like the
+offset like which character we are
+overriding next and with every character
+that we write it gets incremented by one
+and will then compare to hex 20 which is
+32 and then it will branch either way so
+it will either back loop back up or will
+like exit and print the thank you
+message so RBX or you know in that
+register there's a counter how many
+characters we have already overwritten
+so but if we hit enter we will land in
+this left branch where it will set up
+the parameters for a memset call with x
+or y SI es i-20 and edx is calculated
+from subtracting eb x + eb x was the
+amount of numbers we have already
+written and edx was set to hex 20 there
+at the start means that the length which
+is hopper nicely showing the parameters
+need ET x ec length parameter it's now
+basically the difference like the
+remaining characters that we haven't all
+written yet and we mem said we'll set it
+to 0 so it looks pretty solid it will
+clearly overwrite the flag at that
+position and he also notice here that
+our IX is like loaded from and this
+other FS register and then it gets moved
+on onto the stack and that is a
+secondary so FS contains a random value
+and that in the beginning of the
+function it gets moved onto the stack
+and if we like smash smash a stack and
+overwrite this random value it will be
+read at the end again from this deck and
+compared to the original value in the FS
+register and if that and if that XOR
+doesn't produce a 0 so it means that it
+was equal
+we will you know you know return or we
+will jump to a stack check fail yeah and
+then I open it in gdb and you know I
+think about where I break and there is
+no main function so I decide to break
+before they gets because that will show
+us the state of the stack before we all
+write anything and the second breakpoint
+I will set is right before or we decide
+if the state canary was smashed or not
+so we can then have like a break point
+at the state before we have the overflow
+and after we have the overflow so now we
+start and that looks super pretty
+this is in deep gdb extension called
+Pony bugger pond DVD G and it like it's
+pretty cool like the colors are
+indicating if in what like section it is
+for example red addresses refer to code
+sections so that's pretty useful and it
+also shows you for example the
+parameters of the gets call and stuff so
+it's very useful yeah now I'm just like
+playing around putting some input in and
+in here for example we hit the
+breakpoint that this dictionary check
+and era X has the value that is was read
+from the from the stack and now it's
+compared to the FS register and yeah
+that's the random value which is
+interesting that it always has zero in
+it because it's interesting that it has
+you're in it because if imagine you
+would be able to guess this dead canary
+you could do in a successful overflow
+like if you leak the cannery somehow but
+the issue will be that often overflows
+are string related and strings end at
+zero at a null byte so even if you have
+a successful exploit and you know the
+secondary maybe this forced zero byte in
+the stack and
+I will stop you from actually exploiting
+it because you cannot set a zero bite in
+the middle of a string so it's just a
+very clever way how to how they design
+this Decca nari yeah now I returned and
+maybe remember like the address where we
+returned to it after the program because
+we will now look on the stack and we
+will see this return address on the
+stack and because we started again the
+secondary here has now obviously
+different values but again with the zero
+byte in case we have like a string copy
+based buffer overflow even though we may
+be know the random value we would be
+stopped there because we cannot insert
+the zero byte and again the return value
+here the 6e seven is like two below the
+secondary there so that is the address
+that the this function returns to so if
+we could overwrite that we could
+obviously you redirect code execution
+somewhere else but these dead canary is
+preventing us from doing that because if
+we enter like a lot of characters and we
+have a look at the stack everything is
+overwritten but you can also see that
+now the RI X register that earlier like
+read give read the secondary from the
+stack was also written with ace now so
+yeah obviously that is not a valid
+secondary and we will follow into this
+deck check fail function instead of
+returning so even though we have all
+written the instruction pointer now we
+will instead of return we will now
+execute stack check fail which will then
+exit and yeah
+notice how this cost now a segmentation
+fault here and so the the reason a
+binary can crash can be many reasons in
+this case it was a segmentation fault
+and if you look at like the code where
+crashed there in the code output it was
+in the get environment
+indicate environment functions so it had
+something to do with the environment
+variables white crashed and try to load
+a value and like try to access for one
+for one for one which was not a valid
+address so now now let's have a little
+bit of a look at the flag and see like
+flag gets all written and you can
+clearly see that that it gets all
+written with whatever we enter we can
+also set a breakpoint at the address
+where we where this single character
+overrides a black character and then we
+can always continue and inspect the flag
+to see how it slowly gets all written
+but with the characters that we have
+input earlier yeah and you can see that
+the flag address always gets overwritten
+may be interesting to try as what
+happens with an empty string and then
+it's all zeros because the memset will
+then set 32 characters to 0 so yeah it
+looks solid I that seems to be no way
+around it
+but if we search for 32 C 3 in memory
+weirdly we find another occurrence of
+this flag even though we have all
+written it and if we restarted in search
+we obviously find both locations and
+that's very interesting and I didn't
+know about this before but it makes
+sense you can check this through the
+proc pseudo file system so what I'm
+doing now is I get the process ID of the
+current process and then I accessed the
+proc memory map entry for that process
+and it shows us where memory is mapped
+to and it show and this tells us that
+the binary is actually mapped at two
+different locations one time it's mapped
+as read/write and the other time it's
+mapped as read and execute so our code
+was had always liked the addresses of
+the code start with field for 0 so this
+is where the binary is mapped as
+executable but the the address where we
+write to basically the the flag is at 6
+0 so that is in the writable segment so
+now I'm playing around a little bit more
+with the crashes so that many characters
+called as caused the segmentation fault
+and I couldn't try not to cause a kind
+of different conditions because as I
+said the binary might crash out of
+different reasons for example the sec
+fault now is likely a different reason
+than the seg fault before that's because
+for example if we write all the way to
+the bottom of the stack and then try to
+write further we try to write in
+that doesn't exist and then we this will
+cause a segfault because it's unmet
+memory but that is a different reason
+for this egg fault then what we had
+earlier where it's egg faulted it in the
+get environment call because it probably
+tried to follow certain addresses on
+this deck which we have all written with
+A's which again is non map memory but
+those are different reasons why crashes
+so yeah you see on this deck there a lot
+of those seven ffff addresses and those
+are pointers to other values on the
+stack yeah so if we were override one of
+these then that's the reason why they
+get environment call crashed so now I'm
+just getting like the amount of AIDS I
+need to like fill basically the this
+deck and again this will smash
+everything all the pointers on this deck
+and if we now continue we will see that
+it we again get a sec fault yeah and a
+sec fault again is in is in get
+environment right now if you even look
+closely you see that it also has to do
+with the check stack check fails so
+somehow stack check failed wanted to
+look up get environment variables and if
+you look very closely right at the top
+you see something with Lipsy fatal STD
+arrow
+so maybe the stack check failed try to
+get the environment variable loopsy
+standard error thing which gets
+important soon but keep that in mind so
+those pointers here on this deck are
+actually pointers to strings and they
+are the are the program arguments and
+the environment variables now start the
+program with four arguments so now the
+array is has five elements and those are
+all pointers to strings and are pointing
+to the program arguments that were
+supplied and the first one is obviously
+pointing to
+with the program name like the first
+argument is always the name of the
+program and with info variables are B we
+can also find this Lipsy variable that
+contains this this this address and if
+we interpret this as a string like the
+first address there as a string we will
+see it's a program name now let's make a
+little bit shorter overflow and now we
+get this text matching detected so this
+is actually what's printed from the
+stack canary
+fail and you can see that it prints the
+program name and now you can guess where
+it takes the program name from and if
+you go one element further off the RV
+array you obviously can access the other
+the other arguments of the program okay
+so basically I do the same input now in
+gdb as well and then I want to change
+the argument the first argument pointer
+so basically changing the name of the
+program and I do this by just simply
+setting the first address to the address
+lack of the second argument so then
+instead of pointing to the real program
+name its and pointing to a aaaa and you
+can do this with set okay now we can
+verify that the first array entry
+actually changed and it's instead of
+pointing to the program name it's not
+pointing to AAA and when we now continue
+and get the seeker board same the stack
+smash fail you see that instead of
+printing the program name it prints a a
+so maybe it clicks now and maybe you
+have now the idea how maybe this
+challenge can be exploited so let's have
+a look again on the stack like where
+this pointer pointer was we want
+obviously to overwrite this pointer with
+the address of
+the flag because then we can lead the D
+flag through this arrow right make sense
+right so with Python we can then
+calculate this offset how much we have
+to fill and overwrite and then we can
+like write the address of the flag and
+in the correct position so I tested here
+and I realized I am short by 8
+characters and I didn't override the
+program name yet and I realized I used
+the wrong address so I have to adversely
+call calculate E at the offset from 0 8
+then the next 8 bytes will be the
+pointer to the to the first argument and
+if we run this now we can inspect a step
+and we can see that now we have those
+reasons Easter and when we continue we
+get a segmentation fault and then when
+you look closely again so that was
+actually an extra and a a new different
+set for the different place it seg fault
+since trace STL then so that's what I
+mean like a crash is not just a crash
+you know this program can crash in so
+many different places and only one
+particular crash place is interesting
+and important to us which is this proper
+sick abort with a stack smash detection
+so we can leak the flag now I decide to
+convert this to a script because I want
+to use structs to properly convert the
+address into a string so yeah we can
+build a nice exploit so at this position
+now I use struck to convert the address
+so now I search again for the 32z so if
+like to get the address of it so I can
+set the proper address for the argument
+so now I'm getting eager to
+try that out but first fail is I stored
+in the wrong folder and I was so eager
+to try it that I fail to realize that I
+made a mistake yeah looks about right
+seems to work I use the arrow
+redirection to get the input to gdb but
+it didn't work we didn't get the desired
+output well I was stupid
+I forgot the new line obviously we may
+have to hit Enter
+so and then we also have to override the
+flag with a value ah so but I guess no
+will it work fail again what did I do
+wrong now looks correct but again forgot
+the second new line now we run it we
+continue we check out the first argument
+which was successfully overwritten and
+we can dereference the pointer and
+interpreted as a string to see that it's
+not pointing to the flag and if we
+continue we get these successful sticker
+board and the stack smashing detected
+message with the flag that is pretty
+cool huh we test this with a regular
+program also works amazing now I guess
+sounds soft let's get the the IP again
+from the challenge throw it against it
+but it doesn't work now we solve the
+first part of the challenge we have a
+way how we can leak the flag from the
+process but it doesn't work with yet
+with the remote challenge to simulate
+this I decide to install so kit really
+quick to show you what it's basically
+happening never really use so cat head
+to Google how to use it but yeah so so
+cat is running now and basically I can
+connect now to a local port and it will
+execute the readme binary and I can
+interact with it like with the with the
+real like the real challenge so I can
+enter the stuff and yeah seems to work
+well I put a loop around it so I
+don't have to start it by hand all the
+time and I had asleep one because I had
+some bad experience with scripts there
+were an endless loop that when rope in I
+couldn't like stop them anymore okay
+let's use our proof-of-concept exploit
+and throw it against it well it didn't
+appear at Winnetka but it did appearance
+on the server side that is where the
+second part of this challenge like
+starts how can we leak this message over
+the network because this gets printed to
+the console and not to stand on error or
+stand out for that matter and like
+earlier I mentioned that there was a
+gate environment crash on Lipsy fatal
+standard error and if you look that up
+that is an environment variable that
+will redirect this error message on to
+standard error and you know you can make
+the assumption that maybe the server
+will redirect the standard error output
+to you and you can make like a small
+test here I have just like redirected to
+standard error to death null so anything
+that gets printed to standard error
+would be removed and when we execute it
+just regularly it will still show the
+stack detect message but if we use this
+environment variable it will disappear
+because now it will be redirected to
+death not so it shows that this
+environment variable is actually
+affecting where this this text meshing
+detected message will be printed so
+basically we have to somehow change the
+environment variables of our program I
+mentioned earlier that they are also
+stored on the on the stack and you can
+get the address from the environ
+variable and this is like the program
+arguments they are also in the stack
+they they also have this error here with
+all the different and
+and variables so if you can like oh
+right like one of those addresses then
+with pointing with an address that is
+pointing to this new environment
+variable that you want to have then yeah
+this program like has this environment
+variable then so basically we can do the
+same thing we override the first address
+of the environment pointer first we have
+to like overflow eight more characters
+but then the next eight byte will be the
+address of the first entry of the
+environment array and you know there you
+can very clever way what you can use
+here is the address of the flag that you
+overwrite because that is a fixed memory
+location that you control and instead of
+overriding at first gibberish you can
+overwrite it with the with the
+environment variable Lipsy faithful
+standard error you can verify that and
+see that now the environment is pointing
+to this variable that you know control
+first I realized I did another mistake
+it somehow didn't work and I realized I
+forgot again screwed up the new line
+okay now I can try it again we can
+inspect the stack and the environment
+variable indeed the environment variable
+now points to or the first entry in the
+environment array points to the lip see
+fatal standard error variable so this
+looks like it works so let's just throw
+it against the server and yeah there we
+have the address we successfully
+exploited this and we leak the stack
+smashing detect error message over the
+network thank you very much for watching
+this was a first attempt of creating
+like a video of write-up of a CTF
+challenge that I very much enjoyed I
+would be very happy to get like feedback
+and not only on like
+the techniques that I used and what I
+could do better but also like on the
+video format because this is kind of an
+experiment how to hopefully maybe make
+those more exciting for people to watch
+and that it maybe looks more interesting
+or engaging so if you have anything to
+say about it
+I will be very happy to hear about it
+thank you very much

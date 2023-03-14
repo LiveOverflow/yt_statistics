@@ -1,0 +1,328 @@
+Docker is a very prominent container solution.
+It’s widely used in software development
+and deployment, because essentially you can
+create a whole systems and easily run it anywhere
+that supports such a container.
+You can somewhat imagine containers like a
+VM, at least from the point of view of a regular
+user, but in reality it’s very much NOT
+a VM.
+The differences are very technical, but I
+want to ignore that for now.
+Though if you know me, of course we will look
+at the important differences between a VM
+and a container too, just not now.
+But let’s first checkout, how docker containers
+are very useful for CTFs, and why they are
+awesome for IT security work in general.
+At the Real World CTF in 2018, there was this
+challenge flaglab.
+I made a video about that and you can find
+the link below.
+The challenge gave us a file to download,
+which turned out to be a docker-compose.yaml
+config file.
+This config file basically described the setup
+of a linux machine with a specific gitlab
+version, and we were able to simply use the
+command “docker-compose up” to run it
+locally.
+I didn’t have to compile anything, I didn’t
+have to install any dependencies for gitlab.
+I didn’t have to make sure nothing else
+interferes with it, I simply just had to use
+“docker-compose up”.
+And then I had magically a local gitlab instance
+running, ready for me to test with.
+This is awesome for CTF players, because we
+can focus on searching for the vulnerability,
+instead of dealing with setups.
+And also when you made an exploit that works
+locally, it should easily work on the actual
+challenge server, because the organizers likely
+used the same docker-compose config to run
+the challenge.
+This is obviously also awesome for bug bounty
+hunters looking for bugs in gitlab, because
+they quickly get a easy local setup to test
+with.
+It’s just easy and comfortable.
+But besides running and hosting challenges
+with docker, you can also use docker to setup
+your CTF play environment.
+I played CTFs with various different setups
+in the past:
+Either directly on my Mac or Linux laptop.
+Renting a linux machine and ssh into it
+Setting up a Linux VM
+Or also using vagrant to manage VMs from the
+command line easily
+However over the past 1-2 years I’m using
+docker more often.
+Basically I’m using docker on my Mac or
+on a rented linux machine to quickly setup
+tools.
+You basically use docker like a linux server
+where you ssh into.
+You have a shell and tools installed.
+So no graphical user interface.
+It’s used for running command-line tools
+and execute scripts that you write during
+the CTF.
+So now that you got a quick introduction how
+it can be used, let’s set it up and do some
+examples.
+Setup is actually super easy, but it’s different
+on Windows, Linux or Mac.
+It’s important to understand that Docker,
+uses features by the Linux kernel called “namespaces”
+to create something what we call “container”.
+So docker runs on Linux.
+Which means when you use Docker on Windows
+or Mac, infact you are running a hidden Linux
+VM, and docker is then using that.
+But the Docker Desktop tools for Mac and Windows
+make that easy and it mostly should just work.
+Getting it on your own Linux laptop should
+also be easy, or you rent a linux server from
+for example Digital Ocean.
+Let’s shill for a moment.
+With my referral link here you should even
+get 100$ credit.
+I use digitalocean all the time because I’m
+lazy to setup a VM.
+Also because it’s a server you get a public
+IP and that can be very useful for CTFs or
+other stuff too.
+AWS, azure or google cloud works great too.
+I just happend to use digital ocean
+Anyway.
+To install docker just follow these steps
+here in the docker help.
+Copy and paste those commands.
+I don’t need to show and explain how to
+do CTRL+C and CTRL+V. You can figure that
+out.
+But besides docker itself you might want to
+install docker-compose too.
+There are steps describing how to do that
+in the docker docs as well.
+To summarize.
+Docker gives you command line tools to start
+and configure individual containers.
+Docker-compose uses docker to give you some
+commands to launch multiple containers describing
+a whole setup with multiple systems.
+So let’s do an example.
+When you go to my Github you can find a pwn_docker_example.
+It serves basically as an example how a pwnable
+CTF challenge could look like in a CTF.
+Feel free to grab it and try to develop an
+exploit for it!
+If you solve it, tell me about it!
+So clone that repository and have a look at
+the challenge folder.
+You can find a Dockerfile, that’s the regular
+docker config file.
+A test flag, the system_health_check c source
+code, as well as the compiled challenge binary,
+and ynetd.
+That’s a small tool to create a simple server
+that runs the ctf binary when somebody connects
+to the port via netcat.
+Anyway.
+With docker build . you can build the docker
+container as described in the Dockerfile.
+I also use -t to give this container a name.
+I call it like the name of the challenge.
+Let’s have a quick look at the dockerfile.
+You can see it is based on an Ubuntu version
+19.10 image.
+So that’s the base image that is used.
+There is a whole docker repository with all
+the images you can imagine.
+Ubuntu is one such repository.
+Then we specify the commands that should be
+run within the container.
+We want apt-get update, add a ctf user, set
+the workdir to that user’s home folder,
+copy the challenge binary, the test flag and
+the ynetd server into the container.
+So copy from local system into the current
+working directory of the container.
+Change permissions of the home folder.
+Switch to the ctf user.
+And then execute the command, ynetd to start
+the server on port 1024, and the server should
+execute the binary.
+And when you type the build command, you can
+exactly see that happen.
+And this now built a docker image.
+An image of a container we could start any
+time.
+With docker images you can see all the images
+you have localy available, and here is ours.
+Now we can run that image with docker run.
+I’m using here -d, to run it in detached
+mode, so the container simply runs in the
+background,
+I use -p to map a port from within the container,
+to a port on my host machine.
+Very important if you want to run any kind
+of server in the container.
+rm - to automatically remove the container
+when we exit the container.
+And -it… which is keep stdin open and allocate
+a tty.
+Now that I think about this, that’s actually
+useless in this case.
+I guess it’s just habit that I do that.
+It’s important when you execute just a command-line
+tool and you want to use it like a shell.
+anyway.
+There we go.
+It’s running now.
+With docker PS you can see the container running
+here.
+It shows the command we executed - ynetd.
+As well as the port we mapped from inside
+the container to our host machine.
+And now we can simply use netcat on our host,
+to connect to localhost on port 1024.
+Because we mapped the port from inside the
+container to our machine.
+And now you have the challenge running locally
+for testing and you could develop your exploit
+for it.
+Awesome easy setup and deployment.
+Now the other side.
+Now let’s use docker as a CTF player environment.
+I have also linked you an example shitty Dockerfile
+I’m using.
+It’s not thought out.
+It’s not meant to be the most awesome environment
+for CTF.
+It’s just me using it and sometimes adding
+new tools to it.
+I actually encourage you to start your own
+file and add whatever you need when you need
+it.
+But feel free to just use it too.
+This one we can also put into a folder and
+build an image from it.
+I call it “ctf” and tag it with “ubuntu19.10”.
+That’s just the name I give it, because
+that’s what it’s based on.
+And you can see I’m just installing here
+various kinds of tools that you might need.
+It can take quite a while in this case, but
+eventually you can start this image with docker
+run.
+I’m doing this again detached.
+Remove the container when done.
+But very important is -v. It’s mounting
+volumes, so storage or folders from our host
+system into the container.
+You can see that I’m using the shell variable
+PWD, which is the current working directory.
+Which means my challenge folder here, will
+be accessible inside the container in /pwd.
+You see why that is useful soon.
+Then we are adding the ptrace capability,
+as well as disabling seccomp.
+Both are important Linux features to restrict
+processes.
+So we basically disable security features.
+But we need that if we want to use gdb for
+debugging programs.
+PTRACE is the syscall in Linux to debug another
+process.
+So gdb needs that.
+And seccomb would prevent gdb from disabling
+ASLR during debugging.
+Which is also very useful.
+So you are disabling some security settings,
+but I mean in this context it doesn’t matter.
+Who cares.
+It’s running now.
+So with docker ps we can see this container
+running here.
+And now… magic.
+We can use docker exec to execute a process
+within this container.
+We want to execute /bin/bash, because that
+gives us a shell.
+And this is the container ID where we want
+to run this in.
+And now you can see here the -it, which is
+actually important now.
+Because now we want to have this interactive
+keyboard input shell.
+It looks and feels like you just sshed into
+a server.
+But obviously you haven’t you are just now
+running /bin/bash in that container.
+Anyway.
+When you go to /pwd, you can now see the files
+from the challenge folder.
+I will call this container now the CTF container.
+And the previous container we started with
+the challenge I will call “challenge container”.
+And both of them run on my host system.
+just so there is no confusion.
+Remember that on the challenge container,
+we exposed the port 1024 to our host system?
+Which means when we get the IP of our host
+system, in this case it’s on my local network
+192.168.112.129, we can use netcat from within
+our ctf container to connect to that port
+too!
+So now we can run or develop our exploit within
+the ctf container.
+On a linux setup this might not make too much
+sense, but on a Mac setup, this is an easy
+way for me to get a linux environment to run
+stuff.
+So now I could create a python script in that
+challenge folder, and use for example pwntools,
+the awesome python module, to connect to the
+challenge server and read the response.
+And then I can execute that within my container.
+Opening connection.
+And there is the response.
+I think this is really awesome, because I
+didn’t have to install or fiddle with the
+pwntools dependencies or setups at all, because
+everything was nicely setup already in the
+container.
+Because this is now linux, I also have no
+issues to run the binary as a process in the
+ctf container too.
+Even use gdb.
+So let’s debug quickly this binary, because
+it asks for a password.
+This is a basic example challenge, the password
+is also in the source, I’m just showing
+off the process a bit.
+Anyway.
+Here is the string compare and so that seems
+to be the secret password.
+Going back to my host machine continue developing
+the exploit script.
+Adding the sendline to send the password.
+And also change the code from the remote target,
+to the local process target.
+So we developed that code on the host machine
+in our IDE, and can then go to our ctf container
+shell and execute it.
+Now instead of connecting to the remote service
+we run the binary locally as a process.
+I mean, whatever.
+This is not a python pwntools tutorial.
+You get the point it’s convenient.
+Next video will be about how docker containers
+actually work.
+And if you want to have a small sneak peak,
+rewatch this video and replace everytime when
+I say the word “container” with the word
+“namespace”.

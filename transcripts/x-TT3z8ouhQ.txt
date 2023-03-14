@@ -1,0 +1,327 @@
+Let’s have a look at the third flare-on
+challenge.
+FLEGGO.
+When you are finished with your media interviews
+and talk show appearances after that crushing
+victory at the Minesweeper Championship, I
+have another task for you.
+Nothing too serious, as you'll see, this one
+is child's play.
+Let’s download the FLEGGO 7zip, unpack it
+and inside we find a FLEGGO zip, which contains
+dozens of binaries…
+urgh… this looks time intensive.
+There are so many binaries but we have to
+start somewhere.
+So let’s load one into IDA.
+Unlike previous challenge, this is clearly
+a regular compiled PE binary.
+Typically, especially when you don’t have
+a lot of experience yet, you have no clue
+where start.
+There are quite a few functions and you have
+to start somehow.
+So one idea you can try is to look for functions
+that were recognized here, or in case of windows
+especially look for imports.
+So this binary imports these function.
+And quite a few here could provide an interesting
+starting point.
+Immediately the is debugger present function
+pops out to me, so maybe that’s something
+we have to circumvent.
+But also opening, reading and writing files
+could be super helpful.
+It’s likely that xrefs, cross references
+where these functions are being used, are
+implementing something meaningful.
+Another strategy is to look for strings referenced
+in the assembly.
+But looking here into the strings doesn’t
+look promising.
+Nothing really special.
+Though the problem here is that the freeware
+of IDA is a bit crappy with analysis, the
+proper Pro version would have totally done
+that for you, but in this case we have to
+specify the string type by hand.
+You see in linux binaries a string is typically
+just bytes and then null-terminated.
+On windows on the other hand it’s often
+16bits and so a string is always based on
+a character, null-byte, character, null-byte,character,
+null-byte and so forth.
+So you see if you would look for linux c strings,
+you would not find them.
+But in the IDA preferences we can select how
+we want to look for strings.
+And in this case C 16bits will work for us.
+Now we find meaningful strings.
+As you know IDA is not the only tool and I
+often use Binary Ninja.
+But also there the regular version as of making
+this video wouldn’t recognise it outright,
+though I was told that the current development
+build, which you can switch to in the preferences,
+handles it.
+So downloading that and then checking the
+strings we also find them here.
+So this is also a great way to find meaningful
+starting locations when reversing.
+Now if we look closer at what we found here,
+we can see that we are asked for a password.
+And in the function where that string is used,
+you can see here the address of it loaded
+and then calling this sub, which is probably
+printf.
+And then it’s followed by this format string
+%s.
+And if we peek into this sub, follow it a
+bit we reach some scanf.
+So this is just some weird windows wrappings
+around a scanaf implementation.
+So here we read a string.
+Then down here we see that a decision is made
+if you pass or not, and so the function right
+before must check the password input.
+And right at the start inside that function
+we load the string “IronManSucks”.
+And you can also see that there is a loop
+and something is compared, so it’s VERY
+likely this is the password.
+We can also execute this binary and we get
+the expected password prompt, where we can
+enter IronManSucks.
+And we see “Hello Batman”, which looks
+good but it’s followed by “Step on a brick!”
+and otherwise nothing happens.
+Mhmhm..
+There is a second thing we need to explore.
+Why are there so many binaries.
+How do they belong together and are they the
+same or what is different with them?
+I actually sneaked that into the video.
+The file we opened in IDA, was different from
+the one opened in Binary Ninja, but both had
+the same strings and password.
+And the binary we executed was also a different
+one and apparently worked.
+So they are definitely very similar.
+So I switched over to my macbook because I
+prefer to code there to explore this further.
+I first did a quick hexdump comparison.
+I cat the binary, pipe it into hexdump and
+write the result into a a.hex and a b.hex
+and then use vimdiff to compare them.
+And they appear very different.
+One possibility could have been that they
+are all straight copies of the same binary
+and then just patched after the fact.
+Just a few bytes changed.
+But with this test we get evidence that this
+doesn’t seem to be the case as too much
+changes.
+So it’s likely fully compiled with changes.
+Interesting though.
+Because I didn’t really have a good plan
+what to look for I also opened up a binary
+in Hopper disassembler.
+And there the strings were found right away,
+with proper cross references AND the decompilation
+of that function that asks for the password
+looks really good as well.
+Good job hopper!
+But then something clicked.
+Remember the error, go step on a brick?
+It’s right here.
+At the password check.
+This should printf, this is the scanf and
+then this checks the password, right?
+I thought we figured out that the password
+is IronManSucks.
+No?
+So let’s look at it again.
+On this function hopper really fails.
+Oh man.
+Decompilation is so hard.
+It can work so perfect on one function and
+then another is pretty terrible.
+But then I realized, this function is a lot
+larger for being just a simple string compare.
+And when looking at the call graph we see
+that after the comparison it seems to successfully
+print Oh hello batman.
+But after it is more code.
+And if compare the start where IronManSucks
+is compared with this part below, put it right
+next to each other you see that they are basically
+identical.
+There is a second string compare function.
+And that value for the string compare is coming
+from an address that is currently not mapped.
+So this means this is coming from dynamic
+memory when the program is executed.
+So there is a secret password.
+When we look at the cross reference where
+else this address is used we find this location
+here and that is a memcpy.
+So some string is copied from somewhere to
+this address.
+And the string address that is copied is in
+eax and I guess eax is the return of this
+function here.
+And this function, let’s decompile it executes
+FindResource and then LoadResource.
+So this function looks up a resource in the
+executable and loads it.
+So it loads that data.
+And then it’s mem copied to that area.
+So let’s give that address a proper name.
+The resource loaded was called BRICK so let’s
+call it BRICK.
+At this point I went into my Windows VM and
+used x64dbg to look into this dynamically.
+I loaded the binary, let it run until we see
+the password prompt, then I look at the stack
+around that string and find this return address.
+This way we find the important part in the
+disassembly.
+It’s so weird because this is a debugger.
+It’s not a disassembler with fancy crazy
+features like IDA, Binary Ninja or Hopper.
+So there are no such things as cross references
+and so forth.
+So it’s a bit more tricky but that’s why
+you use a disassembler first and then based
+on that find the stuff in the debugger.
+Anyway.
+Here we have the password comparison function
+and the disassembler already shows us that,
+down here, this password is references.
+So this looks like the secret password.
+We can set a breakpoint here, then continue
+the program, enter our password, we hit the
+breakpoint and can slowly step forward.
+And now we can observe the string comparison
+here slowly.
+Each loop compares more.
+And then?
+We can step a bit further, look at the program
+output and there we have it.
+Eveyrthing is awesome along a .png file reference
+as well as a dash…
+So we have seen the writeFile imports earlier
+and so looking into the FLEGGO folder we find
+now a 72562746.png.
+Which is a lego page with number 42.
+But to be completly honest with you, when
+I actually did that the first time I didn’t
+step far enough in the debuger to get this
+output.
+I got the image but didn’t see this.
+You will facepalm in a moment.
+So please imagine this wasn’t there and
+I only got the image.
+This meant I was actually reverse engineering
+more of the program and saw that the BRICK
+resource loaded is pretty large, and the password
+we use of it is just at the beginning super
+short.
+And I saw that there are other parts referencing
+data from inside that region.
+And looking around there I found this XOR
+function.
+You see here a loop and xoring with a constant
+value.
+Going out you see the constant xor key pushed
+onto the stack and the address of what is
+xored.
+And there are actually two different things
+xored.
+And so they both point inside of what is loaded
+from BRICK.
+And based on their address and the start address
+of BRICK we can calculate their offset inside
+of the BRICK data.
+This gets important in a moment.
+So right now I knew that there is a hidden
+password loadded from an embedded resource
+called BRICK.
+This password can be used when executing the
+binary to get an image.
+And we have two more hidden XOR encrypted
+strings.
+So I went ahead and wrote some python code.
+I knew I wanted to read the BRICK resource
+from the file, so I looked for a module that
+can work with PE files.
+And I found one, pefile.
+And here in the project description there
+are also some examples and working here with
+resources sounds about right.
+So basically you have these dictionaries with
+entries and you can traverse this tree.
+It’s a bit weird, but I was actually just
+doing this by hand and coincidentally the
+first resource I found through that, from
+all directories using the first entry, I finally
+found some data.
+And we get the offset from inside the binary
++ the size.
+And the size matched what we saw in the disassembler
+when loading it.
+So that’s BRICK.
+This means the first part must be the password
+and remember the other two things referenced
+inside BRICK.
+Here I calculate their offset based on what
+I got from the disassembler and also extract
+that.
+And for those I also have to do the XOR decryption.
+And then I simply print the result.
+The password and the decrypted A and B data.
+LOOK AT THIS!
+This looks like passwords and here we also
+get the .png and the single character.
+So at this point I knew I could extract images,
+each image has a number, each filename of
+the image appears to be connected to a single
+character, so it was clear to me what to do.
+Just put the single characters in the correct
+order, based on the image numbering, and you
+get the flag.
+Because I don’t want to enter all passwords
+by hand, I just installed wine on mac and
+used wine to execute the windows binary.
+Pass the password and I get the image.
+Put that into a loop in python with subprocess
+to pass in the password, and we got them all.
+Then it was just a matter of a bit of puzzling.
+I wrote down all the image filenames with
+their number and then wrote a few lines of
+python to assemble the flag from the single
+characters based on that.
+And here is the flag.
+Let’s submit it and unlock the next challenge.
+COOL!
+Now I told you before that I missed this output
+from the real binary if I had realize that
+the whole resource parsing and xor decryption
+wouldn’t have been necessary.
+AND on top of that, I realized now that the
+password is also in clear text in the resources..
+So using strings wouldn’t find it because
+it would also look for null-terminated c strings,
+the radare2 utility rabin2 can find also 16bit
+strings.
+And it turns out that the cleartext password
+is ALWAYS found after the BRICK string.
+Goddamit.
+All I had to do was using strings on the binary,
+find the password, execute it to get the image
+to char match as well as the png itself and
+assemble the flag.
+I went way too far with reversing this.
+But again, I learned stuff.
+I never really worked with windows resources
+and it was good practice.

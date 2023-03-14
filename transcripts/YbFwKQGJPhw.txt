@@ -1,0 +1,210 @@
+So I wanna show a few more things about the
+i.onik wifi cloud hub router thing.
+The previous video was more light hearted,
+less about the security issues and more like
+a sketch.
+So I wanna use this video to focus a bit more
+on the security issues.
+First of all, when you simply unbox this device
+and start using it, it will create an unprotected
+Wifi for anybody to connect to.
+And as you have seen in the last video, anybody
+can then easily connect to it and get code
+execution.
+Generally we want products to be secure by
+default, because most people don’t want
+to bother, or simply don’t have the knowledge
+to secure it themselves.
+Thus this is a huuuge issue.
+Regular home wifi routers, at least in germany,
+come with a long random wifi password by default.
+Obviously it’s a good idea to change it
+anyway, because you trust the manufacturer
+and so forth, but first of all you are safe
+from just random people abusing your open
+wifi for malicious activity.
+And it’s also not a default key shared between
+all devices.
+And of course, something like this costs a
+lot of money during manufacturing, because
+each device has to be personalized.
+It’s just an additional step you don’t
+want if you produce low-end consumer electronics.
+But let’s explore a few more things.
+Last video we have seen an admin interface
+that allows executing system commands.
+So it was absolutely easy mode to get root
+on this device.
+But just for showing off some other techniques,
+let me show another way how you can execute
+system commands.
+As you know there is a webserver running on
+port 80, which can execute programs via CGI.
+And this web server allows access to browse
+files on the USB stick.
+I found it by reviewing the webserver configs
+after I already got root access, but you could
+figure this out by either unpacking the firmware
+or checking out the android application, which
+has the URL for where you can find the USB
+stick content in there.
+And you probably know already where this is
+going.
+We can simply create a shell script that can
+execute system commands and put it onto a
+USB stick.
+We can do this by first specifying what interpreter
+is used for this file, in this case it’s
+a shell script, and then we read from stdinput
+a string, and execute it.
+And the result will be simply printed to stdout
+with echo.
+CGI defines how programs interface with HTTP
+requests, and the POST data, which is basically
+the body of an HTTP request is passed to a
+program as stdinput.
+Thus we can simply send the command we want
+to execute as POST data.
+And the output of the program will be send
+back as a HTTP response.
+We have that now on the USB stick, plug the
+USB stick into the device, and then simply
+access this file from the URL, which will
+cause it to be executed.
+Now we just have to simply send a command
+with the POST request, and we get the result
+back.
+Another basic root shell.
+If you remember from last video, there was
+also a root user with a password that we didn’t
+know.
+I tried to use hashcat to bruteforce the hash
+in /etc/passwd, but I had not much luck.
+My one graphics card is not that good.
+So I tweeted and asked if anybody has better
+luck cracking the hash, and who would have
+thought, a little bit later @dissect0r comes
+back with the password.
+His rig was way faster than mine.
+So thank you very much for helping out!
+This means we can use this password now to
+login via telnet, and we don’t need the
+exploit from last video to change the root
+password.
+And every one of these devices shares this
+root password.
+So no need for an exploit, just login as root
+with this password.
+You could call this a backdoor, or being less
+paranoid, a simple developer debugging credentials
+left on there carelessly.
+Either way.
+It’s bad.
+But let’s take one step further and look
+at the device as if a user would have enabled
+encrypted wifi.
+Because all these attacks require you to have
+network access to the device.
+You could argue that these are all trusted
+services locked behind a secure wifi.
+BUT, being only connected to this wifi is
+really annoying, because you don’t have
+any internet connection.
+Except you have a second connection to some
+other network from your computer.
+But the device can also act as an access point.
+The wifi list with the XSS issue is actually
+intended to connect it to another wifi.
+If you do that, there are two ways you can
+use the device.
+If the device is connected to another wifi,
+and you connect to the wifi of the device,
+it’s basically a router, you can get now
+access to the internet through it.
+This means all traffic going through it can
+be analysed, so it could be an easy device
+to open an unencrypted wifi, let victims use
+the internet through it, and you can man in
+the middle all the traffic.
+The other way to use it when it’s connected
+to another wifi, is to be in that other wifi,
+and now access the device via its assigned
+IP.
+And here is the issue, even if the device’s
+WIFi is protected, it doesn’t matter, because
+anybody on this side of the network can still
+access it.
+And it’s badly configured, because it exposes
+all ports and services on that interface as
+well.
+This means, when you use this device in ANY
+untrusted network, or have an open wifi, it
+can be easily taken over.
+There is one last thing I wanna show.
+All those web interfaces don’t have a CSRF,
+cross site request forgery protection.
+This means we could build a website, that
+when visited, will send the request to execute
+a system command.
+Basically what we have done with our python
+exploit in the last video.
+To do this, we first start with a html file
+that contains a form.
+This form will target the URL that is responsible
+to execute system commands.
+And we can set the HTTP method to POST.
+And if you remember, the command is sent simply
+as command.
+So we add a hidden form element for the POST
+data.
+I think it would be fun to overwrite the index.html
+with a string that we hacked it.
+Our plan is to use this form, to submit a
+POST request to the admin backend when a victim
+opens a website we control.
+And to do this I create another html file,
+that will be the actual landing page, and
+then use an iframe to embed the attack html
+site with the form.
+And then we can use some CSS to hide the iframe
+from the victim.
+Now we can simply add a short script to the
+attack html code, which will automatically
+submit the first form on this site.
+So it will trigger the POST request.
+We can use a simple php debug local webserver
+to test this.
+So now we can access this website in the browser
+via localhost on port 8080.
+Now the site loads, it loads the hidden iframe,
+the hidden iframe will then auto submit the
+form, but we run into the issue, that the
+admin backend requires a username and password.
+But that’s not a problem, we can simply
+add those credentials into the URL.
+Now it should not bother us.
+So.
+If we reload the page now, the loaded hidden
+iframe will submit the form, which will issue
+a POSt request with a command that should
+overwrite the index page of the wifi hub router.
+Mh.
+didn’t work.
+Oops, the main index.html page is actuall;y
+in the /Control/ subdirectory.
+So let’s fix that.
+Do it again.
+And now instead of showing the administration
+interface, it says that the device got hacked.
+Nice.
+Also changing this admin password wouldn’t
+help in this case, because remember, the form
+to change the admin password is not password
+protected.
+So we can do the technique we just used, cross
+site request forgery, to change the admin
+password first, and then issue the code execution
+command.
+Fancy Pantsy.
+I think in the next video we are going to
+have a closer look at the hardware.

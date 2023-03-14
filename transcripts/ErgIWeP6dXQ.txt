@@ -1,0 +1,365 @@
+Is the IT security and hacking culture a meritocracy?
+meritocracy is a system in which economic
+goods or political power, (so success) is
+given to people on the basis of talent, effort,
+and achievement, rather than wealth or social
+class.
+We generally want to think that in our hacking
+culture, only hard working, skilled and talented
+individuals are successful.
+They are the ones that get the most money
+(so “economic goods”) and are most famous
+and thus are very influential ( so “political
+power”).
+In this video I might express some controversial
+views because I include my subjective feelings.
+And I can say right away.
+I don’t have a clear opinion and you will
+see that I suffer a lot from cognitive dissonance.
+This cognitive dissonance is the reason why
+I try to put my thoughts into this video.
+But this also means, my views and opinions
+will change over time, so don’t think this
+is written in stone.
+I divided this video into three large chapters.
+First I want to talk about feelings, my background.
+Then facing reality and my observations in
+the IT industry.
+And at the end talk about social media.
+
+Chapter 1: My Background
+If you have seen my t-shirt story playlist,
+you know a lot about my life and getting into
+IT security.
+The first few conferences I visited were very
+influential to me.
+Because I didn’t know much about hacking
+yet and I saw these incredible researchers
+talking about really cool work they have done.
+While the environment was mostly dominated
+by men, there were several people openly transgender,
+gay, cross-dressing or even just having blue
+hair.
+While it obviously wasn’t a very diverse
+crowd, for me coming from a sheltered small
+german village I felt like, in this hacking
+culture, gender, age, sex how you dress, nothing
+matters.
+What matters is your skill and the work you
+have done.
+This was amplified online because, as you
+know, we all have nicknames and anonymous
+avatars.
+When reading phrack articles I have no clue
+who wrote that or how that person looks like.
+It could be a good looking chad, a 50 year
+old women or a polarbear.
+It doesn’t matter.
+When you send in your talk to a conference,
+nobody knows how you look.
+The talk is chosen based on the topic and
+I will only see how you look once you walk
+on the stage.
+During this time I was also playing CTF.
+And there it was double anonymous.
+Not only every player used nicknames, but
+they were also part of teams.
+So I see these highscores and these team names,
+but I have no clue who is behind it.
+I only see that the PPP team was the best
+in the world that year.
+And when I looked at the trainings offered
+at conferences.
+They were super expensive, I could never afford
+that, but I saw that many amazing researchers
+who have shared awesome work, are the trainers.
+They are at the top of their field, and they
+are educating others.
+And these very first impressions were so impactful,
+that I carry these feelings around 10 years
+later.
+When I started liveoverflow making educational
+videos 5-6 years ago.
+I was very scared about the public perception.
+I was not an expert.
+I have not proven myself.
+I have not shared any good research at a conference.
+I am not known for my skills.
+And yet, here I am trying to make educational
+videos.
+I felt like I was not allowed to do so and
+if anybody would find out that me, fabian,
+who tries to work as an it security consultant,
+is such a noob, that would be bad.
+That’s why I started this channel, without
+face, anonymously.
+The reason for why I was scared was, because
+I felt this way about others.
+I harshly judge everybody who has not done
+what is necessary to prove their skill, yet
+present themselves as experts or become very
+popular.
+I judge everybody.
+So I also judge myself.
+And over the years when I learned more and
+more, and I eventually presented my own work
+at a conference, I did well in hacking competitions,
+and I received good feedback from researchers
+I look up to.
+I became more comfortable.
+Now I felt like I was allowed to have this
+YouTube channel.
+Now I can be proud and say confidently that
+I make good stuff here.
+That being said, am I good enough to warrant
+over 600.000 subscribers, 70.000 twitter followers,
+and the fame that comes with that?
+No…
+I think I haven’t earned enough merit to
+put this success into a balance.
+A few years ago it even took me a long time
+to eventually accept that I could ask for
+Patreon or YouTube Membership money.
+For a long time I thought I was not good enough
+to do that.
+I like to talk myself down.
+And that maybe sounds weird to many.
+But when I see I could be better, I want to
+be better.
+I want to earn my success through merit.
+Which results in me wanting to learn more,
+I slowly increase my merit, which leads me
+to more acceptance of any form of success.
+Now I think I’m good enough to earn some
+money with LiveOverflow.
+But not too much money.
+Just a bit.
+But unfortunately, as I said, I am not only
+judging myself.
+I also judge others.
+I see people who, to me, are no experts and
+have not proven themselves enough, yet are
+very successful economically, for example
+through selling courses, or became very influential
+in general.
+That feeling is obviously jealousy.
+I know I am jealous there is no way to hide
+that.
+I want to make this clear.
+These are my honest feelings.
+I know they are bad.
+I cannot judge somebody else's merit.
+I have no right to request them to prove their
+skill.
+And what I perceive to be the right amount
+of skill for a certain level of success, everybody
+else will have a different scale.
+I must not arrogate the decision to myself,
+whether somebody has enough merit or not.
+I know these are subjective feelings, and
+clearly not based on any objective assessment.
+So eventually I need to be able to get past
+that.
+I want to be happy for other peoples’ success
+and not only when I think they deserve it.
+And with that let’s move to Chapter 2: Facing
+Reality.
+The reason why I do not like to have these
+feelings, is because I have seen how the world
+actually works.
+After I finished school and started studying
+in a dual study program, I started working
+at a large IT corporation.
+During the following years I had different
+“internships” in that company.
+One in particular just left me dumbfounded.
+I joined a team, so there were multiple people,
+whose only job was it to look up data in one
+program, and copy it over into an excel sheet.
+And then the “manager” of that team would
+run an excel macro that analyzses the data
+for like 1 hour, and then spits out some graphs
+and statistics they then presented to some
+higher ups.
+At this moment I realized, that the world
+is full of weird jobs, that are pretty well
+paid “in IT”, and do not even require
+any skill.
+But even for the jobs that seem to require
+skills, for example as a developer or pentester,
+I very quickly noticed skill is not that important.
+I am a white guy in Germany with a very german
+sounding name.
+I knew I would have never a problem to find
+work, because I knew I can be “convincing”
+in an interview.
+Of course it’s not just being a white dude,
+I brought skill and experience, but I have
+seen many people being more skilled than me,
+not getting jobs or opportunities.
+And here I am, having an easy time everywhere
+I go.
+Some people call it “softskills” or just
+“we want to see if you fit into the team”,
+but unfortunately prejudices from sexism and
+racism are the actual driving factor if you
+“fit in”.
+As a white german harmless looking guy this
+has never been a challenge for me.
+Many of you look at my channel and think “yeah,
+this person has skill, of course they can
+get a job”, but did I get a job because
+of merit?
+My job doing security audits I did not get
+just from from having skills, in fact at the
+time I was very much not experienced.
+It was “networking”.
+I knew a guy who knew a guy.
+To be more precise, I knew stacksmashing,
+and he recommended me to somebody else.
+And everybody a bit longer in the IT industry
+would tell you, that many job opportunities
+come from “networking” and meeting people.
+And that in the end is very much the opposite
+of a meritocracy.
+Because now all that matters are the connections
+and relationships you have.
+I think this is also the best moment to recommend
+this awesome video by veritasium, “Is Success
+Luck or Hard Work?”.
+Everybody who strongly believes only hard
+work makes you successful, watch that please.
+Of course some level of skill is required,
+but hacking skills are very difficult to measure.
+Yet companies need to do that.
+So the industry is starting to get a lot more
+regulations and checklists.
+With only a little bit of training you can
+follow those checklists good enough to be
+sufficient for the corporate world.
+That’s how large parts of the industry works.
+The creativity and deeply technical hacker
+skills are oftentimes not needed.
+So if you are purely interested in this industry
+for the money, then it’s really not that
+difficult.
+You probably have to spend 50% of your tinme
+on learning, which you can easily cover with
+a few basic certificates, and the other 50%
+of your time you spend socializing and building
+“your personal brand” and you should be
+fine.
+I hate that.
+I personally am in IT security, because I
+love the technical details.
+And there are of course really technical and
+awesome jobs.
+But that’s BY FAR not the majority.
+I don’t like it, but that’s just reality.
+But the struggle I have goes further.
+On one side I agree, that work life balance
+is important and it’s also ok to do work
+just for the money.
+Nobody should be forced to work as much as
+current culture requires it.
+Mental health, taking breaks and focusing
+on family should be celebrated and normalized.
+But at the same time I’m not living that.
+I’m not employed, so it’s a bit different,
+but I love to sit in the dark for 16 hours
+just hacking away.
+Fuck work-life-balance.
+I don’t want to go outside.
+And I cherish every nerd who spends their
+time building cool stuff or doing awesome
+research, instead of “wasting their time
+socializing”.
+A crazy nerd can learn in 1 year much more
+than many “normal” people will learn over
+5 years at some corporate job.
+In the end it always comes down to how much
+time a person actually invests.
+And I want to celebrate and acknowledge people
+that do that.
+But also at the same time, I know that’s
+toxic, and that’s why I struggle with those
+thoughts.
+Looking at this objectively I don’t want
+to be advocating a toxic lifestyle, and your
+life is obviously worth living even if you
+don’t want to be a basement dwelling nerd.
+But at the same time I think it’s awesome
+when somebody dedicates huge amounts of time
+to projects and learning.
+Cognitive dissonance.
+I don’t know what to do with my feelings.
+And that leads us to chapter 3: Social Media.
+In the beginning I already mentioned how I
+feel about the size of my audience and that
+I also judge other people's social media success.
+Social Media is a place for marketing.
+On social media, good marketing and entertainment
+will always succeed over any kind of actual
+cool work.
+And some people can play the game very well.
+I very often find myself thinking about how
+I want to approach my social media.
+I hate to be a personality.
+I want my videos to be the focus, not me.
+But if you have been a subscriber for years,
+you might have observed my slow evolution.
+It takes me literally years to become more
+comfortable with this “personal brand”
+aspect of social media.
+But it started with the first time showing
+my face, getting instagram, making an autobiographical
+video series about my life and appearing on
+more podcasts and interviews.
+One some days I think “f’ this, I don’t
+want to be “famous”, and on other days
+I think, “when other people are allowed
+to be famous on social media, then maybe I
+should be a public person as well, to be an
+opposing force, somebody who can focus more
+on the technical stuff.”.
+This might sound a bit arrogant.
+But I hope with my videos I can keep growing
+and supporting the technical side of our hacking
+culture.
+I want to show the world how nerds reverse
+engineer frogger, how bug bounty hunters find
+crazy vulnerabilities and I want to highlight
+the amazing skilled hackers doing awesome
+research.
+So I think if I play the social media game
+a bit more, I could redirect this gained attention
+to stuff I want people to be more excited
+about.
+Conclusion:
+I don’t want to talk anybody down, I don’t
+want to discredit anybody's success, because
+I probably cannot judge any merit accurately
+anyway.
+And at the same time please do not mistake
+success as being a sign for skill and good
+work either - It doesn’t work this way.
+I will still judge myself a lot, I think that’s
+important, but I want to judge others less.
+At the same time I will try to be more a part
+of social media and slowly, very slowly, start
+doing things I initially was more uncomfortable
+with.
+I really don’t want to become a bitter old
+man, and so if I think I can do things better
+than others, I should probably just go for
+it.
+So based on my feelings I wish we lived in
+a meritocracy.
+I wish we were all anonymous nicknames and
+we just judge each other's technical projects,
+research and bugs and nothing else.
+I wish me being a white dude would not give
+me so many advantages.
+Unfortunately reality is not like that.
+And trying to hold on to the fantasy of “merit”,
+will always turn into toxicity.

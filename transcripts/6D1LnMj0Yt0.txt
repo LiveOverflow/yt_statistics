@@ -1,0 +1,264 @@
+Hohoho, was a challenge at the 33c3ctf with
+fairly high points.
+It’s listed in the misc category, which
+means it’s not quite clear what the objective
+is.
+The text reads “Santa claus had a massice,
+multi-day lag and is still stuck at sorting
+out christmas trees and presents” - keep
+in mind that the 33c3ctf happened during the
+33c3 conference between christmas and new-years.
+“Help him with the trees at,” and then
+we get a server and port to connect to.
+“If he doesn’t reward you with the satisfactory
+present, you might have to bash him a bit.”
+Notice how the bash is written in italic?
+That is a hint for what this is all about.
+Bash.
+The Gnu Bourne-Again Shell.
+And there is a rate-limit so you won’t accidentally
+DoS the service.
+This was an amazing team effort for us.
+Like with all challenges during the CTF, we
+didn’t do them all alone, but especially
+this one spanned across the whole team everybody
+making a bit of progress.
+So I didn’t do the first two parts of the
+challenge.
+I joined towards the end.
+But let me quickly recap what the solutions
+were for the first parts.
+So when you connect to the service you are
+greeted with a merry christmas and a menu.
+You can help santa, continue helping him,
+visit the north pole or quit.
+And also you get a unique ID that tracks your
+progress, and you can use that ID with the
+Continue option to continue where you left
+off.
+That’s a great help.
+So when you decide to help santa you get these
+two trees which are actually a special version
+of the towers of hanoi.
+You have to sort these layers to their respective
+place and the rules of hanoi applies, that
+you can’t place a bigger layer ontop of
+a smaller layer.
+You specify the moves with pairs of numbers
+like 1, 3 which moves the red small palte
+from tree 1, to the empty tree 3.
+And then you basically just have to solve
+this.
+You can quickly find code and examples online
+about this hanoi version.
+And that’s what my friends did.
+They basically wrote some code to solve the
+towers of hanoi and produce a file with the
+moves necessary.
+After you solved it, you get another menu
+where you can simply answer some questions
+but they kinda got stuck there.
+You can take notes of the unique ID you used
+to solve it (to be more precise only up to
+the last move), adn then you can very quickly
+get to this menu again to figure out the next
+stage.
+As far as I know, at this point another person
+started working on it as well.
+I think by just trial and error, and after
+quite some more time spend on this, he noticed
+a bash eval error in only one particular branch
+of the question/answers tree.
+BAM!
+There we have it.
+There is a bash shell injection.
+Our input is passed to an eval in a bash script.
+So from here on it should be simple, right?
+Well… this is where the real challenge started.
+My friend wrote a little script to comfortably
+test the bash injection.
+So you can simply run that script and quickly
+test a payload.
+With that he slowly figured out, by more trial
+and error and systematic testing, you are
+not allowed to use any letters or numbers,
+except you MUST use an n, or i, for the option
+selection ONCE.
+And all other special chars are allowed.
+That’s very very restrictive.
+How the heck can we get basically now a full
+command injection working if we can’t use
+letters to launch any program?
+I think I joined here my friend at like 11pm
+or something.
+And we sat down playing around with this bash
+injection.
+Obviously there are a couple of different
+creative ways to solve this, but they are
+all kinda based on the same concept.
+And so before I show you how we did it, let’s
+establish some bash shell basics.
+I have prepared here a folder with a couple
+of test files.
+Now have you ever wondered what happens when
+you do something like ls * (star)?
+You might have thought that `ls` implements
+that, but infact your shell expands this.
+When you press TAB it will expand it for you
+right there, and not just when you execute
+it.
+So you can do stuff like match or expand to
+all filenames that start with A.
+Now think what would happen if you just enter
+*?
+Unknown command AAAA?
+Well that’s logical, * is expaned to all
+files in this folder, and the first file was
+AAAA, so it thought that this is the program
+to execute, like cat or ls, and the other
+file names are the parameter.
+And this shell expansion is very powerful
+and convinient for us.
+For example we know that cat is in /bin/cat.
+We can try to match this with special characters.
+Besides star, which stands for as many chars
+as you want, questionmark only represents
+one character.
+So for example /???/??? 
+Will expand to all 3 character files that
+are in a folder with 3 characters.
+And it just happens so, that the first one
+macthed is cat.
+That’s very lucky, because this means we
+can execute cat.
+And all the other files that match this are
+passed as arguments to cat, so it will print
+all these binaries.
+And obviously we can also follow the cat primitive
+with more shell expansions like star.
+So the stars would expand to our files here,
+the beginning would expand to cat and a lot
+of crap, but that doesn’t matter, in the
+end these files here will be printed.
+And you can use that now to slowly explore
+the whole system.
+By trying to match important files.
+This is how we got the sourcecode of this
+challenge.
+This is also how we found the flag file in
+/flag.
+The issue is, we cannot read it, otherwise
+we were done already.
+Apparently our current user doesn’t have
+the correct permissions.
+But this way we also found a binary that seems
+to read the flag for us, we just have to execute
+it.
+And that’s also easy, we can just use shell
+expansion to execute it.
+But it also wants a password.
+The password is as plaintext in the binary
+and we can see it through cat, but we have
+no way to enter these characters, right?
+How can we supply this password now?
+Well, let me just show you the solution, and
+walk you through.
+I know it looks redicolous, but once you disect
+it, it’s simple.
+But it took us like 7hours to figure this
+out.
+This was not an easy process for us.
+We went to bed at like 9am in the morning,
+after pulling an all nighter.
+But we knew we were close, we just needed
+more time to figure out the detail.s
+First of all there are three sections.
+There are two function defnitions, ae and
+oe.
+Those are special german characters, but they
+are not standard ascii, so they are not filtered.
+And the third section is actually executing
+the get_flag program I mentioned earlier,
+and that program gets a parameter, the password.
+So all these lines just slowly construct the
+password.
+How it’s doing this you will understand
+in a second.
+So let’s have a look at the first function.
+The first function ae, is actually just printf.
+Printf is a program located in /usr/bin/printf,
+and we got lucky that it gets matched by these
+?? and the single n for priNtf.
+As a paremter to printf we use $@. Variables
+in bash start with a $. And $@ is a special
+variable in bash, which represents all parameters
+passed to a function.
+So the function ae will just call printf with
+all the parameters give to it.
+Nothing special, just a wrapper so we can
+reuse printf more often as function ae.
+Printf is cool, because we can use escape
+sequences to get special characters.
+In particular we can use octal escape sequences
+like backslash 101, which is 65 in decimal,
+or hex 41, so it gets converted into a capital
+A.
+Maybe you already get what we are working
+towards.
+Now we have a function ae, that can evaluate
+escape seqences, thus print ANY string we
+like, it only requires numbers.
+So we got around the restrictions of letters.
+So if we find a way how we get numbers, we
+can construct escape sequences and then print
+a string.
+So let’s have a look at the second function
+oe.
+Oe uses now ae, which is printf, to print
+another special bash variable.
+$#. That is like argc in C programming.
+It represents the amount of parameters passed.
+So calling oe with 3 parameters will print
+a 3.
+And calling oe with 1 parameter will print
+a 1.
+Now we have a primitive to construct any number
+we want.
+And this is what happens in the last section.
+There is one ae at the start, which will print
+a string, and evaluating all escape sequences.
+And then we have a long list of constructed
+escape sequences.
+4 backslashes are necessay but whatever, they
+result in one single backslash at the end.
+Because you like have to escape the escape
+for the escape backslash.
+Whatever.
+So backslash and then we call oe with 1 parameter,
+oe with 4 parameters and oe with 7 parameters.
+So \147.
+Which is 103 in decimal, or hex 67.
+And that’s the ascii character small ‘g’.
+And then we repeat this for every character
+we want to create.
+So once you evaluate all the oes, you have
+a string left with all the escape sequences,
+then you perform do an ae, a printf to evalueate
+them all, and all that is left over, is the
+password for the get flag binary.
+BOOM!
+No ascii letter or number needed but we can
+construct any character sequence we want.
+So when we inject that, we get this ascii
+christmas present and at first I panicked
+because I couldn’t see the flag.
+And I thought WTF?
+My heart skipped a beat, feeling devestated
+at 8am in the morning, but it was there after
+all.
+Submitted it, and at that point only 11 teams
+had solved it.
+We were really proud.
+And this was a great example of a challenge
+where the whole team worked together and I
+would have never got it by myself.

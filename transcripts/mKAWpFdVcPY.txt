@@ -1,0 +1,297 @@
+Cross-site scripting is the name for a 
+well-known type of security issue that
+can affect websites. And I always thought 
+the name , “XSS”, is terrible. I think it’s
+confusing a lot of beginners, well at least 
+it confused me back when I started. Instead,
+I think “JavaScript code injection”, or more 
+general “HTML injection”, makes a lot more sense.
+So I always wondered why we have this 
+weird name “cross-site scripting” - at
+some point somebody had to invent this 
+name and somebody had to discover the
+type of vulnerability in the first place.
+Another motivation for this video is that,
+of course having names for things, like “XSS”, 
+is very important when we communicate with each
+other, but naming things can also cause 
+compartmentalization. mindcuffs. Blinds.
+And hacking in its essence is extremely creative 
+and you should always think outside the box. So
+in my opinion it’s important to understand 
+the history of any kind of vulnerability,
+because it makes you truly understand the 
+issue to see the wider picture. And that’s why,
+we have been on a journey through history, 
+starting around early 1996 with the invention
+of JavaScript by Netscape. And the following 
+years up until 2000, were riddled with lots
+of security bugs in the browsers themselves. 
+Netscape but also Internet Explorer had lots
+of issues that nowadays we would call Universal 
+XSS. BUT as I said, this name didn’t exist back
+then. So lets figure out in this video, 
+how we got the name “Cross-site scripting”
+When you want to know something about history,
+you go check what wikipedia says. And on 
+the cross-site scripting page we can read:
+“Microsoft security-engineers introduced the term 
+"cross-site scripting" in January 2000.” But the
+source listed for that is a microsoft blog post 
+from 2009, celebrating the 10 years of Cross-site
+scripting. While this is not the original release, 
+in this blog post David Ross shares some of the
+names that were suggested. Unauthorized Site 
+Scripting, URL Parameter Script Insertion,
+or “Cross Site Scripting”. Cool, but that doesn’t 
+help me much. I still don’t understand why they
+thought of these names, why not HTML or JavaScript 
+injection or insertion. Though the “URL Parameter
+Script Insertion” is pretty close.
+Mh… Besides those other name ideas,
+david also mentioned that they “coordinated an 
+advisory release with CERT in the year 2000”,
+so microsoft worked together on 
+this with the national “Computer
+emergency response team”. What was this emergency?
+Also… Why was MICROSOFT the one to talk about 
+it? I want to better understand what happened
+in 1999 and 2000. And luckily I was able to 
+talk to David Ross. The author of this article.
+So I was wondering. Back in 1999/2000 
+“how novel was this kind of attack?
+were "XSS" issues already known? Or was it 
+something the team at microsoft discovered?”
+And he responded saying:
+“I Was doing work related to Georgi Guninski's 
+bugs, which we termed "cross-domain" bugs”.
+Recognize this name? If you have seen the previous 
+videos on this topic, you will know georgi.
+Yah… Initially my plan was just make a single 
+video about the origin of the name XSS,
+but when I started researching deeper, 
+thanks to david ross, I realized history
+is a lot richer and to understand how we got 
+to the term “Cross-site scripting” we had to
+understand the events that happened before it.
+So if you haven’t seen the previous videos,
+go check them out. The playlist is linked below.
+But to briefly summarize, Browsers had a lot of
+interesting security bugs at the time related 
+to JavaScript. And we have looked at several
+of these original vulnerabilities in action. 
+One of them was for example this issue Georgi
+found in Internet Explorer and it was disclosed 
+in January 2000. just 9 days before the world
+would get introduced to “cross-site scripting”.
+Now this particular browser issue was referred to
+as a cross-frame policy security issue.
+And that name makes total sense. These
+vulnerabilities back then were always breaking 
+the browser security boundary between two
+websites. Of course these vulnerabilities all 
+worked differently, but in the end it’s always
+one website that either embeds another site via 
+iframes or opens another site via window.open,
+and somehow exploiting a bug IN THE BROWSER, 
+can access data from that other website,
+like the cookies or so. So we have an issue 
+related to crossing over into another browser
+frame. “cross-frame policy security issue”.
+But these were browser issues. XSS is a
+vulnerability in websites themselves. as we 
+now know, in parallel to this kind of browser
+security research from georgi and others, a new 
+field of exploitation was slowly boiling up.
+And of course microsoft didn’t invent Cross-site 
+scripting attacks themselves. It was already
+getting exploited in practice. So have a look at 
+this vulnerability disclosure from August 1998.
+HOTMAIL "ATTACKMENTS". They even have a logo.
+To all those people complaining about
+vulnerability names, logos and 
+websites. 1998. There you have
+it. It is not a new trend, it always happens.
+And I’m glad that this website exists, because
+it’s really hard to find information about the 
+“original XSS” attacks. But thanks to a website
+like this a lot of history is preserved.
+So let’s read a few paragraphs of this.
+“This page describes a security problem that
+Blue Adept discovered with Microsoft's 
+Hotmail service on August 28, 1998. “
+As you probably know, hotmail is microsofts 
+webmail services. So email in the browser.
+“Users clicking on mail attachments 
+in Hotmail are vulnerable to having
+their passwords stolen by malicious users.”
+Further down they explain how you can 
+“SEND A HOTMAIL "ATTACKMENT" TO YOURSELF!”.
+They have here this mailmess.html document which 
+you can send yourself as an attachment. And when
+opening it in hotmail, a payload triggers.
+Now the payload in this example is actually
+a java applet, BUT look at this comparison 
+site “WHICH FREEEMAIL SERVICES ARE SAFE”:
+So Microsoft hotmail is vulnerable to java 
+applets, and a few other services as well. BUT
+Look there. They also list which services 
+are vulnerable to injecting script tags,
+hidden script tags and meta tags. I’m not 100% 
+sure what the difference is here, but clearly,
+this is a classic case of Cross-site 
+scripting. It just didn’t have the name yet.
+As you know, cross-site scripting is 
+a vulnerability where you can inject
+javascript code into a website that another 
+user then executes. And so of course XSS can
+only EMERGE on services where users communicate. 
+The web was just slowly becoming more interactive,
+and webmailer were obviously a prime breeding 
+ground for this. So back in August 1998,
+they tried to raise awareness 
+of the issue of HTML code,
+or more specifically applet and 
+javascript tags, embedded within emails.
+This of course triggered lots of news articles 
+as well. And look what they write here:
+"We're not trying to use this as an 
+illustration that there's a problem
+with Java applets in general, but 
+rather that there's a problem with the
+user interface or filtering design of the 
+Web-based email services," Cervenka said.
+And in another article they wrote:
+“Some free email providers, including Yahoo Mail,
+already filter out JavaScript 
+code from incoming messages.”
+“Cervenka is urging Hotmail to implement 
+the same restriction. In the meantime,
+he recommends that Hotmail users 
+disable JavaScript in their browsers.”
+It makes total sense to me that the first 
+XSS issues emerged in web mailers. It’s
+really a straight forward attack. You have Emails, 
+emails that also probably support HTML formatting,
+and you just add some malicious 
+javascript code inside of that.
+And now slowly the puzzle pieces fall together.
+Think about the big picture.
+So on one side Microsoft is battling
+against javascript-related bugs in their 
+Internet Explorer where one website can
+run some malicious javascript to somehow access 
+data from another website. AND on another front,
+microsoft is battling against malicious 
+javascript hidden inside of emails at HOTMAIL.
+This is so fascinating to me. 
+Because from the outside at the time,
+microsoft looked like they don’t care 
+about security. They don’t manage to
+fix the issues in hotmail. Lots of angry 
+news articles about it. And as you all know,
+Internet Explorer has a very bad reputation 
+for being super insecure and buggy as well.
+BUT microsoft is a huge corporation. And they had 
+a security team that really cared. But if you ever
+worked in a huge corporation, you can imagine 
+what kind of uphill battle that must have been.
+And so at the end of 1999 and early 2000, david 
+ross and his team of other security researchers
+at Microsoft summarized and generalized this new 
+type of javascript related issue within websites.
+Here is the original press release 
+from microsoft in february 2000.
+“Microsoft has identified a serious security 
+vulnerability that could potentially affect many
+web sites and web site users. The vulnerability, 
+(now) known as "Cross-Site Scripting",
+is equally possible on all vendors' 
+products, and does not result from a
+defect in any of them. Instead, it results 
+from certain common web coding practices.”
+To me it seems like, from their experience with 
+issues in hotmail, they understood the underlaying
+issue of XSS being the result of bad coding 
+practices. Not properly encoding the output.
+Now. Let’s continue with their 
+FAQ where they show an example
+attack with HTTP GET. this is what 
+we would call today “reflected XSS”.
+So if you are the attacker, you would 
+add this link to your website. It’s
+a link that looks like it is going 
+to microsoft, BUT the link target,
+is actually pointing at another website, 
+foo.com, with a vulnerable parameter ID.
+Supposedly this ID parameter is reflected 
+onto the page. So you can inject a script
+tag that loads a malicious javascript file 
+from your evil server and executes it.
+And when I saw that, tne 
+name finally clicked for me.
+Let me explain. Nowadays when you want to show 
+somebody an XSS issue, you show it with a link.
+You would just straight show the vulnerable 
+domain. In this case you remove the anchor tag
+and just focus on the link target. And that 
+is why the name XSS was always confusing to
+me. If you look at the vulnerable link itself, 
+there is no “cross-site scripting”. You inject
+a script tag into the vulnerable website. 
+Why not call it javascript or html injection?
+BUT microsoft was coming from a time when 
+georgi and others found vulnerabilities in
+browsers where one website can use 
+javascript bugs to access another
+website. They were called cross-frame bugs.
+And so if you add the surrounding anchor tag
+again, then this almost looks like a typical 
+cross-frame bug. It’s a malicious website that
+can access data from another website, BUT it works 
+differently, right? It’s not a bug in the browser,
+it’s a coding error in the target website.
+And so seeing the example payload with a
+link like this, suddenly it makes sense. To them 
+it’s one website being able to inject javascript
+into another website. And that’s probably 
+why they called in cross-site scripting.
+Hah! … Well, I still think nowadays it would be 
+better if we rename it to “javascript or HTML
+injection”. Because I think “injection” is such 
+an important general concept existing everywhere.
+Command injection, sql injection, JAVASCRIPT 
+injection, burger injection. All the same idea.
+But now that I understand the 
+history, where it came from,
+now the name makes sense to me. I can accept it
+Anyway… As you can see the researchers at 
+microsoft back then understood that XSS is
+a big deal. It’s not just a challenge in 
+hotmail, it affects everything. And that’s
+why we need an emergency advisory, to inform 
+the public and spread the knowledge about how
+to fix these issues - this information has 
+to reach every web developer. So the CERT
+released. CA-2000-02. Malicious HTML 
+Tags Embedded in Client Web Requests.
+“Because one source is injecting code into 
+pages sent by another source” (here they use
+the word injection) ”, this vulnerability has 
+also been described as "cross-site" scripting”.
+“Web Page Developers Should Recode Dynamically 
+Generated Pages to Validate Output”.
+Anyway. I think now we understand 
+the origin of Cross-site scripting.
+And if you are OLD and remember any public 
+XSS vulnerabilities from before the hotmail
+attackments, please share them with me. I would 
+love to find out more about these early XSS issues
+from before the issue had this name.
+That would be awesome.
+Alright. This journey into hacking 
+history was super interesting to me,
+and I hope you also learned a lot. 
+And if you want more hacker history,
+I also made a video about the term 
+script kiddy, so check that out.

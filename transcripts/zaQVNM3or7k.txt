@@ -1,0 +1,413 @@
+Okay,
+So last video I showed you this programming
+language I made, ugly but works.
+And we compiled this into this weird binary
+format.
+And then you pass this binary file to this
+program called invoice, and it executes our
+program.
+In the last video I also showed you, that
+the beginning of this binary format actually
+triggers a buffer overflow and overwrites
+the return pointer on the stack.
+And at that point you might have thought that
+our programs are simply shellcode, so assembler
+code, that we inject and then jump to, with
+the buffer overflow.
+But that is not even possible, because the
+stack is not executable.
+So even though we cannot inject actual assembler
+instructions to execute, we somehow were still
+able to execute my programs.
+And at this point it’s pretty clear, that
+this is possible thanks to return-oriented-programming.
+So let’s examine how this works.
+But I warn you.
+You really need to get your brain into an
+abstract philosophical thinking mode.
+This will get weird.
+And maybe you have to rewatch it some time
+in the future, maybe checkout some more “normal”
+Return Oriented Programming tutorials and
+then come back to this.
+But if you get this video, I think it will
+add to a much greater and deeper understanding
+for you.
+So just try...
+Anyway.
+Let’s head in.
+So in x86 assembler there is an instuction
+called “call”.
+And call actually does two things.
+First it pushes the return address (which
+is the address immediately after the CALL
+instruction) on the stack.
+And then it changes EIP, the current instruction
+pointer, to the call destination.
+So the CPU continues execution there.
+Now when we in C call a function, this will
+be compiled to an assembler call instruction.
+But to understand return-oriented-programming,
+you have to forget this.
+Ignore the concept of calling functions.
+Simply remember that this instruction pushes
+the address immediately after the call instruction
+onto the stack, and then set instruction pointer
+to the target address.
+And the return instruction behaves in the
+same way.
+YES ret is compiled from a return in C. But
+forget this connection.
+A RET simply pops an address, we call it the
+return address, off the stack and sets the
+instruction pointer back to that.
+And “pooping a value” from the stack is
+also already again an abstract interpretation.
+What it literally means is, it looks at the
+stack pointer register, follows that address,
+takes that value.
+And then it increments the stack pointer register.
+It increments because the stack grows downwards.
+So if we shrink it, when we POP a value, we
+increase it.
+So it gets closer to the highest address again.
+Anyway.
+This is what ret does.
+It’s taking this value where the stack register
+points to, increments the stack pointer address,
+and then uses the value it got, to set the
+instruction pointer.That’s how we “return”
+(in quotation marks).
+So this was lesson one.
+Ignore the name of the instruction or it’s
+typical meaning and typical usage, just understand
+what the instruction itself does.
+So again, remember what the “ret” (the
+return) instruction does.
+First look at the stack register, follow this
+address and take that value.
+Increment the stack pointer.
+Set the instruction pointer to that value.
+Done.
+Now let’s think about something else.
+What does it mean for a machine to execute
+instructions?
+A CPU is a piece of hardware that executes
+instructions.
+Those instructions are machine code or assembler
+code, right?
+How does that in an abstract sense work?
+Well there is memory, where instructions are
+stored, and this memory has addresses.
+Then the CPU has an instruction pointer register,
+that contains an address that points to memory
+with the next instruction to execute.
+So if it’s 0, it will execute this.
+And then it does whatever this instruction
+is defined to do.
+Not that important what this instruction exactly
+does.
+But by executing any instruction, the instruction
+pointer is simply incremented and moved forward
+to point to the next instruction.
+ANd then that gets executed and the instruction
+pointer will be updated to point to the next
+one.
+And so forth.
+Of course that changes with instructions like
+jumps, or calls, or returns, where the instruction
+pointer is directly updated.
+But you get it.
+A computer, really in the abstract sense,
+is a machine that given instructions computes
+or executes those instructions.
+So the CPU is a machine implemented in hardware.
+But of course there are also virtual machines.
+So machines implemented on top of our CPU
+machines.
+And for example the JVM, the Java Virtual
+Machine behaves in the same way.
+It is a machine.
+So there is bytecode somewhere in memory,
+and the software, the JVM has an instruction
+pointer, or there called programm counter
+pc, that points to the next instuction, or
+there called opcode.
+And when the JVM executes one opcode it also
+has to update the program counter and move
+it to the next one.
+Here I looked up the source code for that.
+So here is the OpenJDK source code
+And there you see an UPDATE_PC_AND_CONTINUE
+macro, where it literally adds the size (or
+length) of the current opcode onto the program
+counter, so this moves it forward.
+Like the CPU would increment the instruction
+pointer.
+So this is lesson two.
+A machine in an abstract sense is simple.
+There is memory that holds code or instructions.
+And the machine points to that code, takes
+an instruction, executes it, and then updates
+the program counter to point to the next one.
+So what the f’ does this have to do with
+return oriented programming?
+Well last video I also introduced the concept
+of a weird machine.
+Somehow this invoice program implemented a
+weird machine.
+And I know, that concept was super confusing
+but bear with me, it will make sense in a
+moment.
+If this invoice program implements a weird
+machine, and you program that weird machine
+with a technique called return-oriented-programming,
+then you should ask yourself now.
+where is the memory that contains our instructions,
+where is the instruction pointer that points
+to those instructions, and where is the logic
+that executes whatever an instruction is defined
+to do?
+Well, luckily we have some example programs,
+and we can debug this weird machine with GDB.
+Let’s load the invoice program into GDB
+and let’s learn how it executes.
+I don’t want to explain buffer overflows
+again, please checkout my binary exploitation
+playlist for that.
+But when you are familiar with it, you know
+that we overwrote stuff on the stack.
+If you look at the add_invoice function you
+can find the dangerous functions gets() which
+cause the buffer overflow.
+So we can set a breakpoint here, and we set
+one at the return.
+Then let’s run the binary and as an input
+we pass in the helloworld.binary.
+And we know now that input triggers the buffer
+overflow.
+So here we hit the breakpoint at the gets.
+If we execute the gets and examine th stack,
+we can find all of our input here.
+Here are all the As that fill up the buffer.
+And then we have these randomly looking, but
+actually carefully chosen values after it.
+But let’s go forward to the return instruction.
+So now we are about to execute the return,
+and please remember what return means.
+It looks at the address in the stack register,
+so here this address points to this memory,
+so this is the stack and that’s the top
+element.
+And the return instruction now takes that
+value as an address, and sets the instruction
+pointer to it.
+And at the same time increments the stack
+pointer.
+So let’s do that.
+Single step forward.
+ANd now let’s compare before and after the
+return.
+It did exactly what we expected.
+The stack pointer register was incremented
+from 0x18 to 0x20, so move 8 bytes forward.
+And the instruction pointer got set to the
+value previously on top of the stack.
+Btw... when we execute a “ret” we also
+often use the phrase “we return into ”.
+It doesn’t matter if we say “we returned
+to”, say “we returned into” or say “we
+continued execution here”.
+It’s all the same.
+Don’t get confused by the term “return”.
+You know what the ret instruction really does.
+It simply takes a value from the stack and
+sets the instruction pointer to it.
+Anyway.
+So what happens now?
+Where is our instruction pointer pointing
+to?
+It points here...
+To this assembler code.
+A pop rdx and a pop rbx.
+Followed by another return?
+So this means it takes one value from the
+stack and puts it into rdx.
+Increments rsp again.
+Then takes the next value on the stack and
+moves it into rbx.
+Increments rsp and then we are at the return
+again.
+And now return takes the next value on the
+stack and sets the instruction pointer to
+it.
+So where does it now continue executing?
+Okay.
+So now we are here?
+Here we have a pop rdi.
+So it takes the next value on the stack, moves
+it into rdi.
+And then comes ret, which takes the next value
+and sets the instruction pointer to it.
+So where are we now?
+Now we execute a move.
+We move edx, into the address pointed to by
+rdi.
+And remember when we set EDX?
+The pop RDX at the beginning, set the value
+of EDX to a value we had on the stack.
+And RDI, the address where we now write to,
+we also had on the stack and got it into RDI
+with a pop RDI.
+Think about what this code now did!
+I know it looked weird, but all it did was
+it moved a value we wanted into an address
+we specified.
+We moved a value into RDX, then an address
+into RDI, and then we wrote that EDX value
+to the address RDI points to.
+Now look at the source code of the hello world
+program.
+Here the code said we move the string, “hell”
+which is of course 4 bytes, into the variable
+4.
+And then store variable:4 in memory location
+1.
+And that is just another way of saying, we
+move the string, or the 4 bytes, “hell”
+into rdx.
+And then we move rdx to a memory location
+we specify in RDI.
+Which memory location, and converting the
+string “hell” to the four bytes is what
+my compiler program does.
+I know, maybe that is a bit too confusing,
+maybe better just ignore my compiler shenanigans.
+But if think about what we did.
+We executed these few instructions that move
+a value into some memory location.
+And we did that by using super weird instructions,
+which we usually refer to as “gadgets”.
+To perform this memory write, we used three
+gadgets.
+First we used a “pop rdx, pop rbx” gadget,
+then a “pop rdi” gadget and then a “mov
+gadget”.
+And see what all these gadgets have in common?
+They all end with a return instruction.
+Now bend you mind.
+take what we just witnessed and try to fit
+it into the concept of a machine executing
+instructions.
+First, we have memory, that is our stack.
+On there we had all these addresses and values.
+And in a weird fuckedup way the stack pointer
+was our instruction pointer, right?
+Our weird machine basically started with a
+return opcode, which took the first address
+on the stack and continued CPU execution there.
+Then the stack pointer pointed to the next
+value, we popped it and moved it to the next.
+Pooped another value moved it to the next.
+And then came another return which took the
+value and let the CPU execute code there.
+Moving the stack again to the next value.
+So In a way those addresses on the stack,
+when we have a return, define instruction
+handlers, right?
+You could say this address here is actually
+the opcode, the instruction to perform a pop
+rdx and then a pop rbx.
+And this other gadget, this address here,
+is the opcode for the move of edx into the
+address of rdi.
+Isn’t this basically the same thing how
+a x86 assembler “call” instruction actually
+means we push an address on the stack and
+set the instruction pointer to the given destination.
+How is that “call” x86 instruction different
+from our weird machine gadget?
+It isn’t!
+Both define some action, what it does, and
+then the machine moves to the next instruction.
+The CPU does this by incrementing the instruction
+pointer, the Java Virtual Machine does this
+by simply incrementing the program counter,
+and our weird machine does this by incrementing
+the stack pointer.
+I know, these gadgets are super weird instructions.
+And each program, depending on how much code
+it contains and what kind of functions were
+written there, and where in the memory the
+compiler places the code, changes what kind
+of gadgets are available.
+With the small tool ropgadgets we can actually
+list all gadgets, so assembler snippets that
+have this pattern of a few instructions followed
+by a “ret”.
+Basically these are all the weird instructions
+that we can use to implement whatever we want
+on this weird machine.
+I know it’s crappy.
+Nobody said that it has to be a well thought
+out machine like the CPU or the Java Virtual
+Machine.
+But it’s enough to basically perform any
+kind of computation.
+It was enough for me to collect gadgets that
+seemed useful and built a compiler that translates
+this text representation to actual addresses
+that point to those gadgets.
+And that’s why each program with such a
+vulnerability, accidentally crafts its own
+weird machine.
+Each vulnerable program will have it’s own
+instruction set, it’s own collection of
+gadgets.
+And it’s own initialisation code that setups
+that weird machine.
+Basically the code that triggered our vulnerability
+in the first place.
+So writing such an exploit.
+Is in essence the setting up and instantiation
+of a weird machine by triggering the buffer
+overflow.
+And then we program that weird machine with
+a rop-chain, a collection of gadgets chained
+together that will be executed by our weird
+machine, thanks to how the x86 “ret” instruction
+together with the stack works.
+And what we can program is just bound by our
+creativity and availability of useful gadgets.
+But if you have a large amount of gadgets
+you can understand that you could implement
+ANYTHING you want.
+You just chain these small assembler snippets
+together to build anything.
+In an attack you usually try to create a remote
+shell or something, but it could literally
+be just a regular program.
+Like I have created these rop-chains that
+for example take two numbers as an input,
+adds them together, and prints the result.
+And that’s it.
+That is return oriented programming explained
+in a super confused way.
+I know, this is maybe not the best ROP tutorial.
+But there are so many “normal” tutorials,
+that I just wanted to try something different
+and I hope there are some of you where this
+kind of different angle on the topic is mind
+opening.
+At least for me this was so mindblowing and
+beautiful that, as you know, it became a slogan
+for my channel.
+Also I like to remind you to checkout the
+papers and talks I have listed in the description.
+Please read them even if you didn’t understand
+this video.
+They are maybe better, but certainly more
+correct explaining this concept of weird machines
+and exploit development.
+Anyway… thanks for watching and maybe checkout
+my Patreon and YouTube membership in the description.

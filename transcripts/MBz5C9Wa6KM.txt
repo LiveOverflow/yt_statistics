@@ -1,0 +1,344 @@
+Final level 1 has a format string vulnerability
+that can be exploited remotely.
+Over the past few videos we have learned how
+to talk to these programs over a TCP network
+connection and how to debug them, so we are
+all set to go.
+Like all previous challenges, the program
+is running as a network daemon in this case
+on port 2994.
+So we can use netcat to connect to this service
+which displays a final1 prompt.
+But when we enter something we don’t see
+anything.
+Mh.
+Also because we already know it will be about
+a format string vulnerability, we can try
+to inject some characters such as %x, but
+again, nothing happens.
+We could also try %s, because if you remember,
+it will take values on the stack as the address
+location of a string, thus if values on the
+stack do not point into valid memory, the
+program should crash, which would be another
+indication of a format string vulnerability.
+But nope.
+Also doesn’t do anything.
+We could also try to send a very long string,
+just to see if there is a buffer overflow
+that would crash the program, but also doesn’t
+work.
+You can see that the prompt got returned now
+multiple times, which is an indication that
+the program always reads a limited amount
+of characters, and you sent so many at once,
+that the read loop was able to read many times.
+So I guess it’s time to have a look at the
+source code.
+Main calls two functions after setting up
+all the networking stuff.
+The first one is getipport(), and the second
+one is parser().
+Getipport calls the function getpeername(),
+so let’s see what that is about.
+getpeername() returns the address of the peer
+connected to the socket sockfd, in the buffer
+pointed to by addr.
+We can see that it also defines a struct sockaddr_in
+which apparently will then contain the source
+ip address and source port by the client that
+connected to the socket.
+You can also look up how the struct exactly
+looks like on the man page for ip.
+So it will basically contain the port number,
+and the ip address, and the ip address is
+a 32byte integer.
+And sprintf will write this constructed string
+into hostname, which is a global variable.
+Ok so once this function is complete, the
+code will call parser().
+And parser will print the final1 prompt we
+already know.
+Then it uses fgets to read 128 bytes into
+the line buffer.
+After that it uses trim, which looks for the
+first occurrence of a newline or linefeed
+and replaces it with a 0.
+Basically cutting the string at these positions.
+Then it will check if the string you entered
+starts with “username”, or “login”.
+Ahh, ok, so there are special commands for
+that prompt.
+If you enter username, it kinda expects additional
+data after it, because it string copies anything
+after the “username” part into the global
+variable username.
+If you would use the command “login”,
+it would check if you specified a username
+before, if not it tells you you follow a wrong
+protocol.
+But if you specified a username before, it
+will call logit, with a pointer into the string
+after login, because it expects a password
+there.
+The password is not used in logit, it’s
+just a mockup for the challenge, but in there
+it uses a buffer and writes to it with snprintf.
+Basically creating a line for a log entry,
+that says that there was a login attempt from
+a certain client for a specific user with
+a certain password.
+And then this string logged in the system
+log.
+Then this function returns and it will print
+“login failed”.
+Armed with this knowledge we can try to use
+the prompt again.
+And it does what we expect.
+Now this failed login attempt should have
+been logged in the syslog.
+So let’s check it out.
+Note you have to be root to read that file.
+So tail, to only get the last few lines, of
+/var/log/syslog
+And there it is, final1 Login attempt from
+this source IP and source port, as LiveOverflow
+with the password.
+Okay.
+But where the heck is the format string vulnerability?
+There is no printf where we controlled the
+format parameter.
+Why am I so hasty?
+We don’t even fully understand the code
+yet, do we?
+We read this code with certain assumptions
+without questioning if they are true.
+The meaning of hacking, if anything, is about
+understanding computers on a deeper level.
+But there is one function where we got lazy
+and brushed over, because we assumed it does
+it’s job.
+If you take anything away from the stuff I
+create, then it shall be, don’t be satisfied
+with what you think you know, challenge your
+beliefs.
+Ok, well that rant was a bit overplaying it.
+But we did not look into this new function
+we encountered - syslog.
+I guess what I’m saying is, when you solve
+these simple challenges, you reach a point
+where you think you know every dangerous function,
+but that’s not true.
+So don’t get lazy, and read the man page.
+If we look at the man page of syslog we will
+see that the second parameter is a format
+parameter.
+syslog() generates a log message, which will
+be distributed by syslogd(8).
+The priority argument is formed by ORing the
+facility and the level values (explained below).
+The remaining arguments are a format, as in
+printf(3)
+Syslog works like printf.
+And buf in logit(), is the format parameter.
+And buf will simply contain the username and
+password we entered, and thus we can inject
+format characters.
+Let’s try it.
+Let’s login with %x stuff.
+Login failed, check the syslog.
+And there it is.
+In brackets you can see the leaked values
+from the stack.
+Perfect, now we have identified the bug.
+And from earlier format string exploit videos
+we learned that a good strategy is to overwrite
+an address in the global offset table with
+another function, like system to execute commands.
+Let’s think about what function would be
+convenient to overwrite.
+I think, the strncmp is a cool function, because
+we control the first parameter.
+The line.
+And system uses the first parameter for the
+string to execute stuff.
+So if we replace strncmp with system, we can
+simply type in a line and execute a shell
+command.
+Ok, so let’s construct our exploit.
+We import what might be important, and setup
+the remote socket connection like we are used
+to.
+And maybe we create a new function called,
+read_until.
+Which is very useful in these kind of remote
+service challenges.
+So read until shall fill up a buffer with
+single character reads, until the buffer contains
+the magic string specified by read_until.
+And then we can simply write,
+read_until the final1 prompt.
+And then we can do our stuff.
+So first we specify a username.
+Read until next prompt, then we specify the
+login password, and read again until next
+prompt.
+Another trick I use is the function raw_input(),
+which is actually to read input from the user
+in python, but is very convenient to kinda
+pause the script, until we hit enter.
+So when we execute this now, we connect to
+the service and then we wait until we hit
+enter in the script.
+When we now check the running processes for
+final, we see two.
+If you remember the one is the parent daemon,
+and the new one (with the higher process id)
+is the spawned child that is handling our
+client connection.
+So we can attach gdb to that process and start
+collecting addresses of important symbols.
+So first let’s figure out the address of
+strncmp in the global offset table.
+With info functions and a search term we can
+find the function trampoline in the plt quickly.
+We can disassemble those instructions and
+we quickly see that it jumps to the address
+stored here.
+And this points into the global offset table,
+and will obviously contain the real address
+to strncmp in libc.
+So that is our target address we want to overwrite.
+Next is the address of system.
+System is part of libc and we can quickly
+get the address of it here.
+Note, usually libc is randomized due to ASLR
+nowadays, but on this old linux system, or
+on embedded devices, it still works this way.
+On a real modern system you would first have
+to leak addresses from memory in order to
+calculate offsets and break ASLR.
+Ok, so we have our target and we have the
+address that we want to write to it.
+Also the resulting log message will contain
+your source IP and port, which might vary
+in length.
+Coming from localhost will be different than
+coming from a remote host.
+So we should add this into our exploit to
+be reliable.
+The challenge used getpeername to get the
+ip and port of it’s peer.
+So we can use the equivalent to get your own
+name.
+With getsockname().
+Now we also know the source ip and port and
+can write code to adapt accordingly.
+Also, I’m sorry, the code is really awful
+to read this way.
+I don’t know why I never bothered to turn
+on syntax code highltighing.
+So here we go.
+Better late than never.
+Syntax on.
+Let’s have a look again at the logged line
+from earlier.
+These characters here at the end look suspiciously
+like ascii, and when we convert them we see
+that they spell “Login from… and so forth”.
+Let’s do this again with some recognizable
+characters to find the username.
+And there it is.
+So it took roughly 14 pops of the stack to
+reach the username with the AAAA.
+You can see that the A’s don’t perfectly
+align, and they even might shift around because
+of the length of the IP and port.
+Thus first step is to make this constant by
+adapting the amount of As such that afterwards
+it will be a known aligned offset.
+So in this case the hostname was 15 characters
+long.
+And one more A would have filled up and alligned
+the memory.
+So let’s think about what the shortest and
+longest hostname could be.
+Shortest would be 9, longest 21.
+Because we prefer multiples of four to be
+32bit aligned, we decide to pad to 24 characters.
+Thus we take the length of the hostname, subtract
+it from 24, and then we know how many A’s
+we need.
+Let’s try this again with some %x in the
+username.
+Oh and we must not forget the newline at the
+end of our test inputs.
+Oh, doesn’t work?
+What did we do wrong?
+Ahh… we forgot the username and login command.
+Still doesn’t work…
+Oh, the line can only be 128 bytes long, but
+we send a lot more with 28 of these %x…
+See, so many small things that can go wrong
+and slow you down.
+Now we get the login failed.
+And looking into the syslog and searching
+for the Bs, we see that… god dammit… we
+forgot to add the padding with the As.
+Ok, there we go...
+the Bs are now perfectly aligned.
+Awesome.
+Now it doesn’t matter what IP or port you
+have, it will always be exactly there.
+And we can count the words on the stack and
+get the offset 17.
+So now we can move on and use a single %x
+with the dollar notation to refer to the 17th
+parameter, the 17th value on the stack.
+So for example we can now place the address
+of the global offset table entry for strncmp
+here into the string, and then use %n to write
+to that address.
+So now we only need to figure out how big
+of a padding we need to write the values we
+want.
+If that confuses you, rewatch the old format
+string stuff.
+So before we run it now, add another raw_input
+so that the script doesn’t exit and then
+we run it, attach to it with gdb, and observe
+the GOT entry for strncmp, we see that after
+the login attempt it got overwritten.
+Our goal is the lower part of the system address,
+which is 0xffb0.
+So now we can calculate the correct number
+of characters we need to print.
+And this is basically how the process now
+works.
+We write with %n to the address, check the
+number, calculate how much is missing or how
+much we are overshooting, correct the number
+of characters we print and repeat until we
+have constructed the full address for system.
+That is super annoying, it’s fiddly and
+takes some time, but once you got it, it’s
+so cool.
+So now I got the offsets right and the address
+is overwritten with the address of system.
+Now we can add the telnetlib trick with interact
+to our program and theoretically, at this
+point all calls to strncm would call system
+instead.
+And if you look into the code and think about
+that, simply writing something on the prompt
+should result in command execution.
+So let’s try it.
+We get a prompt, and now we can type commands
+as if we were in a real shell.
+Every loop the program reads our line, calls
+strncmp, which in reality calls system and
+executes our commands.
+And again, we can copy the exploit to our
+windows machine, change the ip address to
+the VM and then get a remote shell.
+Awesome!

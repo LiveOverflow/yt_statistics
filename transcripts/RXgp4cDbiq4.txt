@@ -1,0 +1,422 @@
+Let’s talk about the DEF CON Capture-the-flag
+Finals 2018.
+I never thought I would actually participate
+in this prestigious event as the best teams
+in the world travel to Las Vegas for it.
+Even just qualifying for it means your team
+belongs to the top in the world.
+But I wasn’t there for that reason, I was
+only here because the german team Eat Sleep
+Pwn Repeat collaborated with other german
+teams.
+We played a few CTFs together for practice
+and then to qualify for the finals.
+We couldn’t even agree on a name so you
+might have seen us as Germanys Next ROP Model,
+Krautstrike or at the finals as Sauercloud.
+As you know my channel has a lot of videos
+about solving CTF challenges.
+And if you don’t really know what CTFs are,
+I have linked two videos here.
+But I have only ever played jeapordy or wargame
+style CTFs where you have single challenges
+to solve.
+And they have the problem that nowadays you
+just need big teams of skilled people if you
+want to compete for top ranking.
+Because certain challenges can just take a
+single person over 15 hours to solve.
+And in a CTF with a dozens of challenges you
+need man-power.
+But the DEFCON Finals CTF is different.
+It’s an attack and defense CTF which I have
+never played before.
+So how does that work?
+So attack and defense CTFs can vary how they
+work.
+And this years CTF also had different rules
+and ideas were tweaked to balance the game.
+It’s important that we look at the rules
+and the setup for this CTF closely, so that
+you can understand the nuances in strategies.
+So don’t take this as a general description
+how every A&D ctf works, but they do share
+some similarities, and we are able to make
+some assumptions about that for preparations.
+So typically an attack and defense CTF works
+like this.
+Every team gets a machine.
+This machine runs services, so it runs programs
+that can be exploited.
+Exploiting means like with every CTF challenge,
+your goal is it to steal the flag on said
+system.
+So that might be a flag.txt file or whatever
+with a unique flag to proof you got access
+to the system.
+So your team has to analyse, reverse engineer
+and eventually create the exploit to get the
+flag from a target system.
+That’s like every other jeapordy ctf game.
+But the twist is, that every team has such
+a vulnerable machine running.
+So you have to use your exploit against all
+the other machines.
+By doing so you are stealing the flag from
+each team.
+And that gives points.
+Now there are a few additional things that
+make the attack and defense very different
+from regular jeapordy.
+First.
+The defense part.
+Teams can defend themselves from exploits.
+How this is done can vary from CTF to CTF
+but often you are required to patch the vulnerability
+or maybe you can even deploy firewall rules.
+This means while you are analysing and hunting
+for the vulnerability to create your exploit,
+at the same time you want to think about,
+and eventually implement a patch for your
+own machine.
+But of course you want to prevent so called
+superman defenses.
+You could just kill your own service, or completely
+block any input, or just remove entire functionalities
+of the program in order to prevent other teams
+stealing your flag.
+So you can see that defense can be very creative
+and quickly can become unfair.
+Thus often a so called SLA (Service Level
+Agreement), is implemented.
+So that means a game server will constantly
+execute testcases against your service to
+ensure that your service is still running
+as intended.
+But even then a clever defender could try
+to create a patch that allows the game server
+tests, but blocks all other players.
+You can imagine that defense ideas and strategies
+can go wild and to keep the game fair, you
+try to prevent that.
+How exactly defcon CTF did that we will learn
+shortly.
+Another important detail is the concept of
+the game tick.
+A clock.
+So if you would just have to steal the flag
+once from all teams, there would be a race
+to the first exploit and then, all teams get
+exploited and that’s it?
+That doesn’t sound too exciting.
+So typically the game is ran in ticks or intervals.
+For example every 5 minutes the flags on all
+team’s machines are exchanged.
+So you run your exploits every five minutes
+against all teams and hope to still find a
+vulnerable service.
+Then you take the flags, submit them to the
+scoreboard and it then awards you points for
+how many flags you got this round.
+This actually makes attack and defense exciting.
+So you are sitting there and you see that
+a team has a working exploit against you,
+and they get points each round for it, so
+now you are trying to fix the bug in order
+to stop them from gaining those points.
+And then crazy strategies might emerge.
+Could you exploit your own service and submit
+the flag yourself for one additional point?
+Is your team the only one with a working patch,
+do you want to share the patch with other
+teams so that the current top team can’t
+gather even more points?
+It can go crazy.
+Then sometimes you have access to the whole
+network traffic.
+Sometimes you can log traffic yourself or
+the game itself logs it and shares the pcaps,
+but that means now traffic analysis becomes
+super important.
+You could maybe steal exploits from other
+teams by simply replaying the packets.
+You could try to extract flags that teams
+have leaked through the network traffic and
+submit it yourself.
+And to protect your own exploits, you now
+start to think about obscuring your exploits
+in the traffic.
+Maybe you know bugs in wireshark that you
+can include in your traffic to make analysis
+for other teams harder.
+Okay, so now you have a good general idea.
+And based on this teams prepare for the defcon
+finals.
+Basically every team has a software developed
+to automatically execute exploits against
+each team every tick, you don’t want to
+do that by hand, as well as taking then taking
+the flags that are returned and automatically
+submit them to the scoreboard.
+You also don’t want to gather and submit
+maybe dozens of flags every 5 minutes by hand.
+Here is for example the flag submitter service
+from the team Mhackaroni, the italian team.
+And you can tell that some teams might totally
+overengineer them with fancy stats and so
+forth.
+And maybe even develop a lot more tools for
+example analyse pcaps, maybe you don’t want
+to use wireshark for various reasons.
+So as mentioned in the previous video, our
+team got a suite in Cesars palace to play
+from because there is only space for 8 people
+at the table in the CTF area.
+So in order to connect everybody, quite some
+network engineering had to be done.
+And luckily our team had some awesome people
+who took care of that.
+I don’t know exactly the details but it
+all worked flawlessly, but I have heard that
+one person stayed up all night to get it working.
+Thanks so much.
+For internet we actually had planned to use
+an LTE router, but the connection was just
+terrible.
+We had of course wifi and I think even ethernet
+in the hotel room, but that network was also
+terribly slow.
+So I think in the end we abused the ethernet
+connection of the smart TV in the room.
+That network was apparently separate and you
+could get really good speeds.
+And I believe we were not the only team who
+figured that out.
+I think here on this picture from the post-ctf
+shellphish party in their team suite, you
+can also see some network cables hooked up
+around the TV.
+Super funny.
+Before the CTF every team got 8 bags with
+a badge for DEF CON and some other goodies.
+Let’s have quick look at that.
+The most important thing was the golden CTF
+coin.
+It wa used to allow you into the CTF area
+and it was just kinda special.
+It had the Defcon 26 CTF logo on the front
+and the logo of the ORDER OF THE OVERFLOW
+on the back.
+That is the name of the team who organized
+this years CTF.
+In previous years it was organized by the
+Legit Business Syndicate and this year by
+the order of the overflow.
+So that was their first time and I think they
+did an awesome job.
+These names may sound weird or mysterious
+to you, I totally love it, but behind them
+are basically some university professors,
+phd students and other academics.
+I think most of them are also part of shellphish?
+But yeah.
+Then we have this bag with stuff.
+So first we have the lanyward for the badge
+here.
+This CD I believe contains the defcon soundtrack,
+a pretty neat gimmick.
+Then we have a booklet with all the information
+about defcon 26.
+The schedule, the talks, all the events around
+it and generally contains everything you need
+to know.
+Here is the page about the CTF.
+Then we have some stickers from this awesome
+art, and finally the dc 26 badge.
+The Dark Tangent presents Def Con 26.
+If we put in some batteries the front lights
+up with what I believe was a game.
+There are some controls.
+But I havent looked into it at all.
+I later heard that you can solve small puzzles
+and challenges to unlock a different color
+for the letters.
+Cool.
+So now it’s the morning of the CTF.
+We have setup everything in the suite, everybody
+is ready, our services are deployed and running,
+now we just wait for the start.
+Then we finally get the rules.
+I won’t go over everything in detail, you
+can read it yourself here, but just a few
+notes.
+First of all there are hours.
+So only during this time the network was open
+for attack and defense.
+But that doesn’t mean you had nothing to
+do at night.
+In fact you used that time to keep working
+on exploits and patches for some challenges
+to have them ready in the morning.
+So each team got an ethernet cable they could
+extend with some switches.
+Based on those isolated networks each team
+could simply visit 10.100.0.2 and that service
+then knew which team it is.
+So no need for usernames and passwords.
+The game proceeds in ticks of a fixed time.
+At the beginning of a tick, new flags will
+be distributed to all services.
+Successful exploitation and redemption of
+this flag will increase your score and decrease
+the score of others.
+And this CTF also had another twist.
+To further your prosperity, the Order has
+developed not one, but two types of services:
+Attack/Defense and King of the Hill.
+King of the Hill was pretty cool, they were
+more like a programming challenges? you compete
+against other teams for the best solution,
+which depends on the service in question.
+COuld shortest, fastest, or most complete
+or whatever.
+Not all services were available from the start.
+They were slowly released one at a time and
+also deprected after a while.
+That was indicated with colors green, yellow
+and red.
+So if you have sunk a lot of time in a challenge
+and it turns yellow you might want to switch
+to somethign else as the points you would
+get in the remaining time is maybe too little.
+For each tick you were not exploited by a
+team you would get defense points for it.
+And if you got and submitted a flag for another
+team, you would get an attac points.
+And king of the hill also gave points the
+longer you were at the top of that leaderboard.
+Later points were normalized and weighted
+accordingly.
+Patching was also very itnersting.
+We didn’t have access to our services or
+machine directly.
+The only way to interact with our own machine
+was by uploading a patched binary version.
+And then the system would run certain functionality
+tests to ensure your binary still is functioning
+properly.
+So you can just reject any input.
+And also often patches were limited to a certain
+amount of bytes.
+So that required very careful planning on
+what and how to patch it.
+And if you would deploy some kind of superman
+defense you might get punished for it by revoking
+your ability to patch.
+Of course denial of service and so forth is
+not allowed and if you vioalte the rules you
+might even get banned.
+I think during the CTF two teams were blocked
+from the network for a period time as a punishment.
+So here is the internal interface for our
+team.
+This was right when the CTF started.
+We could use this form to submit flags, but
+of course we would actually use our automated
+service.
+I don’t know but I believe somebody from
+us quickly looked at how the form is submitted
+and made the necessary changes for our flag
+submitting service.
+The CTF actually started with a King of The
+Hill Challenge.
+You get all the information where to reach
+the service and you could download the client
+binary.
+Basically it was a multiple choice command-line
+quiz where you had to select the matching
+disassembly or assembly.
+It started pretty simple because you had the
+raw bytes of the opcosed and could use an
+disassembly library such as capstone.
+So this was mostly a programming challenge
+because it’s kinda annoying to interact
+with this ANSI text interface, parsing the
+questions and answers.
+But there were several ways to improve your
+script.
+At first you might write a simple version
+that calls the client binary and uses it to
+interact with the server, then in parallel
+somebody might reverse engineer the client
+and server protocol and implements that directly
+to get more control and speed over solving
+the quiz and then eventually you might also
+find bugs that allow you to advance further
+and further in the game which would have been
+impossible otherwise.
+So I actually quite liked that concept.
+Another example challenge I participted in
+was the oooeditor.
+It was a very simple editor, kinda looked
+like radare, and by simply playing around
+with it executing different commands in various
+orders, I found what looked like a use after
+free issue, where it was possible to leak
+pointers from the heap.
+And the mein exploitable bug was that your
+file content was loaded onto the heap and
+you could easily read or write out of bounds
+with negative offset numbers.
+But that bug was also so simple, that every
+team had patched that very quickly and we
+couldn’t find another one.
+As far as I know each attack and defense challenge
+had a fairly simple bug and a much harder
+bug.
+So even if a team patched something you had
+a chance to use a much more obscure and more
+difficult to find bug for an exploit.
+Overall the amount of challenges that were
+released, and the fact that pcaps of the network
+traffic only became available VERY late in
+the lifetime of a service, the organizers
+managed to figure out rules that meant that
+having a huge team wasn’t really necessary.
+I heard that last year analyzing pcas was
+very powerful and that just required a lot
+of labour.
+So with these changes and only 1-3 challenges
+up at the same time, it was easy to manage
+by a team of only 8 people.
+And I think that really worked out well.
+But that also meant that me, being not the
+most experience, fastest and skilled person,
+I couldn’t really contribute much.
+Others were just rocking it like crazy.
+But I had still fun.
+But I was obviously not the only person that
+had that issue, others just took breaks and
+checked out Def Con, participated in other
+CTFs going on or spent time developing our
+own personal scoring system to quickly see
+if we get attacked and who has currently a
+working exploit and so forth.
+The CTF platform exposed these details through
+an API.
+In the end we ended up on the fourth place,
+which is super impressive.
+But I also know how skilled the people in
+our team are and they totally had the ability
+to win.
+But that’s competition, a lot of things
+factor into who will win in the end.
+So I hope you liked that overview of the Defcon
+CTF and that I was able to share with you
+how it felt like participating in it.
+I really hope I get another chance of doing
+this as I really enjoyed playing with this
+team.
+And congrats to all teams who participated
+and thanks to the order of the overflow for
+creating this excellent game.

@@ -1,0 +1,247 @@
+Last video we explored how JavaScriptCore,
+the JavaScript Engine from webkit, stores
+Objects and Values in memory.
+Now in this video I want to learn a bit more
+about the JIT, the Just in Time compiler.
+[ad] This series on browser exploitation is
+supported by SSD Secure disclosure.
+Checkout the description for more information
+[/ad]
+Simply speaking the Just in Time compiler
+compiles JavaScript bytecode, which is executed
+by the JavaScript Virtual Machine, into native
+machine code.
+Like you would compile C code.
+But there is a bit more fanciness when it
+comes to JIT in JavaScriptCore.
+So how can we learn about it.
+I got a good tip from Linus to checkout some
+official webkit resources like this article
+on the webkit blog.
+JavaScriptCore CSI: A Crash Site Investigation
+Story.
+[...] Today I’ll describe some of these
+tools that WebKit engineers use by telling
+the story of how we diagnosed a real bug in
+the JSC virtual machine (VM)
+So this is a blog intended for people that
+would like to contribute to webkit and the
+author shares a lot of very valuable insight
+into how to debug a crash in order to find
+the root cause.
+And this is exactly what we want to know as
+security researchers as well.
+For example it describes how to create an
+addresssanitizer build of webkit, in order
+to catch possible heap overflow or use-after-free
+issues that for normal programs often don’t
+crash right away.
+But we are currently interested in the JIT
+stuff.
+And further into the article we can find the
+following.
+JSC comes with multiple tiers of execution
+engines.
+You may have read about them here, this is
+an article that introduces the FTL JIT. there
+are 4 tiers:
+tier 1: the LLInt interpreter
+tier 2: the Baseline JIT compiler
+tier 3: the DFG JIT
+and tier 4: the FTL JIT
+So tier 1 is the regular interpreter.
+That’s the basic JavaScript Virtual Machine.
+We can have a quick look into the LowLevelInterpreter.cpp
+source file, which contains the interpreter
+loop.
+So it simply loops over the javascript bytecode
+and then executes each instruction.
+So… now when a function is called a lot,
+it can become “hot”.
+That is a term describing that it’s executing
+a lot.
+And then JavaScriptCore might decide to JIT
+the function with the first tier.
+The baseline JIT.
+And in the corresponding JIT.cpp file we can
+get again some additional information.
+When the LLInt determines it wants to do OSR
+entry into the baseline JIT in a loop, it
+will pass in the bytecode offset it was executing
+at when it kicked off our compilation.
+We only need to compile code for anything
+reachable from that bytecode offset.
+OSR, On stack replacement, is basically a
+kind of form of JIT, where you can switch
+on-the-fly to the compiled code.
+It’s still very compatible, so to say, with
+the bytecode as there haven’t been any other
+optimization yet.
+From the “Introducing the Webkit FTL JIT:
+we can also read: The first execution of any
+function always starts in the interpreter
+tier.
+As soon as any statement in the function executes
+more than 100 times, or the function is called
+more than 6 times (whichever comes first),
+execution is diverted into code compiled by
+the Baseline JIT.
+This eliminates some of the interpreter’s
+overhead but lacks any serious compiler optimizations.
+Once any statement executes more than 1000
+times in Baseline code, or the Baseline function
+is invoked more than 66 times, we divert execution
+again to the DFG JIT.
+DFG stands fro Data Flow Graph.
+So that kinda already reveals a bit what that
+step is about.
+The article also has a nice picture describing
+the DFG pipeline.
+The DFG starts by converting bytecode into
+the DFG CPS form.
+CPS stands for Continuation-Passing Style,
+which means your code doesn’t use returns,
+but instead continues and passes on to the
+next function.
+If you have ever done some nodeJS express
+development, I think you can imagine it like
+the next() function.
+So this form reveals data flow relationships
+between variables and temporaries.
+Then profiling information is used to infer
+guesses about types, and those guesses are
+used to insert a minimal set of type checks.
+Traditional compiler optimizations follow.
+The compiler finishes by generating machine
+code directly from the data-flow-graph.
+So here it starts to get interesting.
+The JIT compiler guesses types and if the
+JIT believes types don’t change, the JIT
+can decide to remove certain checks.
+Which of course can speed up the code dramatically
+if it’s a function that is called a lot.
+But that is not all.
+After the DFG JIT there is another JIT.
+The FTL - faster than light.
+When this tier was introduced it used the
+known compiler backend LLVM, to apply much
+more typical compiler optimizations.
+The FTL JIT is designed to bring aggressive
+C-like optimizations to JavaScript.
+At some point LLVM got replaced by B3, but
+the idea is the same.
+And that JIT compiler might even make more
+assumptions on the code.
+But let’s look at this a bit more practically.
+This is again where the article about the
+crash investigation is excellent.
+It introduces several environment variables
+that can be used to control the behaviour
+of the JIT and enable debugging output.
+For example we could use JSC_useJIT to disable
+JIT entirely, or use JSC_useFTLJIT to only
+disable FTL, the last tier.
+Or we can disable threads that do JIT in parallel.
+Or we can report and print every time when
+any JIT does optimization.
+So in lldb I set the environemtn variable
+to turn everything on, and then restart JSC.
+This already casues some JIT optimization
+debug prints.
+Looking at the function names that were jitted,
+it looks like things like charAt, abs etc
+have been already optimized.
+But now we want to JIT our own function.
+So here is a liveoverflow function that takes
+a simple number as parameter, then prepares
+a result variable and loops from i=0 to n
+and sums it up in result.
+Simple…
+Next we have to make the function “hot”.
+We can do this with a simple loop calling
+that function.
+Let’s start with only four executions.
+It shows some output, but not what we want.
+Also executing it 10 times in loops doesn’t
+do anything.
+But executing the function 100 times, it will
+trigger the Baseline JIT.
+Here is a compiled assembly code equivalent
+of the javascript function.
+Let’s try to trigger an even more aggressive
+JIT. let’s increase the loop.
+And boom DFG jit…
+And now let’s go totally crazy, adjust the
+loop.
+FTL Jit. boom.
+There is also sooo much more output but to
+be honest, no clue what that all means.
+But the important part is just, that we have
+learned about various debugging methods and
+tricks to dig deeper.
+Now you know a bit more about the JIT compilers.
+From last video you also know how JavaScript
+objects, arrays and values are represented
+in memory.
+Now consider the following idea.
+If the JIT compiler guesses and assumes types
+in the code, and removes checks and for example
+just simply moves from a certain memory offset,
+could that be abused?
+Just hypothetically, let’s say JITted code
+expects a JavaScript Array with doubles and
+directly acts on these values.
+The JIT compiler then optimizes all checks
+away, but then you find a way to replace one
+entry of the array with an Object.
+Now an object would be placed as a pointer
+into that array.
+So if jitted code has no checks and for example
+returns the first entry of this array, it
+would return that pointer as a double, right?
+That would be pretty bad, and that’s actually
+one of the typical browser vulnerability patterns
+and we will see that in action soon.
+But how does the JIT try to prevent things
+like this from happening.
+Well it turns out that the developers try
+to model every function that has an effect
+on the assumptions of the JIT compiler.
+So if there is anything that could change
+the layout of that array, for example when
+an Object is placed into a Double Array, then
+such a function should be marked dangerous.
+Let me read you a quick excerpt from this
+ZDI article about “INVERTING YOUR ASSUMPTIONS:
+A GUIDE TO JIT COMPARISONS”.
+Here they write:
+The way to state that an operation is potentially
+dangerous to prevent later optimizations,
+is to call a function called clobberWorld
+which, among other things, will break all
+assumptions about the types of all Arrays
+within the graph.
+So the javascript engine tries to mark everything
+that could have potential side effects, by
+calling clobberWorld.
+Side effects could be things like we just
+thought about, like changing the type of a
+value, and something else didn’t expect
+that change.
+So here is the function clobberWorld implemented
+in the DFG JIT part.
+This will call clobberStructures, which will
+set setStructureClobberState to StructuresAreClobbered.
+So side effects that the JIT has to be very
+careful about are obviously things where for
+example the structure of an object changes.
+Let’s say the JIT optimized accessing a
+property .x on an object, and suddenly you
+remove that, it has to be marked that the
+structure changed, so that JITed code can
+be discared, otherwise you get memory corruptions
+if you reuse that jitted function.
+But that’s enough for now.
+Next video we move on to linus’s exploit
+abusing such
+a case.

@@ -1,0 +1,378 @@
+Computer networking and those protocol layers
+like Ethernet, TCP/IP, all that stuff was
+kinda confusing to me when I was younger.
+At university I was then introduced to the
+OSI layer model but it was just an abstract
+model and I still didn’t understand it.
+It took me a while until this whole concept
+of layered packets, OSI model and so forth
+clicked.
+So in this video I will try to explain to
+you the basics of computer networking.
+At the start I will use paper to illustrate
+networking, but at the end we make the bridge
+over to sockets and bits and bytes.
+So hopefullyit will clicked for you too.
+
+So on this side here we have computer A, and
+on this side is computer B. And let’s say
+we want to send this text message between
+those two.
+How could we do that?
+Well…
+I could just pass over this paper, right?
+Correct!
+I mean.
+Handing over a physical piece of paper is
+what we humans can do.
+With actual computers it’s a bit different,
+but also the same.
+It’s also called the physical layer for
+computers.
+But of course a computer does a bit more magic.
+Taking this text and using electricity to
+send 0s and 1s over a wire, or use radio waves
+over the air.
+And if the sender and receiver speak the same
+protocol.
+Like we humans know what to do when we get
+handed a piece of paper, then we transmitted
+a message.
+That is cool, we can send messages back and
+forth.
+But as you know the internet is a bit more
+complex.
+There are not just two computers, but many
+more.
+So in order to support multiple computers,
+we need some way to address them and find
+them.
+Introducing the IP layer - with IP addresses
+to identify sender and receiver.
+But to find the correct computer with an IP
+address, we need help.
+Like in the real world we use the postal service
+to find the destination, here we use another
+computer for that, we call it a switch.
+So when we now want to send this text we need
+to know the IP address of the recipient.
+In this case it’s 192.168.178.3, and we
+are 192.168.178.2.
+So before we hand this paper over to the physical
+layer, we need to attach this additional information
+on to it.
+Or rather, we create a new IP header which
+contains the source and destination IP and
+then we append to that the data we want to
+send.
+Cool.
+Now we hand this whole package, or packet,
+over to the physical layer, it will use 0s
+and 1s to transmit it to this other computer
+called a switch.
+It also has a physical layer speaking the
+same protocol, so it can receive the paper.
+And its physical layer hands over the paper
+to the next layer.
+The IP layer and it can check “ahhhh the
+destination is the IP 192.168.178.
+I know this computer is plugged into my port
+number 3.
+So physical layer, please forward it to there”.
+Quick intervention: In reality there is an
+ethernet frame containing a mac address.
+And the switches actually look at the mac
+address not the IP address to decide over
+what network cable to send the data.
+And routers are the ones looking at IP addresses.
+So I’m sorry about this inaccuracy, but
+for our case it’s not that important.
+It’s just a model, it’s close to reality,
+and it definitely helps you understand reality,
+but I had to simplify parts for the sake of
+the video length.
+So please forgive me and give this explanation
+a chance regardless.
+So after the switch looked at the IP and figured
+out which network cable is the correct one,
+the IP layer gives it back to its physical
+layer and the data is passed over the correct
+wire that is to the target computer.
+This target computer of course also has a
+physical layer which can use the 0s and 1s
+to assemble the paper again.
+And hands it over to the IP layer.
+The IP layer can now check: “OH the destination
+IP is my IP, this was really addressed to
+me!
+And there is also a source IP attached, we
+can remember that in case we want to send
+a response.”
+So here is the text.
+The IP layer removed the IP address information
+and just passed on the data, the content of
+the packet.
+The computer received the text.
+However, this is also not enough yet.
+Because there are multiple programs running
+on each computer.
+How do we know which program should receive
+this text.
+For example there could be a webserver and
+a minecraft server running on here.
+So let’s introduce another layer.
+The TCP layer.
+The TCP protocol is very complex, and not
+only does it contain a number called a “port”,
+which is used to decide which programs gets
+the data, but it also involves a complex back
+and forth to ensure data was really received.
+I don’t want to get into the details here,
+in the last video about “what is a protocol”
+we already mentioned this a bit, for us we
+just focus on the port number.
+And as I mentioned, the port is a number that
+just references a program.
+So how can we now send this text to the webserver
+running on port 80 on the target computer?
+Well… we do basically the same again.
+First we have to create a TCP header which
+contains the source port, which is our program
+number, and the destination port, in this
+case 80.
+And we attach to it the text we want to send.
+Then we hand this whole packet over to the
+IP layer.
+And the IP layer now creates an IP header
+with the target and source IP and attaches
+the previous packet to it.
+This whole packet is now given to the physical
+layer.
+It gets electrically transmitted to the switch.
+The physical layer there reassembles the bytes,
+hands it over to the IP layer.
+This layer and knows the computer with this
+IP and instructs the physical layer to send
+it over that wire.
+Then it arrives as 0s and 1s on the target
+computer, the physical layer rebuilds the
+whole paper packet and hands it over to the
+IP layer.
+The IP layer now looks at the IP header and
+sees “yep, this is addressed to me”.
+Removes the Ip header and hands the remaining
+payload data over to the TCP layer.
+The TCP layer then removes the TCP header,
+looks at the port information and sees: “ahhh
+this is intended to port 80, let me check
+what program this is.
+Ah yeah it’s the webserver process.
+So here, webserver, here is the text data”.
+I hope you kinda see now how networking works
+for computers.
+And I think by having gone through this example
+to build it up layer by layer solving different
+problems, you can also see why we want to
+have these different layers.
+Here we used 0s and 1s to transmit basic data.
+Then we wanted to support multiple computers
+in a network and needed to agree upon how
+to use IP addresses.
+Or MAC addresses.
+To find the correct computer.
+And then we realized we have multiple programs
+running on a single computer, so we had to
+invent the TCP layer with ports.
+And this stacking of protocols is really really
+powerful.
+Because it allows us to think in isolated
+manners and black boxes.
+Yes it was kinda crazy and complex to transmit
+this single text on the piece of paper.
+But if you can trust this whole technology
+stack below you, you can just ignore it.
+Ignore how it actually works.
+Black it out.
+Then as a hacker or developer, you can focus
+on other things that matter.
+For example yYou want to send your attack
+text to this program.
+You need to know the IP address and port,
+but having that, you just pass it into the
+black box, and magically it appears a moment
+later on the other side.
+WE directly communicated with the webserver.
+A straight connection.
+Even though in reality we know it was quite
+a bit more complex.
+And this thinking in blackboxes works for
+every layer.
+Let’s make the upper layer a blackbox, we
+don’t need to know what kind of text or
+data somebody sends.
+And we don’t need to know how the addressing
+works below us.
+We imagine to be only this layer now.
+So if somebody tells us: “YO, this text
+has to be sent to this port” we in isolation
+just do our part.
+We create our TCP hader and attach it to the
+data that has to be sent.
+And then we just pass it to the next layer.
+And we don’t need to know what’s below
+us.
+All we care about is, that just a few moments
+later, magically, it appears on the TCP layer
+on the target computer.
+So we again can think of this as if we had
+directly communicated with the other TCP layer.
+And now all those weird OSI layer images with
+those arrows also make sense.
+Every layer has a well defined protocol and
+task that it has to do.
+And it just does it.
+It doesn’t care what the payload data is
+that was given to it, and it doesn’t care
+what happens with the whole packet of data
+given to the next layer.
+It just does its one job.
+And in this limited view of the world you
+can imagine you are communicating directly
+with the other side of the protocol.
+Of course this was pretty abstract, but now
+let’s see how this works in reality.
+This hidden complexity, this blackbox thinking,
+this is what the operating system or software
+libraries do for you.
+For example when you create a TCP socket on
+a linux system, be it in python or in C, you
+are on this layer here and you want to send
+data.
+Now you just instruct the operating system,
+with syscalls, so kernel functions, to take
+care of all of this.
+And this is what it means to give data to
+the next layer.
+In programming, in computers, giving data
+to the next layer can be imagined as simply
+calling the next function with the data.
+So here we call here the syscalls, the kernel
+functions, to establish a TCP connection.
+And in the linux kernel you can find more
+functions.
+Here for example is the internal kernel function
+to send a synack packet.
+And following these send functions we come
+to this function here which has a great comment:
+“It is our job to build the TCP header,
+and pass the packet down to IP, so it can
+do the same plus pass the packet off to the
+device.”
+the network device.
+As you can see, these layers are just functions.
+Some of them implemented by the kernel, some
+of them could also be implemented by software
+libraries, or by yourself.
+And now I hope it makes sense to you what
+happens when you use a utility like netcat.
+This is a small program that basically helps
+us to do what we did on paper to send data.
+And it has already the code written to call
+the necessary kernel functions.
+So we can use it on the target computer to
+listen on TCP port 1234.
+And then we can use netcat on our computer
+to connect to this target IP and port.
+We don’t need to know exactly how it works,
+but when we type in text here and send this,
+on the target this text magically appears.
+Under the hood there is a lot of stuff happening
+of course.
+With wireshark you somewhat get more insight
+into that.
+So here for example is the actual TCP packet.
+And you can see the payload is the text we
+sent.
+Here is the TCP header attached on top of
+it with the port.
+And above that is the attached IP header with
+the IP.
+Also here you can see the one more layer that
+I excluded, the ethernet layer with the MAC
+address.
+Also over here in the hexdump view you can
+see the raw bytes of the whole package.
+you can see.
+This is exactly like the paper example
+Okay… this was quite a lot.
+But I hope it clicked for you, like it clicked
+for me as well.
+And if you pay attention, you start to see
+this layering everywhere.
+When you make a phone call, you don’t directly
+talk to this person.
+Your thoughts first get turned into voice,
+or vibrating air molecules.
+Then those air vibrations get modulated to
+electrical signals, this is then given to
+a wire that is transmitting it to the recipient.
+And there this electrical signal is passed
+to a speaker, which turns the signal into
+air vibrations again, which then get picked
+up by the ears and processed by the brain.
+So even though there is this complex chain
+that is happening.
+You can abstract this away.
+the phone and brain is a blackbox, and you
+end up with a simple, easy to understand direct
+connection “you are talking with this person”.
+And you can think like this for computers
+as well.
+So my advice to you, accept blackboxes.
+It’s okay not to know how parts of a computer
+work.
+Being able to work with these abstractions
+can make you very efficient and powerful.
+You can focus on solving complex problems
+specific to that layer.
+However.
+As hacker.
+It’s also important to peek inside those
+blackboxes.
+You can accept blackboxes a lot of times,
+but never be satisfied with a blackbox.
+As hacker this should intrigue you and you
+would want to look inside this.
+Because while we like to think of these protocol
+layers in isolation.
+Of course they are not isolated.
+They are connected, they are functions calling
+other functions, and they pass data back and
+forth.
+For example, do you find HTTP request smuggling
+vulnerabilities complicated?
+Well it could be that it’s confusing to
+you, because this vulnerability is due to
+an interplay between HTTP and TCP.
+If you think of HTTP requests in isolation,
+request smuggling never makes any sense.
+So to understand this vulnerability you need
+to look into the layer below and understand
+the relationship between TCP and HTTP and
+how servers use TCP for multiple HTTP requests
+and responses.
+I link some videos about request smuggling
+below in case you want to try to understand
+it again now that you have learned about protocols
+and network layers.
+Anyway.
+Time to end this.
+If you like these videos explaining basic
+computer science terms, with a small twist
+about hacking, let me know what other terminology
+is confusing to you.
+And subscribe, because in the next video I
+want to tell you what it means to have a network
+tunnel.
+secure tunnel, proxies, vpns.
+So stay tuned.

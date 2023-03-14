@@ -1,0 +1,319 @@
+So we finished exploit-exercises protostar
+a while ago.
+Which means we have a really good basic understanding
+of how binary exploitation worked, many years
+ago.
+Exploitation nowadays is not as easy anymore
+and some of you have noticed that, because
+you tried to copy the source code and compile
+it on their own modern linux machine.
+So I thought it would be interesting to start
+introducing modern techniques and exploit
+mitigations by revisiting some of the protostar
+challenges on a current ubuntu.
+And see how far we get.
+Are they still exploitable?
+So let’s have a quick look at the very simple
+source code again.
+There were these variables, a buffer and this
+modified integer which was set to 0.
+Then there was this gets() function which
+reads in some input into the buffer and it
+doesn’t have a way to check the length.
+So this way we were able to fill the buffer
+completely and even write beyond it, into
+adjacent memory.
+The binary on the old protostar VM had the
+modified variable just after the buffer.
+Thus if you wrote more than 64 bytes you overwrote
+the 0 value of the modified variable and thus
+change the outcome of this if.
+So let’s try this again on a modern system.
+I’m using digitalocean to quickly spin up
+a new ubuntu linux machine and ssh into it.
+Then I take the code and compile it.
+Oh, new system.
+So we also have to install gcc, the compiler.
+Now it works.
+You can already see that the compiler is warning
+us of the use of gets().
+You see, making programming mistakes like
+this really requires a developer to ignore
+warnings like this.
+You don’t really have to know about the
+dangers from somewhere else anymore, it tells
+you right away.
+So let’s see.
+Let’s try to input a lot of characters and
+see if we can change the modified variable.
+But it doesn’t seem to work.
+The only thing we can get is a stack smashing
+detected error.
+And the process is aborted.
+That’s the first evidence that a bit more
+stuff is going on here.
+So let’s look at the assembly code that
+the compiler produced.
+First of all let’s check why we couldn’t
+overwrite the modified variable.
+Does the stack smashing detected have to do
+anything with it?
+Mh kinda.
+But let’s see.
+You see this location on the stack is where
+the local variable modified is stored.
+You can see that because the value 0 is moved
+to it, like in the C code.
+And this here is the buffer on the stack you
+can see that because the address of it is
+passed to gets.
+Like in the C code.
+So when you look at this you notice, that
+the modified variable is NOT located after
+the buffer anymore.
+We can write as many characters as we want,
+but we will never overwrite modified.
+You can also try to reorder the variables
+in the C code but that has no effect on the
+assembler code either.
+And that’s not a coincidence.
+Buffers or arrays are risky compared to simple
+integer variables.
+Buffers are prone to buffer overflows.
+So the compiler made the decision to order
+the local variables in a particular way.
+And it kinda has something to do with the
+stack smashing detected message.
+You see this message is caused because a stack
+cookie or stack canary or stack guard was
+overwritten.
+So what exactly is that?
+Let’s open the compiled binary in a disassembler
+to have a better look at it.
+If you are still learning about this stuff,
+assembler code always looks very intimidating.
+But it’s all about recognizing and learning
+patterns.
+One such pattern is here with the stack cookies.
+Because when you reverse engineer a program,
+you can basically ignore a lot of stuff.
+For example this here and down here, has to
+do with the stack cookie, and so it has nothing
+to do with the functionality of the program.
+If you are interested in what this function
+roughly does, you can look for functions being
+called here, so there is a gets, so that is
+reading something.
+Then a local variable is compared and then
+it prints a string with puts in either case.
+So you already get a rough idea from that.
+But we already know what it does, so whats
+up with the parts of the stack cookie.
+In the beginning of the function a value was
+moved from a weird place, fs at offset hex
+28, into the register rax.
+And then that value is placed onto the stack.
+And at the end of the function, just before
+the return, this value is read again from
+the stack and then xored with this mysterious
+value in fs hex 28.
+This is just a check if the two values are
+the same.
+If they are equal the function is allowed
+to return.
+If the check failed, and those values are
+different, then there is a call to stack_check_fail
+and the program will never return.
+And this makes sense right.
+So some unknown value is written onto the
+stack at the beginning, then stuff happens,
+for example the gets() call which can overflow
+the buffer,
+And at the end the value on the stack is compared
+again to this mysterious value.
+So if we had a buffer overflow that overwrote
+this stack cookie, this check would fail.
+So fs, or gs or other segment registers, are
+special registers with varying usages depending
+on 32bit or 64bit and if you are on windows
+or linux and if you write low level boot or
+kernel ring 0 code or if you write userspace
+ring 3 programs.
+And there is a lot of historical baggage with
+them.
+And to be completely honest with you, I don’t
+fully understand it.
+Maybe somebody in the comments can correct
+me and add some additional information.
+So take this explanation with a grain of salt.
+You can imagine the fs register to point to
+some memory.
+And from the perspective of the process we
+actually don’t really know where it points
+to.
+The kernel (I think) set up where it points
+to.
+So the process doesn’t really care where
+it points to, it can just use it.
+And it can then reference different values
+at certain offsets in that memory.
+So for example the stack cookie is stored
+at offset hex 28.
+And actually the location must be somewhere
+in the virtual memory of the process as well.
+Let’s install the gdb enhancment peda really
+quick because it has a great memory find function.
+we can test this by setting a breakpoint at
+the stack cookie handling routines and search
+the process memory for this value.
+And you can see it shows up in some kind of
+mapped memory.
+And if you check the memory maps it is included
+here.
+And that is really the location where fs points
+to.
+Because for example we can now overwrite this
+value with hex 41, so capital AAAAAAA.
+And when we continue and enter a lot of data,
+a lot of As we will overwrite the cookie on
+the stack with hex 414141.
+And when we now reach the end of the function
+the stack cookie value was obviously overwritten
+by us with 414141.
+But we also just set by hand the original
+value of the stack cookie to 41414.
+And even though we cannot inspect and see
+where fs points to, the CPU knows where the
+value is and will compare those two now.
+And not suprisingly we continue to the return
+and get a segfault.
+Instead of going to the stack_check_fail.
+This means we actually have changed the original
+value of the stack cookie.
+That’s cool huh?
+But you see it’s not really a bypass for
+cookies, it doesn’t help us in this particular
+case and magically make it exploitable.
+We are just playing around with it to understand
+it better.
+And we know that the original stack cookie
+value is stored somewhere in memory.
+So those cookies serve a precise purpose,
+but it’s not the magic medicine that stops
+every exploit attempt.
+But now you have a better understand of the
+limitations of stack cookies, they are just
+a value on the stack which are placed there
+at the beginning of a function and compared
+to the original value before the function
+returns.
+This means we can overwrite the return pointer
+on the stack, but the issue is, that the function
+will never return because the cookie is wrong.
+And if there are other variables on the stack
+before the cookie they could all be still
+overwritten.
+So it actually just kinda protects you from
+smashing the return pointer for a classic
+buffer overflow.
+It only stops the function form returning,
+but it might not stop other side effects due
+to things overwritten on the stack.
+So in our case, theoretically if the modified
+variable would have been placed after the
+buffer, we could have still overwritten it
+without ever writing so far that we overwrite
+the stack cookie.
+But the compiler developers know that buffer
+overflows are a common thing, so they want
+buffers to be as close as possible to the
+stack cookie.
+Which causes the modified and buffer variable
+to be reordered in this way.
+The buffer is placed after the modified variable,
+closer to the cookie.
+Darn it.
+There is another interesting thing about stack
+cookies.
+Let’s rerun the program and collect a few
+random cookies.
+Do you notice something, they all start with
+a zero byte.
+So this is the little endian format but in
+memory the bytes would look like this.
+So that’s interesting.
+Why would they not use all 8 bytes for random
+values but compromise one of these bytes to
+be a static 0.
+Doesn’t that make it weaker, because now
+you only have to bruteforce, eh guess, 7 bytes?
+There are obviously various ways how you can
+attack a stack cookie, it obviously should
+not be guessable or bruteforcable, but 7 bytes
+is huuuuge number already.
+So probably good enough.
+But as you know there are a lot of ways to
+leak values from memory for example with format
+string exploits.
+So you use that to leak a stack cookie value
+and then your overflow is trivial again.
+But some overflows happen because of a strcpy.
+And strings in C are zero terminated.
+So even if you would know the stack cookie,
+and you have a vulnerable strcpy, you can
+never overwrite the cookie with the corerct
+value, because you cannot write a 0 byte.
+Because a null byte marks the end of a string
+in c.
+But in our example uses gets() and according
+to the man page you can see that gets actually
+only stops at a newline, so you could write
+0 bytes with that.
+So it’s a very clever choice to include
+a 0 byte in the cookie.
+It’s an additional protection against strcpys,
+even if the cookie value is known.
+But maybe you ask yourself now, what about
+32bit?
+Is there also a byte used for a null byte?
+Let’s find out.
+To compile a 32bit program on 64bit you have
+to install some other stuff.
+And we can also quickly check if this is not
+exploitable.
+And you can see that we also only get the
+stack smash protection error.
+Ok.
+So let’s extract some stack cookies here.
+You can also see that a different segment
+register is used here on 32bit.
+But same concept.
+And who would have thought.
+Also a 0 byte in it.
+So this makes only 3 bytes of randomness.
+16 million possible values.
+mhmh
+That sounds a bit more scary.
+16 million depending on the context where
+and how the program is run is not much.
+Maybe in our case it might actually make it
+exploitable.
+I mean the original protostar VM was also
+32bit, so I think it’s fair game.
+But to be fair, 64bit probably makes it unexploitable.
+So the plan is clear.
+We write a program that calls this 32bit version
+of stack level 0 all the time and send an
+exploit string to it, which uses random cookie
+cookie values to bruteforce it.
+And at some point we might get lucky, guessed
+the correct cookie value, overflow the return
+pointer and redirect code execution to the
+output, the if case, we want.
+Well.
+The plan sounds good.
+If it were just this easy.
+We will need a bit more time for this so let’s
+do it in another video.
+But it’s a fun challenge, so you should
+try that too.

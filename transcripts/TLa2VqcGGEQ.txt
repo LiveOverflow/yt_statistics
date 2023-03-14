@@ -1,0 +1,435 @@
+Everybody who has used Linux before, 
+or who knows the terminal on MacOS,
+knows about sudo. Sudo is the small tool 
+that allows you to run commands as root,
+if you are allowed to do so. But unknowingly to 
+the world, in 2011 a critical bug was introduced
+into sudo, that could be exploited by any user, 
+to gain root privileges. This bug was hidden
+until about 10 years later when it was found 
+by a security researcher team from Qualys.
+They found a Heap-Based Buffer Overflow in Sudo. 
+It’s tracked under CVE-2021-3156, and they named
+it “Baron Samedit”. Though I vote to rename 
+it to pwnedit, because that’s much better.
+In this video I want to share the lessons I have 
+learned from this bug, and give you the most
+comprehensive summary about it. We will talk about 
+discovery, analysis and eventually exploitation.
+
+This bug seems surprisingly simple. Just 
+write sudoedit -s, some characters and end
+with a backslash. Boom. That’s it. Heap overflow 
+triggered. I think what many people thought when
+they saw this, was: “how was this missed for 
+almost 10 years.”, Shouldn’t any fuzzer find
+this very quickly? Especially with easy to use 
+fuzzers like afl - american fuzzy lop. I imagine
+many people must have fuzzed every linux binary 
+there is. Especially the critical ones like sudo.
+But it turns out that there are 
+just tons of obstacles you have to
+overcome. And I learned this the hard way, 
+by trying to rediscover the bug using afl.
+It already starts with the fact that afl 
+is intended to fuzz file parsing. So afl
+wants to fuzz a target binary that reads 
+data from standard input, or a file name
+passed as an argument. So it can’t easily fuzz 
+arguments itself. In order to make that possible,
+you need to make modifications. And actually 
+there is an experimental argv fuzz inline
+header file in the afl repository. You basically 
+add this makro at the start of main(). And this
+function then reads data from standard input. 
+And will craft a fake argument array. A fake
+argv array based on this data. Then it overwrites 
+the real argv. Now any code coming afterwards that
+wants to access the arguments, uses the fake data. 
+And now you have a sudo binary that you can give
+arguments as a null-byte separated list to 
+standard input. Which means, afl can theoretically
+fuzz the sudo arguments.
+Are you sure? Maybe?
+But.
+Turns out if you try to instrument sudo with afl,
+the resulting binary just crashes. It doesn’t 
+work. Luckily I read on a blog by milek7,
+that using the clang instrumentation instead 
+works. Fine. Now you can fuzz it. But that’s
+not the end of your problems. Actually the 
+experimental argv fuzzing code from afl contains
+a buffer overflow. There is no limit on how 
+high the rc index can count, and the array it’s
+indexing has a limited size. So the first crashes 
+you will find, are because this code is bad.
+What a great start. Just fyi, the actively 
+maintained fork of afl, called aflplusplus,
+has none of these issues. The instrumentation 
+works and the argv wrapper also got
+fixed. So if you want to try out afl, I 
+recommend to go straight to aflplusplus.
+Cool so now we can fuzz sudo, 
+and find this bug, right?
+Not so fast. In order to find the sudoedit bug, 
+one has to know that sudoedit is part of sudo.
+In fact it’s a symlink to the binary. 
+When you execute this symlink, argv[0],
+so the first argument passed to the program, will 
+be the filename of the symlink so “sudoedit”. And
+inside sudo’s source code, there is a check with 
+this program name. And if it ends with “edit”,
+it will have different functionality.
+So when you are going to fuzz sudo,
+you need to be aware of this. If you would think, 
+let’s just fuzz the sudo binary, and start fuzzing
+the normal arguments, you would never find it. 
+But even if your fuzzer would be generic enough
+and also fuzz the first argument argv[0]. Then it 
+would still not work, because actually sudo uses
+different ways to get the program name, not from 
+argv[0], but from geprogname - if available. So
+you specifically have to remove this part from 
+the sources, in order for it always falls back
+to argv[0] for the program name. Or you need to 
+specifically fuzz with the binary named sudoedit.
+For example the argv wrapper from afl did not 
+include argv[0] by default. You would have
+to adjust the rc index start value. But the 
+aflplusplus version, starts at 0 by default.
+You think that would be everything 
+we need to fuzz sudo? Well no.
+Sudo is a special binary. It 
+works thanks to the concept of
+setuid. This execution flag s indicates, that 
+when executed, it will run as root. But that is
+only half accurate. A linux process knows 
+two different user IDs. The real user id,
+and the effective user id. If you as 
+a regular user, with user id 1000,
+execute a normal program, the process will 
+run with user id and effective uid of 1000.
+If the root user executes a normal 
+program, the process will run with
+regular user id and effective uid of 0. But 
+when a regular user executes a setuid binary,
+like sudo, it will actually still have the 
+user id 1000. But the effective uid is 0.
+And now we come to the problem of fuzzing 
+this. Of course depends on how you fuzz,
+but for example in the case of the typical 
+fuzzer afl, you need higher privileges to
+interact with the setuid running sudo process. 
+(To collect some information or whatever).
+Ehh… LiveOverflow from weeks in the future 
+here. When I did this original research,
+I thought I tested fuzzing with the proper 
+setuid bit on the binary WHILE being an
+unpriviledged user. And that it failed. But I 
+just tried to record the footage of that error
+and noticed it seems to work. So at the time I 
+must have ran into some weird other issue that
+I misinterpreted. huh... Though, what user you use 
+to fuzz sudo, is still a consideration you have to
+think about. And I will tell you now the struggles 
+I had when trying to fuzz sudo already being root.
+But when executed as the regular user, this 
+user doesn’t have those permissions. So you
+might have to run the fuzzer as root. 
+But this means you are already root,
+and then sudo behaves very differently. That’s 
+very bad for fuzzing. For example sudoedit
+launches the vim editor if you are already root. 
+And then fuzzing causes thousands of vim processes
+to be launched, and you will have a bad time. And 
+that wouldn’t happen if you were a regular user,
+those code paths would not be reachable.
+So when I tried to fuzz it, I solved this by
+modifying the code. I hardcoded the return value 
+of the calls to getuid and get group id, to be the
+unprivileged user id. Now running sudo as the root 
+user, behaves as if you were the regular user.
+Now you can finally start fuzzing. And 
+yes. If you overcame all those obstacles,
+then fuzzing would have found this vulnerability. 
+So what I learned is, even though it looks simple
+and should be easily found through fuzzing, 
+in practice there are just too many challenges
+to overcome. So it’s no surprise to me 
+that nobody fuzzed sudo this way before.
+But that begs the question, how did the 
+research team at Qualys find this bug?
+Well they didn’t use fuzzing. In an interview 
+on PAUL'S SECURITY WEEKLY, they mentioned that
+they did manual code review. They just read 
+the sudo source code and found this bug.
+I have actually written the researchers 
+an email and asked them a few curious
+questions about this. And they told 
+me a little bit about their process.
+When we audit code, we completely 
+open our mind: anything that differs
+from the program's or programmer's 
+expectations is interesting, or may
+become interesting at some point; [so] any kind 
+of bugs and weirdness is worth looking into.
+And this clearly shows when we look at the 
+steps that lead to the discovery of the bug.
+It all started with finding the loop in set_cmnd. 
+Which might increment a pointer out of bounds.
+If we just isolate this code and assume 
+an attacker fully controls the data coming
+into this function, then this is actually 
+an insecure function. You see, NewArgv is
+basically the data coming in. It’s an array of 
+pointers to strings. Basically a string array.
+And it will go through each string in that list 
+and sums up the length of it. And then allocates
+the user_args buffer on the heap. That is the 
+buffer that will be vulnerable to the overflow.
+And now we keep copying character by character the 
+strings, into the target user_args buffer. `to` is
+user_args, and the `from` pointer, is coming from 
+av, which is coming from the NewArgv array. So it
+goes through an array of strings, and creates 
+a long concatenated string. And all is fine,
+except this check for the backslash. Because when 
+this if-condition is true, then we move the from
+pointer one character forward. We basically ignore 
+the backslash, copy the next character for sure,
+and move forward again. Strings in C, in memory, 
+are null-terminated. They stop at a null,
+and this while loop basically copies until 
+there is a null-byte in the from string.
+But if a backslash is at the end of the string, 
+before the null-byte, then we copy the null-byte,
+and move the pointer forward once. Now pointing 
+into unrelated data coming AFTER the string. And
+we keep copying that until we hit a null-byte. 
+And now the string length calculation and the
+actual data being copied doesn’t match 
+anymore, and we have a buffer overflow.
+I know this code is not pretty, but somebody who 
+is experienced reading C code, should be able to
+identify the problem in this code quickly.
+BUT!
+This code is obviously not coming in isolation. 
+And it turns out when you look at where this data
+is coming from, it passes through the function 
+parse_args(), specifically this section here.
+“For shell mode we need to rewrite argv”.
+And here it is ADDING backslashes to special
+characters. So theoretically if you provide 
+an argument ending with a special character
+like a backslash, then this code will escape the 
+backslash, so add another one. And now set_cmnd()
+works safely - you don’t have a single backslash 
+infront of the terminating null-byte anymore.
+But it’s still curious that you have this 
+function that has to trust the other function.
+And so the researchers were checking, if there 
+are any bypasses. Maybe there is a way to reach
+the second function, without going through the 
+parse_args argv rewrite first. And sudo turns out
+to have a lot of different mode flags. Checkout 
+this parse_args function. Depending on argument
+flags you use, different modes are set. Or reset. 
+And the argv rewrite is only triggered if you have
+MODE_RUN and MODE_SHELL set.
+While the set_cmnd code runs
+when first this if-case and then this if-case 
+is passed. And you might quickly wonder, wait,
+those don’t match 100%. Can you somehow get sudo 
+into a certain mode where it does not trigger the
+argument rewrite, but gets into set_cmnd here? 
+And indeed, that happens when you do sudoedit -s.
+I think if you think about the code review 
+this way, this bug almost becomes obvious
+and it doesn’t feel as scary anymore. It 
+almost feels like I could have found it too.
+Anyway. Now that we understand the root cause of 
+the overflow, we can think about exploitation. And
+this is also very fascinating to me. On a modern 
+system there are a lot of exploit mitigations.
+There is ASLR, so address space is randomized. non 
+executable stack so you can’t use shellcode. And
+the heap implementation is also hardened. That’s 
+why you see that heap abort in the first place.
+The heap implementation noticed something got 
+corrupted and bailed out. We know from experience
+that these exploit mitigations are not super 
+effective especially in larger software with
+more user interaction. But in the case of 
+sudo, the exploit mitigations seem actually
+pretty strong. For example defeating ASLR usually 
+works in two steps. First you use a bug to leak
+some address from memory, which based on that 
+can be used to calculate all the other offsets,
+so randomization is broken, and then knowing 
+addresses you can perform the actual main part
+of the exploit. But sudo is a one-shot style 
+exploit. You execute it with those arguments,
+and your exploit either works or 
+not. So the chances for successful
+exploitation seem low, or at least not trivial.
+in the advisory they present a few ways how it
+could be exploited. And especially option 
+two seemed just so crazy. Let me explain.
+If you imagine memory, and here is the bad buffer 
+that can be overflowed, then they figured out how
+to put the service_user object right afterwards. 
+So their overflow can overwrite the values of this
+object. And then later during sudos execution, 
+it will use Linux’s name server switch, nss,
+features, which uses values from the service_user 
+object to load a dynamic library. So it attempts
+to load code from an external file. And if you 
+of course control what file is loaded, you can
+let it load malicious attack code. Resulting in 
+arbitrary code execution inside the sudo process.
+When I read this I couldn’t comprehend 
+how somebody would come up with this.
+sudo is not a very small program, so there 
+are a lot of objects allocated on the heap.
+How do you know that exactly this service_user 
+object can be overwritten to load an external
+library?! I didn’t even know about Linux’s name 
+server switch, nss. But even if you would know
+it exists, how would you know that it can be used 
+exploitation? Is this maybe a known exploitation
+technique? Has this been done before?
+Well I’m so glad I spent the time
+trying to analyse the bug myself and come up 
+with my own exploitation strategy. Because
+now it’s so clear to me how to figure that out.
+So the vulnerability is clear. You have a buffer
+on the heap that can be overflown. So you can 
+overwrite any other data, any other objects
+coming after your buffer. How can you control what 
+comes after your buffer? Well you can’t control
+that directly. But there is stuff that influences 
+it. So during execution different size objects are
+allocated and freed on the heap. Leaving the heap 
+fragmented. Depending on the size of your buffer,
+which you do control, here is the malloc based on 
+a dynamic size, the malloc algorithm will place
+it into different holes. But not only that. By 
+looking on the heap for other recognizable data,
+I saw that some environment variables, mostly LC 
+values, so locale related, are placed on the heap
+as well. Which means we can control the size, 
+or even existence of a few more heap objects.
+Which in turn affects how the heap is fragmented. 
+Different lengths of environment variables,
+and different sizes of our vulnerable 
+buffer, will result in different objects
+coming after our vulnerable buffer.
+The art of grooming the heap layout
+to be exactly how you want to to be, is 
+also beautifully called heap feng shui.
+So what you can do is, you write a script, and 
+just randomize LC environment variables, AND
+the size of the buffer to overflow, and you just 
+look at where sudo crashes. You can do this with
+a script thousands and thousands of times. I used 
+gdb to give me the backtrace of each crash, to see
+in what function the crash happened. And then I 
+made a filename from it. And logged the crash.
+And here you can see the result 
+after a few hours of brute forcing.
+These are all segmentation faults in different 
+functions, caused by our heap overflow. And what’s
+noticeable is, that there are not infinitely 
+many cases. You just don’t have that much control
+over the heap allocations to freely craft a heap 
+layout you want. There are only a few dozen crash
+options. And now you need to think about, 
+which overflow is most likely to be usable
+for an exploit. And you might already have noticed 
+that there are a few nss related crashes. And most
+notable is here the function nss_lookup_function. 
+And that sounds juicy. Maybe you overflowed an
+object that controls what functions you load and 
+execute. That would be perfect for exploitation.
+And when you start looking into the actual source 
+code of that function, you quickly see that it
+calls nss_load_library, which calls dlopen. Which 
+sounds like a perfect target for exploitation.
+And that’s basically how the most sudo exploits 
+for this vulnerability work, and how my own
+exploit worked. It takes a bit of careful control 
+of the service_user object, to pass all the if
+cases in the correct way, but you will be able 
+to control the library being loaded by dlopen().
+This was mind blowing to me. Because what I 
+thought was this crazy exploit strategy that I
+just couldn’t imagine how somebody found that, 
+turns out to be just, mostly “luck”. It kinda
+is the only viable exploit option. Or at least 
+easy exploit options. You should ALWAYS assume
+by default this is exploitable. But this is the 
+only fairly easy yet powerful exploit strategy.
+As I mentioned I have written them an email, 
+and they actually shared with me their
+environment variable bruteforce code. Their code 
+was much better than my shitty python script,
+but in essence we did the same thing. We 
+looked at curious crashes and figured out
+that nss lookup function, or nss 
+load library, is a great target.
+Though that’s only half true. Because 
+it turns out that nss_load_library,
+is in fact part of a known exploit strategy they 
+used during their stack-clash research in 2017.
+Here they discuss interesting functions usable 
+for return2libc, meaning they could redirect
+code execution to this function, to load an 
+attacker controlled shared library. This is
+of course different from what has been done in the 
+sudo exploit, but they did know that nss related
+functions might result in a shared library being 
+loaded. So seeing crashes in these functions,
+did immediately spark their interest and 
+they saw potential. Fascinating, right?
+Btw there were also reports that the mac version 
+of sudo was also vulnerable, but nobody developed
+an exploit for it. So I decided to do a quick 
+feasibility analysis of it. Basically I tried
+to write the same fuzzer just for mac using lldb 
+and so forth. But I didn’t get nice reproducible
+crashes like this. And it turns out that there 
+is also a lot more randomness with the heap.
+Look, I execute the same payload, and sometimes it 
+crashes, and sometimes not. That is not the case
+on linux, where running it multiple times with 
+the exact same inputs would result in the same
+heap layout. So I think exploiting sudo on mac is 
+a lot harder. And I have very little experience
+to exploit development on mac anyway. I would be 
+very curious if anybody manages to pull that off.
+Anyway. Maybe when you are watching this 
+video, you might feel a bit that this is
+all super crazy stuff. But I can tell you, that 
+I felt the same way when I read the advisory.
+Keep in mind that I did spend about two 
+weeks investigating this, intentionally
+forcing myself to rediscover, analyse and exploit 
+the bug myself, and in the end I can tell you,
+it doesn’t seem that crazy anymore. And this 
+video is actually the start of a new series
+on this channel. I documented my research into 
+sudo, digging into all the details. It might
+require some prior basic exploitation knowledge, 
+so maybe checkout my binary exploitation playlist,
+I also linked a few other related resources 
+below, but then you should be able to kinda
+follow along. And now with this video 
+you have seen the big picture already.
+Yes it kinda is a spoiler of the whole series, 
+but I think it will help greatly to be able to
+follow along those more in-depth videos. I’m 
+really excited about it. I think it’s a very
+unique learning resource that doesn’t really 
+exist. So I hope you will appreciate it too.
+And lastly, if you want to support these kind of 
+videos, kindly checkout liveoverflow.com/support.

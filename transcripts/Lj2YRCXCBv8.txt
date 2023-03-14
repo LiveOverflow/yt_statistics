@@ -1,0 +1,96 @@
+So I was browsing reddit, and this new CTF
+for beginners popped up.
+Obviously I had to check it out and directly
+head to my favorite category, the binary exploitation
+stuff.
+And of course there is a server you can connect
+to as a regular user, and when you exploit
+a challenge you will elevate privileges to
+another user to gain access to the secret
+flag.
+But the biggest challenge of all, and I couldn’t
+find rules that would forbid this, would be
+to gain root.
+So let’s do that.
+Remember my dirty cow explanation video?
+Let’s use the proof of concept exploit that
+we had there and test if it works on this
+server.
+So we can simply copy this code to a file
+in tmp and compile it.
+To test if we can overwrite files that don’t
+belong to us, without overwriting critical
+root owned files, we log in as another challenge
+user on the system, create a file with some
+content.
+And then we go back to the first user, execute
+dirty cow on that file and attempt to write
+some other characters to it.
+And when we check, we can see that it works.
+At this point I wrote the author a message
+on reddit to inform him that the server is
+vulnerable and he should quickly update.
+But now we need a plan what root file we could
+overwrite to become root ourselves.
+Our restriction is, that we have to overwrite
+something in a file, we can’t append or
+prepend anything.
+The first obvious idea would be a setuid binary,
+but the issue is that in order to write a
+backdoor shell to the binary, we would have
+to parse the elf file format and figure out
+where the entry point is.
+An easier strategy is to overwrite data in
+a text file.
+And I chose /etc/passwd.
+You can see here the user id of the users,
+and if we would change the uid of the pwn1
+user to 0, we would login as root.
+So.
+The dirty cow proof of concept writes to the
+beginning of the file.
+So first we have to figure out the offset
+inside of /etc/passwd.
+We can use hexdump for that and count a little
+bit.
+So pwn1 user is at offset hex 4c0 plus a little
+bit.
+I use python as a caluclator and modify the
+exploit code to write to a fixed offset.
+I think here would be a good plan.
+And you have to be very very careful with
+choosing these offsets and choosing what to
+write, because you can screw up the whole
+system if you don’t.
+So I copy /etc/passwd to try what I want to
+do before doing it to the real binary.
+And of course, my first attempt would have
+wrecked the system.
+So adjusting the offset a bit and also appending
+a newline at the end is finally successful
+and I write to the real /etc/passwd.
+Now when we switch to pwn1 or ssh login to
+pwn1, we get a root shell.
+Then we can read out all flags.
+Once we are done, we revert back /etc/passwd
+to the original state.
+Some important notes.
+Be very very careful what you overwrite with
+an exploit like this.
+Just one byte miscalculated, and you might
+destabilize, crash, DoS the system or simply
+lock yourself out.
+Also if you find a server vulnerable, think
+about the impact or context you are in.
+This small private CTF server project, that
+is intended to be hammered is different from
+a webserver you exploited from some random
+company.
+So don’t go around and try this if you have
+no permissions or you could cause a lot of
+damage.
+Make an ethical decision.
+Be aware of the risk you are taking.
+And thanks to maro for being cool about this
+and allowing me to make a video about it.
+Good luck with your plattform.

@@ -1,0 +1,454 @@
+so let's take another look at the white
+box challenge of our age me3 last week I
+already explained to you kind of where
+the solution is going it's about white
+box cryptography and it's an AAS
+implementation and that means that AAS
+is in there but in a weird encoded way
+but I also didn't know this at the
+beginning and so I started to show you
+how I approach this challenge by just
+starting to reverse-engineer how the
+program is working and we noticed this
+very weird calling convention kind of
+where they are not really that many
+subroutines but there is like a array of
+function pointers and based on that the
+program then jumps around at the end of
+last video I also showed to you that
+binary ninja is a bit smaller and it can
+realize that jump array X is a jump
+table and it can show us all the
+different cases where it might jump to
+we also had a quick look at what kind of
+these functions are implementing but we
+really haven't fully understood now the
+program and so this is the next step
+that I took I wanted to understand how
+the program is flowing and if or how
+input is affecting the flow of the
+program because like I said I didn't
+know at this point that it is a s
+[Music]
+basically I wanted to start to trace the
+program execution and I want to do this
+with gdb basically I want to set a
+breakpoint at this address here and
+record all the RA X there where it wants
+to jump to to do this just copy the
+address of the jump ra x to implement
+the tracing I'm using a gdb init file a
+gdb init file instructs gdb to perform
+certain commands when gdb is started so
+in this case I specify that I want to
+set a breakpoint at the address of the
+jump array X and then I can specify some
+commands that will be executed when this
+breakpoint is hit so we say it's silent
+so this prevents gdb from outputting
+some other information and then we
+create a print F with the address of our
+ax so this is where we would jump to
+next and then we continue so the program
+doesn't pause at all so we can save this
+now and then execute this with gdb we
+can specify gdb minus X and then the gdb
+init file and then just the binary we
+want to debug okay so as you can see the
+gdb and it work because you can see here
+that there's a breakpoint set at this
+address of the jump our ax and we now
+execute it we should be able to see all
+the functions that are being executed so
+there are some errors that have to do
+with pone debug but ignore that below
+here the interesting part is above here
+those are the addresses that were
+printed by our gdb init file you can
+also see that we didn't properly invoke
+the white box binary with the 16 bytes
+of plain text so we exited again telling
+us how the binary should be used this
+means these three addresses don't really
+have anything to do with the algorithm
+itself but let's investigate what they
+are for so we can copy them and just
+look them up in binary ninja you can
+press G and then enter the address where
+you want to go okay so this is just
+doing basically nothing so now to not
+forget what we will look up it's good to
+write the some hot down and I decide to
+write this into a Python structure
+because I already have in mind that I
+might want to kind of like parse this
+and look at this and comment
+automatically the workflow you will see
+later what I mean but so I specify
+by now a simple Python dictionary
+with the address and the comment to it
+what what it is doing so let's continue
+with the next address G and to the
+address look it up so here's a compare
+it's comparing another local variable
+with two and then it either executes
+follows the one path or the other path
+and the last address here has two
+printers so it's very likely that it
+actually prints the usage output that we
+just saw this function is also a little
+bit different because it actually calls
+three other functions but they are all
+the same so maybe it would be
+interesting to look and what these
+functions are doing it's fair to assume
+that these functions take two parameters
+ESI and EDI let's see this address here
+appears twice so it's loaded into EDI of
+printf so it's pretty clear that this is
+the string that is being printed by
+printf and so this address is also
+loaded for this function here and if you
+look at the other three functions here
+EDI is one and here EDI is two so the
+address changes here that is loaded into
+printf and also this number here before
+you even click and look into what this
+function is doing it's pretty obvious
+that this is somehow setting up the
+string that is being printed by printf
+and EDI is used as kind of an index into
+a table with all the strings I assume so
+let's investigate okay so this is also a
+pretty big function and to be honest
+with you I was pretty lazy when I saw
+this and so I don't want to really look
+into this right now
+but it assumed it's probably kind of
+like a getstring function where the
+first parameter specifies the index of
+the string or the number of the string
+and the second parameter is a buffer
+where the string should be loaded - it's
+a CTF I want to be lazy and it's kind of
+obvious that it this is what is doing I
+can't imagine it to do anything else
+I would maybe get back to it if
+something would really confuse me and
+maybe I didn't understand this but it
+always appears around to printf so it's
+pretty fair to assume that this is what
+it does so let's write this down as well
+so what we have is the first function
+doesn't matter and then we compare
+something if it is to and apparently
+this was not the case because we print
+then this one message here and so it's
+fair to assume that this might actually
+be our XC that you compare if you
+entered one command line parameter we
+can kind of try this let's run this but
+this time with 16 bytes input
+I suspect that now as a third function
+we would see something else oh wow a lot
+of more stuff even happened and if we
+compare now the third function it is
+indeed something else okay so let's
+continue our path and check out what ei
+is okay so now it checks an stl and end
+a string compare so maybe it is time to
+look into what getstring returns so we
+can copy both these addresses and set
+breakpoints specifically for those in
+gdb and then we run it and we hit the
+break point so we are going to call stln
+and it calls
+STL and on s today in so SL and we'll
+return the length of s tnan that's
+clearly one of the command-line
+parameters that are possible to be used
+here and if we see whether it return is
+going to it's being used as one of the
+parameters for STR and compare so it's
+not just a string compare it's an STR
+and compare so it requires also the
+length how many characters you want to
+compare and so if we continue once to
+the string compare we can see that the
+parameter that we entered the aaaa is
+compared to s today in with the length
+of seven this is what was returned from
+the SL n so all this function is doing
+it checks if you use the sed in
+functionality or if you used regular 16
+byte input and so again we can describe
+what this function is doing is just
+checking the arguments that you passed
+in and this is basically all I was doing
+next so while this is a very tedious
+task I did get a bit bored and just
+wanted to explore a little bit further
+especially I was very curious about
+these repeating calls so let's check out
+one of the repeating calls so this
+performs a compare if
+one variable is F and then either
+execute this one case or the other case
+and F is 16 - let's count really quick
+how often this function is called it's
+called 17 times which matches with the
+check for 16 so this looks like there's
+kind of a for loop that is counting
+upwards and every loop iteration is
+checking if it's reached and if it's
+reached it's done there interesting okay
+so we can write this down as a check
+that is checking if I is larger than hex
+F so let's have a look at the other
+function a55 mm-hmm it calls get string
+and then also has a print F that is
+indeed pretty weird so maybe that's hell
+set a breakpoint at this address and see
+what's happening here so here's the
+print F and the first parameter is a
+format string o 2x and then as a first
+parameter it inputs 3/5 so this loop is
+just slowly outputting the result so all
+these functions here are just there to
+print the result so somehow our
+interesting stuff must be in here so
+these three functions are still unclear
+to us what they are doing probably at
+this time I had a feeling oh I'm really
+really close or something like that
+I couldn't be further from the truth
+okay so this one function is also
+another compared okay but pretty an
+uninteresting let's check the next one
+here's a string copy
+we could also quickly set a breakpoint
+here and investigate what this string
+copy is doing so here's the string copy
+it just copies our input AAA
+to another buffer okay so only one
+function left that looks like that must
+be the holy grail I guess oh there's a
+call to another function and if we look
+into this function we are presented with
+another jump table another jump our ax
+and look at this there's even one
+function that is just super super long I
+really don't want to really have to
+reverse engineer this but there are also
+a few shorter ones like all the way over
+there over there but I guess we are not
+done with the tracing
+so I guess we need to set another
+breakpoint here and trace these
+functions as well so we have to extend
+our gdb in a script with this address as
+well we save this so you can see now
+that both breakpoints are loaded and now
+let's run the binary again and you see
+how all the functions are being traced
+now
+oh yeah there's so much more happening
+it's actually copied the snow into our
+Python script so I call this now gdb
+output and then we can write a few lines
+to just parse this we go through each
+line of this output we extract the
+address as an integer and then we check
+if we have added comments in our block
+dictionary and so then we print this
+line with the comment or just type
+unknown and then the output looks pretty
+good already we can see all the
+functions that are being called and we
+can see all the comments that we have
+made about some of those functions and
+then you can just start continuing like
+figuring out all these unnamed functions
+and see what they are doing and this is
+a pretty tedious part and I'm lazy right
+so you can obviously go through just
+address by address or you can also just
+look at the functions themselves which
+are the easy functions let me get
+started with these that also kind of
+makes sense because you know maybe these
+very easy functions that are easy to
+reverse engineer and see what they are
+doing they maybe help you already with a
+more rough understanding and after a
+while you get a very verbose trace
+already so you can see here how for
+example bite by bite 16 bytes are being
+copied into another buffer and then we
+have some kind of loops here that are
+checking and there's still some unknown
+functions in here as well and we're
+looking through some of these functions
+I found another call here which looking
+at it that's also some weird stuff but
+it's not dead long so I kind of thought
+hmmm if we look at one of these weird
+functions why not start with this one
+this one looks easy but I also was
+pretty lazy so instead of going through
+line by line here trying to understand
+this assembly code we can also just
+try to debug this you can set a
+breakpoint before and after this
+function and see what is happening okay
+first breakpoint is hit we can still see
+that our input string is still perfectly
+fine zero one two or three four five six
+seven and when we continue once we can
+see here now that already completely
+changed this now 0 5 AF 4 9 so it's very
+different and on first sight it doesn't
+really tell you much it looks like very
+just randomly thrown together and very
+weird but let's do it again with a
+slightly different value let's look at
+this
+so while with the first example was not
+quite clear that it was still our input
+with the second example it's pretty
+clear so when I first saw this I thought
+oh this is amazing this is just
+scrambling a little bit the input and I
+thought I was so clever thinking that we
+could now modify the binary and knock
+out this function because that probably
+makes the analysis that we kind of have
+to do easier so create this binary that
+has this scrambling function removed and
+executed and the output still looks
+similar so it still works but when I
+then changed just the last byte I
+noticed that only like a few single
+bytes in there changed and I thought oh
+my gosh I am on to something now we can
+do all this analysis maybe this
+corresponds to 4 bytes and with XOR and
+I don't know yet but we will analyze it
+we collect a lot of data and just like
+see correlations and see what it's doing
+I mean I was going down a completely
+wrong path that's what complete
+what I did but I felt like oh my gosh
+I'm really close but one other thought
+has been bugging me remember at this
+point in time I still didn't know for a
+fact that it is AAS the descriptions
+chance wrote that it's about crypto and
+you have to extract the key but I was
+looking at the trace and those functions
+that are implemented and I was thinking
+this does not look like encryption this
+is clearly not encryption for encryption
+you need some kind of key that is
+variable and it does something with the
+key but this looks like a hash function
+there's no key involved you
+with some input and it scrambles it
+around in a crazy way and you get some
+output so I sitting there and just
+getting really frustrated thinking this
+this is so dumb
+why would somebody call this encryption
+don't call this encryption this is a
+hash function I was kind of getting mad
+about this because sometimes you read
+like online tutorials of just people
+that are not that deep into technology
+yet and call base64 encryption and I
+thought no risk you is not dumb they
+wouldn't call a hash function encryption
+or decryption they wouldn't do this but
+this doesn't still doesn't make any
+sense what is going on and even though
+looking at this function that is
+scrambling stuff even though this was
+not the right path it did plant a small
+seed in the back of my head also at the
+same time I was following conversations
+on IRC and obviously people constantly
+leaked information about a challenge and
+I kept seeing them talking about a EAS
+so even though some people talked about
+this AES looking at this looking at what
+I see in the code and reverse
+engineering it I was not convinced I was
+pretty confident that this is not a s
+but this little seed was still like in
+the back of my head and now this
+AES seed in my head and the function
+that I just knocked out that looked so
+interesting and weird in some way kind
+of tickled my brain and I gave a as
+another chance so I was looking again at
+the AES encryption and I was still like
+convinced that it's not a s for example
+like I mentioned in the first video
+there is the a drown key step which
+would perform an XOR and you can
+actually search the whole binary for the
+occurrences of X or which I also did at
+some point to find this add round key
+step but it doesn't show up it it's just
+not implemented like this but so I was
+still convinced it's not a s but also by
+looking at these pictures and reading
+how all these single steps in a s work I
+did see that Wikipedia always displays
+it as this kind of blocks of four by
+four I thought maybe I should also
+visualize my data that I had four by
+four
+and so I started to take notes so these
+are my original notes from when I was
+playing the challenge and obviously
+there's a lot more stuff on here already
+but it all started with what I wrote in
+the top corner here so as you can see I
+also used an input that was recognizable
+but then ordered this input in form of a
+four by four matrix like I saw it on
+Wikipedia and you can see instead of
+intuitively writing one two three four
+five six seven eight
+as the rows I wrote them as the columns
+because that is also how it is shown on
+Wikipedia and then I performed the
+function that we knocked out just before
+that's doing this weird mixing stuff and
+wrote it down in the same way and this
+is the result and when you look closely
+you can see that the first row stays the
+same and the second one is actually
+shifted is moved or rotated by one and
+then the third row is rotated by three
+and then having the AES algorithm in the
+back of my head I realized holy crap
+this is the AES step shift rows and this
+was proof for me enough what I'm looking
+at is AES I don't remember the exact
+timeline of the events when I was
+playing but around the same time I'm
+probably on this at the same day a
+friend also told me about white box
+cryptography that that is actually a
+thing it was kind of a small hint
+because I got really frustrated that is
+first when I learned about that white
+box cryptography exists but we continue
+with this next video byeeeeee what we
+did in this video and which was a very
+important step is we reverse engineered
+the binary far enough to find proof that
+what it is implemented here is actually
+a s
+[Music]

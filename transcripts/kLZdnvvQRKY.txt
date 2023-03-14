@@ -1,0 +1,339 @@
+hello everybody I have an announcement
+to make the cybersecurity challenge
+Germany 2020 is starting now it's a
+competition for German school and
+university students a CTF it goes three
+months so March April and May and it's
+an online qualification round there will
+be multiple challenges released over
+these three months and the best ranking
+juniors and seniors will be invited to
+an on-site finale and out of that finale
+we will create a team that then goes on
+to the European cybersecurity challenge
+and participates on a European wide
+competition against the other countries
+but even if you don't make it to the
+finals or don't make it to the European
+cybersecurity challenge it's still fun
+to participate and maybe to get to know
+a lot of new people and maybe find other
+new friends that are interested in CTF I
+will talk a bit more about the
+background why I'm suddenly announcing
+this and what my involvement here is
+with that in the second part of the
+video but I just want to quickly give
+you an overview of what this challenge
+is about and just to give you some
+parameters you will find the links to
+everything in the description obviously
+actually we don't have the domain up
+right now as I'm recording this video
+but it should all be available once you
+see this video so obviously this is a
+static video the information I'm sharing
+might already be out of date so always
+make sure to check the website and the
+rules and all the information there
+because yeah the stuff I say now might
+be out of date so there are three
+categories where you can participate in
+so there are the juniors which is any
+German between the age of 14 and 20
+years old you can also participate as a
+senior if you are above 20 but below 25
+if you are not German or if you are too
+old you can still participate in solve
+challenges as an external but note that
+this doesn't count towards the finals or
+anything beyond that it's a mainly a
+competition for students but obviously
+we want to open it up and for anybody to
+solve challenges and learn and explore
+and maybe meet new people so part of
+this competition is also discord it's
+mainly for players to meet each other to
+talk to be frustrated and rage about
+challenges that they can't solve
+and hopefully you know new friends will
+be found there and maybe you can find a
+CTF team there and all this kind of
+stuff
+hopefully it's a social place to find
+people with the same interest it's again
+it's mainly a German competition so this
+discord is more like for the German main
+participants but there are some
+opportunities for international channels
+as well and so you know feel free to
+join but keep in mind that mainly this
+is a communication platform it for the
+competition or the German competition
+not it's not a life overflow discord
+okay so you know you know don't expect
+this to be a live overflow community if
+you have no experience with CTF then the
+scoring of the challenges might be a bit
+weird we use a dynamic scoring system
+this basically adapts the score based on
+how many solves they already were so if
+you solve a challenge early it looks
+like you get a lot of points but the
+more the people solve it the less it
+will be worth
+there's no rush you don't need to be
+first to get a lot of points because
+your points will also diminish by the
+amount of solves this is a way because
+it's very hard to gosh if if a challenge
+is hard and gets a lot of points or easy
+and gets little points so basically if a
+challenge gets solved a lot because it's
+easy then it's worth less points in the
+end and if a challenge is hard then it
+gets little soft and then it will be
+worth more points and it's a dynamic
+system that will adapt over time so
+don't worry about weirdly changing
+scores it's part of the idea and it's
+also important obviously that no
+solutions are being shared as soon as a
+solution is leaked becomes public is
+shared it will obviously diminish your
+points as well hopefully this
+discourages you from cooperating with
+friends or working in a team because you
+know you are participating here as an
+individual it's a competition so please
+honor that as soon as your share share
+the solution of a challenge the points
+will draw down obviously we are huge
+fans of you know helping each other
+sharing interesting resources that you
+find tutorials yet that you find share
+this with your friends and and and
+participate in the competition but don't
+cooperate together don't solve
+challenges together that would be
+really great it's a competition after
+all yeah that's all I had to announce
+please join the cybersecurity challenge
+2020 also if you are from a different
+European country check out the local
+security challenges as I mentioned in
+the end it will be a finals across all
+of Europe so there's a good chance that
+your country also has a national
+equivalent to this and now let's move on
+to the second part what is my
+involvement here why do I announce this
+here on the channel like what's going on
+I myself have actually participated in
+the cybersecurity challenge Germany in
+2013 and 2014 I believe I never went to
+the European finals because of personal
+reasons but I participated in the German
+finals here this is actually a picture
+of me from the finals I'm sitting at my
+laptop I guess you can recognize me I
+just look the same but the bit younger
+and actually the person that you can
+also peaking forward that you can see
+like leaning forward he is also helping
+and organizing this event so many of us
+that are actually now organizing this
+event were participants in the past it
+turned out that for a lot of us this
+competition was a very important part to
+our career and lives we have at least
+one very successful startup that came
+out of people meeting through that we
+have made personally great friends
+through that other people have gone on
+and found careers and friends and most
+importantly the CTF team I'm playing
+with the German team alice is a team
+that arose from participants at the
+cybersecurity challenge Germany the name
+Alice actually comes from us being
+frustrated in IRC saying I tried
+everything
+Alice is the German word for everything
+I tried everything nothing is working
+because the challenges were kind of not
+so great back then but this was kind of
+like a meme that developed and at some
+point suddenly we had a CTF team I I
+have no clue so yeah for us it was a
+very interesting and fun experience and
+I have gained a lot through it even the
+journalists weren't that great in the
+past and some other stuff but you know
+it doesn't really met her the networking
+effect that had for me and meeting new
+people and finding people interested in
+see
+yes and having then such a successful
+CTF team coming out of it for us means a
+lot to me and us and so at the end of
+last year an opportunity arose because
+the current organisers which wanted to
+run this as a for-profit commercial
+competition and so they decided to drop
+out of the organization and sponsoring
+part and we saw this as an opportunity
+to take over this mostly commercially
+focused competition and make it a
+community owned thing so we actually
+found it or I guess we are still
+technically in the funding process
+foundation or item not sure what the
+English term is an association in
+Germany it's called a 4-iron it's like a
+club that will organize this now it's a
+community driven Association everything
+is transparent there are members we have
+meetings everything is basically public
+and transparent and easily visible so
+there are no commercial interests from
+us to make money or anything we even
+can't you know we deliberately didn't
+create a company to organize this we
+deliberately created this public
+Association so to be able to be
+transparent and have this community
+driven focused event so we don't have
+commercial interests but we do need
+money to run the event especially the
+on-site event will be very expensive
+because we need to pay for hotel and
+travel for all the finalists and all
+that stuff and of course this money
+always goes back into supporting young
+IT security talents that's the main
+purpose and goal of this I want to help
+with the marketing you know to spread
+the word that this is happening so
+that's kind of like my part of it I've
+also created a couple of challenges for
+the CTF so if you are curious about the
+challenges I made yes especially when
+I'm kind of proud of of variable
+becoming later during the event so it's
+not there there now but I think they are
+going to be quo so there are a few
+couple of small things I still want to
+quickly mention so obviously the
+challenge and also the association has
+kind of the main goal of supporting and
+German IT security talents young people
+so obviously it has somewhat you know
+it's a bit gatekeeping it's only for
+Germans however
+we only see it you know the main purpose
+is to organize the challenge that is our
+core motivation and this is the German
+part of the challenge for this
+european-wide event it's a European
+white IT security event and we are just
+the small part of in Germany you know we
+are just a few young people that want to
+give back and do something so obviously
+we can't do anything on a global scale
+and support IT talents everywhere in the
+world we obviously most effective
+locally here where we are at I wish it
+could be more global but you know I will
+share the whole experience and anything
+that is learned there and what's going
+on also here on YouTube in English so
+you can still somewhat participate and
+kind of like learn from this process
+even if you are not a German student the
+other small thing is obviously the idea
+is here to support young talents one
+very important aspect especially
+important to me this is not an elitist
+supporting thing okay we are not here to
+support IQ 200 people it's supporting
+young people that are interested in IT
+security of any skill level of any
+experience of any kind of you know
+whatever this is not a place for elitist
+and arrogant people to be here like oh
+look at me I'm such a great school
+hacker this is a supportive place and we
+will not tolerate any who comes
+in there and ruins it father people and
+being toxic as hell and stuff like this
+okay we are very hard with this we want
+to give people a place where they can go
+to and learn in a understanding
+environment where they are not judged
+whether where they are happy to ask
+questions where they can learn and where
+they don't feel pressured and scared
+being you know arrogant people looking
+down upon them this is very very
+important to me and very important to
+all of us others to zero tolerance for
+please please behave and make
+this a nice supporting place for
+everybody another small thing as obvious
+is in the name cyber security challenge
+Germany I know I know it's cringy the
+first time I heard about this event when
+I participated I kind of like you know
+participated ironically like who would
+even
+take an event with such a name seriously
+well it is what it is the people that
+originally organized it thought that
+that's a good name for now we live with
+it maybe we change it at some point but
+we have so much to think about so much
+to organize it's so much work to do you
+know changing the name is something
+annoying that might happen in the future
+or might not happen we don't know it was
+just a low priority thing we all know
+it's not the coolest name ok but please
+don't let this stop you from
+participating so yeah I've been quite
+busy with preparing videos for this
+preparing challenges and also obviously
+participating in the whole funding
+process of this it's something I'm very
+excited about and something I'm a bit
+proud about and I hope it helps a lot of
+people in in the end and I hope we can
+make an awesome event for you I'm really
+looking forward to that I'm sure I will
+annoy you with update videos about how
+the competition is going and keep
+advertising it a little bit I hope this
+doesn't annoy you I think it's very
+relevant to my channel and I think it's
+an it's an awesome thing and they are
+obviously a cool challenges to have walk
+through us and talk about and explore
+and it will be interesting because I've
+never really been on the side of
+organizing a CTF so this is the first
+time that I have also written challenges
+myself and other people will solve and I
+will see their their write-ups of that
+because write-ups are required for this
+competition so yeah it will be really
+interesting and I hope it will be cool
+content for the channel as well and one
+last thing if you are in a company and
+you would like to support such an
+association and check out our websites
+and Fitz de all this information will be
+updated once the foundation is fully
+founded so please keep that in mind
+there I will remind you about it and
+check it out any help is appreciated
+there

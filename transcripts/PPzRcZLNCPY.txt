@@ -1,0 +1,329 @@
+I don’t like these nasty popunder ads.
+And google Chrome tries to stop them.
+Unfortunately some advertisers find bugs in
+Browsers that they exploit to achieve a popunder.
+To me that’s like exploiting any other bug
+for malicious purposes.
+So in the last video I reverse engineered
+a technique that worked on Chrome version
+59 and also still worked on Chrome 60 for
+Mac.
+And what’s super cool is, that Avi Drissman
+from Google who works on the popunder blocker
+for Chrome filed the Bug in the issue tracker
+and is fixing it.
+And it turns out, that for Windows this has
+been already fixed in version 60, so the issue
+only remained on mac, but when I visit the
+demo page of the guy who sells this popunder
+library, then it still works on Windows.
+How?
+I got some great feedback after the last video
+and tried improve my techniques on working
+with obfuscated javascript.
+So if you have more awesome tips or ideas,
+please share them.
+One was from alex, aka insertScript, who has
+an amazing blog where he writes a lot about
+abusing PDFs in browsers, and if you are,
+like many others, surprised about javascript
+in PDF then you should really check out his
+work.
+He suggested instead of mirroring the site
+locally to insert my own Javascript I could
+develop a small Chrome Extension to inject
+a script into every page.
+This has the awesome advantage that I could
+inject myself into any iframes that are being
+created and track whatever they are doing
+as well.
+I think that’s a much nicer technique.
+So I started doing that.
+In the manifest I declared a script that should
+be injected into anything, no matter protocol,
+domain or path, and do so before any other
+javascript runs.
+And this injected script is a content script,
+which has some access to the page, but not
+fully, so then I create a dynamic script and
+inject it into the page.
+This hook script then does what I did in the
+last videos, it attaches Proxies to interesting
+functions and objects and try to print information
+pretty.
+Later that would be the explorative task of
+adding and removing proxies as I need them.
+Then I use window.postMessage to send this
+debug log to the content script, which is
+listening to those messages.
+And in the content script it takes this arriving
+message and forwards it to the background
+script.
+And the background script is always running
+and can now receive and show all log output
+of all pages in one place.
+So a page is loaded, content script is attached
+to it and executes, inserts another script,
+and uses messages to send it back to the background
+script.
+And then you can simply load the extension
+from a folder in Chrome.
+When you now have this extension active on
+the demo page you will quickly see that it
+creates again an object tag dynamically with
+a pdf.
+And it’s basically the pdf we know, it just
+calls alert().
+But then I kinda got stuck.
+The logging output was not perfect.
+I was now wondering if I should improve this
+extension to log EVERYTHING.
+Basically create an extensive DOM logger extension
+with filtering and a nice UI and log property
+accesses and not only function calls.
+And that would be an amazing tool to have,
+but it is a lot of work so I wanted to try
+something else.
+At least we know an extension like this could
+work and a PDF is involved again.
+Next I recorded again the popunder and slowed
+it down, because last time it revealed the
+PDF alert and the notification permissions
+request.
+But this time it’s different.
+This time it opens a blank tab, then the popup,
+which appears in the background and closes
+the tab again.
+We don’t see the PDF alert, because it’s
+just super fast.
+But when you overwrite the removeChild function,
+making it not work, like in the last video,
+and then do it, you see that the alert is
+actually there.
+So at this point I felt I understand the underlying
+idea of this trick.
+Somehow you retain focus of the main window
+when you open a new tab PLUS using a pdf alert.
+But when you start trying to emulate that,
+then you quickly run into the issue, that
+you cannot call window.open twice.
+Eh, window.open is used with different parameters
+to open popups or new tabs.
+And calling it twice triggers the popupblocker,
+and it will prevent that.
+You see popups are only allowed when triggered
+through human interaction.
+So for example when you click.
+A malicious site would simply overlay the
+whole page with a click handler, but nonetheless
+you have to interact to make it trigger.
+But this also means a single click will only
+open one window.
+So how do you do it twice, open a tab and
+a new window?
+So I looked more closely at the Performance
+tab of the Chrome developer tools.
+There you can click record, then perform actions
+on the page you want, and then stop the recording.
+Now it recorded everything that happened.
+This tab is intended to find performance bottlenecks,
+for example identifying very slow functions,
+and for our purpose it’s not perfect, a
+lot of information is missing, but when you
+look closely you can find two major blocks
+that call window.open.
+This graph is easy to read, each function
+call is a bar, and when a function calls another
+function, a new bar is below it.
+So the top most bar is the initial function,
+and the lowest bars is where it ended in.
+So you see this one block here triggered on
+a mousedown and the other one is triggered
+on a mouseup event.
+Ohhh, so is that the trick?
+Abuse two user interaction handlers that happen
+during one click to open two windows?
+Just open a window on mousedown and another
+on mouseup?
+Let’s test it!
+We create two functions that open a new window
+and declare it to be executed on mousedown
+and mouseup.
+And when we test it... it doesn’t work.
+The chrome popupblocker is not that easily
+fooled.
+Somebody was smart and made sure that is not
+possible.
+But how the frick does the demo do it then?
+While the performance tab doesn’t have a
+lot of information, it does have links to
+the functions in the javascript source.
+Unfortunately you know the code is obfuscated
+and there is this super annoying debugger
+breakpoint called constantly, which prevents
+us from debugging with breakpoints.
+When I initially looked into this stuff for
+the old video, I defeated this anti debugging
+thing by overwriting setTimeout, because a
+function called with it was responsible for
+constantly triggering the debugger.
+But a much cooler javascript snippet was posted
+by peripsis or ww in a comment on the other
+YouTube video.
+The code is intended to be loaded with tampermonkey,
+which is an extension that simply injects
+javascript snippets into sites to enhance
+them.
+c Super freaky script but in the end all what
+it does is, prevent the demo from calling
+debugger all the time to annoy us.
+If we replace the unsafeWindow with regular
+window and paste it into the console, we can
+now simply debug the JS code.
+So let’s go to the performance tab again
+and see where the first window.open call is
+coming from.
+It comes from this anonymous function and
+it shows us where it is.
+And chrome dev tools are awesome, it even
+knows where in the script it is when we pretty
+print it.
+There.
+So something in there calls open!
+Let’s just set some random breakpoints in
+there to investigate.
+Then trigger another popunder and the debugger
+should pause.
+There we are.
+Press escape to open the console in the current
+javascript context.
+So “e” is just pointing to a window object.
+And ‘er’ is the string “close”.
+So this would call window.close()
+Mh weird.
+Let’s continue.
+Always single step forward.
+N is an array of functions.
+And Qe is a weird function.
+If we step in and investigate it doesn’t
+tell us much.
+So all I’m doing now is just stepping and
+investigating the variables.
+So for example here is “e” again, so window
+and si is the string “go”, so it would
+call window.go.
+Mh weird, that’s not a standard window function.
+But it didn’t really tell us much.
+And also when we continue the script it doesn’t
+work, no popunder.
+So maybe we screwed up some timing.
+Let’s remove the breakpoint in here and
+remember that this part wanted to call close()
+and go() on the e window object.
+Then we do it again.
+So what is this.
+hs() points to open().
+AHA!
+So that’s probably an important window.open()
+call.
+And ao as well as ye are the parameters of
+it.
+So about:blank and _blank.
+This will open the new tab.
+And remember that e was a window object that
+the other function wanted to close and call
+go() on, so that window object was infact
+from the new opened tab.
+No idea why this one didn’t trigger first.
+Continue stepping forward, and there we go,
+new tab.
+Then Uo.R is called, which is a weird function
+with 3 parameters, first a window object,
+infact this one is our current page’s window.
+Second parameter is the string “focus”
+and third is a function which we know tries
+to call close() and go() on the e window,
+the new tab.
+I have a suspicion what this obfuscated function
+R does.
+T is the window.
+And q, what’s q?
+That’s “addEventListener”.
+Ahhhh.
+So on the current window it will set an event
+listener waiting for our current page to gain
+focus, and then it will call close() and go()
+onto the new tab.
+Great.
+After setting up this event listener something
+is called on e again.
+Hi is the string document.
+So window.document.
+And xi is write.
+So it will write to the document of the new
+tab.
+And there is a long function call as a prameter,
+but we know it would like to write a string,
+so whatever this obfuscated code does it must
+return a string.
+So let’s just call it ourselves.
+And there we go.
+It writes some HTML and javascript to the
+new tab.
+Let’s copy that HTML, make it pretty and
+have a look at it.
+So here it defines some variables, a window
+name and window parameters, the popup url
+as well as the popup options and then it creates
+a new event listener.
+On mouseup.
+Ohhhhh wait.
+That’s so clever.
+So the mouse up did not happen on our page
+it happened on the new tab.
+And that’s the trick how it opened a second
+window.
+Chrome looses track that mousedown already
+triggered a new window because it happend
+on another page.
+And it also registeres a new function go()
+to window, which will simply resize and move
+as well as redirect the new popup window to
+another url.
+That’s it.
+Let’s put it all together and walk thorugh
+it.
+First we declare a function to run on mousedown,
+this function will create a new tab and immediately
+write javascript to this new tab which will
+register a mouseup event to open the actual
+popup.
+And because Chrome is so fast, the tab will
+be open before you release the mouse button
+and thus triggering a mouse up event on the
+new tab, which will open the popup.
+How crazy is that.
+In the meantime the main page also embedded
+the PDF with the alert() which now triggers
+and gives focus back to the main page.
+And that’s why we register an onfocus event
+handler on the main page to then call go()
+on the tab to change the url to our popunder
+target website as well as closing the tab
+and remove the pdf object because it has fullfiled
+it’s purpose.
+This will close the PDF alert box and it happens
+so fast that you don’t even actually see
+it.
+And that’s the magic.
+Another popunder.
+And it’s a beautiful one.
+I will link the bug reports to the google
+chrome issue tracker below.
+Also I would like to mention patrick, who
+was also analysing a popunder behaviour on
+iOS and is blogging about it.
+And he worked with the same script,but not
+with the demo but with the script encountered
+in the wild on 4archive.
+So check that out.

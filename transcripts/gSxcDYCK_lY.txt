@@ -1,0 +1,647 @@
+Look. I know how this looks like. But this 
+time I really didn’t do anything bad. I swear.
+Please listen to me. At the end of the last 
+video I told you that I have opened up the
+server to anybody who can find it. And it 
+happened. People found it. And now I’m here.
+Imprisoned AGAIN. Maybe I made 
+a mistake opening up the server.
+Let’s have a quick look into the server 
+logs. I’m running the docker minecraft server
+and can look at the server logs with 
+docker-compose logs, -t to get the
+timestamp of the log entries and then pipe the 
+output into grep, to filter for joined messages.
+On the first of april, this is when I 
+opened up the server. And look at that,
+the first person to join was PR0CESS. He does 
+a lot of technical minecraft research and we
+have been talking a bit. And he actually 
+has access to the copenheimer tool, so he
+just looked up my IP and joined. But I consider 
+using oppenheimer cheating! It doesn’t count!
+After that it actually took a 
+while for somebody else to join.
+On the 22nd of April tk2217 joined. This might 
+have been the first legit person to discover the
+server? I couldn’t find much about them but 
+there is this github profile “I'm a Java and
+Rust developer mainly working with Minecraft, 
+among other things such as discord bots.”.
+So this person does seem to be technical minecraft 
+related. But I never heard anything from them.
+But then a day later JimTheScientist 
+and ImALolNoob joined.
+Here is how it happened. So after I released 
+the first episode I was regularly checking the
+logs and one evening I was just brushing my teeth 
+ready to go to bed, when I noticed them online.
+so I had to go online as well and 
+ask them how they found the server.
+I was just looking in the video. I saw when you 
+were typing out a command, at first I thought
+it was a local IP address, And then I realised 
+it wasn’t. And I wondered if it was still up.
+Wait I showed the IP in my video?
+Yeah you did!
+No way. I looked at it like. No way… are 
+you kidding me? Okay wait I need to check.
+And yes indeed. In episode three I showed off 
+a proxy command and yes. My IP was right there
+at the start of the video. oopsie. this episode 
+was released on the 20th of April. Which means
+tk2217 probably also just saw the IP there.
+But that is crazy, right. The IP was up
+for tens of thousands of people to see, and 
+basically only two people noticed it. Oh well.
+since then I used the YouTube builtin editor to 
+blur the IP again, so no need for you to check.
+But this reminded me again how at the beginning 
+of my channel I tried to stay anonymous,
+but I always f’ed up. Email address in SSL 
+certificate, WIFI ssids doxing with wigl,
+or simply my voice. If you actively participate 
+in online communities, it’s almost impossible to
+stay anonymous forever. So let me tell you, don’t 
+do any crimes. You will screw up at some point.
+Anyway.y me leaking the IP was not 
+the only thing they told me about.
+We had used the scripts for finding usernames, 
+there is an entire database of usernames.
+There is what we build separate from 
+[copen]heimer, we started about a year earlier,
+we just didn’t advertise anything. At all. And 
+we didn’t go on massive public raiding sprees.
+Turns out they have been doing minecraft server 
+scanning for quite a while as well. And so they
+could also query the database and look for 
+servers where I was playing. And they found
+an older server where I used to play on with 
+my girlfriend and her niece, but that one was
+properly locked down with an allowlist.
+Anyway. Fun times. Welcome to the server.
+This is a communist server, so take anything you 
+need from the chests, and do whatever you want.
+And they did whatever they wanted. I went 
+to bed. And this is what I woke up to.
+I’m imprisoned again?! At least 
+this time it's not bedrock.
+Welcome to our dungeon.
+We are not that good at torturing people.
+So we made some puzzles instead.
+Have fun.
+Make sure to set your spawn before jumping.
+Let’s do that, and put all our stuff
+in the chests.
+I only keep the club mate,
+because I need it. I’m addicted. Anyway.
+Let’s see. We need to drop down. And it
+seems like we need to jump in one of those water 
+holes below. Okay. looks aligned. Let’s see…
+ooof.
+Respawn. Let’s try again. Maybe different camera?
+Ouch.
+Okay. This seems a bit more 
+difficult than I thought.
+Let’s head into SUPER FAST SPEEDRUN!
+There we go! We made it.
+Let’s pickup our stuff.
+And OMG THIS WAS NOT WATER. I kept 
+jumping on this blue lapis lazuli block.
+Pretty funny. I’m such a minecraft noob. Anyway, 
+I got my club mate again so we can continue.
+Cool you made it out alive. Now let’s 
+see how good you are with mazes.
+This is just a simple maze. Seems easy, right?
+Nothing here! Oh yeah for sure that’s the right
+way. But let’s quickly check the other direction. 
+Wrong way. Yep, told you. Let’s go back.
+Always stay hydrated. On caffeine.
+It seems the door is locked. Mhh… do 
+you see anything on the other side?
+But there is probably a button 
+or lever somewhere. Let’s see.
+Oh yeah! There it is. Found it. There we 
+go, the door is open. We can continue.
+Okay I guess we have to swim up ths water here.
+CTRL?
+I’M NOT A MINECRAFT NOOB. 
+DONT TELL ME HOW TO SWIM!
+I knew that. So let’s swim up the water stream.
+So what do we have here. It’s not that 
+easy, silly. A button and a trapdoor.
+Uh and here is a sign “lava is your friend”. So 
+let’s stand here and we will crouch to get in.
+Ah right, cannot open an iron trapdoor without 
+redstone. So Im trapped in the water now. Oh oh.
+Where do we need to go. Can you breath on these 
+pockets in the ceiling. Doesn’t look like it. Oh
+oh. Oxygen is running out.
+Crap. drowned.
+Respawn.
+It’s time again. SUPER FAST SPEEDRUN!
+So easy.
+Okay we are back at
+the trapdoor let’s try the water maze again. First 
+of all we have to find my club mate again. That’s
+most important. And ohhhh… oxygen is getting low 
+again. At least we get the mate. AND LOOK. THERE
+IT GOES DOWN. And there is lava. That must be the 
+way out. Yes. we fell through the lava. Cool! We
+made it. Let’s take a sip of mate and continue.
+Bubble elevator up. And look at that cool room.
+Iron doors, they don’t open. But here are 
+levers. 5 bit input. We probably have to
+find the correct input and the door opens. 5 
+bits is not too difficult to bruteforce. But
+is there maybe a way to figure it out.
+With the glass we can somewhat see
+where the redstone signal goes. So I 
+tried some different configurations.
+Maybe not all levers are connected anywhere?
+Mh… I played around here for a while but I couldnt
+figure it out. So I started bruteforcing.
+And that was really lame of me. There was
+actually a way to figure it out, And it 
+was very clever, I’m just too dumb and
+didn’t notice it. I tell you about it later. 
+For now let’s continue, the doors are open.
+Parkour… oh no… I have never really 
+done minecraft jumping puzzles.
+This took me a long time. But it was 
+really fun to see how I slowly got better.
+At the beginning I couldn’t even make the 
+basic jump but later that was no problem
+at all. After a while failing around 
+ImALolNoob came over and watched me.
+I started to get higher and higher. 
+And one time I fell down part of it
+and noticed this sign I didn’t see before.
+“This jump will make you angry. It is called
+a “neo”. So it’s like a matrix neo jump around 
+the corner. Luckily I found a bypass. I always
+just jumped straight to the ladder. Anyway. 
+Let me show you the whole jumping puzzle
+
+There we go. Easy. First try.
+Okay. so what do we have here. Three iron doors.
+The FINAL QUIZ. What level 
+was the dropper hole dug to.
+The door opens when you stand on a pressure plate, 
+but they are iron doors, so you cannot go back. So
+was the hole dug down to y level -10, 16 or 20.
+So let’s be smart about it. The hole was pretty
+deep, but not that deep. I think the floor was 
+not deepslate. So it probably wasn’t y level -10.
+So was it 16 or 20. 16 or 
+20. Mh… lets take the middle.
+Time to go find out how deep 
+the hole we dug is. Cya soon.
+I wanna kill myself.
+Goddamit. Now I have to do everything again?!
+SUPER FAST SPEEDRUN!
+Okay we are back. 20 it is.
+Congrats on making it to the end of the pizzle.
+Jim The Scientist and ImALolNoob.
+Wow. that was so much fun. Thanks 
+so much for being productive on
+this server. Building something really 
+cool for me. I really appreciate it.
+I actually had replay mod running the 
+night they joined so I could record
+anything they do. And so here it is. Let me show 
+you how they trapped me and build the puzzles.
+They told me later that they used baritone,
+which is a pretty powerful minecraft bot 
+that can dig holes like this automatically.
+Oh and regarding the pin code room, they 
+actually wrote XOR on the walls. And on the
+ground there was the XOR encoded solution.
+1xor1 is 0. 0xor1 is 1. 1xor0 is 1,
+1xor1 is 0. 0, 1 is 1. And 1,0 is 1 
+as well. There we go. 0 1 1 0 1 1.
+It was really cool to see the timelapse of 
+this. They spend sooo many hours building this.
+And of course, somehow I wanted to make 
+sure that this is playable by other people.
+And as you have seen, they built 
+this right under the main base,
+so I decided to provide an 
+entrance through a small well.
+So here is The Well of Death, when you 
+jump in, you drop into the jail and you
+can play it yourself. Cool!
+Now there is one more thing.
+ImALolNoob actually cracked the server seed as 
+well. He sent me a video how he did it. As you
+can see he is playing with a cheat client. Has 
+some stuff active like KillAura which probably
+is responsible for killing the zombie in my iron 
+farm, anyway. He is using a seedcracking mod. It
+seems a bit magical. he is flying around the map 
+and looking for structures. Like a witch hut,
+villager outpost or an igloo. And at some point it 
+finished searching for structure seeds, and here
+it is. That is indeed my server seed. It’s not 
+quite the one shown in my video, that one started
+with LiveOverflow, but this is basically the 
+actual underlying real number seed of the server.
+Pretty crazy right?
+By the way, in case you are curious,
+the mod he is using is called SeedcrackerX 
+by XMisterX98, and that is a fork from
+KaptainWutax’s Seedcracker mod. Really cool stuff.
+Anuyway ImALolNoob is not the first one to crack
+the seed. Actually XmisterX98 himself was the 
+first one to figure it out, but with a different
+method. He did it WITHOUT joining the server.
+But before I tell you that story, I want to
+share another super creative technique for how 
+you could have figured out the seed as well.
+In the first episode I blurred the screen when 
+I entered the seed. For a human this input is
+not readable, but the color of the big pixels 
+is influenced by the original image, right?
+For example here. Guess which blurred 
+text is …. And which one is XXXXX.
+It’s pretty obvious right? The dot is less white 
+than the X, so the pixelated output is less white.
+This means while it’s not 
+obvious what text there was,
+this pixelated output still carries information 
+about the original text, and this is attackable.
+So I got an email from Sebastian Luft where 
+he exploited exactly that to recover the seed.
+Look at this. He is brute 
+forcing the seed digit by digit.
+It takes less than a minute and he 
+recovered the original seed from the video.
+Here is proof. He created this world, 
+adn yep. This is the spawn area.
+So how did he do it?
+Here is the code. First of all there are a few
+functions to interact with the game itself. For 
+example here is code where he copies and pastes
+text into the minecraft seed input, by 
+literally simulating key presses of CTRL+V.
+Anyway. Up here is the main loop. And here he goes 
+through all digits. So this code takes a guess,
+maybe it was the number 0. It enters the whole 
+seed, LiveOverflow0, into the seed input field,
+waits a moment, then creates a screenshot of 
+the screen. AND THEN pixelates it. This function
+goes over the screenshot, calculates 
+an average color for multiple pixels,
+and draws a bigger pixelated rectangle over it. 
+So this code basically pixelates the screenshot.
+And then you can compare it to the real 
+pixelated image, a reference image. The
+reference images are actually frames from my 
+video, where I type the seed digit by digit.
+So he compares his guess, LiveOverflow0, with 
+the reference image, and the digit with the
+smallest error, so the smallest difference, 
+is the best candidate. And LiveOverflow6
+has the smallest difference . Which 
+means the first digit was probably
+a 6. You can automate this, here is the result.
+Amazing! This is exactly why I pixelated the seed,
+I was hoping for somebody to try it this 
+way. So thanks sebastian. That was awesome.
+But now let's talk about how the 
+seed was found the first time.
+When I made the first episode I contacted a 
+few people from the seedcracking community
+I had talked to before. And they assembled a 
+small group. Jelle, jurre, dragintamerfred,
+xplle, and 19MisterX98. Remember, he is the 
+developer of the seedcracking mod shown earlier.
+I was able to lurk in the group chat where 
+they brainstormed ideas of finding the seed,
+and eventually MisterX shared this screenshot.
+That was quick. 64149200. This is indeed the seed.
+So here is MisterX telling us how he did it.
+I guess I can start with the first step. 
+Building what you see on the video or picture.
+In this case you started in this forest. And 
+there I just build up some trees and grass.
+Okay, step one, look at the footage of my 
+first episode, and pick a spot where you can
+somehow see some trees and grass. 
+And rebuild the area. So what’s next?
+And in the next step I’ll figure out how the 
+grass is aligned here. As you can see not
+every grass block has the same rotation. 
+And that actually only depends on the
+coordinates of that grass block. So if 
+I break that. And replace it again. The
+rotation will be the same, for 
+that position in every world.
+Basically you can figure out the rotation, and 
+based on that you can bruteforce the coordinate.
+Wait what? Okay so if you pay very close 
+attention to the textures of grass,you
+might notice it’s not always the same rotation. 
+This is done so the grass looks less repetitive.
+And have a look here into the renderBlock method 
+of the BlockRendererManager. So this renders a
+block at a certain position and this position is 
+passed into getRenderingSeed. Following down the
+call chain we arrive at this hashCode function and 
+it takes in the position x, y and z, performs some
+calculations and returns a number. There is maybe 
+a mathematical reason why they specifically use
+these values. But it’s really not important. 
+Don’t get distracted by the weird numbers.
+It just calculates something and returns a 
+number, and all it depends on is the coordiantees
+X, Y and Z. Then later that number, when we go all 
+the way back and follow into the other function,
+it’s eventually used as a random seed.
+But what is a random seed?
+A random seed is a number used to 
+initialize a pseudorandom number generator.
+Sounds fancy but its easy to 
+understand if you just play with it.
+Here I’m using python and I’m initializing 
+the random number generator with a seed.
+And then I can let the number generator 
+GENERATE numbers. Please generate me
+a random number between 0 and 99. We get 13. 
+Generate me another number 37. And another 42.
+And the cool thing about random seeds 
+is, that when we re-initialize the
+number generator with the same seed, 
+we get exactly the same numbers.
+That’s why it’s pseudorandom, it only 
+looks random, but it is not really random,
+right? If you know the seed, you know 
+exactly the numbers it will generate.
+And that’s how minecraft world generation works.
+Just a hypothetical example. Let’s say that this
+first number decides that you spawn in a 
+birch forest, and the second number means
+there is a village nearby. that’s why you can 
+give a minecraft world seed to somebody else,
+and they generate exactly the same world.
+So coming back to the minecraft code. here in
+the code we just saw that when rendering a single 
+block it does not use your world seed. It ONLY
+uses the coordinates of a block. And the random 
+number generated from this is used to determine
+the orientation of the grass texture. This 
+means, if you know the orientation of grass in a
+screenshot you can bruteforce what coordinates 
+lead to exactly the texture orientation.
+Let’s go back to my simple example, so I can 
+explain to you how you can bruteforce a seed.
+Well, don’t you think my random numbers looked 
+a bit suspicious? 1337, and the answer to
+everything, 42. What a coincidence? Or maybe not? 
+Here is how I did that. I wrote a small bruteforce
+script. In this test method I take a seed, and 
+then generate three numbers a,b, and c. and then
+I check if the numbers are exactly what I want.
+I call this test function in this loop below
+and I just iterate over thousands and thousands 
+of numbers, until I just happen to find a seed
+that generates exactly those numbers. Running 
+this just takes a second and we figure it out.
+And that’s basically what MisterX did 
+for the coordinates and texture rotation.
+Yeah I have written a little utility a while ago. 
+It’s basically a texture pack that retextures
+other blocks. That can be manually rotated to 
+grass texture. For that I can use the ingame
+item debug stick. You can see I can rotate this 
+log. Yeah I can click on those and change the
+texture. And I can compare it to the video and 
+see does it match up. If it matches up I go to
+the next block. Do this for a few blocks.
+And then I can switch to another texture pack that
+basically tells me, ok those block positions match 
+to those numbers in the code. So in the code there
+is a random number generator, that is feeded by 
+the coordinates. And then there is a nextInteger
+with 4 values that can come out. And based on that 
+the grass is rotated and I can see those numbers.
+But there is just one caveat, you have to make 
+sure you also know the correct overall direction.
+What is north, what is south, it could be 
+rotated. But there is another trick for that.
+Of course we don’t know directly which direction 
+we build this in. maybe this is not the direction
+you were facing originally. We can figure out the 
+rotation by looking at top texture rotations on
+blocks that don’t have texture rotation. That’s 
+a thing in minecraft, that only some blocks have
+rotating textures, and others don't’. And yeah 
+those trees all have the same orientation. And
+based on that we can figure out, okay, the tree 
+leaves top textures in the video look different.
+I think, yeah they were rotated like this.
+So I have got a correctly rotated
+map of what was in the video. And now I can 
+import those texture rotations into my program.
+As you can see, these integer numbers 
+generated from the random number generator
+decide the orientation. With his texture 
+pack he can visualize this very well.
+We also know this forest was close to spawn. 
+So we can now just go through all coordinates
+maybe a few hundred blocks around spawn and for 
+each position we could check the theoretical
+orientation. So if one coordinate, used as a 
+seed, correctly results in the random number 3,
+then we can check the next coordinate. Maybe here 
+x+1. If that also generates a 3. Then we can go
+y-1 over in that direction, and if 
+those coordinates are indeed correct,
+the seed should generate 2. Does that make sense?
+Let’s have a look at his code.
+Basically we have now a starting 
+point. And then I’m just counting.
+Here it’s one block in the x 
+direction, one block in the
+z direction, one block in the y direction. So 
+this has the x, y z 1/1/1 and the rotation 3
+It’s very similar to the brute 
+force code I wrote. Defining
+the goals of the random numbers we want, right?
+Yeah the program basically iterates over every 
+block in this range I have in the parameters,
+and looks, does this match? And if it 
+doesn’t match, it goes to the next block.
+Just bruteforce all coordinates, x, y and z, 
+then we go over all blocks we have defined,
+and get the texture orientation. 
+getTextureTop calls getCoordinate random,
+and this is exactly the function we saw in 
+minecraft earlier. So we just prepare the
+seed based on the coordinates we currently 
+check, and then get a random value between
+0 and 4. And then we can see if it matches the 
+expected texture orientation. Letting this run.
+And that’s when he wrote on Discord “got 
+coords”. So this piece of forest is in
+my world at around 68, 69, and -94. Crazy.
+By the way you can find his texture rotation
+tooling on github if you want to 
+have a closer look at the code.
+Ok. now he knows the coordinates, but that is 
+still not the world seed. So how can we get that?
+The answer is “trees”. He cracked the seed 
+with trees. So here he put the piece of
+forest at the correct coordinates and is now 
+mapping out the trees as seen in the video.
+Of course we have now the right coordinates, but 
+we cant do much with that alone to get a seed.
+Basically everything that is not your 
+typical terrain, so those blocks also,
+are generated per chunk. Trees are generated 
+per chunk. Those grass blocks And. Everything
+that decorates the chunk gets generated per 
+chunk. And that’s why we need to figure out
+how chunk aligned everything is. We have cords 
+so we can do that. So this chunk starts here.
+And we map out every tree in this chunk 
+to later iterate over every single
+seed and look “does this seed generate 
+the trees at those same positions”.
+You probably wonder, like me, what 
+those glass blocks mean. so I asked him.
+We should probably explain how a tree can 
+generate. The Basic oak tree generates 4 height to
+6 height. Then it generates this leaf form 
+formation. I think its pretty simple. But
+those corner leaves. Those leaves here. 
+Are actually not generated everywhere
+as you can see. They have a 50% chance. 
+And everything relates to the world seed.
+So it’s actually pretty important that we keep 
+track of which leaves generate and which don’t.
+And for me, as a normal person I can’t remember 
+if I checked, if the leave is there or not. So I
+place glass blocks there if it’s not there. And 
+I know that. If I don’t know, I place red wool.
+Yes. he carefully copied exactly the trees 
+from the video. But to understand why,
+we need to learn a bit more about 
+how minecraft generates trees.
+Minecraft generates stuff per chunk. And we 
+first need to figure out what the chunk seed is,
+for everything that generate in that chunk. 
+In minecraft the game simply takes the most
+negative coords of the chunk. So in this 
+case ist 64 and -96.and plugs this in a
+simple formula with the world seed. This is 
+the population seed. And we can look at the
+code. It first sets the world seed. then it does 
+one nextLong, and does another nextLong and then
+it multiplies the x cord with the first next 
+long, and the z coord with the second next long.
+So a minecraft world is divided up into 
+chunks. A chunk is 16 by 16 blocks.
+And for each chunk minecraft generates various 
+stuff, like decorations. So for each chunk
+minecraft creates a chunk specific 
+seed. Also known as the population seed.
+So this is again the random code 
+taken right from minecraft. It’s
+just how minecraft generates a 
+specific seed for each chunk.
+Minecraft doesn't do much with this population
+seed though. It now uses that 
+to derive a decorator seed.
+This class is basically the main class for 
+generating a chunk. And we have this method that
+generates the features of this chunk. 
+And this got messier over time.
+In earlier versions this was a lot more readable. 
+But in general we have some steps. And each step
+we generate some features. This method 
+does structure generation and decorator
+generation. Yeah here you can see how the game 
+sets the population seed. Then this part is for
+structure generation. Where the game searches 
+for structure starts and places structures.
+And the structures are like desert 
+pyramids and woodland mansions and so on.
+Let me quickly summarize what we have so far.
+So when minecraft generates a world,
+it all starts with the world seed, this world 
+seed is then used together with chunk coordinates
+to create a seed per chunk, also called called 
+the population seed. And then for each possible
+decoration inside a chunk, like trees, we now 
+derive a decoration seed from the chunk seed.
+The code really gets messy and I don’t 
+want to show it all in detail. It’s Java,
+you can read the code yourself. But it should 
+be clear why we read the generation code right?
+We want to figure out how the random numbers are 
+generated that decide if leaves are placed or not.
+And here is some code related 
+to oak tree generation.
+We have our chunkplacer where we get the height of 
+the tree. Yeah we have our base height, which is
+4 in the case of oak wood. Then we have our first 
+random height which is 2 in the case of oak wood.
+And our second random height is 0 in case of 
+oak wood. So we can count, we have two random
+calls in this method already. Then we ccan
+checkout the foliage placer. Remember that we 
+have all the leaves that require random stuff.
+And here we have the generate method the 
+foliage placer of the tree. This basically
+shapes the tree. For every Y height that leave 
+generates in. then we call generate square.
+So in the upper two we generate 3by3 square 
+and in the lower two a 5 by 5 square. Yeah,
+iterate over all the blocks in a square, and we 
+now need to check if a position is invalidated.
+And look a this function. So 
+isInvalidForLeaves calls random.nextInt(2),
+for the 50% chance if a leave generates in the 
+corner or not. So this adds more random calls.
+And there are a few more random calls to do 
+stuff. For example generating vines on trees.
+Anyway. The point is, you carefully have to 
+look at all the calls that get a random number
+and then simulate exactly the same operations.
+And that is what we do here. So first we have our 
+input data, x and z of the in-chunk coordinates.
+Then the tree height. Minus the four 
+height absolute value. So we get the pure
+random output. And then we have the twelve 
+configurable leaves. 0 if it’s air, 1 it’s
+a leave and -1 if we don’t see it in a video.
+So yeah. We initialize a bunch or random and
+then we have our big loop 
+that iterates over every seed.
+I think you get it. We now just test every seed 
+and check the random number generation if it would
+generate the trees with the specific leaves 
+missing. And that’s how he cracked the seed.
+Btw it’s not always possible to do bruteforce on 
+minecraft seeds. But in this case it was possible.
+That’s because I used a text seed. A text seed 
+is converted to a number seed via java’s hashCode
+function, and this only returns an integer. 
+Which means there are only 4.2 billion options
+and that is quite doable with bruteforce.
+Also once you bruteforced the number seed,
+you can then write another bruteforce 
+tool to find the correct LiveOverflow
+text seed that generates this seed. The Java 
+hashCode is very easy to collide, so you can
+actually find many strings that result in the same 
+hashCode. But this one was the one I really used.
+Awesome!
+I know there are a lot more crazy seed
+cracking techniques involving some cool math, but 
+to be honest, that goes over my head. But I link
+some amazing videos from Mathew Bolan below, if 
+you want to find a reason to get excited over high
+school or college level math, watch those videos. 
+They are awesome. Anyway, see you next episode.

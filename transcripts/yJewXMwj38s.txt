@@ -1,0 +1,286 @@
+My CTF teammate Linus, had a webkit zeroday
+which unfortunately was patched at some point
+and then he published it on github.
+So I want to use this exploit to start learning
+about browser exploitation and my goal is
+to be able to fully understand how it works.
+And that will take a bit.
+But why don’t we start by testing out the
+exploit to see where we want to get to.
+At the time of preparing this video “This
+is currently only patched in the WebKit master
+branch (not in any version shipped in macOS/iOS)
+and works with the latest version of Safari
+(macOS and iOS”
+The bug is described as following.
+This is an optimization error in the way RegEx
+matching is handled.
+By setting lastIndex on a RegEx object to
+a JavaScript object which has the function
+toString defined, you can run code although
+the JIT (the Just-in-time compiler) thinks
+that RegEx matching is side effect free.
+Exploitation is pretty similar to @5aelo's
+exploit for CVE-2018-4233.
+What this all means we will learn in the future.
+But let’s first run the exploit.
+Here I have Safari Version 12.0.1 which should
+still be vulnerable.
+To execute the exploit we simply start a simple
+webserver to serve the HTML and javascript
+files on localhost port 1337, and then we
+visit this page and can click on this to execute
+the exploit.
+but when we try it we get an error.
+Initialization failed.
+But in the README we learn that
+“You need to have a WebSocket Server running
+at Port 5000 or you get "Initialization failed".”
+So here is a small script that simply dumps
+everything that is sent to this websocket
+port.
+This websocket is only used to receive output,
+for example if you would test this on an iOS
+device, then you receive log output here.
+Anyway.
+Now we can visit the index page again.
+We click on this to start the exploit, and
+we see the different stages of the exploit
+executing pretty much instantly.
+you also see this output is sent to the websocket.
+So it sets up some fake object, cleans something
+up, gets a memory read/write primitive, downloads
+a second stage, somehow gets access to read
+write and executable memory, copies shellcode
+there and then executes the shellcode.
+This shellcode then prints “Hello world
+from assembly”.
+Awesome.
+So… as you probably know Safari is based
+on the WebKit browser engine.
+The WebKit browser engine is used by several
+products like Safari on Mac and iOS or also
+on the nintendo switch or playstation.
+WebKit contains mainly two big libraries.
+WebCore and JavaScriptCore.
+WebCore is basically the HTML rendering stuff
+and JavaScriptCore is, like the name says,
+the JavaScript part.
+So this exploit is actually a vulnerability
+in WebKit’s JavaScript engine JavaScriptCore.
+But let’s get started.
+First we want to get a proper debugging environment.
+To do that we should start by getting webkit’s
+source code.
+And that is pretty simple - webkit has this
+Getting the Code site.
+But Linus mentioned, that the vulnerability
+is fixed in the current code version, so how
+do we get the little bit older version that
+is still used in Safari to analyse the bug?
+My first thought was looking at the UserAgent
+Safari sents in HTTP requests.
+Safari says it uses webkit version 605.1.15.
+So I went to the code repository and looked
+at the source code tags.
+And here I find the tag matching this particular
+version, which also tells us the revision.
+This means we can then use svn to checkout
+revision 225504 specifically of the webkit
+source repository.
+This takes ages to download because it’s
+a couple of gigabytes.
+Once it is downloaded I tried to use the script
+“build-webkit” to build javascriptcore
+with debugging.
+But unfortunately that built failed with a
+weird error.
+Also i was a bit confused because that webkit
+version is super old, and that doesn’t seem
+right.
+And with a bit of research I actually found
+out that at some point WebKit decided to freeze
+the reported version number in the UserAgent
+for a few reasons like.
+(1) User Agent sniffing is a terrible way
+to determine whether a browser supports certain
+features.
+and
+(3) Overly-specific version information provides
+useful fingerprinting data while providing
+almost no user benefit.
+Anyway, so that failed.
+I then asked Linus about this and he said
+I should clone the github repository, which
+again takes AAAGES and then checkout this
+specific commit.
+He said this is the commit just before the
+vulnerability was fixed.
+So let’s do that.
+With this git log reverse command using the
+last commit that was vulnerable, we can also
+find the next commit that fixed the issue.
+Here is the description.
+Regular Expression operations should not take
+fast path if lastIndex is not numeric.
+That’s a typo here.
+Here is some additional info:
+This is because if lastIndex is an object
+with a valueOf() method, it can execute arbitrary
+code which may have side effects, and side
+effects are not permitted by the Regular Expression
+fast paths.
+Arbitrary code refers here not to like arbitrary
+remote code execution, it simply means you
+can execute arbitrary javascript code that
+can have side-effects, even though side effects
+should not happen for this regular expression
+fast path.
+Again.
+What that exactly means we will see later.
+So let’s try again to build this version
+of webkit, but to do that you have to make
+sure that you have xcode installed, and possibly
+you should also make sure that the xcode path
+is properly set.
+Then you can simply execute the script “build-webkit”
+again to build javascript core with debug
+symbols.
+That also takes quite a while to build, but
+eventually it’s done and you can find in
+WebKitBuild Debug bin a jsc binary.
+Let’s execute it.
+This gives you a simple JavaScript interpreter
+prompt like you may know it from nodeJs.
+So 1+1 is 2.
+Or we can also print a string, hello from
+JavaScriptCore.
+We can also create a regular empty object,
+assign a property with a list.
+And so forth.
+It’s like your browser javascript console.
+Cool!
+Here is a first cool tip I learned about from
+Linus.
+This is a function that is available in this
+JavaScriptCore build, which is called “describe”.
+It can be used to describe an object.
+So for example describe 1 tells us, this is
+a 32bit Integer with the value 1.
+Or we can also describe a float 13.37.
+And this is a Double.
+You may wonder what that huge value here is,
+but that’s actually the raw number representation
+how you would find it in memory.
+That represents the 13.37.
+In a video from Saelo giving an introduction
+to JavaScriptCore he also showed how you can
+look at this with python.
+The struct module in python can be used to
+convert between raw byte representations and
+types.
+So for example we can now pack that huge number
+again as a 64bit integer, that’s the Q.
+And so those are now the raw bytes for that
+number.
+Then we can unpack this raw byte string again
+as a double and we can see that 13.37 comes
+out again.
+So this is just a standard way how doubles
+are stored in memory as a number.
+Anyway…
+We can also describe a string and we start
+to see a bit more complex info.
+So apparently this string has also something
+called a StructureID, and we will learn more
+about this later.
+Let’s describe a list.
+This is getting even more crazy.
+A list is an Object at this addres in memory
+and has a so called butterfly at this address.
+The underlaying array structure in this case
+is a CopyonWriteArayWithInt32.
+Kinda makes sense, right?
+This array only had integers.
+If we for example add one floating point value,
+then suddenly we have an arrayWithDoubles
+instead.
+And if we add even more other types, it becomes
+a more generic ArrayWithContiguos.
+As far as I know this is basically the most
+generic version of an array - it can hold
+any object or type.
+Playing around with it even more, by adding
+another list into the list, we can also create
+an arrayWithContigious that is not CopyOnWrite.
+No clue what that exactly means, but you can
+see, we can already learn quite a lot about
+Javascript Objects just by playing around
+with this.
+But we can even do more.
+Let’s checkout lldb.
+LLDB is a debugger like GDB.
+Just a different one.
+So we can just open jsc with lldb.
+In case you get a python error, you can add
+/usr/bin/ to the path, for example with this
+alias, so lldb uses the correct python installation.
+Now that JSC is properly loaded in lldb, we
+can hit run, to execute JSC and now we have
+the familiar javascript prompt.
+So let’s play a bit.
+Let’s create a simple list with 1,2,3,4
+elements and then describe it again.
+This gives us some addresses.
+this array object is apparently at address
+0x1080b4340 and has a so called butterfly
+at 0x8000e4008.
+So now we can hit Control+c to break into
+the debugger and look at that memory.
+The syntax of lldb is sometimes different
+from GDB, but in the case of examining memory,
+pretty similar.
+So we can examine 8 64bit hex values at this
+address.
+And the second value here looks like the butterfly
+address.
+So let’s examine that, and here we find
+values that look like our array.
+1,2,3,4.
+But with some weird high bytes set to ffff.
+What all these values mean,, what a butterfly
+is and why there are these two ff bytes, we
+will learn more about later.
+For now I want to show you one other thing
+we can do, and that is setting breakpoint
+for useful builtin functions.
+With b we can set a breakpoint and thanks
+to debug symbols we can start typing JSC::mathP
+and then use tab completion.
+This is then listing all the available math
+functions like Math.abs(), Math.min() or Math.max.
+If you are looking for specific functions
+you can simply search for known terms in the
+code, this is how I figured out the javascript
+Math functions have names with the prefix
+mathProtoFunc inside of the JSC namespace.
+Anyway.
+Let’s set a breakpoint to the max function.
+Breakpoint set.
+Then we can continue to get back to the javascript
+shell and execute Math.max, with two values.
+13 and 37.
+Boom. breakpoint hit and we can even see the
+source code of the function.
+So we can now step through the code with for
+example n - next.
+And if we are interested in certain variables,
+we can even print them with p.
+P val.
+Or print the current value of the result variable.
+Later in the execution it will then become
+37.
+Awesome, right?
+This is always how I wanted to debug and learn
+about browser exploits and now we can really
+do it.

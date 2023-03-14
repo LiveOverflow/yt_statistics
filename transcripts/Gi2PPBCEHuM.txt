@@ -1,0 +1,518 @@
+Have a look at this. These cats here suddenly 
+appeared on my bed. ? You think they are cute?
+No.. They are backstabbing little 
+demons. DO NOT TRUST CATS IN MINECRAFT.
+You want to know why? Well, you 
+gotta watch this episode. It’s crazy.
+
+As
+you know I’m playing on a server with lots of 
+minecraft hackers, but it got a bit out of hand.
+So I wanted to implement more advanced script 
+kiddy protection on the server. Here is what
+I did. When you spawn into the world you are 
+presented by a demo screen and a worldboarded
+that traps you. Also it looks like you are in 
+creative mode, but all of that is just for show.
+A bit trolling. Because any minecraft hacker 
+will be easily able to bypass this and play
+like normal. Maybe it helps to cut down on a few 
+basic script kiddes using existing hacked clients.
+But besides those new protections, I also moved 
+to a new base very far away. I wanted a fresh
+start and be left alone. So let me show you what 
+I worked on next. in the last episode I already
+showed you several farms I built, so next up 
+was the storage area. Inside the mountain I
+started to clear out a big room for it, but 
+I haven;t decided yet how I wanted to do it.
+Only thing I knew was that I wanted to have an 
+automatic sorter, because I don’t want to sort
+items by hand. Also the mountain should be 
+big enough to have lots and lots of chests.
+And so, I decided to go with basic item filters. 
+This is not a fancy sorting system, and takes lot
+of space, but it’s easy and it works. At least 
+I thought so. You can see I started building it,
+but I actually I didn’t really understand how 
+the filtering works, and through this process I
+realized the importance of signal strength from 
+the comparators, and the items in the hopper,
+and signals bleeding into other filters. 
+Especially with rare items like diamonds
+your filter has to contain a lot of them for 
+it to work. And then items that are stackable
+to 16 will work differently or break stuff. So 
+it just frustrated me so much that I decided I
+want to do something else.
+Also I started to realize,
+there are just too many items in the game, that 
+with a regular filter setup it doesn’t really
+make sense. And so I destroyed it all again.
+Mh… thinking about it, what I really want,
+is to filter items into categories, for example 
+all spruce wood related blocks like planks,
+stairs, fences, everything sorted into one chest.
+And if you remember, at the actual server spawn,
+there is this amazing item sorter 
+from Maizuma Games and I thought I
+could build one into the mountain here 
+as well. Using schematics it should be
+fairly easy, but it requires a lot of 
+materials. so that was my new goal,
+I started to gather all the items 
+necessary to build the categorizer.
+The categorizer is a very complicated build and 
+the schematic uses colored concrete blocks for
+easier management of the different parts. And so I 
+wanted to make sure I use the same colors, to make
+my first build easier. That's why I built a basic 
+flower farm, based on a design I found on YouTube.
+I also added a small cactus farm right next to 
+the kelp farm, in order to get green dye. But
+the more items I started to gather. And the 
+more I watched the videos by Maizuma Games,
+the more I understood how it works. I realized,
+I’m too damn lazy for this. I
+need a different solution.
+At first I thought about writing
+a mod or a complete bot that does the sorting for 
+me. Imagine a bot account standing in the middle,
+grabbing items out of one chest, and sorting them 
+into other chests based on some rules. Kinda like
+notebot. I think that would be a useful 
+mod or bot. So feel free to implement one.
+But, I’m the server owner. And I have 
+different powers for cheating. So… I
+decided to write a server plugin. Which 
+also would benefit everyone else on here.
+My amazing idea was to implement 
+item filters, directly with hoppers.
+how to configure how a hopper should filter 
+items? Let’s use the name of the hopper.
+For example when I give a hopper the name 
+“cobblestone” it would only process items
+with the minecraft item name “cobblestone”. 
+It’s based on the item name displayed when
+you have this debug output enabled, 
+its the minecraft item translation key.
+But the plugin can do even more, you can also use 
+comma separated values. It’s self-explanatory,
+just more options to filter. But the killer 
+feature, it supports wildcards. So with a
+star * at the end or the start of a string 
+it’s basically a filter for if the item name
+starts or ends with that term. And with that 
+we can very easily sort items into categories.
+Simply creating a big hopper chain around 
+in the room, with lots and lots of filters.
+Let me actually show you how the plugin works.
+It’s super simple. we simply register two event
+handlers for the onInventoryMoveItemEvent 
+and the onInventoryPickupItemEvent,
+these events are triggerd when a hopper moves 
+items around or pickups items. Now we just
+implement some checks to decide what to do.
+For example, if a hopper tries to take an item
+we check if actually a hopper attempts to take 
+an item, and then we check if the hopper has
+a custom name. And if that is the case we 
+get the translation key of the item we try
+to move and then we apply the filter rule. 
+If this filter fails, we cancel the event,
+so the item is NOT moved.
+And this filter code
+implements what I just described.
+We take the hopper name and split it
+on the commas, then we go through the list and 
+compare each filter name with the item name.
+Either it’s an exact match, or if it contained 
+a star, we check with startswith or endswith.
+Super easy plugin, but I think it’s 
+incredibly useful. But I really wish there
+was easier item sorting in vanilla minecraft.
+I mean, there are some amazing sorting systems
+out there. It’s crazy what people come 
+up with, these are actual computers. But
+that’s not really practical for anybody 
+playing minecraft casually. Like me.
+Anyway, I’m very happy with the storage system. 
+I mean, yeah, it’s cheating, it’s so much simpler
+than the crazy sorter designs. But it still 
+took HOURS to build and I’m okay with this.
+After the first part of the sorter was done, I 
+also thought it would be cool to get some beacons.
+But for that I have to gather some wither skeleton 
+skulls in the nether. Luckily, nearby to the base
+is a stronghold, so I decided to farm there for 
+a while. But it’s soooo boring to farm for them.
+And really annoying as well because of all the 
+blazes. I mean I’m already using a reach hack
+to kill blazes and wither skeletons from far away, 
+but they can also shoot back. It’s so frustrating.
+And of course the drop rate for wither skeleton 
+skulls is also so low. So it really took a while…
+Wait… did you just say 
+“minecraft reach hack”? What?
+Mh mha!
+I didn’t believe it at first either.
+When you search on YouTube for Minecraft 
+Reach exploits you only find pretty old
+stuff. for minecraft 1.8 or something. 
+And then also they are not very far? I
+mean there used to be nice reach exploits 
+in the past like this video from Gildfesh,
+by the way also a player on this server. 
+But a reach hack in 1.19? UNHEARD OF?!
+Well, I wasn’t the one to find it first. A while 
+ago Crimsongale suddenly shared a video on discord
+of him hitting players from super far away.
+And I was like, WHAT THE HECK?!
+And others were like “what the heck” as well. 
+So many of us started to open intellij with
+the minecraft source code and started to 
+think about how to implement a reach attack.
+More and more videos appeared on discord. 
+Enderkill98 shared a video slaughtering mobs
+from far away. Enjoys shared their implementation 
+of what they called fabulous reach. Or mojangsta
+implemented customizable reach.
+GoddDamnot. I wanted to find it too.
+And eventually I tweeted this.
+You want to know what I can achieve in 14 hours 
+of hacking, reading minecraft source code?
+Now I can kill sheeps from 
+a little bit farther away!
+No exaggeration. This is really 
+how long it took me to rediscover
+and implement my own version of the reach hack.
+It was really fun. Like a CTF challenge. I knew 
+it must be possible, I just didn’t know how.
+And by the way, that’s what I have hidden deep 
+below my base, in the deep dark. Did you notice
+the enchantment table in the last video?
+You need to bring a sacrifice,
+and then a sheep spawns very far away in 
+the “deep dark portal that has no use”,
+and then you need to quickly kill it from far 
+away. If you don’t, you get punished. If you
+manage to kill it from far away, you get rewarded.
+Buuuut this also means, sorry. I won't share
+with you the reach hack just yet. It’s a 
+challenge, you need to find it yourself.
+Anyway…
+Back to my base building. Eventually I gathered
+enough wither skulls and was 
+able to spawn some withers.
+And finally I was able to craft some beacons. 
+Building the beacons pyramid however turned
+out to be quite annoying, because I wanted to 
+build it far down, and there we have the deep
+dark. With annoying wardens that keep spawning.
+It was so annoying. I know I could just destroy
+all the shriekers, but I wanted to keep 
+the deep dark scary and mostly untouched
+for when the first players arrive at the 
+new base. So I just had to deal with it.
+Alright. Let me show you my next project.
+Now that I have a cool storage area that 
+I keep expanding, I needed a way to get
+items into there. And I have a few farms in my 
+base and I thought, let’s build a cool minecart
+railway through the whole base collecting 
+items from the farms and bringing them here.
+This was so much work. And you know what. My 
+design is really really dumb. I wasted a lot
+of materials on building powered rails 
+to get the minecart to travel upwards.
+But you know what I later realized?
+It would have been SO MUCH EASIER if I had just
+let the minecart go downhill all the way, almost 
+no powered rails required, and then just use a
+bubble elevator to get the minecraft back up.
+Not only would that have been a much cheaper
+design, it would probably also break a lot less.
+Right now, if there are multiple minecarts going
+up, they sometimes get stuck at some corners.
+I already added a basic dispenser clock at
+the unloading station to evenly space 
+out hopper carts and chest minecarts,
+but it’s still breaking a lot. The minecart 
+unloader by the way I have from an ilmango video.
+We will get back to the cart system in a moment, 
+but next I started to improve the crop farm. I
+wanted to have a more automatic setup using water 
+to flush the grown crops down. And then collect
+them in a central station. For that I had to build 
+some basic stairs and measure how far the water
+flows, and then build an item collection 
+elevator and transport system with water.
+Simply hit a lever, wait for the water to 
+flush everything down, then wait a moment
+for the items to get transported through the 
+water stream to the collection area, and then
+take some seeds to replant the crops using the 
+automatic farming mod shown last time. Easy!
+Next I started to decorate the interior of 
+the storage area. In the trailer for the
+new base I called this my new kingdom, so 
+I had to build a massive throne to sit in.
+And… this is when also the cats started to appear. 
+Why the heck do cats suddenly appear around me?
+I thought, maybe it’s because of the 
+carpet? Are cats maybe attracted to
+wool and carpet? You know like all 
+the cat videos playing with wool?
+Is that maybe a thing in minecraft that 
+they spawn more often around carpet?
+I thought it was weird, but I also shrugged 
+it off. Whatever. They are just Cats.
+Turns out. They are not cats. They are 
+harbingers of death. Foreshadows of
+events that soon would unfold. Do not make 
+the same mistake as me. Don’t ignore them.
+Because while I just kept expanding 
+my minecart system to include the
+new automatic farm as well. A group of 
+players was on their way to my base.
+They found me using cats.
+They called themselves TP-Overflow. 
+specifically the player P1x3lPro found
+the bug involving the cats and 
+the group helped executing it.
+There was just one problem, for the bug to work, 
+I had to be online, and I was pretty busy. But
+when they asked nicely, I of course joined the 
+game. I will always come online for exploits.
+So here is how they did it. Remember many 
+many episodes ago I tamed a few cats to
+build a creeper farm? Well… I tamed them.
+Here is the CatEntity class and it inherits
+from TameableEntity. This means a cat can have 
+an owner assigned to it. When you tame a cat,
+You become the owner and the cat remembers you.
+Now in a previous episode we looked at the AI
+behavior of zombies to figure out why a funny 
+AI bug happened. So you should be a bit familiar
+with these AI goals here and that the game 
+selects one of the behaviors to execute. And
+in the case of cats, there is a FollowOwnerGoal.
+It does what the name says. In the tick method
+of this behavior you can see that it simply 
+looks at, and starts moving towards the owner.
+However important is also the condition when 
+this AI goal can even be used by the game.
+For example if the cat has no owner, 
+then there is nobody to follow, right?
+So in this canUse method, it gets the owner and 
+if there is no owner, it returns false. Cannot
+be executed. Also if the owner is currently 
+in spectator mode it wont follow them either,
+or when the cat is sitting, it will also not walk.
+But here is a bug. The FollowerOwnerGoal takes
+into account a minimum distance the cat has 
+to be away from the owner, and there is a
+maximum distance for it as well. BUT see how 
+that is used in the code. The canUse method,
+which decides whether the cat goes into this 
+AI goal only checks the minimum distance.
+If the owner is too close to the cat it wont 
+execute. But what if we are far away? Well… it
+will return true. This AI goal can be started.
+As you know, minecraft works with 20 ticks per
+seconds, so now that this goal was started, the 
+tick method will be executed and the cat will
+look at the owner, BUT there is a problem.
+Because when the owner is more than 144
+blocks away from the cat, the cat 
+will also teleport to the owner.
+I think now you know why there 
+were so many cats around me. The
+group that wanted to find me started 
+breeding the cats that I tamed for
+the creeper farm. And it’s important 
+to note that when a tamed cat breeds,
+the offspring will also be tamed as well. Meaning 
+the baby cats will also have me as the owner.
+So when a new baby cat spawned, they might also 
+go into this AI goal and because I’m far away,
+the cat teleports to me. UNLESS this if-case 
+is not true. So if the cat is leashed OR is in
+a boat, they will not teleport. So they had to 
+quickly catch the baby cats with a boat or they
+teleported to me. This failed many times and 
+that’s why they started to appear around me.
+And I think you can slowly guess 
+where all of this is going.
+The group now had a collection of cats that 
+were tamed, or owned, by me. And sometimes
+the cat would select the AI goal to follow me, 
+the owner. Triggering the tick method to look
+into my direction. Theoretically you now know 
+the direction you have to travel to find me!
+But it’s not that easy, on the next tick the AI 
+code will check with the canContinueToUse method
+if the AI goal can continue to be used, so if 
+the cat continues trying to walk towards me,
+and here is the maximum distance check. 
+Because I’m far away, the AI goal will
+be disabled and the cat stops walking towards 
+me. Which means another AI goal takes over and
+the cat walks somewhere else, and looking into a 
+different direction. Making it not that easy to
+figure out what the correct direction was.
+HOWEVER, there is another trick P1x3lPro
+figured out. it involves leashes. You see.
+When an entity is attached to a leash it
+will change how the entity behaves. You have to 
+be able to pull it into a direction. So in the
+EntiyCreature class you can find a tickLeash 
+method implementing the leash logic. There
+are various movement checks, for example if 
+the distance reaches a certain threshold,
+a velocity will be applied, pulling on the entity. 
+But if you just slowly walk with the animal,
+the leash logic just tries to keep the leashed 
+entity close, by executing a navigation moving
+towards the player holding the leash.
+And here you can also see that an entity
+on a leash influences the type of AI goals 
+that can be still executed. At least that’s
+what I think the code does. I’m not sure if 
+I understand it correctly to be honest. But
+I think in this case movement goals are still 
+allowed. And of course the FollowOwnerGoal is
+a movement goal, it can still be executed. 
+Leading to the tick method being executed,
+and even though movement is disabled because 
+the cat is leashed now, the lookAt code
+still triggers. And apparently other AI code 
+that causes the cat to look at stuff is not
+executed when leashed, or chosen more rarely, 
+which means, when having a cat on a leash,
+it will mostly look into the direction of 
+the owner. No matter how far away you are.
+Now there is another small caveat, and that can 
+be seen in the minecraft protocol. When the look
+direction is updated for an entity, the look 
+angle is represented only by a byte. So there
+are only 256 possible values for an angle. Which 
+means, it’s not a very precise direction. But with
+enough distance to triangulate, you can still find 
+the rough location. To pull it off, group started
+to travel to far places, with the tamed cats, 
+and equipped with leashes. Hooked them up, and
+observed the look direction. Here for example is a 
+clip from enderkill98, part of the group, logging
+all the view directions of cats that are owned 
+by me, in order to triangulate the position.
+Of course I censored the values because 
+that would be basically a coordinate leak.
+AND I NEVER LEAK STUFF. I’m 
+very careful with leaks.
+Yeah that is the farm from the video. I was 
+like “haha are those your cords for the base”,
+and he was like “where?”. And then I was like 
+“in discord”, and then he was like “f***!”.
+Wow that is nice. That looks sick.
+Are we rebuilding the liveoverflow sign,
+today? There is a liveoverflow sign, 
+this is really nice to be honest.
+But yeah… that was crazy. They found 
+me with this. Those stupid cats that
+appeared around me were actually a hint 
+that a group started to exploit a buggy
+cat AI goal which would point into my direction.
+Absolutely insane and so far the best 
+solution to finding my new base location.
+Cool…
+But before we end this video,
+I want you to think more about this. So by 
+creating a challenge where players had to
+figure out a way to find me, a really cool bug 
+was discovered. To my knowledge this is an unknown
+bug. I mean, it’s minecraft, I’m sure there is 
+a nerd out there that figured it out before,
+but it was totally new to us. So by creating 
+an environment where people are forced to
+find creative solutions, creative stuff 
+happens. And that can be used as a driver
+and motivator to do security research and 
+to find new bugs. This is my experience
+with playing CTFs as well. So many cool bugs 
+and even 0days get discovered thanks to CTFs.
+And that’s actually the reason for another 
+challenge that I built for the server. It’s
+the snowball challenge. Here is how it works.
+When you hit a player with a snowball,
+the velocity of the snowball is measured and there 
+is a highscore. So basically, we want to find,
+who can throw the fastest snowball.
+You probably wonder why this
+is interesting to me. Well…
+The speed of the snowball depends on
+the speed of the player. If the player has a high 
+velocity, this velocity will be transferred to
+the snowball. That’s why you reach higher scores 
+when you are falling downwards. Of course there
+are other tricks to accelerate entities in the 
+game, for example TNT cannons, or fishing rods,
+and that’s how the current highscore got 
+reached. But I was hoping somebody would find
+an arbitrary acceleration exploit. Or at least 
+an exploit to get a very high player velocity.
+This is interesting because the velocity is 
+used in the movement packet handler code.
+As you probably know, if you move too fast in 
+game, your position will be reset. And this
+prevents you from teleporting all over the place. 
+If you send a position packet with a large value,
+the game calculates the distance you 
+travelled from the previous position.
+And then it subtracts the velocity. The result is 
+then compared to the result of this other formula.
+So think about this. This value is the 
+distance from the last known position,
+to the new position of the current packet. And 
+from that you subtract the player velocity.
+Large velocity, allows large position difference.
+This is done for good reasons. For example without
+it, something like a TNT cannon wouldn’t work. 
+With such a canon, they fling a player super fast
+super far, And they don’t want it to trigger 
+the moved too quick error. So in that case
+the player has a high velocity, so the difference 
+between previous and new position can be larger.
+Do you see what I tried to do here?
+in theory, if you find an exploit to 
+gain very high player accelerations,
+you could probably teleport anywhere on 
+the map. Or teleport pretty far away.
+And that’s why I implemented the snowball 
+challenge. I was hoping a challenge like this
+would get multiple people to review minecraft 
+code, trying to find an acceleration bug.
+So far no exploit was found. Which maybe means 
+it doesn’t exist. The code is safe. But maybe
+telling you about the reasoning behind this 
+challenge, maybe now you got motivated. So
+you should try to beat the highscore with 
+a large value, because by doing that,
+you actually introduce the world to a minecraft 
+teleport exploit. And wouldn’t that be cool?
+let’s see what happens.
+Now we come to the last part of the video, the 
+community showcase. MetaMouse is a very active
+player on the server. For example, a while 
+ago, they were one of the players finding
+a club mate bottle bypass, and they even made 
+this amazing map art of my avatar. And today I
+want to share a video MetalMouse made about a 
+few strategies trying to find the location of
+my new base. They also put a lot of effort into 
+editing. Big thanks for that. Enjoy the clip.
+
+It was really interesting to learn 
+about cloud formation and how it
+can aid in cracking coordinates. Thanks again
+for sharing, see you next episode.

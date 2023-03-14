@@ -1,0 +1,529 @@
+I’m working as a pentester and I look for 
+vulnerabilities in web applications all the
+time. The problem is, when you test a target, 
+you usually don’t know how much you missed.
+And that’s why I like reading CTF and bug 
+bounty writeups because they allow me to very
+quickly reflect on my own skill level: “could 
+I have found these issues as well?” And if not,
+WHY? Why would I have missed them? That 
+is a very very important process for me
+to be honest to myself, stay up to 
+date and always push myself to improve.
+So in this video I want to have a look at 
+last year’s top 6 bug reports in the Google
+Cloud Platform, and see what I can learn 
+from them. Every year Google rewards the
+best vulnerabilities with the GCP prize. So I want 
+to go over the winners and share with you what I
+learned from them. And hopefully it is interesting 
+and educational for you as well. Let’s GO!
+
+The first report is by Ademar Nowasky Junior 
+“Command Injection in Google Cloud Shell”. They
+also recorded a quick video how the attack would 
+look like. So when you open this malicious link
+it will ask you to clone the official Google 
+Cloud gsutil repository. Confirm. Then it
+takes a moment. Sets up everything, clones the 
+repository, and opens the Cloud Shell Editor.
+So an in-browser IDE with a shell. And it triggers 
+code execution in this shell. And then it tries to
+steal the victim’s google cloud access token. The 
+core bug here is a command injection in the go_get
+parameter. You can see here the semicolon 
+and this is how the command looks like that
+it executes internally. So the injection here 
+breaks out and you can execute whatever you want.
+As you can see the report is very detailed 
+and easy to understand and I always love
+it when people explain the steps that lead to 
+the discovery. Because, on each step I can ask
+myself “would I have done the same?”. That really 
+helps me, and I encourage you to do that as well.
+So Ademar describes that he researched the 
+“Open in Cloud Shell” feature. As you saw you
+can open a repository in this cloud shell. 
+There is lots of documentation available,
+but what I found particularly interesting is that 
+Ademar really dug into the javascript files that
+implements a lot of this. You know, sometimes I 
+forget that on the modern internet, a lot of code
+is not executed on the server anymore. More and 
+more primary logic is implemented in client-side
+javascript. Usually I don’t like bug 
+bounties because of the black-box approach,
+I feel it's a waste of time just poking in 
+the dark. But here I got reminded again,
+you might have access to all the code. And with 
+your browser you can read it and even debug it.
+With these screenshots we are also getting 
+a glimpse into how Ademar was working.
+So the browser devtools appear to be the 
+primary tool used to investigate this - no
+Burp Suite or other web hacking tool required.
+Anyway, this bug was rewarded with 5k and on top
+of that he got the 6th place in the GCP prize and 
+got an additional 1000$. Congratulations ademar.
+By the way, this issue is kinda similar to 
+the vulnerability Wouter found in 2019 shown
+in my video “Google Paid Me to Talk About a 
+Security Issue!” . But it’s also interesting
+for me to see the differences and you can 
+tell there were some significant changes,
+including these prompts asking and 
+warning the user about certain actions.
+But let's move on! “Remote code 
+execution in Managed Anthos
+Service Mesh control plane”. By Anthony Weems.
+This issue is Kubernetes related and my knowledge 
+and experience with kubernetes is… so.so.
+I have made videos about how containers kinda 
+work under the hood, but kubernetes is a lot of
+stuff on top of that. It’s a world of its own and 
+extremely fast moving. So a writeup like this is
+actually kind of a kubernetes tutorial for me. I’m 
+learning about Kubernetes by trying to understand
+a vulnerability. Maybe it’s weird but that can be 
+really useful. Anyway. This issue is specifically
+about Anthos Service Mesh, which is a Google 
+product name. Under the hood it is basically an
+istio deployment. I have never used istio before, 
+so I don’t really know much about it either,
+but reading this writeup I get a first idea what 
+it is about. However the bug itself is more about
+a default misconfiguration allowing some lateral 
+movement. So basically the attacker already has
+some access to kubernetes, but is able 
+to escalate it into the Managed Anthos
+Service Mesh. So Anthony figured out that he 
+could deploy a malicious credential plugin,
+this is how it looks like, and it would execute 
+this command when a secret is deployed. Please
+don’t ask me what this is useful for, you can read 
+the kubernetes documentation about it yourself.
+As I said I want to be honest and reflect if 
+I could have found that, and to be honest,
+probably not. I don’t know enough 
+about kubernetes and I’ve never heard
+about credential plugins. But you know 
+what. Now I know. Now I know this is
+a thing. So in the future if I’d ever face 
+something similar, I can recall this memory.
+But anyway, that is just half of the bug. 
+there is a second part to this and that is,
+the command execution is not as simple as that. 
+turns out that the real container is stripped down
+and doesn’t even have a shell or bash binary. 
+There are only two programs available to
+execute. Pilot-discovery and openssl.
+And this is where this whole thing
+turns into a CTF challenge, so here I really 
+feel at home. Anthony figured out a way to
+only use openssl to execute arbitrary code.
+He figured out that openssl can load shared
+libraries, so basically loading and running 
+a custom C program. That would be useful.
+Problem of course is, how to get that .so binary 
+file on the server. But look at how he does it.
+First he creates a certificate with a specific 
+serial number. This serial number is HUUUGE,
+because it’s basically raw assembly bytes 
+converted to a big integer. So this is how
+you can get an almost arbitrary file. There is 
+some gibberish but that is fine. The only real
+problem is though, that this file does not start 
+with the ELF magic header. Which is required
+that this can be loaded as a shared library.
+But this is where AES decryption comes into play.
+A neat trick, making the output a valid shared 
+library. Very creative, and not sure if I would
+have been able to come up with that myself. 
+BUT from a technical skill perspective, nothing
+“difficult” for me. This AES trick explanatiuon 
+makes total sense for me from playing CTFs.
+It’s just the creativity that blows my mind, 
+coming up with that. That really inspires me.
+So congrats Anthony…. WAIT A MINUTE.
+I know this name. Anthony Weems. I collaborated 
+with him on my log4shell fuzzing video.
+Yeah… so of course I used this opportunity 
+to ask him some more questions.
+Specifically what his motivation was 
+to hunt for bugs in google cloud:
+“My very first [Google] VRP 
+submission was something I
+found on a client security assessment for 
+work. After that process went so smoothly,
+every so often I'd just do Google 
+Cloud vuln research mostly for fun.”
+And he treated it like a CTF. That’s 
+his mindset for bug bounty hunting.
+I also asked him how he knew about 
+kubernetes credential plugins:
+“I vaguely knew they existed because I knew 
+when I authenticated to GKE clusters _something_
+had to update my auth token so I just went 
+looking in docs and code for how that worked.”
+And check this out:
+“I interviewed at Google and I'm actually starting
+there next week on a team that does 
+"cloud vulnerability research" :)”
+So for this bug Anthony got a 5k reward, plus 
+a 1000$ BONUS for the really cool exploit.
+By the way a lot of google security folks 
+are from the CTF community. And I think it
+shows here. A CTF player would totally love this 
+openssl trick, and give out that bonus reward.
+But on top of this regular reward, he also 
+got top 5 best Google Cloud Bug in 2021.
+So he got another $1001 as a prize. 
+And, I guess, a job at Google as well.
+Awesome! But we don’t have much time, 
+4 more issues. So let’s move on.
+The next writeup is from Imre Rad “The 
+Speckle Umbrella story — part 2”. And this is
+really a loooong writeup, because this article 
+covers basically 6 different issues. But all
+around Cloud SQL - that is Google cloud’s product 
+name for managed postgres or mysql databases.
+Unfortunately, there is just so much here, 
+that I cannot really dig into the details
+of the vulnerabilities, but there are a 
+few other things I wanted to highlight.
+Imre has done a lot of Google bug hunting 
+before. And look what he wrote here:
+“After I proposed two additional attack vectors, 
+the VRP team kindly assigned a research grant,
+so I had the chance to take a deeper look. The 
+objective was to identify attack vectors enabled
+by a compromised Cloud SQL instance.”
+A research grant basically means
+he gets paid to do bug bounty hunting.
+I find this interesting because a lot of people,
+including me, criticize bug bounties 
+because people essentially work for free
+and only get paid if they find something. But 
+a research grant changes that. You get paid a
+certain amount regardless of what you find. 
+But if you find something, you get the bug
+reward for any of those bugs on top.
+And apparently Google has recognized
+that Imre really does valuable research into 
+important areas and they wanted to make sure he
+keeps looking. By offering him a research grant.
+Anyway. The other interesting takeaway for me from
+this article is, to see what it means to go deep 
+into this particular area. For example his issue
+number 5. “Cloud SQL Auth Proxy leaking access 
+tokens over the network — MitM attack”. The Cloud
+SQL Auth Proxy is using SSL. so you would think 
+no mitm attack possible. But he noticed that the
+client certificate sent to the server contains the 
+access token. And this certificate is sent BEFORE
+the encrypted tunnel is established. This already 
+requires knowledge about SSL, but checkout this
+quote about building a proof of concept attack:
+“TLS implementations usually reject setting up
+a TLS listener without having the private key, 
+so to demonstrate this, I built a tool on top
+of a patched version of Golang’s TLS stack. The 
+handshake is failing at the end, but at that point
+the client certificate has already been captured.”
+Just taking an existing TLS implementation and
+modifying it to be able to show 
+that the attack is possible.
+This is really showing to me how much experience 
+and skill Imre has in different areas of hacking.
+And overall I really respect the persistence 
+researching this area. The grind. You can
+really tell he tried to dig deep into Cloud SQL. 
+And I probably would have given up much earlier.
+Anyway, Imre didn’t disclose 
+how much he got from the grant,
+and from the different issues he reported. But 
+you can imagine it all sums up. But on top of
+that we know that he got 4th place and received 
+an additional $31,337 GCP prize. Congrats!
+Next one. Remote Code Execution in Google Cloud 
+Dataflow by Mike Brancato. Dataflow is a Google
+Cloud product offering stream and batch data 
+processing. So basically you have lots of
+data coming in, and it can automagically 
+spin up a worker and process that data.
+And look at the first paragraph what he writes:
+“Earlier this year, I was debugging an error in
+Dataflow, and as part of that process, I dropped 
+into the worker node via SSH and began to look
+around. Prior to that experience I hadn't thought 
+much about what was happening on the worker node,
+so I made a mental reminder to dig into Dataflow 
+as a possible exploit vector into Google Cloud.
+Later that week, I spun up Dataflow in my personal 
+Google Cloud account and started digging.”
+Of course I don’t know for sure, but 
+what I read here between the lines is,
+that he is working at a company that is using 
+Dataflow. And he was investigating some errors
+and it peaked his curiosity to look deeper into it 
+as a “possible exploit vector into Google Cloud”.
+This is not uncommon. I really believe 
+software engineers and programmers would be
+the best hackers, because they are very close to 
+that technology they are using. It just requires
+that special kind of hacker mindset to turn that 
+programming knowledge into hacking knowledge. And
+one goal I have with my channel is to encourage 
+more of that. I hope a lot of engineers in my
+audience develop this security mindset. And 
+then apply it at their work place uncovering new
+vulnerabilities. Like Mike apparently did.
+Anyway, he investigated how Dataflow is
+implemented and noticed that a JMX port is 
+open. JMX is the Java Management Extensions,
+and it basically allows to remote control java 
+applications, which is basically arbitrary code
+execution. And this port was exposed without 
+authentication, HOWEVER it was firewalled and
+not reachable from the outside. So it was 
+only reachable from your organization’s
+internal network. But this again, could allow an 
+attacker to move laterally. So when an attacker
+compromised another internal service, they could 
+spread to these dataflow hosts. But as he writes:
+“[while] Exploitability from an internal 
+system is a risk and interesting,
+[it is] unlikely to be valued or prioritized 
+by Google.”. it’s not publicly exposed.
+But Mike argued that customers might accidentally 
+open up the firewall settings. And allow
+a range of ports. And they probably don’t 
+know that they have this dangerous service
+now exposed. A passive scan also appears to 
+show over 2200 servers with this open port.
+And further he argues that “As a customer, the 
+worker nodes should fall into at least the PaaS
+(Platform as a service) bucket of Google's 
+shared responsibility model for cloud security.”
+And this is what was the most interesting to 
+me here. “Who is responsible for the security
+here?”. We all have a somewhat intuitive feeling 
+about this and it many cases it is kinda obvious.
+If I rent a server and I deploy and run a MYSQL 
+database, then I am responsible to secure the port
+and create users with strong passwords. But if 
+I use a managed solution, like Google Cloud SQL.
+I expect Google to properly configure MYSQL for 
+me. But that’s just an intuitive feeling and that
+means others draw lines differently. So it’s 
+very important that this is properly defined.
+And of course it is!
+Look at this responsibility chart.
+Mike argued that Dataflow is at least a platform 
+offered as a service. Paas. And in that case,
+the network security and access and authentication 
+falls under Google’s responsibility.
+And that’s probably why Google in the end 
+agreed and rewarded him a $3133.7 bounty.
+Overall this was a really straightforward report 
+and I really like the clear communication,
+why he thinks this is a security issue 
+Google should address. so this got
+third place for the best bug and write 
+up and got awarded an additional $73,331
+Now I’m starting to feel like Mr Beast 
+again. It’s not my money, I had no
+decision power over who gets that money. But, I 
+don’t know. I feel like I’m dropping cash here.
+Anyway.
+The second place report is from 
+somebody we already know. Imre Rad,
+coming in with the DOUBLE KILL for his “Google 
+Compute Engine VM takeover via DHCP flood”.
+I really like this one because DHCP hacks are 
+kinda oldschool. In my like 8 years of pentesting
+experience, NOT ONCE have I done that. Not because 
+I don’t know about it, but because I never did
+a network pentest. But apparently I’m an idiot 
+because you could apply this to the cloud as well.
+Imre noticed that Google Cloud uses 
+the ISC dhcp server. DHCP is a UDP
+protocol and google cloud uses it to get the IP 
+address of the metadata.google.internal server.
+UDP is connection-less, so a VM will send out a 
+DHCP request and waits for a response. But when
+they receive a UDP packet, how does it know that 
+it’s the response to the request? In the DHCP RFC
+we can see that the UDP packet contains a `xid`, 
+which is used as a “Transaction ID, a random
+number chosen by the client and used by the client 
+and server to associate messages and responses“.
+So if a Google Cloud VM wants to 
+contact the internal metadata server,
+it will have to discover the IP for this host. 
+It will send out that DHCP request, and now if
+you as an attacker spoof the response UDP packet, 
+and you can guess the xid, then you can basically
+tell the VM, “I’M THE METADATA SERVER”.
+This metadata server is used to load the
+ssh public keys onto the VM. So by 
+doing that you can basically deploy
+a malicious key on the VM and ssh into it.
+So Imre looked at the ISC source code to
+figure out how the random xid is generated 
+and he noticed that it was bad random seeding
+and it could be predicted. Allowing an 
+attacker to spoof that response packet.
+As you can see, clearly an issue 
+for Google?! But there is a very
+interesting discussion that you can read on 
+the ISC bug tracker. Here is the public issue
+“Improve pseudo random number generator in the 
+dhclient” referencing the google cloud report.
+And here Tomek pointed out that according to the 
+RFC, this random xid is NOT a security feature.
+“A client may choose to reuse the 
+same 'xid' or select a new 'xid'
+for each retransmitted message.“
+So “Making your security model
+dependent on an assumption that xid is 
+hard to guess is not a good practice.”.
+I agree… but then what is the correct way? Maybe 
+the RFC has an answer for that? Let’s see..
+OH! They do have security 
+consideration, let’s check that out.
+“DHCP is built directly on UDP and IP which 
+are as yet inherently insecure. [...] DHCP
+in its current form is quite insecure. [...] 
+Unauthorized DHCP servers may be easily set up.
+Such servers can then send false and 
+potentially disruptive information to clients
+such as incorrect IP addresses 
+[...] Clearly, once this seed
+information is in place, an attacker can 
+further compromise affected systems.”
+Oh my god! I mean…. At least it’s honest.
+But this is what makes the discussion 
+so interesting, right? This is just how
+DHCP works and they know that since 1997. Which 
+means, is this really something ISC should fix?
+Or is Google at fault here, because 
+DHCP is just the WRONG solution?
+Imre argued:
+“While a PRNG with more
+entropy sources could have prevented this flaw 
+being exploitable in GCP, I still think this is
+not a vulnerability of their implementation”
+And maybe Google should just not use DHCP,
+or setup firewalls blocking udp port 68.
+Which sounds fine, but then eduardo from
+Google pointed out, on the ISC issue tracker, 
+that an unprivileged local attacker can still
+reach that port and basically MITM any other users 
+on the same system. Making it somewhat a privilege
+escalation exploit. And proposed that the 
+dhclient should at least check the source port.
+Very fascinating discussion and provides 
+a lot of food for thought. Let me know
+in the comments how you think about it.
+Unfortunately we don’t know what Imre got for
+this bug report, but we do know that it got him 
+second place with an additional 73,331$ reward!
+And now we come to the winner of the 
+Google Cloud Platform Prize of 2021.
+The best bug report. Bypassing 
+Identity-Aware Proxy. By Sebastian Lutz.
+This is again a bit more of a traditional 
+web security bug. No kubernetes, networking,
+TLS whatever. Plain web security. 
+Basically an OAauth vulnerability.
+Identity aware proxy is pretty cool. It’s 
+exactly what the name says. It’s a web proxy,
+so when you use it, all requests to your website 
+go through that proxy, but the proxy is identity
+aware. So basically you have to authenticate 
+yourself. Login with your Google account, and
+only then you can actually access the site. And
+“IAP enforces an OAuth authentication flow before
+access to the actual application is granted.”.
+Sebastian explains how exactly the whole
+authentication flow works and tells us how 
+he figured out the bug. And as you know,
+I want to figure out if I could have found this 
+vulnerability as well. So the most interesting
+line for me in this writeup is here.
+He explains that he stumbled over a
+specific feature of the Identity-aware proxy, 
+that is that the configured oauth client
+can be shared (for convenience) with other 
+services across the same organization. BUT::
+“For me, this caused a sudden shift in perspective 
+and led to a breakthrough for bypassing IAP:
+What would happen if I tried to create an 
+IAP-secured application as the attacker,
+but specified the targeted OAuth client 
+using the sharing OAuth clients feature?”
+This research question. This is gold for me!
+You know, when you look for vulnerabilities and
+when you do security research, sure you need 
+experience and lots of technical knowledge,
+but once you have a good foundation, then 
+creativity and having new and weird ideas,
+that’s what becomes most important. So being 
+able to formulate research questions like this
+is just *kiss* perfect. And it’s hard for me to 
+say if I would have come up with this as well.
+Maybe, maybe not. From a technical 
+perspective, sure, I know web stuff,
+I understand the vulnerability. But the creativity 
+to test for this, that is the key to everything.
+So yeah, It’s a really cool writeup, thanks for 
+sharing your thoughts. And so the original bug
+was rewarded with 5000$. BUT as you know. 
+This is also the winner. So congratulations
+for winning the Google Cloud Platform Prize 
+2021 earning an additional $133,337. Crazy!
+Oof… as you can tell the 
+video is getting quite long,
+thanks for sticking with me so long, but I 
+have a few more thoughts I wanted to share.
+What differentiates the winner 
+from the other issues here? Well,
+it’s kinda the only attack from outside. This is 
+something a malicious outside attacker could do.
+Well okay place 6 also was doable for an outside 
+attacker, but there were at least two prompts a
+user has to click on. But here it’s not the case.
+All other issues are more about lateral movement
+within the network. Google Cloud has network 
+separation between organizations, so between
+different customers. So these networking issues, 
+I think, only apply within an organization.
+So an attacker has to compromise another server 
+before they could exploit any of the other issues.
+Also I think what is noticeable is how detailed 
+these writeups are. Some are more complex than
+others, but generally I was able to understand and 
+follow all of them. And I think that’s also a big
+reason for why these are the winners. Of course 
+it’s important to find a cool vulnerability,
+but the prize is not just about that. These 
+writeups specifically, are the winners.
+So the quality of the writeup, and the clear 
+communications is extremely important as well.
+Cool. Thanks again Google for sponsoring this 
+video. It still baffles me all the time that a
+company pays money to share security 
+vulnerabilities with a big audience.
+I mean, most companies try to 
+sue and prevent people from
+talking about stuff like that. So 
+to me this is still mind blowing.
+Anyway, I hope these writeups inspired you 
+to maybe consider bug hunting on the google
+cloud platform as well. And of course, if you 
+find a cool bug and you write a good report,
+then you also have a chance to win the next GCP 
+Prize! So good luck to you all! You have about
+6 more months. I hope I can 
+read about your bug next year.

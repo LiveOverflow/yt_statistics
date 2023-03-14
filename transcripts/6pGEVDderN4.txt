@@ -1,0 +1,145 @@
+In the last video we have looked at a very
+simple javascript sandbox escape by abusing
+the constructor property of the scope object
+to get an instance of the Function constructor,
+which we then used to generate a function
+with alert and execute it.
+In this video we will have a look at a different
+sandbox bypass for the version 1.4.7.
+A lot of internal stuff has changed between
+the old version 1.0.8 and this one.
+But we will figure it out.
+Again, credit for this bypass goes entirely
+to all those amazing researches who looked
+at angularjs in the past.
+And the bypass I’m showing here was found
+by gareth heyes.
+So let’s move on to this newer angularjs
+version and use our old bypass.
+And Let’s see what happens.
+Mh no alert.
+Let’s have a look at the console.
+“Error!.
+Referencing Function” (notice the capital
+written Function, that refers to the Function
+constructor.
+You know, what we used to call alert.) “in
+Angular expression is disallowed”.
+Ok crazy.
+Angular refuses to work with the function
+constructor that we got by following the constructors
+from the scope.
+In the stacktrace we can also find the function
+where this error is coming from.
+It is coming from ensureSafeObject.
+Click on it to see the function.
+This is it.
+And here is quite a clever check if the object
+comping in as a parameter obj is the function
+constructor.
+I have briefly mentioned that the highest
+constructos in javascript is the function
+constructor.
+This means that if you try to get the constructor
+of the function constructor, you will end
+up with the function constructor again.
+So when obj is already a function constructor,
+the constructor of that will again be the
+function constructor, so this “if” will
+evaluate to “true” and throw this error.
+Aaand as you can see I have also modified
+this angularjs code and added debugger statements
+as brakpoints in multiple places.
+This will stop the execution when you have
+the developer tools open.
+Now I will take the sanbox bypass from gareth
+heyes and we will step through the javascript
+code to see how it works.
+And why it works.
+But that might be a bit freaky.
+So we will start by looking at this expression
+and try to get a first understanding on what
+it tries to achieve.
+And in a follow up video we will then see
+how this actually works inside of angularjs.
+First of all I will modify this a bit and
+instead of array dot join I will use string
+dot concat.
+I think It’s a bit less confusing.
+I will also modify the actual payload a little
+bit to make it more clear.
+And also add a breakpoint into it before we
+call alert.
+So as you can see, this expression has actually
+two parts.
+The first part with some weird prototype stuff
+and an assignment.
+And seperated, like javascript, with a semicolon
+is another expression with an dollar eval
+- I hope you remember the first video where
+I explained that dollar eval is just evaluating
+a angularjs expression.
+It’s equivalent to double curly braces.
+So this whole thing is basically an angularjs
+expression with another expression evaluaed
+inside.
+Let’s have a look at that first part.
+So…
+It somehow does somethign with charAt.
+chartAt is a standard string function.
+it returns the character at the index given
+as parameter.
+So charAt zero returns the character ‘a’.
+And charAt one the ‘s’.
+But what about that constructor prototype
+stuff.
+So the expression starts with a string and
+references the constructor of that.
+Which obviously gives us access to the String
+constructor.
+Note that is not a dangerous Object yet like
+the function constructor.
+I mean.
+What harm can a string constructor do that
+only allows us to create new strings?
+From that String constructor it now references
+prototype.
+Prototype is fancy javascript.
+Every string we use is a descendant from the
+String object.
+And prototype can be used to references the
+actual function or method that is inherited
+to all string objects.
+So we are now referencing the charAt function
+that all other strings inherit.
+And now the exploit wants to assign something
+different to that method?
+What the fuck?
+It want’s to assign the concat function?
+So let’s see what concat does.
+String ‘b’ dot concat is also a string
+function or method.
+It concatinates another string.
+So for example append the string “ccc”
+to “b”, which returns “bccc”.
+So now let’s overwrite the prototype charAt
+with concat.
+Now the string “asd” dot charAt suddenly
+returns the concat function instead of charAt.
+What the hell?
+And when we now perform the charAt like we
+did at the beginning, we don’t get the first
+character, we append 0 to the string.
+So that first part of the expression attempts
+to completly destroy how the string charAt
+function works.
+If that is successful, you can imagine very
+very weird things could happen if something
+is relying on charAt.
+And if we look at where our first breakpoint
+hit, angularjs uses charAt to do something.
+So what will happen?
+Find out on the next episode of this series
+to step through the catual angularjs exploit
+and see how it screws the internal state of
+angularjs.

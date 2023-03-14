@@ -1,0 +1,252 @@
+Another easy challenge seems to be here in
+the reverse engineering category.
+The desert of reversing.
+BTW, whoever did the drawings for this CTF,
+I really appreciate it.
+It looks awesome.
+In this category we have to reverse engineer
+the programs that run on this arduino board.
+So before we checkout the next challenge,
+let’s try to learn more about this plattform.
+First of all we know that the microcontroller
+used on this arduino board is an ATmega 328P.
+So we can google this name and find the official
+atmel website where we can download the official
+datasheet for this chip.
+Ok.
+So we got here a microcontroller that is based
+on the AVR® enhanced RISC architecture.
+That’s our first piece of information.
+That chip can execute AVR code.
+That is very different from what we use on
+our PCs or Laptops.
+Those are usually intel based 32 or 64bit
+machines and use intel assembly.
+I can read intel disassembly okayish, but
+I have never read AVR disassembly.
+So I’m new to this, like some of you.
+Also RISC means reduced instruction set.
+Which is a simplified assembler.
+At first that sounds cool, but to be honest
+it’s harder to read I think.
+At least for me coming from x86.
+Which is CISC, a complex instruction set.
+Basically the difference is that, eh… this
+is not a real example but just to give you
+an idea.
+A CISC architecture might have a multiply
+instruction that works directly on memory
+addresses.
+And all the memory magic is done by the hardware.
+But on a RISC architecture you might first
+have to load the one value from memory, then
+the other value, then multiply them and then
+write back the result.
+So 4 instructions vs. 1.
+You have to learn less instructions on RISC,
+but once you know them you will always have
+to read more lines for the simple things.
+In reality both architectures have absolutely
+their value and good reason.
+Just for me, coming from x86 and having no
+experience, it probably gonna be a bit of
+a rough ride.
+But before we look at AVR assembler, let’s
+continue with getting a broader overview of
+the device.
+So on embedded devices, or generally very
+low level computing you want to interact with
+hardware.
+Obviously there is no special instruction
+called TURN LED ON.
+Usually this is done with something called
+memory-mapped I/O. It’s pretty much hardware
+magic.
+From the perspective of a programmer we have
+a big chunk of memory we can use.
+You know, from address 0 to like 0xffff.
+But not each memory address is the same.
+There are regions.
+For example a certain part of this abstract
+memory model could indeed map to some memory,
+some flash, where you can read and write values
+to.
+Like we would expect.
+But another address might map to an actual
+output pin.
+And you could define that writing a 0 to that
+address will output a 0, and writing anything
+but 0 would mean the pin will output a logical
+1, or in reality something like +5V.
+So if we think of our board what kind of inputs
+and outputs we have, we know that there are
+multiple pins available, AND we know that
+there is a serial uart interface that allows
+us to send data via RX and TX.
+And especially in our case, where we interact
+with this board via serial, we are very interested
+in how that is done, so we can identify in
+the disassembly (that we eventually will reverse
+engineer) what code is interacting with us.
+Is reading input.
+So I was very interested in looking up the
+memory map of this microcontroller.
+For example address 0x2d00 could map to serial
+input, and then we could maybe search in the
+disassembly for a read from this address.
+Ok so I search for memory map.
+And then I get confused.
+This one here only shows the application and
+bootloader flash region?
+There is no memory mapped I/O?
+How does this work?
+But continue the search and I find finally
+a memory map that shows I/O stuff.
+Wait.
+That is weird.
+This memory goes from address 0 to address
+0x3fff, and this memory goes from 0 to 0x08ff.
+What?
+Then the bootloader and application code would
+overlap with the I/O that doesn’t make any
+sense.
+That stumped me for quite a while.
+I was not expecting that and obviously I didn’t
+read the documentation too carefully.
+I hate myself for how long that took me to
+figure out.
+It turns out, AVR uses a harvard architecture.
+And if you ever wondered, why you had to learn
+weird things like harvard vs. von neumann
+architecture in computer science classes,
+well, here is a good example.
+If I had never had that in school, I probably
+would not know about this.
+So in the intel world, everything is just
+one big chunk of memory, program code lives
+in the same memory as does data do.
+Thus we can do crazy exploits where we overflow
+stack data and jump into the stack and execute
+code.
+On harvard, this doesn’t work.
+The data is separated from code.
+So the CPU reads instructions from one memory
+area, executes those, and those instructions
+work with the data memory.
+So you can never jump into data and execute
+code there, because that just doesn’t work
+that way.
+Anyway.
+I wanted to look at the memory stuff to figure
+out how the serial connection might work.
+So let’s look in the datasheet for that.
+There is a section called USART, basically
+UART that I breifly mentioned before, it stands
+for
+Universal Synchronous Asynchronous Receiver
+Transceiver.
+Apparently it’s a highly flexible serial
+communication device.
+We are on the correct track.
+So here we have a block diagram that apparently
+describes this thing.
+Let’s see if we can make some sense of it.
+Here is the RX and TX output, at least something
+we kinda know about.
+There is also a clock, which has something
+to do with the baudrate.
+Also kinda makes sense.
+We can also see that RX and TX use a shift
+register, which means the code doesn’t have
+to actually speak the serial dataformat bit
+by bit, but can simply load the shift register,
+and with the help of the clock it will slowly
+get shifted out as a serial output.
+And same with reading, it slowly fills up
+the shifft register and we can then read the
+whole result.
+And there is an interesting note saying: Refer
+to the Pin Configurations and the I/O-Ports
+description for USART pin placement.
+We look that up in a second.
+There is a lot more information here but let’s
+scroll a bit further down to see the receiving
+examples.
+If we read that, and we completely don’t
+understand it, we might have to go back and
+read a bit more.
+That’s just how researching and learning
+new stuff works.
+Ok so here we have an example written in AVR
+assembler and equivalent C code.
+The following code example shows a simple
+USART receive function based on polling of
+the Receive Complete (RXC) Flag.
+And for the assembly code, the received data
+will be stored in R16 after the code completes.
+So it reads from a memory location called
+UCSR0A with the IN instruction.
+And then uses “skip if bit is set” and
+checks if the RXC bit or flag is set in that
+previous value.
+If it’s not set it will execute the jump
+afterwards to loop back up.
+But if it was complete, it would read from
+a memory location called UDR0 into register
+r16.
+Which means it received a byte from the serial
+communication.
+We can also quickly check the sending site
+and see that it basically works the same,
+it also uses the UDR0 location, just this
+time to send data - with the OUT instruction.
+So what is UDR0.
+When we search for it we find this huge table
+which is a register summary and apparenly
+UDR0 is at offset 0xc6.
+UDR0 stands for USART I/O Data Register 0
+The description says that as the USART Transmit
+Data Buffer Register and Receive Data Buffer
+Registers share the same I/O address referred
+to as UDR0.
+The Transmit Data Buffer Register (TXB) will
+be the destination for data written to the
+UDR0 Register location.
+Reading the UDR0 Register location will return
+the contents of the Receive Data Buffer Register
+(RXB).
+And the data memory map from before shows,
+that the external I/O registers are between
+0x60 and 0xff, and the UDR0 register is at
+offset 0xc6.
+So it’s called a register, but it’s also
+just an address in memory, a very low address,
+0xc6.
+This means, if we find a read or write to
+address 0xc6, we have the address where serial
+data is handled.
+At this point I won’t go into further detail.
+But I think this video is a great introduction
+on how you can approach a new unknown field.
+I condensed in this video hours of research
+and I read small snippets here and there that
+will help me getting a better and better understanding
+of this architecture.
+Besides the official datasheet, I also googled
+a lot and read forum posts.
+The arduino platform has a big community,
+so you find a lot of discussions that help
+you understand some weird AVR things.
+But one of the most helpful other resource
+I found, are slides from an AVR workshop with
+radare2 which was extremely helpful.
+For example when I started debugging and reversing
+the first AVR binary I was confused about
+weird stuff in IDA and when I read the slides
+I learned that yeah, there are addressing
+issues with AVR in IDA.
+Really annoying.
+And there are more small things like that.
+So thank you a lot dark_k3y and dukeBarman
+for sharing your knowledge with us.
+You saved me from hours of frustration.

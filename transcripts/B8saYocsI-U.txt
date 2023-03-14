@@ -1,0 +1,308 @@
+In early August 2018 I visit BlackHat and
+Defcon in Las Vegas for the first time.
+In this video I just want to casually talk
+about my experience and in a second video
+I want to talk more specifically about the
+main reason for this trip, which was to participate
+in the Defcon CTF.
+So on August the 5th I flew from Germany to
+Las Vegas via Zurich.
+And at the zurich airport I saw this swiss
+air advertisement and being german it kinda
+made me feel weird :D
+“I’m not leaving Switzerland - I’m taking
+it with me” that sounds like a german propaganda
+slogan from 1940.
+Anyway.
+The flight was pretty neat and this beautiful
+ice and snow desert of greenland was a great
+contrast to the sand desert that I was flying
+to.
+I was arriving when the sun was setting and
+walked the strip completely exhausted to pick
+up a SIM card.
+And gosh it was still so hot outside!
+I had two more days before Black Hat would
+start so I used it to explore Las Vegas.
+I took my first ever Lyft or Uber to the Las
+Vegas sign and I told the driver my plan to
+walk back up the strip.
+He said I’m crazy to walk because of the
+heat, but I just couldn't do it.
+I guess Im still too german.
+I just couldn’t call a taxi just for this
+short trip to Mandalay Bay where I wanted
+to pickup my Black Hat badge.
+So I walked, it was hot a.f.
+But it wasn’t that bad.
+At the mandalay bay I also met a friend, picked
+up my badge and met some new random friends
+via twitter and we started walking up the
+strip.
+That was a lot of fun.
+And the casions are just sooo weird.
+The most crazy casino for me was the Luxor
+pyramid.
+I knew the pyramid from pictures but I didn’t
+think it was that huge!
+It was a legit pyramid.
+And it was even more crazy inside.
+Along all the sides of the pyramid are hotel
+rooms.
+What the f’.
+That just…
+I just…
+I couldn’t comprehend.
+What is going on…
+So luxor is the egypt themed casino, then
+we walked by Excalibur which is like a medieval
+castle, reached the more european parts with
+the small eiffel tower and the bellagio, which
+is like a stereotypical french hotel and I
+didn’t want to go to cesar’s palace yet
+because I would go there for Defcon.
+That was quite an interesting first day.
+Always moving from air conditioning to air
+conditioning.
+What an insane place.
+And to be honest, the next day, I had no clue
+what to do.
+I felt like I saw vegas now, there is nothing
+else to do in this place.
+So I took another rideshare to a wallmart
+and bought some american stuff we can’t
+easily get in germany.
+Then the following day Black Hat started.
+In general it made kind of an ok impression
+on me, but I also didn’t have to pay for
+a ticket.
+I got a ticket from a friend who was a speaker
+at Black Hat.
+And Speakers can give two tickets to students.
+And I’m still student.
+So that was nice.
+I watched some talks, for example Samuel’s
+talk who is in the CTF team I will be playing
+with in the Defcon CTF, talked to some people.
+And spent some time walking around the vendor
+area, which was just sooo foreign to me.
+All these security endpoint cloud providers.
+Really not my world.
+but then I discovered the Arsenal where small
+technical projects get an hour to present
+their tools.
+That was really awesome.
+But later I learned that these awesome people
+don’t even get flights and accommodation?
+This was besides the talks the only cool thing
+I saw at Black Hat.
+Oh well… it is a business-relation conference
+after all.
+Overall I would go again if I get a ticket,
+but it was also nothing special.
+I wouldn’t travel this far and pay this
+much money just for Black Hat.
+But as many people will tell you, the conference
+alone is not why you come to Vegas.
+Actually there are many people coming to vegas
+without going to the conferences and just
+going to parties.
+And while I’m generally not a party person,
+in a group of other nerds, I can feel comfortable.
+So thanks to Ed Overflow I got my very first
+Las Vegas BlackHat party invite for the hackerone
+party invite and I also went to Zero Fox party
+at the top of the Delano, which was quite
+impressive.
+And actually there was the first person that
+just recognized me as LiveOverflow and said
+“hi”.
+So that was interesting.
+And after Zero Fox I also went to the Rapid
+7 party.
+Overall it was quite fun… doing that like
+once.
+Being here at Black Hat also meant I was able
+to watch the Pwnie Awards live, which I was
+really excited about.
+But unfortunately, not to blame anybody in
+particular, but drunk people on a stage is
+kinda rough to watch.
+Either Way I was excited for the winners.
+I also finally met a colleague and friend
+of mine for the first time in person, @filedescriptor.
+He invited me over to the hackerone hacking
+event, a multi day event where they invited
+some bug bounty hunters, and did bug bounties
+on different targets each day.
+And that was also super cool to see.
+I also met other people I only knew from twitter
+before, and also met Zeta Two who I even collaborated
+with before and has also started to make some
+content and streams on YouTube.
+Also with all the parties and other events
+going on I really noticed again how having
+a network really helps to have a good time.
+I mostly had a great time this trip because
+I got into parties and events, on short notice,
+just because.
+For example a friend at google provided me
+a ZeroG invite on short notice.
+And so I’m aware that I wouldn’t have
+had the same experience 3 years ago.
+Three years ago, before all this youtube stuff,
+I would have been another awkard silent guy
+walking around alone, not talking to anybody.
+And just making some dumb youtube videos,
+makes people start to care.
+And that kinda makes me feel a bit weird,
+but on the other hand it also kinda makes
+me proud a bit, that I finally feel accepted
+and respected in this security community through
+something I have done.
+I wish I was respected for cool research,
+but that doesn’t work if I don’t do cool
+research, but oh well.
+I take what I can get.
+And so in general I was only met with kindness
+and people going out of their way to help
+me have a good time.
+And that was really really nice.
+Anyway.
+The night before Defcon our CTF team Sauercloud
+met in the suite we booked to play from and
+we did some first preparing.
+I will make another video specifically about
+the CTF which will be a bit more technical
+but to summarise, it was so much fun.
+I really loved it.
+Even though I couldn’t really contribute
+that much, it was still thrilling and exciting
+to be part of.
+And after the CTF there was a cool party in
+the Suite from the Shellphish CTF team, because
+they had like a two story suite.
+I have never in my live stood in a crazy hotel
+suite like that.
+What kind of people book this.
+I mean to host a whole CTF team that makes
+sense, but what kind regular people do that.
+So that was crazy.
+Oh!
+And before I forget it, I also finally met
+Murmus CTF, he also has a YouTube channel
+and he was playing right next to us for team
+spaceballs.
+So that was definetly a highlight for me.
+At the last day I went out to dinner with
+some from our CTF team and we walked through
+this fake italian romantic street, with fake
+stone plastic floor and fake sky and that
+just gave me the finishing punch.
+What the F’ las vegas.
+This is just getting too much.
+I was here only for about a week and I started
+to not being able to stand this complete fakeness
+and facade of it all.
+It’s insane to think that this whole place
+exists just because people throw money away
+with gambling.
+On my last day I ate some nice food I got
+recommended on twitter and spent a large part
+of the day with another random person from
+twitter and had some nice conversations about
+the arabic hacking community.
+So that was cool because I never really was
+exposed to it.
+Then we drove to the airport when the sun
+was setting again and finally flew back home
+into sanity.
+Before I finish this video I would like to
+answer a question I got a few times.
+If it is worth to spend so much money for
+tickets and travel to attend conferences.
+And that answer, is like for most questions,
+not simple to answer.
+So I would like to say that totally depends
+on you.
+My first conferences I went to were free conferences
+so I only had to pay for Hotel and travel
+- and that was already expensive as a regular
+student.
+But I did enjoy it, because it’s an interesting
+atmosphere and if you watch the talks you
+might get exposed to new fields.
+But there is no secret content there.
+Theoretically you can just watch talks online
+or consume other forms of media.
+So you don’t really pay for education, as
+much as you pay for a change in environment.
+Taking a break from the regular day-to-day
+and switch context to a different world for
+2 days and meet new people.
+But meeting people is not so easy, I’m generally
+a very introvert person, and didn’t have
+any cool project to talk about introduce myself,
+so back then I was mostly sitting around alone.
+But for me that was super relaxing and I just
+enjoyed the atmopshere.
+It was really motivating me to learn more
+and maybe someday be the person telling other
+people something on the stage.
+Nowadays it’s a bit different.
+I like to spend money on trips to conferences
+like the chaos communication congress.
+I probably spend around 2500$ in flights,
+hotel and other expenses (not including lost
+work time as a freelancer) to go to Blackhat
+and play Defcon CTF.
+And that’s a crazy amount, right?
+I would have not spent this money three years
+ago.
+Now it’s different.
+I have a small network of people I know and
+I’m excited to meet and I don’t have any
+wrong expectations about a conference and
+to me it’s taking a break from regular life.
+So saving up a lot of money and then visit
+one or two conferences in the hopes you will
+learn everything and find a cool job, then
+nope, that’s not a good idea.
+A handfull of trips won’t really have that
+big of an impact.
+Though every conference, and other meetups
+and events are potentially offering opportunities.
+And the more you try, the higher the chance
+is to benefit from it.
+So what that means is, if you have money and
+traveling to a conference is a small percentage
+from your annual income (or your company pays
+it), then go, why not.
+But if it’s a large junk of money, then
+be sure you really like it and go there without
+high expectations.
+And I’d suggest to try something small and
+local first.
+BlackHat, DefCon or CCC wont magically make
+you a security expert or find your new higher-paying
+job.
+There can be opportunities there, but if you
+have low expectations then you can’t get
+disappointed.
+And if you ask me personally, for me Defcon
+and Blackhat seem a bit overhyped.
+I personally like the Chaos Communication
+Congress a looot more, though that might just
+be my bias speaking, as that’s more like
+the conference culture I grew up with.
+Going to Defcon CTF was overall awesome, and
+I happily paid for my trip - Nobody sponsored
+me.
+But some members from our CTF team that I
+played with, were supported by the following
+companies, and so thanks for making it possible
+and giving them the opportunity to travel
+to Defcon as well.
+As their team-mate I really appreciate that.
+So thanks to greenbone.
+HiSolutions, Crowdstrike, VMRay and GData.

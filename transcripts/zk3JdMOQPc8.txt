@@ -1,0 +1,311 @@
+Let’s check out our first reversing challenge
+in the “desert of reversing” called Jumpy.
+If you haven’t seen last video, you really
+should watch it, because we are about to read
+a lot of AVR assembler and we have to understand
+the AVR architecture a little bit.
+The description reads:
+We really need access to this lab, protected
+with an Arduino-based access control system.
+Our operatives obtained a flash dump from
+a non-personalized engineering sample, but
+we are having trouble reverse engineering
+it.
+Ah! That is great. So as we know, the .hex
+binaries we flash onto the board are personalized,
+or rather encrypted. So we can’t disassemble
+them. But this challenges gives us a Jumpy.bin
+file, which presumably is a non-personalized
+version. So not encrypted.
+I also wonder what the name Jumpy could mean.
+Will the program jump around a lot to obfuscate
+what the password is. Or does it mean we have
+to use a jumper on some of the pins, of the
+arduino. Well, we will figure it out eventually.
+So let’s load the challenge onto the board
+and connect to it via screen. We are presented
+with an Input prompt, and when we send some
+data it says: “Better luck next time”.
+Next we have a first look at the .bin file.
+With `file` we see that it is not a standard
+executable file format like ELF, so it’s
+probably basically a raw dump of the memory.
+We can also quickly check with the strings
+command, if the correct input password is
+simply embedded in it. I had a little bit
+of hope for only 100 points, but it turns
+out, it’s not in here.
+The next steps I will present look like I
+had a straightforward plan, but in reality
+what followed where hours over hours of looking
+at stuff all over the place, trying to understand
+this binary and there was a lot of frustration.
+It was the first time ever I had to reverse
+engineer AVR, and especially such lowlevel
+hardware stuff.
+So let me give you a short list what I setup
+and explored, and afterwards I tell you how
+I ultimately solved it.
+First I was looking into how I could debug
+this, because static analysis is always a
+bit harder if you don’t know what to look
+for. And I quickly found simavr and installed
+that and tried to run the binary. It took
+some time to understand how I can run it.
+Ran into some issues with setting the frequency
+and a floating-point exception that I had
+to track down. But in the end I figured out
+how to use the simduino example, which basically
+simulates an arduino board. So that’s perfect.
+To use that I had to convert the binary file
+to an intel hex format, like the arduino would
+expect. And then I could actually execute
+it.
+It also starts a gdb server you can attach
+to with gdb, but it has to be a special avr-gdb
+built included in the GNU AVR toolchain.
+With simavr you can also use picocom to interact
+via the simulated UART serial interface. But
+there were countless of issues. More about
+that soon.
+I also checked out the binary with IDA, luckily
+my ida license can disassemble AVR, but if
+you look at the addresses they increment by
+one, even though the opcodes are actually
+2 bytes and you see here the real address.
+So this was quite annoying to cross reference
+with debugging it in gdb.
+Because I like binary ninja I also installed
+a plugin somebody wrote to for AVR, because
+it’s not supported by default, and that
+also kinda works, at least it displays the
+addresses so I can work with them, but it’s
+a very basic plugin and doesn’t identify
+a lot of functions, also doesn’t really
+understand the interrupt table at the beginning.
+Btw, this here is an interrupt table. It’s
+easy to guess because it’s just a big list
+of jumps to somwhere else, and we can read
+in the datasheet which address is which interrupt.
+So for example when the board is reset or
+turned on, the exeuction will start at 0.
+But you can have other interrupts triggered,
+for example from a timer, and then the CPU
+would start continue execution here and jump
+to the actual code that should be executed.
+Very typical for an embedded system.
+Anyhow, while I used all these tools during
+my exploration phase and experimented with
+them in the end I used radare, also mostly
+I read that a lot of people use radare a lot
+for AVR.
+I want to emphasize again, before I walk you
+through the solution, I had a lot of frustration
+with this. It will look kinda easy, but I
+don’t even know how many hours and days
+I spend on learning AVR and getting things
+like simavr running. So don’t be discouraged
+when you tackle a new platform or CTF challenge
+where you get stuck and have no idea what
+to do. I didn’t have any idea either. But
+the satisfaction in the end from finally solving
+it after working so hard is worth it.
+So here is basically my line of thinking after
+I started to understand AVR disassembly and
+also generally the hardware plattform.
+This challenge wants you to input a password
+over serial. And last video we have learned
+how that works on the low level. This means
+we want to look for locations where this special
+address 0xc6 is written to or read from. Because
+this is where single characters from the serial
+interface will be handled.
+We can open Jumpy with radare2, tell it that
+it is avr and we can analyze it with aaa.
+With pD we can print disassembly for a specific
+length, so we can simply print the disassembly
+of the whole binary and use the tilde, which
+is basically just grep, to filter lines that
+do something with 0xc6. And we find here two
+lines that load that address into register
+r24.
+Let’s have a look at these two locations.
+The first one is at 0xea. So we can print
+the disassembly of the function this address
+belongs to. Pdf.
+Or we can also show a graph view with VV at
+that location.
+But I will stick with the linear view for
+now. We can also enable assembler descriptions
+as comments which are soooo helpful for reading
+AVR for the first time.
+So here you can see that 0xc6 is moved into
+r24.
+And that’s it? It doesn’t load from that
+address, it just loads the value into that
+register?
+Here is another weird AVR thing that took
+bit until I realized that.
+The value in r24 is moved into register 30.
+So now that register contains 0xC6.
+And then whatever value is in register 18,
+it is moved, stored into the memory location
+referenced by Z. We can check the datasheet
+of the ATmega again and read up about general
+purpose registers and we learn, that Z is
+simply referring to register 30 and register
+31 combined.
+And 30 contains 0xc6, so whatever is in register
+18 will be written into the UART buffer register
+and sent out via serial. So this is the location
+where one character is sent to the computer.
+These registers X,Y Z make this so annoying
+to read, until you can memorize which registers
+they refers to what.
+Anyhow, let’s check out the other location.
+Here we can basically see the same, 0xc6 is
+loaded into register 24, which is then loaded
+into register 30, which is then used in the
+load indirect instruction to load the byte
+that is contained in the serial buffer.
+So this is where our input is read.
+We can also follow the cross reference, which
+called this function and find this here.
+where if we look at the graph, see, that it
+apparently checks if the character is a carriage
+return or newline. And if not, will read the
+next character.
+Cool, so that function seems to read the Input:
+line.
+So the password check can’t be far away,
+but the issue is, this function doesn’t
+have any xrefs. No idea where this is coming
+from or where execution will go after it returns.
+So I now choose to debug this with gdb and
+simavr.
+First I start simavr, or to be more precise,
+the simduino example and use Jumpy in the
+converted hex format. This will also spawn
+a gdb server.
+So now I can use the avr-gdb to connect to
+this server, and we can see that execution
+is still waiting at the start. We can now
+set a breakpoint at 0x2ba, which is just before
+loading the value from the serial buffer.
+I can then use picocom to simulate serial
+input and I type a capital A, which will trigger
+the breakpoint here. Slowly stepping forward
+and I see the 0x41, which is our character
+A.
+So that works.
+Well… not really. this is buggy as it turns
+out. After reading the first character it
+will continue reading some rubbish in infinite
+loop and I couldn’t figure out why. If I
+would send a newline immediatly, it would
+read that and continue, but I couldn’t enter
+any more data.
+At this point, thank you so much bvernoux
+from IRC, that person created an issue on
+simavr and explained it. Turns out there is
+a bug where the emulator doesn’t reset the
+flags that inidicate new data arrived, thus
+it constanly thinks that the serial buffer
+is full and reads from it. This patch solves
+this. So modifying the sources of simavr,
+recompling it and now it works like a charm.
+Now we can actually enter a longer string.
+So the breakpoint I have set here is immediatly
+after reading the next character, so we can
+see that I entered the alphabet ABCDEF and
+so forth.
+We can continue until we read the carriage
+return from pressing enter.
+Now we can carefully single step forward,
+we go passed the check for a carriage return
+and return from this function. So where are
+we returning to?
+Turns out radare did not find this function,
+but that’s not a problem, we can define
+a new one here.
+When we look at the graph view we can immediately
+see a loop. And when the loop is done a compare
+with 0xd. I stepped through this and it turns
+out it’s basically counting the amount of
+characters of our input string, so I assumed
+we need 13 characters for our input.
+If we look at what happens if this compare
+succeeds or fails we see that when it fails
+it will load a value from SRAM, perform an
+OR on it. Meaning that it will definitely
+set a 1 there. And then write this value back.
+In the case the compare would have been ok,
+it would not do that.
+I didn’t immediately catch that when I first
+looked at this, but afterwards it’s pretty
+clear that this will set an error flag. Basically
+if you do something wrong with your input,
+it will set that flag and you failed. But
+even though our input will clearly fail eventually,
+we can step further. And see where this function
+will return to.
+And it turns out, what a surprise, it’s
+also not a function radare2 identified.
+We can immediately see that there is also
+a compare that looks pretty much like the
+one from before. If the compare fails we set
+the error flag.
+And if we debug this step by step we can see
+that from this SRAM location 0x135 and 0x136
+it loads the letters “H” and “I”.
+Then adds the ascii values together, and compares
+the result with 0xd3.
+And this is our first big breakthrough on
+how the password is checked.
+If you continue this path you will find more
+and more functions like this. All of those
+take two characters add them together and
+check the result.
+There are many same functions, just with different
+character offsets.
+And when you keep stepping you also find a
+second kind of these, which multiply the ascii
+values of two characters. Otherwise it’s
+the same. It checks the result of the multiplication.
+So first step is to find all these blocks,
+which I did by printing a linear disassembly
+for the whole binary, copy it into sublime
+and used an ugly huge regex to find all functions
+that have this pattern of loading two values
+into r24.
+Then I copy them into another file and start
+cleaning them up until I have the important
+pieces extracted.
+Basically we now know all the rules. These
+two characters have to have this sum. These
+two characters have to have this sum. Thise
+two characters multiplied have to have this
+result
+And so forth.
+A super easy and perfect tool to solve this
+now is using an SMT solver like Z3.
+I won’t go into much detail, as the video
+is already super long, but basically I just
+write a couple of constraints that express
+exactly that logic.
+The variable values represents our input character
+array and I say, the sum of character 7 and
+character 8 has to be 0xd3.
+The multiplication of character 4 and 5 has
+to be 0x122f.
+I write that all down, and let z3 solve this
+puzzle for me and I get a string that follows
+all these rules.
+Give it to me.
+Wow… I was so happy when that popped up.
+I connect to the board, send the password,
+and I get the flag.
+Another 100 points.
+Damn, this 100 point challenge was hard for
+me. I don’t even want to know how hard a
+300 point challenge is.

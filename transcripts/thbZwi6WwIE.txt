@@ -1,0 +1,392 @@
+Last week we started to work on the Nintendo
+HIREME!
+Crypto or keygen challenge.
+And we basically just spend time trying to
+understand the algorithm and thinking about
+ways how we might be able to attack it.
+So if you want a bit more context, feel free
+to watch that other video first, otherwise
+we will now go and solve it with math.
+So remember when I tried to visualize this
+XOR loop in the code with this drawing here?
+Basically showing that each byte of the input
+array, is the result of XORing multiple out
+bytes.
+But which outbytes get XORed, is selected
+by this bitmask.
+Well.
+what made it click for me was when I decided
+to write down the same information differently.
+Changing the way how I present this information
+to myself, helps me find a solution.
+And I think this is a huge takeaway.
+I didn’t get magically smarter, I just tried
+to approach the same thing from a different
+angle.
+I didn’t know that it would help me for
+the solution, but in the end it’s what made
+my brain click.
+So long story short, what did I do?
+I decided to write down one part of the algorithm
+in a function notation like in math class.
+I started from the end of the algorithm again.
+And As we know.
+a byte in the out array, is the result of
+XORing two values.
+Call it P and Q for now.
+And the next value in out is the result of
+XORing R and S. of course the out array is
+longer, but it’s just an example.
+Alright.
+So how is P, Q, R and S calculated.
+This is just an example, it’s not the real
+values.
+But P is calculated by XORing different out
+values selected by the bitshifting diffusion
+expression.
+So for example it might take the first out
+byte XOR it with the second and the third.
+And now Q has a different selection of out
+bytes.
+It might not include the first out byte.
+So maybe it’s XORing the second and the
+third one.
+And now R could include the first out byte,
+but not the second, but include the third
+again.
+And what I now saw, blew my mind.
+I wonder if anybody here now recognizes this.
+Or even recognized this much earlier just
+reading the code.
+I didn’t recognize this before.
+I only recognized it after writing it down
+like this.
+What do you see here?
+This looks like the math you had to learn
+in like the 8th or 9th grade or so.
+This looks like a System of linear equations.
+Imagine it like this
+P = a + b + c ; Q = b + c ; and R = a + c.
+This looks like very basic school math, right?
+if we know the values of capital P,Q and R,
+then we can solve this system of equations
+to find out the values for the variables a,b,c.
+Which means if we know the internal state
+of the input array, which is basically those
+values, we should be able to find the values
+of the out array through highschool math.
+But applying this math efficiently requires
+a bit more experience than just high school.
+Or rather, I don’t remember when Matrix
+math stuff is taught.
+Is it in highschool? or maybe just college?
+Anyway.
+There is a very efficient way of solving linear
+equations using matrices.
+I found a very simple and clean example of
+this on this mathisfun website.
+Let’s say you want to solve this system
+of equations.
+You write it down as a matrix.
+For example x,y and z are there only once,
+so it’s a 1.
+And then x was missing in the second equation
+and that’s why x was basically multiplied
+with 0.
+Whatever... you can pattern match it’s simple
+to translate these equations into this matrix.
+And like you can rearrange a basic equation,
+you can rearrange those matrix equations.
+This is like A times X = B. And to find now
+the values of the unknown xyz, we can rearrange
+X to one side and then on the other we have
+the inverse of A times B. the inverse of a
+matrix is a bit ugly and annoying to calculate
+by hand, but computers are REALLY really good
+at that stuff.
+And suddenly I have a super clear plan, at
+least for this stage of the algorithm.
+I simply want to use matrix math to find the
+outarray, if I have an input array.
+Now I want to reference a video I did quite
+a while ago, about a CTF challenge called
+software update, from the 34C3 CTF.
+Because there my teammates also had to solve
+a system of linear equations made up of XORs,
+and they did that with sage math.
+Which is a computer algebra system, built
+on top of python.
+And this was my basis trying to write my own
+code in sage.
+I have never written sage on my own before.
+Now developing this was not straight forward
+to me, because I’m a noob in math.
+I can reason about it somewhat taking notes
+like this, but practically implementing this
+in code, is another beast.
+From the software_update challenge, I learned
+that the XOR operation acts like the addition
+operation if you are in the Gallois FIeld
+2 GF(2).
+Fancy name, watch my other video if you want
+to know a bit more.
+Essentially it just means we live in a world
+of 0 and 1.
+No larger numbers exist.
+So I somewhat knew that it should work if
+I restrict the matrix to GF2, because then
+the plus is equivalent to XOR..
+I was playing around with code but it didn’t
+work and I got frustrated and eventually I
+had to ask my teammates.
+Which started a discussion that XOR is not
+a linear operation.
+Which means you can’t solve XOR equations
+with this method, at least on a byte level.
+However my GF(2) thoughts still applied.
+If I calculate on the BIT level, then it works.
+So essentially instead having a matrix, or
+a vector of for example three bytes, I need
+a vector of 3 times 8, so 24 bits.
+Which means it’s not a system of three linear
+equations, one for each byte, it’s a system
+of 24 linear equations, defined for each individual
+BIT.
+Or in reality with our 32 bytes, we have a
+system with 256 single-bit equations.
+And here is my super ugly code for this.
+This long hex string is actually a test value
+I have gotten straight from the program.
+I printed the internal state of input and
+out before and after the XOR calculations.
+So this value is the result.
+And when we solve our system of equations
+we expect the output bytes to be this value
+here.
+Anyway, this line of python code is incredibly
+ugly.
+But this simply creates a matrix of 32 rows,
+each row being the bits of one byte.
+So that’s the B matrix, the expected result.
+Now we need to create the A matrix, which
+are the 1s and 0s from the diffusion array.
+These integers define which out array elements
+are XORed.
+And we also extract the 32 bits of those 32
+integers.
+This will create a big matrix.
+Please note that both matrices are defined
+over GF2, so that the addition operation is
+equivalent to the XOR operation.
+And now we can call solve_right on the matrix
+A, with B.
+This essentially is like the inverse of A
+times B. You could quite literally also write
+here, take the inverse of A and multiply by
+B. Whatever.
+Now that we have calculated X, we can go through
+the rows, which are rows of bits that we can
+combine to bytes and print them as hex values.
+And look at the resulting hex values.
+They are the same as we have seen when executing
+the program with the debug output.
+1c, c6, 24, 23, and so forth.
+So this worked!
+This means, if we get a candidate for our
+internal input array, we have now a method
+to recover the internal state of out.
+Out was the result of substituting the bytes
+using the confusion array.
+Which we know we can somewhat reverse.
+As mentioned in the previous video, there
+are bytes that cannot be reversed, in that
+case we can just reject this guess and try
+something else.
+Other bytes have multiple options, which means
+we get multiple candidates for the input array
+here.
+But all of this can be done in a loop of 256
+times, so we just have try to reverse solve
+these equations.
+And if we successfully solve 256 equation
+systems in a row, we find the original input
+array that we want.
+Awesome!
+We are getting really close.
+Now I still haven’t figured out how to optimize
+the bruteforce of the 16 bytes at the start.
+But once we have a candidate, we have a way
+no to check it’s our solution.
+I still think that bruteforcing those 16 byte
+candidates will take wayyy too long though.
+But I decided to try it anyway.
+So how do you bruteforce those 16 bytes? from
+the confusion substitution, we know that not
+every byte can be reversed, so we only include
+the bytes where we have a reverse.
+And there are different possible values for
+the even and odd numbers.
+You can see that the confusion substitution
+array is 512 large.
+And when it applies the substitution, then
+the even indices are taken from 0 to 255,
+and the odd indices get added an offset of
+256, so the odd ones are substituted with
+the bytes from 256 to 511.
+But this is allll annoying to do by hand and
+my solution actually uses z3.
+Z3 is a theorem prover, or SAT solver.
+And I have used z3 on this channel before.
+If you are interested in cracking license
+key verifications or custom ciphers or stuff
+like that, z3 can be a very useful tool.
+And I use it as a generator of input candidates.
+It’s very simple if you get the hang of
+it, so let’s look at my solution.
+First I generate a reverse index of the confusion
+array.
+I create s1 and s2 which map from a byte back
+to the potential inputs.
+The function sbox takes a list of bytes and
+attempts to reverse them using the s1 mapping.
+It will be used for the substitutions done
+here.
+If a byte cannot be reversed, then this returns
+None, which means whatever we tried to reverse
+was definitely invalid.
+Otherwise we use itertools.product, to return
+all possible reversals.
+Remember that some bytes could be reversed
+to multiple bytes, so we need to make sure
+we keep track of all possibilities.
+The inp_to_out function is the magical matrix
+function, which takes an input candidate and
+then solves the equation system for Y.
+And we return that result.
+The heart of my solution is solve_round which
+is a recursive function.
+It expects to be given a potential input array
+candidate and then uses inp_to_out to find
+the internat out values.
+Once we have that it’s actually not quite
+the out array, because remember it was substituted
+first, so now we try to reverse the substitution.
+If it cannot be reversed, then we just ignore
+this and return None.
+If there are valid substitution reversals,
+then we have to go through all possible combinations
+and call recursively solve_round.
+And this recursion has to succeed 256 times.
+If we called solve_round 256 times the round_i
+will be -1 and the input we have found is
+infact the solution.
+Now this function expects a input key candidate,
+so how to we get those.
+And this is where we get to z3.
+We are basically looking for the last internal
+input array, that results
+into the “Hire me!!!!”
+string, that can then be reversed using the
+matrix equation solving 256 times.
+So this is where we prepare the z3 bit vectors
+to be our input candidate.
+Now comes the real z3 magic.
+We are adding an equation to z3 based on our
+target string.
+We are saying, the first letter here, capital
+H, is the result of xoring two input bytes.
+Just FYI in case you are confused about this
+operation, we are using sage here, so it’s
+a bit weird python.
+Usually a single caret is XOR in python, but
+that is to the power to in sage.
+And the xor is now the double caret.
+Anyway.
+By adding these constraints, we can tell z3
+to give us valid values for input, that satisfy
+this equation.
+Which means we only get selections that are
+valid.
+Selections that can be xored to get HIRE ME.
+But there are more constraints we can add.
+Because the values that are XORed are the
+substitution result, so we need to make sure
+those input bytes can be reversed!
+So here I’m looping over the reverse substitution
+list and if a byte is not included in s1 for
+the even, or s2 for the odd indices, then
+we are adding a constraint that the input
+at a given index MUST NOT be that value.
+With that setup of constraints we can now
+let z3 solve those constraints and when it
+finds candidates in the model we can use the
+bytes as a potential valid input array.
+But again not quite, we know the input bytes
+were also substituted, so we need to find
+all possible reverse substitutions and loop
+over all options.
+Here we don’t need to check if it can even
+be reversed, because we added that constraint
+earlier.
+So z3 only will generate input candidates
+that can be reversed.
+Anyway, here we kick of the true solution.
+Given our very good input candidates we now
+call the recursive function solve_round.
+If this returns not None, and returned an
+actual value, we know we reached a depth of
+256 reversed rounds and we have the solution
+that we can print.
+So let’s run it!
+This will actually take a while.
+It takes maybe like 15-30 minutes to bruteforce.
+But it works!
+And it will find a solution.
+BTW in case you are wondering what I’m using
+here, this is a Jupyter notebook and when
+you install sagemath it comes bundled with
+it.
+If you start the Sage Notebook then you will
+get this web interface.
+It’s really awesome for CTF stuff.
+And if you need to install additional python
+packages for this, you can use this snippet
+to pip install other python modules in the
+context of sage.
+Anyway.
+I fast forward to the end, here is the solution.
+And if we now copy those bytes into the hireme
+source code as the input, we should have solved
+it.
+So let’s compile it again and run it.
+And there we go!
+We get the output hireme!
+And the exit code is now also the expected
+0.
+I hope you can take something away from how
+I approached this harder challenge.
+I learned a lot new stuff from doing this.
+I have never used sage before and doing this
+kind of math is also not something I’m good
+at.
+But I think it’s fascinating how this complex
+looking algorithm can be boiled down to relatively
+basic math that you would learn if you study
+computer science in university.
+The actual difficulty is then just to recognize
+that this is even such a math problem.
+As you have seen it also took me a while until
+I realized that.
+And that’s why learning fundamentals and
+why math is so important.
+Real world IT or programming problems often
+boil down to the same principles and can be
+expressed and solved with standard math tools.
+Anyway.
+I’m still curious if there are faster ways
+to solve this, because mine is quite slow.
+I’m sure there must be, but I’m not smart
+enough.
+So if you find a better solution, please create
+a detailed writeup that a dummy like me can
+understand.

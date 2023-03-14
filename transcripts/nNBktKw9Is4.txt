@@ -1,0 +1,404 @@
+The Ledger Nano S is a Cryptocurrency hardware
+wallet based on a secure element for storing
+cryptocurrencies, embedding a screen to check
+and secure digital payments.
+And also they have these information sheets
+where they proudly write: “Did you notice?
+There is no anti-tampering sticker on this
+box.
+A cryptographic mechanism checks the integrity
+of your Ledger device’s internal software
+each time it is powered on.”...
+But…
+ehm…
+hey…
+stop…
+what are you doing?
+The Ledger Nano S is a small portable gaming
+system.
+Currently there is only one game, SNAKE, but
+we have also seen some promising tech demos.
+Just kidding.
+But just to answer your most pressing question
+first I don’t want you to panic, if you
+use a ledger and you are just a non-technical
+person, it’s not an attack where anybody
+can directly read out your private key.
+Maybe you shouldn’t plug in your Ledger
+into an untrusted computer or leave it laying
+around, but even then it’s not like a full
+critical private key compromise.
+So don’t worry.
+But reality is complex and there are situations
+where your cryptocurrencies might be not perfectly
+safe.
+And what I will show you in this video, which
+ledger says is not a vulnerability, might
+have some impact for you, or not.
+The real answer is of course a lot more complicated….
+please define what a “vulnerability” is.
+You will see there are different ways to look
+at it.
+But in my personal opinion, I think it is
+very much a vulnerability.
+There is certainly a lot to unpack, and in
+this video I just want to explain on a higher
+level how this “non”-vulnerability works.
+But I will make a series with more videos
+where we discuss threat-models and go deep
+into the hardware and I show you on a very
+technical level how to analyse, research and
+reverse-engineer the hardware and software
+and how to setup a whole testing environment.
+But before you think highly of me, I didn’t
+do anything.
+Don’t give me any credit.
+These videos are based on research done by
+my friend Thomas Roth who discovered this
+in the first place.
+He contacted me if I would be up for making
+a video about it and then helped me a lot
+by answering questions and helping me with
+the setup.
+So if you are interested in his research and
+professional work, make sure to look him up.
+And if you are interested in these upcoming
+videos, make sure to follow this channel.
+So the “non”-vulnerability description
+states: “It was found that the Ledger Nano
+S bootloader can be tricked into flashing
+and executing untrusted firmware.
+The bootloader is used to update the firmware
+of the 'non-secure' processor in the Ledger
+Nano S and has full control over the display,
+USB and the buttons.”
+So when you put the device into the bootloader
+mode, you can communicate with the ledger
+from your computer using APDU commands.
+This is a protocol typically used by smart
+cards.
+So nothing special.
+But just as a little example, here you see
+the Ledger Manager Software on my computer,
+and with the Chrome developer tools we can
+observe APDU commands being logged to the
+console which is sent to the device and received
+from the device.
+Okay.
+Writing software into the flash of a chip
+typically involves using some special hardware
+to put the chip into a special mode to write
+the code into flash.
+But that is not great when you want to be
+able to update software later when the product
+is already shipped to customers.
+So typically software on a microcontroller
+is split in two stages.
+The bootloader and the main program or firmware.
+And the bootloader is a small piece of code
+that can help you with updates.
+It might also help initializing or configuring
+some features of the chip when the device
+is powered on.
+But in our case we are just interesting about
+the update process.
+If you just power on the device, the bootloader
+will do some stuff and eventually jump to
+the main firmware code.
+But if you hold down the button when powering
+it on, the bootloader will see the button
+is pressed and instead stay in the bootloader
+code.
+And now the bootloader is executing a piece
+of code where it can communicate with the
+computer and receive APDU commands via USB.
+Some of these commands can be used to update
+the firmware, which basically means, writing
+new code into flash memory.
+And that process is pretty simple.
+an updater program on your computer like the
+ledger manager *cough* or a malware *cough
+can use APDU commands first select a memory
+segment on the chip then to send some data
+and write that to the flash.
+And so the bootloader has code to just simply
+write new code into flash.
+And when you are done, you just tell the bootloader
+via an APDU command to please now boot that
+code, which simply means, here please go execute
+that.
+And from here on out, the device runs the
+new firmware.
+Now you see, a person with physical access,
+or a malware on your coputer, could write
+malicious code and push that onto the device,
+right?
+Just put it into bootloader mode and send
+the APDU commands to write the evil firmware.
+BUT, not so fast.
+Ledger tries to prevent that.
+The bootloader implements a boot protection.
+When powered on the bootloader will check
+if the constant value 0xf00dbabe is stored
+at the address 0x08003000.
+Only if that value is present it will execute
+your code.
+If not, the bootloader simply doesn’t do
+anything.
+So in the bootloader code, where the APDU
+commands for writing the new firmware is handled,
+it will first erase the old 0xf00dbabe value.
+If you would restart the device, the constant
+would be missing and then doesn’t execute
+it.
+Now maybe you wonder why you can’t just
+write f00dbabe to that address?
+The bootloader code also has a check to make
+sure that YOU don’t just send an APDU command
+to write f00dbabe at this position.
+In fact it protects the whole range from 0x08000000
+to 0x08003000.
+Which means you can also not overwrite the
+bootloader’s own code which is stored in
+that area.
+So far so good.
+You send the APDU commands to write your malicious
+code, the f00dbabe value is removed and when
+you try to restart the device, the bootloader
+will refuse to jump to it.
+Darn.
+Now if you are ledger and you have a real
+update firmware, then that firmware will come
+with some kind of signature.
+And when you are done writing your firmware
+the bootloder can verify that your new firmware
+is genuine firmware from ledger, and then
+it will write the f00dbabe value at the magic
+position, and the firmware is bootable again.
+But we are not ledger… so what can we do?
+Now we come to the awesome bug.
+Have look at the memory map here in the official
+STM32 manual.
+From 0x08000000 0x08008000 the flash memory
+is accessible.
+Or mapped.
+And in our case from 0x08000000 to 0x08003000
+we have the bootloader area and at 0x08003000
+we have the f00dbabe value.
+And with APDU commands you cannot write to
+this area.
+BUT… look down here… depending on the
+boot configuration you might have SRAM, System
+Memory or FLASH mapped from 0x00000000 to
+0x00008000.
+And guess what the ledger has mapped down
+here.
+This means, in code, when you are writing
+to address 0x00003456 it is exactly the same
+as writing to 0x08003456.
+Both these virtual memory areas map to the
+same physical flash memory.
+This means, we can bypass the check of not
+being able to write to the bootloader area
+and we can write the 0xf00dbabe value to 0x00003000.
+This is then written to the real flash, and
+when the bootloader checks if at address 0x08003000
+is the magic 0xf00dbabe value it will find
+it, and happily jump to the code.
+BOOM!
+You have your own code running.
+What does this mean now… let’s look at
+a generic typical software wallet first.
+if your computer had a malware it could compromise
+your wallet to send bitcoins to an evil address.
+But with a ledger it has to ask the ledger
+to sign that transaction.
+So even if malware could fake what is displayed
+on the screen of your laptop and fool you
+into thinking you send it to a trusted address,
+with the ledger it would show you that you
+are about to send bitcoins to an different
+address.
+But this display is controlled by the untrusted
+chip, and we have just introduced an issue
+that would allow a malware on your computer
+to write malicious code onto the ledger.
+So theoretically/maybe you might be able to
+write code that also fakes the address that
+is displayed on the ledger and trick you into
+accepting it.
+Oh or wait.
+The buttons are also connected to the untrusted
+chip, so maybe you can just accept that transaction
+without the user even having to consent to
+it.
+Just do it without the requirement of the
+button.
+The untrusted chip does all that.
+BUT.
+I used the word “maybe” because it might
+not be that simple.
+And maybe it might not be possible at all,
+at least that is ledger’s position.
+But I’m sceptical, it feels all like it’s
+standing on shaking ground and, maybe it’s
+not straight forward, but it feels iffy.
+And I know I know.
+PoC or GTFO.
+And I don’t have a proof of concept.
+Shame on me.
+But let’s go back to what Saleem Rashid
+in March 2018 has criticised about the Dual-Chip
+Design.
+There he writes: “The Nano S has a second,
+non-secure microcontroller which acts as a
+proxy for the Secure Element.
+This processor drives the display, buttons,
+and USB interface.
+It interfaces with the Secure Element, which
+stores the actual private keys.”.
+And he calls that inherently a architectural
+vulnerability.
+The base hardware design of the ledger is
+already flawed.
+So why is Saleem saying that, and why do I
+believe he is right, and why do I think this
+f00dbabe issue is a problem.
+Let’s start with the secure element.
+In ledger’s own official development document
+they write: “It is incredibly unlikely for
+the Device private key to become compromised,
+because the Secure Element is designed
+to be a stronghold against such physical attacks.
+It is theoretically possible to extract the
+private key, but only with great expense and
+time, so only an organization such as the
+NSA could do it.”
+Which is pretty honest.
+Details about how the secure element protects
+against advanced attacks are not known.
+And hardware attacks can be crazy.
+Like side channel attacks which we have shown
+before on this channel, or using acid to open
+up the package, probing it with microscopic
+tiny wires or using equipment like electronic
+micoscopes and focused ion beams to extract
+single bits, is crazy.
+That’s why there is a layer of obscurity
+and secrecy, not by ledger, but by STMicroelectronics
+that sells this chip.
+Without becoming a big customer and signing
+non disclosure agreements you wont get any
+details.
+But that’s necessary because with enough
+research, somebody like the NSA, or some other
+lab might be able to extract the private key
+after all.
+But I’d say for most people, and count myself
+to most people, the private key is really
+secure in the secure element, *cough* if you
+trust ledger to never make a backdoored firmware
+for it *cough*.
+But the main design issue that is criticized
+here is, that the MCU, the non-secure chip
+acts as a proxy.
+This chip is essentially a man in the middle.
+This chip has access to the Buttons, controls
+the screen and communicates with your laptop
+via USB.
+And if you have control over USB, you could
+make a BadUSB rubber ducky out of the Ledger,
+for example when somebody plugs it in, it
+will send keystrokes to the host computer
+and do something bad.
+You know, I’m not super excited about rubber
+duckies, I don’t think that’s such a scary
+attack, but if it’s for you, well the ledger
+could be turned into one.
+The other thing about the non-trusted chip
+acting as a proxy is something you know from
+using the internet.
+you know how dangerous man in the middle can
+be.
+You have no clue who sits between you and
+google.
+That’s why we use crypto, like SSL, to create
+a trusted end to end connection that even
+if somebody sits in the middle, just eavesdropping
+or capable of manipulating traffic, cannot
+steal your secrets.
+And this is actually what the Ledger does.
+In the developer documents you can find a
+big section about the Secure Channel, also
+showing you in detail how the protocol works.
+And on top of that the secure element apparently
+uses various techniques trying to verify that
+the untrusted chip is running genuine firmware
+and otherwise refuses to work.
+So the fact that we can run our own code on
+here, might not mean you can actually do much
+with it.
+Like doing wifi man in the middle with everybody
+just using a VPN or SSL.
+And that is why ledger says, this is not a
+vulnerability.
+And I at least can understand why they are
+saying that.
+They clearly tried to design the protocol
+in a way, that this chip doesn't have to be
+trusted.
+But the fact is, this is not a secure chip.
+It proxies messages between the PC and the
+secure element.
+And yeah I’m pretty confident that that
+channel is cryptographically secure and malicious
+code maybe couldn’t really interfere with
+it, BUT the chip is still responsible for
+showing critical information about cryptographic
+operations and asking via button presses for
+consent from the user.
+Which both malicious code can take over.
+It’s not the secure element that displays
+or responds to button clicks.
+And even though the secure element tries to
+verify the firmware running on the non-trusted
+chip, it doesn’t magically make that chip
+a secure chip.
+The secure element still relies on information
+provided by the untrusted chip.
+And they are kind of relying on the fact that
+the untrusted chip is limited in memory and
+speed, so it’s very difficult to write all
+that code to spoof responses, basically emulating
+a genuine firmware to fool the secure element.
+But I think it’s just very difficult and
+not a perfect protection, and thus I am confident
+that smarter people than me can come up with
+a very creative way to pull it off.
+But I admit, there are many challenges and
+it requires a looot of more time reverse engineering
+and researching.
+So maybe the bar is high enough, to make this
+not economically feasible for a criminal or
+a researcher.
+It certainly is high that I don’t think
+I can do it.
+But I’m also just a wannabe hacker.
+BUT, thomas had a very clever idea and created
+a proof of concept.
+He created a firmware which is different from
+the original one, as you can see and thus
+clearly not trusted.
+Yet this firmware will run once, and then
+replaces itself with the genuine firmware,
+so future checks if it’s genuine will succeed.
+So while it’s not a full attack it’s a
+first proof of concept into the direction
+of running some malicious code on there and
+still have it succeed when tested the next
+time for being genuine firmware.
+I hope that was a good introduction and overview.
+So… if you want to learn more about hardware
+security and how to do research on the ledger,
+or any kind of embedded hardware, then stay
+tuned for more videos.

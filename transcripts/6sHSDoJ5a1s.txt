@@ -1,0 +1,354 @@
+NINTENDO Hireme! … is the name of a difficult 
+programming challenge from Nintendo European
+Research & Development - short NERD. It’s 
+basically a CTF challenge and I would
+categorize it as a keygenme. So this C source code 
+implements an algorithm that could be part of some
+software as a license key check. This code is 
+probably the only NINTENDO software you are
+legally allowed to crack. Which I think is funny. 
+The input you are allowed to control is here.
+So you have to find 32 bytes that when 
+executing this, results in the output to
+be the target string “Hire me!!!!!!!!”. On first 
+sight I thought this shouldn’t be too difficult,
+but then I actually struggled a bit. In the 
+first part I tell you about how I approached
+this and what I tried that didn’t work. And in the 
+second video we look more closely into my solution
+Before we start I briefly want to mention: it’s an 
+ethical concern for me that if this is an actively
+used recruiting challenge, I don’t want to ruin 
+it. I believe the right thing to do is generally
+not to post spoilers online, about something 
+like this. But this challenge is over 5 years
+old and there exist already solutions online. 
+So I don’t think I’m causing any damage. Anyway.
+First step is obviously to get a rough 
+overview of the code. We have a big array
+called “confusion” with 512 bytes, a big 
+diffusion array with 32 32bit integers,
+that look pretty random, and the input array.
+The main() function is very short, it simply
+defines two arrays, the target and the output. 
+The output is given to the Forward function,
+and then afterwards 16 bytes of the output are 
+compared with memcompare to the target. So the
+Forward() function should write the output. And we 
+can see that the output is the second parameter of
+Forward, which inside the function is called d, 
+and it’s written right here at the end. Easy.
+When you execute this little program, it doesn’t 
+print anything, nothing seems to happen. but it
+returns the result of memcmp, which if you have 
+some experience with programming and linux,
+you know that it will be the exit code. And the 
+bash shell can print the last exit code with $?.
+Memcmp returns 0 when the compared bytes are 
+the same, or non 0 , when they differ. So when
+we execute this and look at the exit code, 
+we see it’s 10. Which means the currently
+set input bytes do not result in the output 
+to be equal to the string “Hire me!!!!!!!!".
+At this point I’m lazy and I don’t really 
+want to read the source code in detail yet.
+Maybe it’s a simple algorithm and 
+the solution can be simple too.
+So I decided to simply add a debug output 
+that prints the generated output bytes.
+For that purpose I write two simple for loops 
+that go through the 32 bytes and print each byte,
+one time as hex value, and one time as an 
+ascii character. Just in case if you are
+wondering why I don’t do simple printf instead 
+of the single character, it’s because the output
+might contain non-printable ascii characters 
+such as null-byte, and then printf won’t print
+the full byte sequence as ascii. And for what 
+I want to do next, I want to see each byte.
+You can also now see that the current 
+input bytes lead to the output “Reverse
+me fast”. Which is obviously not “Hire me!!!”
+So… My first attempt to attack this algorithm
+is what in cryptography you would 
+call a “chosen plaintext attack”.
+“A chosen-plaintext attack is an attack 
+model for cryptanalysis which presumes that
+the attacker can obtain the ciphertexts for 
+arbitrary plaintexts.” maybe you wonder what
+this here has to do with cryptography. Well 
+this could be understood as an encryption.
+The input is 32bytes and the output is 32bytes, so 
+you could also think of this as encrypting our 32
+plaintext input bytes to the output ciphertext. 
+Of course the reverse could also be the case.
+Maybe this decrypts the bytes and what we have 
+is a chosen ciphertext attack. It doesn’t matter.
+The goal with both is “to gain information that 
+reduces the security of the encryption scheme.”.
+There are very fancy mathematical 
+correlation attacks or whatever,
+and I have no clue about them, but a very very 
+simple thing you can test is, if I change one byte
+of the input, how does it change the output? 
+If I change one byte, and it only changes
+one byte on the output, it would be trivial with 
+trial and error to find all the correct bytes.
+And so that’s what I started with. I take 
+the first byte here and change it minimally,
+and look at the new output. But as you 
+can see the output changes dramatically.
+And this happens when I change the first byte, the 
+second byte or also the last byte. With the debug
+output it’s very clearly visible that changing the 
+input minimally has huge effects on the output.
+So this very trivial attack is not possible. 
+There might still be less obvious mathematical
+correlations you could statistically analyse, 
+but I don’t know how exactly. And I’m lazy.
+Dammit. I guess I need to dig deeper. This means 
+I need to get a first overview of the algorithm.
+As you can see the variables passed into Forward 
+are differently named than the ones used inside.
+So I want to clean that up. C is the input, d 
+is the output, s is the confusion array and p
+is the diffusion array. Now the code is a 
+bit easier to read. Now the first thing I
+noticed was that the confusion array 
+and diffusion array is never written
+to. It’s never modified. It remains constant.
+And the confusion array is always only used as
+a lookup. They pass in a byte and take whatever 
+byte is stored at this location in the array.
+I’m not a crypto expert, but I would call this an 
+s-box. And the original variable name was also s.
+“In cryptography, an S-box (substitution-box) 
+is a basic component of symmetric key algorithms
+which performs substitution. In 
+block ciphers, they are typically
+used to obscure the relationship 
+between the key and the ciphertext.”
+And this is what happens here. input is used 
+here, but not directly. The input bytes are
+substituted through the confusion array. If 
+for example the first input byte is a 0x02.
+Then it takes the third byte of the array. So a 
+0x25. And that’s the value we actually work with.
+The same happens down here. The internally 
+calculated values are substituted before
+they are placed into the output. In reverse 
+this means, the output that we have as a goal,
+our target “hire me”, are not directly 
+the internal bytes of the algorithm.
+We need to reverse the substitution first. But 
+reversing the substitution is kinda simple.
+We know that the byte 0x02 matches to the byte 
+0x25. Which means if we have 0x25 then we know
+the input byte must have been a 0x02. Ezy. 
+There is just one caveat, and that is that
+some bytes appear multiple times. In that 
+case it’s not directly clear which one it is.
+It could be either. But I mean that just 
+adds a small option and when we try to
+reverse the algorithm, we can just simply 
+try both options and see which one works.
+So after I realized that confusion is basically a 
+s-box lookup table, I decided to remove it, just
+to mentally declutter the algorithm. Of course 
+we must not forget that it’s there, but mentally
+I’m ignoring it for now. We know we can easily 
+reverse the s-box, so I rather want to focus
+on the parts that might not be that clear. It 
+helps to easier understand the general algorithm.
+After that, I decided to go for 
+another naiv attempt, because
+I’m hoping that everything will work out if 
+I just start trying to reverse the algorithm.
+So let’s get started! The function 
+is called Forward(), so we can try to
+implement a Backward() function. This Backward 
+function has to do everything in reverse of the
+Forward() function. So let’s think about 
+the last part and how we can reverse it.
+We have the output given, and now we need to 
+reason about what the internal input bytes were.
+When analysing ciphers like this, you can think 
+about “what bias or knowledge does a number
+contain”. One out byte is the XOR result of two 
+input bytes. So the byte of the output carries
+some information from the previous bytes. More 
+precisely it carries the XOR result. If you know
+the XOR operation, as well as it’s properties, you 
+know that we have a problem. Because we can’t tell
+exactly what our two bytes were. However we also 
+know that if we guess one of the two bytes, then
+the other MUST be the output XOR that guess. Which 
+means, we don’t need to bruteforce all 32 bytes
+of the internal input array, but it looks like we 
+still would have to bruteforce 16 bytes. The other
+16 bytes have this direct relation through XOR. 
+Unfortunately a byte has 256 options, which means,
+a bruteforce would still be 256 to the power 
+of 16. And that is still an unimaginable large
+number. We would never be able to bruteforce that.
+Once I had that realisation, I accepted that I
+won’t find a simple solution. And I need to be 
+more smart about my approach. Generally the goal
+is now to find a way to reject or outright ignore 
+bytes that would never be valid. So maybe there
+is a way to limit the bruteforce search-space, but 
+for that we must understand the next part better.
+Let’s look at that part by starting at the 
+top. We see that most of it is wrapped in
+a loop executing this 256 times. So think about 
+the very first iteration. In the very first loop
+we take our input bytes that we control and 
+that we have to set to solve this challenge, and
+basically store them in the output array. And in 
+the same step we also reset our input array to 0s.
+Of course there is the substitution happening, we 
+are not forgetting it, we just ignore it for now.
+Once this round is prepared, we can see that 
+the outer loop counts j, which goes through each
+byte of the input array. And for each byte of the 
+input array, it executes a loop over k. And k goes
+through the output array. On first sight it looks 
+maybe a bit crazy here, but it’s pretty simple.
+First of all in every loop we are XORing the 
+current value of the input array, with out[k].
+Out[k] is a byte set from our previous input up 
+here. But it’s multiplied with this expression.
+This expression actually has a bitmask of 1, AND 
+1, which means the result of this expression is
+a single bit. Which can be zero or one. So some 
+out[k]s are multiplied with 0, and some with 1,
+which means, not every out[k] is XORed into 
+the input bits. A decision happens here which
+out[k]s are actually XOREd onto the input. And the 
+decision is made by the diffusion array. For each
+input byte we select one of the diffusion array 
+elements. For the first input byte we select the
+first diffusion integer. And then we loop through 
+k, which keeps shifting the bits of this integer,
+and then masks the shift result to select the last 
+bit. The first integer we use is 0xf26cb481 and it
+has a 1 bit at the end. So we XOR out[0] into 
+the input[0]. But in the next loop when k is 1,
+we shift now the diffusion integer by 1, and 
+now there is a 0 at the end, which means out*0
+is 0. And XORing 0 onto the input has no effect, 
+it’s basically like we do not XOR that out byte.
+Alrightly. After this first round is complete, 
+we go into the second round. Now the input here
+is not our input bytes anymore. The input bytes 
+were totally scrambled by this XORing down here.
+But we store it in out again, reset 
+input and XOR the new output bytes into
+the input. This is all done 256 times. 
+Basically this is a biiiig XOR mixer.
+And when the mixing is done, we reach the 
+last loop, which only loops for 16 bytes.
+It writes the actual output now. Each one of the 
+16 output bytes is the result of XORing a pair
+from the scrambled input array. This selects all 
+the even bytes, and this all the odd bytes. So
+the first byte of the output, is the first byte of 
+the input XORed with the second byte of the input.
+I want to make it clear that, me 
+talking through those individual steps,
+doesn't mean I deeply understand it, 
+and I don’t expect you to understand it.
+I’m literally just reading the code and 
+transforming it into spoken english words.
+It’s just a way for me to get familiar with 
+the code, and make you familiar with the code,
+and we just start thinking about it. There is a 
+chance we notice something interesting, but it’s
+not a guarantee. And I certainly had no idea yet.
+So let’s approach it with the same thought from
+earlier. What information does a byte in the 
+input array carry. Well an input byte is the
+result of a loop with 32 XORs. But from earlier 
+we know it’s not really 32 times, it depends on
+the bits in the diffusion array. And the diffusion 
+array is a constant. It never changes and it will
+always cause the same out bytes to be taken 
+for the XOR. And I had the feeling, that this
+must be something we can maybe attack it with.
+You know XOR is self-inverse. XORing the same
+value cancels out. And imagine you have a long 
+list of XOR operations, you can always pair up
+XORs of the same value, and they cancel out. Takt 
+his as an example, this is a long example XOR
+operation, and it can be simplified down to just 
+being the number 0x41. And this line and loop is
+essentially a very long list of XOR operations. 
+But nothing in my brain clicked. I didn’t see
+anything obvious that would allow me to cancel 
+out most of the operations so I’m still stuck.
+Damn… I slowly realized that this will take me 
+longer than I thought it would. But now I already
+got started and I kinda promised somebody that 
+I will look into it, so now I MUST not give up.
+But I did take a break. I walked my dog and went 
+to bed and tried the next day with a fresh brain.
+The next day I thought I need a bit more of a 
+visual analysis and I got out my notebook. I
+started by drawing the out array again, 
+which has 16 bytes. The next important
+internal values are from the input array. And 
+now I can draw the bias I mentioned before,
+this outbyte is the result of the XOR from 
+these two input bytes. And this obviously
+also applies to the other bytes. You knew this 
+already, nothing new, just visualizing it.
+But now comes the block we have a harder time 
+with. The loop takes values from the outarray
+and puts XORed results into the internal input 
+array, so here are the two arrays. And now the
+first input byte is the result of a selection 
+of XORs of the values from the out array.
+And the second byte is the result of a selection 
+of DIFFERENT XOR values from the out array.
+I was hoping by drawing this, instead of trying 
+to imagine this, I would have an easier time to
+find a pattern. If the brain is not busy retaining 
+this information and can concentrate on potential
+relationships between different parts, there 
+is a higher chance to notice something.
+And so I’m ignoring the first stage now and just 
+try to think, if I had the input array bytes,
+how could I get the out bytes. The first and 
+second byte of internal input might include some
+of the same XOR values from the out array. This 
+means both result bytes “carry some information”
+about the same bytes. Which means there is also 
+an indirect relationship between those two.
+For example if we would try to bruteforce 
+possible out array values so that the first
+input byte is correct, then this has a 
+direct effect on the second input byte.
+And if we now try to find valid bytes for the 
+second byte, we cannot touch the XORed values
+we used in the first byte, otherwise the result 
+is wrong again. And I started to get a feeling.
+This feels like a logic puzzle. Now remember 
+the bruteforce problem of the first stage,
+I was wondering if the relationship and 
+dependencies between those input bytes can be used
+to quickly reject invalid candidates, or even use 
+it to somehow generate valid inputs… but mhmhh…
+Again, saying those things doesn’t 
+mean I know how to do that.
+It’s just what I’m thinking and what I’m 
+looking for. I still haven’t had an epiphany.
+And I think it’s time to take a break. 
+I didn’t solve this challenge quickly.
+It took me multiple days with breaks in between 
+to keep thinking about what else I could try.
+So now that you have gotten a first overview, 
+feel free to try to solve the challenge yourself.
+I think you learn A TON by just trying it. And 
+you have the whole week. And next week I tell
+you how I solved it and you can then compare 
+your notes, or your solution, with mine.

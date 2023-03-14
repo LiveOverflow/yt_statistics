@@ -1,0 +1,80 @@
+Oh my gosh, I can’t really believe it.
+We have only one challenge left, in Pwn Adventure
+3…
+Overachiever.
+Which means we have to get all the Achievements
+available in the game, but throughout the
+episodes we got most of them.
+Only First Blood and Killing Spree is missing.
+Both are related to PVP.
+In the first episode, the casual let’s play
+we already discovered a key that enables PvP.
+Oh, enabling PvP in... okay so if you press
+V you start PVP
+But how can we win this, if I’m playing
+alone?
+Well… we do the easiest hack of all.
+We make a second account.
+There is “asd”, and we enable PvP and
+then just kill him.
+Shoot… and fail… eh… gread hitboxes.
+Ehm… there we go.
+First Blood.
+Now we just have to repeat that 9 more times.
+We can do it with a few different weapons
+and magic spells that we have acquired throughout
+the game.
+Ahh… the memories…
+Last one…
+Boom.
+Killing Spree.
+Acquired Flag of the Overachiever.
+Unable to get flag contents?
+You do not own this flag?
+Try again later?
+WHAT THE HECK?
+That is what you see when you tried to cheat
+yourself a flag item on the client, but the
+server hasn’t given you the actual flag.
+What did we do?
+Did the admins of the game detect that we
+were abusing a second account?
+Just kidding.
+I don’t know why this happened.
+So I reconnect.
+LiveOverflow, 7 Flags.
+AWESOME!
+So that looks good.
+Let’s drop into the game, inventory.
+Flag of the Overachiever.
+Amazing.
+There is the key.
+“Achievement Unlocked, Red Ring of Death”.
+An XBox reference.
+What a journey, I really enjoyed this series,
+but it was also a ton of work.
+I’m so happy that I completed it.
+I hope you enjoyed it too…
+One last, very important thing.
+There is an amazing credits outro song for
+Pwn Adventure 3, by Fuzyll, Azsyka, Don’t
+Panic and Lightning.
+It’s a parody on the Portals 2 credit song
+and the lyrics are just great.
+Please lean back and enjoy:
+So awesome.
+My favorite line was: “Tomcr00se just solved
+it all.
+And now leads the scoreboard.
+It’s such a shame the same will never happen
+to you”.
+What a sick burn.
+outch!
+But… this is not quite the end of our journey.
+There are a few things I’d like to play
+around with, because things like LD_PRELOAD
+do not exist on Windows and I really want
+to checkout how it could be done there.
+But I probably need help from some Windows
+experts, because I have no clue.
+So stay tuned for that.

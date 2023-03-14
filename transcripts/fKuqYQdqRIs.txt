@@ -1,0 +1,521 @@
+When I started using Linux and I tried to
+host my first very own website, I remember
+thinking about how to protect it.
+And when you search around, you see a lot
+of terminology and “best practices” getting
+thrown around, like “use firewalls”, “don’t
+use ssh with password”, “do not use the
+root user, it’s dangerous”, “change
+the default ports”, and so forth.
+The problem I have is that these supposedly
+“best practices” are usually unquestioned.
+They are presented as “here is the gospel,
+now follow my disciples”, without teaching
+one of the most important skills in hacking.
+Try not to assume things, always look deeper.
+When people do not explain the reasoning behind
+something, especially in IT security, it’s
+a MAJOR RED FLAG.
+Probably they don’t understand it themselves
+and you should be sceptical.
+I guess people just copy from each other,
+because one person, one time, said it’s
+“best practice”.
+But do these recommendations really make sense
+(for security)?
+Or is it snakeoil?
+For preparation of this video I looked at
+those typical recommendations by searching
+for stuff like “tips to secure a linux server”.
+I then tried to see what they have in common
+and here is the result.
+If you want to directly support these videos,
+checkout liveoverflow.com/support
+SSH is the defacto standard to access a linux
+server remotely.
+For example ssh root@yourserverIP, and you
+get the shell.
+A very typical recommendation is to disable
+password logins for SSH and instead use SSH
+keys.
+You do that by updating the sshd_config and
+disable PasswordAuthentication.
+Supposedly because passwords are insecure.
+I mean, the comment in the actual ssh config
+here even states “disable clear text passwords”.
+So is that true?
+Let’s have a look into the SSH Protocol
+Architecture, to learn about how your local
+machine talks to the remote server.
+And here is a section about “Password Authentication”
+where it clearly states the “weakness”:
+“If the server has been compromised, [...]” at
+which point you can already stop, because
+here we talk about already the case where
+the server is already hacked.
+But still, there seem some caveats, so are
+ssh keys the better option?
+Well, they come with their own “issues”.
+“The use of public key authentication assumes
+that the client host has not been compromised.
+It also assumes that the private key of the
+server host has not been compromised.”
+You see, both are not “perfect”.
+But we are talking here very small nuances.
+And this has nothing to do with a strong protection
+from hackers coming for your server.
+But you might still wonder about the clear
+text password, that sounds really scary.
+Well, I kinda skipped over a word, and that
+is “tunnel”.
+Before ssh sends this kind of information,
+it will establish an encrypted channel with
+the server.
+And inside of that the “cleartext” password
+is sent.
+So it’s not actually cleartext.
+That’s why the ssh-server has its own private-key,
+and that’s why you need to verify the fingerprint
+before you connect to a new server.
+Your machine remembers the server’s public
+key in a known-hosts file, and if for example
+a network attacker man in the middles you,
+or you mistype your IP or hostname, the ssh
+client will warn you that something is not
+right with the connection.
+Maybe this is easier to think about: Https,
+so TLS or SSL is a very different protocol
+from ssh, but the result is very similar.
+When you login to YouTube,
+[ALARM] LiveOverflow from the future here,
+I thought I make an example with YouTube and
+Instagram.
+Turns out they do weird stuff when authenticating.
+So I will continue show some twitter login.
+you also send a “cleartext password” in
+the HTTP request, but it’s INSIDE the encrypted
+TLS tunnel.
+Thanks to HTTPS.
+So if you have a network attacker that man
+in the middles your connection, the browser
+will warn you about it and refuse to send
+your password.
+Like the SSH client would.
+And that already tells you, that SSH password
+authentication is not much different from
+using a password to log into gmail or Instagram.
+And would you consider that to be dangerous
+too?
+But yes, it’s still passwords, so typical
+password recommendations apply, as they apply
+to your instagram account too.
+You don’t want an attacker to guess your
+password by bruteforcing, or because you re-use
+the same password everywhere.
+This means, use a password manager to create
+unique, random and long passwords.
+But then you are totally secure.
+Now I still don’t use passwords for SSH,
+but only because I am lazy.
+SSH keys are much more convenient.
+It just means I DON’T have to use a password
+manager to copy or type passwords all the
+time.
+So in the end “use SSH keys” is a useful
+recommendation, but not really for security.
+it doesn’t make your server magically more
+secure.
+It’s a convenience thing.
+And yes, if convenience even decreases the
+likelihood of mistakes, is probably the preferred
+method.
+Another SSH related server hardening recommendation
+is to disable direct root login.
+And instead create an unprivileged user without
+root permissions.
+Now generally it always makes sense to use
+the least amount of privileges you need, to
+do your job.
+This is a very important security aspect for
+software.
+For example, the webserver nginx does not
+run as root, and instead creates a new unprivileged
+user, and when it’s started as root, it
+drops its own privilege.
+If now an attacker exploits the website that
+was running on nginx, the attacker would have
+those privileges, and not be root.
+So it seems like this is a reasonable recommendation
+to do the same for when YOU are working on
+the server, but on second thought, it doesn’t
+make much sense.
+Two reasons.
+First of all, the purpose of a server is different
+than your local workstation laptop.
+On a laptop you do a lot of stuff that doesn’t
+require root permissions.
+Browsing the internet, writing text documents,
+programming a python application, playing
+games, whatever.
+It’s unnecessary to run around as root,
+and if you accidentally execute a malicious
+program that you downloaded from a filesharing
+site, then that malware doesn’t run as root.
+But a server you use very differently.
+Typically you use a server to setup a service,
+like a website, and then you let that run.
+You don’t really work on that server.
+And to install those services and webservers,
+you need to be root.
+So in the end you mostly work as root on the
+server anyway.
+And that leads us to the second reason.
+A typical recommendation that goes hand in
+hand with the disabling of the root login,
+is to add the unprivileged user to the sudo
+group.
+And now the user CAN execute commands as root,
+by adding sudo before a command.
+I guess to some people these two cases feel
+different.
+“This is not the root user, must be more
+secure”, but from a pure security capabilities
+perspective, they are the same.
+By giving a user the sudo group, you essentially
+elevate that user to a root user.
+Indirectly, but security doesn’t care about
+that it’s indirect.
+It’s just one additional step that has almost
+no security implications.
+Now some of you may say, “but sudo requires
+a password, and if an attacker is the user,
+they don’t know it, so can’t become root”.
+But there are tons of ways around that.
+The quickest and easiest I came up with is,
+simply change the bashrc to add an entry for
+sudo.
+Where you execute a malicious command, indicated
+by the program id, everytime the user wants
+to use sudo.
+The next time the real user logs in, and wants
+to do something with sudo, they won’t realize,
+that they just executed a malicious command
+as root.
+Again, here just to visualize, the user executed
+id without them wanting to.
+Now sudo can still help with a bit of auditing
+what happens on a system, through logging.
+It’s also easier to just give or remove
+the sudo group to users.
+especially in a team environment it makes
+more sense than just to give everybody the
+root password.
+But as you can see, those are mostly convenience
+features again.
+But it doesn’t magically protect your server
+against hackers.
+The next tip I want to address, is the changing
+of default ports.
+This one is a typical security by obscurity
+recommendation.
+It’s one of the best snakeoil examples.
+Snake oil meaning: "a substance with no real
+medicinal value sold as a remedy for all diseases".
+The explanations for why we want to do that
+can range from anywhere like “everything
+can be hacked so we must hide ssh”, to “people
+will try to bruteforce it if they know there
+is ssh on port 22”.
+The term “everything can be hacked” deserves
+it’s own video to explore, my TLDR is “sure”
+I guess we can say that, but when people use
+it, especially in this context, most of the
+time it’s used for fear mongering to insinuate
+an urgency to this recommendation.
+I’m telling you, an adversary who has the
+capabilities to just hack into SSH is so powerful,
+that we losers are not a target.
+But most importantly, a port change wouldn’t
+stop that kind of attacker.
+If such a crazy 0day is made public, or is
+used by some government agency, a port change
+won't help you.
+A port change might only have an effect against
+script kiddies and automated scanners that
+look for ssh servers with weak passwords.
+So try to think about this yourself.
+If the “attack” is to try out weak passwords
+or brutforce passwords, the actual security
+“fix” is to have either a strong password
+as mentioned before, or only use ssh keys.
+That’s the REAL defense against this.
+And that’s why moving the port is snakeoil
+- it doesn’t address the root medical issue.
+It just makes you believe you did something
+for security because somebody said so - unfortunately
+the placebo effect was not yet proven for
+computers.
+But if you are looking for a master's thesis
+topic in computer science, that might be a
+cool area to research /s.
+Another weird ssh setting that some of these
+guides recommend is to disable ipv6, and only
+allow access via IPv4?
+The reasoning for that is also very funny.
+They write:
+“IPv6 is better than IPv4, but you probably
+aren’t getting much out of it – because
+neither is anyone else.
+Hackers get something from it though – because
+they use it to send malicious traffic.”
+What does that even mean?!
+What “malicious traffic” happens in ipv6
+that doesn’t happen in IPv4.
+Look.
+Yes, there are a few caveats that immediately
+come to mind.
+For example IPv4 addresses are “more rare”
+so banning or blocking IPv4 is a lot more
+“expensive” for the attacker”.
+And there are so many more IPv6 addresses,
+that banning an IPv6 address is, I guess a
+bit less useful.
+It’s “cheaper” to move to the next address.
+But I think that is a bad economical take.
+The costs are not that significant.
+I think a more interesting issue could happen,
+if you use some kind of firewall, but the
+firewall only covers IPv4, and over IPv6 the
+attacker can reach anything, but then the
+root problem is your misconfigured firewall.
+Not the fact that you support ipv6.
+(Not to mention that server firewall recommendations
+are weird anyway, I get to that in a second).
+IPv6 also has some concern for actual bigger
+networks.
+IPv4 nat is basically the best firewall we
+can have at home.
+You can open weird ports in your local network
+without the fear of somebody from the internet
+directly talking to it.
+And that might be different with IPv6.
+But all of that doesn’t really apply to
+your single server you rent somewhere in a
+datacenter.
+Those are only concerns when you build up
+your own network, and if you searched for
+this video, you are proably not ready to setup
+your own professional network?
+Anyway.
+When I saw this IPv6 recommendation I posted
+it as a joke on twitter, and I got an extremely
+funny response.
+“[...] For now, making sshd listen on IPv6
+only stops automated login attempts more effectively
+than fail2ban.”.
+This is basically the better “change default
+port recommendation”.
+Script kiddies don’t try as much IPv6 yet,
+so if your ssh server listens ONLY on IPv6
+and you disable IPv4, that would be even more
+effective than making ssh listen on another
+port - I think that’s an awesome counter
+example.
+Jokes aside.
+Lastly, attack surface reduction is in general
+a really good paradigm.
+So maybe disabling IPv6 on the whole network
+interface, not just just the ssh settings,
+maybe we could argue about that.
+But the way these articles present this recommendation
+to disable IPv6, is also snakeoil.
+It doesn’t hurt, but I don’t see any reasonable
+positive effect for security.
+If anything you might get a false-sense of
+security.
+Now let’s talk about firewalls.
+Many resources recommend you to use iptables
+or UWF (the Uncomplicated Firewall), to block
+ports.
+I think “firewall” is a really unfortunate
+term.
+Because it sounds really cool, and really
+powerful, as if every hacker trying to walk
+through a firewall dies in burning agony.
+Firewalls come in different complexities ans
+features.
+But the basic firewall settings these resources
+recommend, are just about blocking all ports,
+and open the ones you need.
+“Block everything, except SSH and the webserver
+on port 80 and 443.”
+This is not different from simply just having
+ssh listening on port 22 and have the webserver
+listening on port 80 and 443.
+You can confirm that with ss or netstat, to
+see what is listening publicly.
+To visualize thios.
+By listening on a port, you allow the outside
+to interact with the service listening.
+Here is a piece of paper with the three listening
+ports.
+Send me a HTTP request to this window, and
+I will give you the response.
+Send me a bruteforce ssh attempt, and I tell
+you your password was wrong.
+Now let’s add the firewall as recommended.
+Here it is.
+Everything is blocking except these opened
+windows, these ports.
+And look at that.
+They match.
+You achieved nothing.
+Security wise you did nothing.
+Again another snakeoil recommendation where
+you feel cool you did something with fire,
+but it was kinda useless.
+Of course firewalls in general are not useless,
+but you need to have the correct use case
+for them.
+For example let’s say you have a frontend
+server and a database server.
+And for whatever reason you didn’t put them
+into an isolated private network, like a VPN,
+or you use a default password for it.
+Now you can use a firewall on the database
+server, to only allow connections from the
+frontend server IP.
+As you can see in my list, there are more
+things we could talk about.
+But the video is getting a bit long, and so
+I thought to do one more.
+Auto updates.
+On a typical ubuntu server, you can update
+packages, or the operating system itself,
+with apt-get upgrade or even apt-get dist-upgrade.
+And some resources recommend you enable unattended
+auto-updates.
+Which is again a lot more complex than these
+resources suggest.
+I think everybody agrees that generally, auto-updates
+are extremely vital for general public security.
+Forcing auto-updates on Windows, Android and
+iPhones, is great.
+It’s a bit annoying, but keeping those systems
+up-to-date is very important.
+But again, the problem is that an actively
+used workstation, with tons of different software,
+and users that don’t understand the tech
+at all, is very different from the use-case
+of a server where you run a service.
+If you want to “seriously” host something
+on a server, then enabling unattended updates
+is a great way to disrupt and break your server
+occasionally.
+Not every update is security relevant for
+you and that’s the difficult job of a system
+administrator, to think about what, how and
+when to patch systems.
+And for a larger deployment, this can be a
+full-time position.
+If you host something for customers, you don’t
+want to accidentally kill your server.
+This sounds a bit like security is in conflict
+with business, and we always say “security
+must always win”, but reality is not that
+simple.
+Let’s be honest, if you just run a server
+with nginx and ssh.
+The likelihood that a serious critical vulnerability
+is found in them is a bit low.
+Especially one that works against a basic
+default installation.
+I really wouldn’t worry much.
+But still you could say, well at least I don’t
+have to care about it if it’s auto updating,
+so it’s still a win.
+BUT!
+Two reasons you should keep in mind.
+First, when news hits of a new serious vulnerability,
+operating system packages that would be automatically
+updated, might not have the patch yet.
+So if it’s really serious, you might need
+to go into your server and do whatever is
+recommended to mitigate the issue anyway.
+This is a manual job.
+And it’s a balancing act.
+In a business where customer data could be
+affected, you must have a responsable sysadmin
+who can deal with the situation.
+While on a private small server, you can say
+“whatever”.
+There is nothing important on it, or I just
+turn it off for a few days.
+So if a vulnerability in nginx or ssh is not
+the big threat, then what is?
+And that’s the second thought.
+Whatever webapp you are running on your server
+is much more attackable.
+Maybe it’s your own code you wrote that
+has vulnerabilities.
+Or code of another webapp you installed from
+GitHub.
+These softwares are not covered by your auto
+updates.
+And most likely need to be updated by hand
+too.
+To be fair, there are webapps like wordpress,
+that are so widespread and have had such a
+huge struggle with vulnerabilities (and many
+inexperienced people run it), that they have
+implemented their own auto-update features,
+which does in general improve security.
+But in my opinion, the benefits of unattended
+system auto-updates, given that it’s not
+the silver bullet that solves all your update
+headaches, is too little, compared to the
+accidental disruption of your service and
+manual work you have to do by running a server
+anyway.
+And that leads me to the conclusion.
+Yes, any of the opinions I shared are debatable.
+You might not agree and you have better reasonings
+for doing what you do.
+And that is fine, and even awesome.
+Because that means you have actually thought
+about these things.
+The whole point of the video is to showcase
+and critically question “best practices”
+many people just throw around, without any
+comments on reasoning, limitations and caveats.
+IT security is complicated, and not as simple
+as some people believe it is.
+And I think what you see here in this small
+example, is exactly what also happens in the
+larger IT security industry, with vendors
+selling you security appliances that supposedly
+protect you from those evil hackers.
+Don’t get blinded, don’t let fear mongering
+get to you, and always try to dig deeper.
+If you then have good reasons for why you
+follow one of these recommendations, that’s
+totally fine.
+And one last comment.
+The best advice I can give as an IT security
+professional on running your own server.
+Just don’t.
+Of course if you are still learning, and you
+never tried to run your own server, please
+do!
+But if you are seriously considering to run
+a service in production.
+Maybe don’t host it yourself.
+That is a decision you have.
+Being a system administrator is it’s own
+job and if that is not fun to you, don’t
+put that responsibility on yourself.
+That’s what you pay other people for and
+that’s why I run my blog on ghost, or why,
+if I would program a webapp, I would pay the
+higher prices for stuff like AppEngine or
+Heroku.

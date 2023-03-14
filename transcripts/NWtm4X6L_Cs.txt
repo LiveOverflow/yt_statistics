@@ -1,0 +1,349 @@
+How can you protect yourself from 
+phishing? I work as a security consultant,
+I’m a “professional hacker”, and I wanted 
+to tell you what you have to look out for.
+But before you listen to what I have to say, 
+why don’t you share in the comments what you
+do to not get phished, and then after the 
+video you can check if you do it like me.
+Phishing describes an “attack” where somebody 
+tries to trick you, to enter your login
+credentials on a fake website. The website 
+might look and feel like the real website,
+but the actual domain is different. When entering 
+the password here you basically give it to the
+attacker voluntarily. I mean, not voluntarily, 
+the attacker tricked you. But this is actually
+extremely SIMPLE to do. Every beginner web 
+developer can do that within the first week
+of learning programming. It’s very simple, but 
+extremely effective. Besides reusing the same
+password on different websites, phishing is the 
+main risk of getting your account hacked. So how
+can we make sure to not fall for those tricks?
+How can we know if we are on a trustworthy site
+or a fake phishing site?
+I actually already mentioned the solution.
+Look at this. What’s the difference between 
+the real website and the fake website? It’s
+the domain. This is the most important security 
+indicator you have. In fact it’s the only security
+indicator you have, to determine if this is the 
+real website, or if it is the phishing website.
+So you have to look at the URL to find the 
+domain. But understanding a URL is not simple.
+It’s actually pretty hard. EVEN for computers it’s 
+hard and we expect at least them to understand it.
+If you are curious I made a video once about 
+“HOW FRCKN' HARD IS IT TO UNDERSTAND A URL?”,
+but it’s a very technical video. So no need to 
+watch it. But luckily as a user we don’t have
+to go this deep into it. Even though this URL is 
+extremely long, the browser helps us to identify
+the part that actually matters to us. It’s the 
+domain name here. You see that the browser is
+highlighting the important part with a lighter 
+color, and shows the less important part in grey.
+As you can tell, this is the login page from 
+Google and I’m using the Google Chrome browser
+on macOs. But you might be using a different 
+operating system and browser. So let’s look at
+this page and URL bar in different environments. 
+Here for example is the Edge Browser on Windows,
+and an older version of Edge. As you 
+can see, Edge does it similar to Chrome,
+highlighting the important domain part. But 
+checkout firefox. They also highlight the domain,
+but only the main top domain. It does not 
+include the subdomain when highlighting.
+But that is fine, the subdomain, so the part 
+before this dot, is controlled by the company
+who controls the top part. The top part 
+is google.com, so clearly that is safe.
+Maybe firefox is helping us a bit more in this 
+case, because to verify that you are really
+logging into google.com, and not a phishing site 
+like go0gle.com with a zero. So that kinda tells
+you, to generally compare from the right. 
+This is the main and most important part.
+So now that you know that the domain is 
+important for you to check if you are on
+the correct website, let’s look at a browser on 
+an iPhone. Because here is something interesting.
+Here is Chrome and Safari. Look at this! They are 
+completely hiding the full URL, and only show you
+the important domain. Here you can clearly 
+see, without getting distracted or tricket,
+that this is indeed google.com. So it’s safe. And 
+actually, this is what safari also does on macOS.
+It also hides the URL path. I know, many technical 
+people, including me, like to see the whole URL,
+for hacking it’s important, but to be fair, for 
+regular users who might be super confused by the
+long complex URL, only focusing on the part that 
+matters for security, the domain, is pretty good.
+Actually recently Google was running an 
+experiment on Chrome to also hide the URL path,
+like safari, because they wanted to see if it 
+helps with security for the general public.
+But after a while they concluded that it didn’t 
+improve important security metrics. So apparently
+it didn’t really help to prevent more phishing. 
+And I can see why. I think people who understand
+they have to look at the domain name, will 
+be fine with the highlighted version. And
+for those who do not understand this, they won’t 
+magically learn this from just seeing the domain.
+So now I think you understand 
+where you have to look,
+and which part of the URL is important. Thanks 
+to the browser highlighting parts of the URL,
+you know what the domain is. So how do you 
+now use this knowledge to prevent phishing.
+It’s kinda simple, but you need to be vigilant. 
+Basically you have to do the following. Before you
+type in your password, practice to always look at 
+the domain. It doesn’t matter how you got there,
+maybe you clicked on a link a friend sent 
+you, maybe you clicked on a link on reddir,
+or you clicked on a link in a phishing spam 
+email. But before you enter your credentials,
+you need to look at the domain. And now you need 
+to ask yourself, is this the correct domain?
+Let’s do an example. So here is a login 
+to the popular game distributor “steam”.
+And it looks very legit. This looks like the 
+steam page! And if you just glance at the URL,
+maybe not really looking at it, it looks fine. 
+Steamcommunity, that is the correct domain.
+But we just learned that we need to carefully 
+look at the URL and upon closer inspection,
+we see something phishy going on. It’s actually 
+not steaM, it’s steaRN. The small r and n looks
+like an m at a glance! That is very tricky. Also 
+the letters are switched here. The community
+is misspelled. So this of course is already 
+suspicious and reason enough to immediately
+leave this site and not enter your password. 
+But the best check is to compare it to the
+real trustworthy site. How do you do that? 
+Maybe you have the correct site bookmarked,
+or you remember the URL, OR you can simply google 
+for steam. And then you just need to go to the
+login page. And when we find the same login page 
+on the now clearly trustworthy site, and compare
+the URL, you can now see that it differs. Simply 
+switching back and forth between the pages you
+can CLEARLY see that the domain is different. 
+So now we know 100%, this is a phishing page.
+And that’s it! This is basically what you have 
+to do. You simply look at the domain before
+you enter your password, and then you just 
+need a way to quickly find the site you know
+is the safe site, or you remember the 
+domain exactly, and then compare it.
+Unfortunately this seems a bit annoying to 
+do. And you probably have a hard time making
+sure your parents learn to do this. So an 
+easier way is to actually let the browser
+remember the passwords for a site. And you do 
+not ever type in your own passwords. Because
+now the browser checks the domain for you. The 
+browser will only offer to autofill your password
+if the domain matches. So this is 
+an easy way to never get phished.
+That’s it. That’s the only way you can figure 
+out if the site you want to enter your password,
+is the site you expected. The safe real 
+site. Now I could end this video, but for
+those people with a more technical interest, 
+I’d like to talk about a few other things.
+Checkout this super advanced steam phishing 
+page. It looks very professional and trustworthy,
+but it asks us to login to steam in a new 
+window. So let’s apply what we just learned.
+We know from earlier that the real steam login 
+page is steamcommunity.com, we can check the URL,
+and It looks correct! So is this safe? No, 
+this is just a very clever phishing page.
+This website is FAKING another window. It’s 
+very obvious here, because this is a typical
+windows window, and I’m on a mac. But this could 
+be really confusing to a lot of users. You really
+have to understand and know, that this is your 
+real browser window, this is the real URL bar.
+And all of this here can be fake. You can test it 
+when you try to move the window around. It moves!
+But only within the page. For example it cannot be 
+moved over the actual browser window. So this is
+the actual URL of the site, which is obviously not 
+the expected steamcommunity.com. So it is fake!
+That was pretty crazy, right?
+Next, let’s tackle a technical question some of 
+you probably have. “Your defense technique depends
+on going to the phishing site and comparing 
+the domain in the URL bar of the browser. So
+that means, you already clicked and visited the 
+malicious site? Doesn’t that mean it’s too late?”
+Well… yes and no... a lot of anti-phishing 
+and security awareness training teaches that
+clicking on links is already bad. They try to make 
+malicious URLs sound very scary. And instead of
+clicking on them, you should do other checks. For 
+example check if the URL starts with https://. Or
+look at the domain of the link before clicking. 
+Or in cases where the link is not shown, hover
+over the link and check the URL there. But check 
+the URL how? Now it’s very difficult to know which
+part is the domain, it’s not nicely highlighted, 
+and also links can be faked. For example in HTML
+emails the displayed link can be different from 
+the one that is actually there. Or a seemingly
+trustworthy URL is redirecting you to the phishing 
+site once you click. And when you do this hovering
+test, you might be wrong anyway, for example 
+microsoft often sends mails with these weird
+domains, they look cryptic and phishy, and in fact 
+some people online believe it’s phishing, but it’s
+just a link tracker. It is microsoft.com so it’s 
+trustworthy and it redirects to a safe site.
+But this advice is also not completly useless. 
+You can apply all of that. But it only helps
+you to identify a phishing link early. IT DOES 
+NOT TELL YOU if it’s really trustworthy. There
+are lots of indicators it’s phishing, and 
+it’s great if you can reject a link early
+for being clearly phishing. But there is only ONE 
+test to be sure it's not phishing. To be sure it’s
+a safe site. And that is to check the URL bar 
+in the browser, before typing in your password.
+Actually, there is one more small test you can do. 
+If you click on a link and it asks you to login,
+you can open another browser tab, go to the real 
+website and make sure you are logged in. So if you
+are not logged in, log in now to the site you know 
+is safe. And once you are clearly logged in, now
+click on the original link again, and if it still 
+asks you for username and password, it could be a
+phishing attempt and you should check the domain. 
+Sometimes websites ask for a password again for
+additional security, so check the domain to make 
+the final decision. But if it takes you now to
+some other content and doesn’t ask you to login 
+again, you know 100% the link was not phishing.
+“But… but… clicking on malicious links is 
+dangerous. Attackers could already hack you”
+Well… yes? But mostly no. Stop the fear mongering 
+about malicious websites please. Let me explain
+why. First of all it is very important that 
+you use an up-to-date browser. In particular
+that would be Firefox, Chrome or Chromium, 
+Safari or Edge. They should also automatically
+update themselves, so you should not have to 
+worry about that. So why is this important?
+Browsers are a very very complex 
+piece of software. It seems simple,
+just display a website here. But that is very 
+complex. And complex software will always have
+programming mistakes, which an attacker might be 
+able to exploit to install malware on your device.
+So to understand why people say that clicking on 
+links is bad, we have to go back in time in the
+late 2000s to early 2010s, browser exploit 
+kits were very very widespread. It was not
+uncommon that you visit a malicious website, and 
+it would exploit a vulnerability in your browser,
+or an extension like ActiveX, Java applets or 
+Flash, to install malware on your computer.
+This was also called drive-by download. 
+And once malware is on your computer,
+they could steal all your passwords. This was 
+even a “business model”, as a blackhat criminal
+hacker you could rent or buy a collection of these 
+vulnerabilities in so-called exploit kits. And it
+was a business model because it was affordable. A 
+blackhat criminal could pay a few hundred dollars
+per month to get access to an exploit kit that 
+contained dozens of vulnerabilities. And back
+then, browsers were not automatically updated, new 
+vulnerabilities constantly were found and so this
+was a real threat. Now over the years, browsers 
+got a lot more secure. Though vulnerabilities are
+still constantly found,. But let me try to explain 
+why it’s different today. Here is for example the
+website of Zerodium in July 2021. They are an 
+exploit broker, they buy vulnerabilities from
+security researchers and sell them to for example 
+government agencies. And this is the price list of
+what they pay for an exploit. For a remote code 
+execution including a local privilege escalation
+in Safari, Edge or Firefox, they pay up to 
+100.000$. And for Chrome they even pay up to
+500.000$. Now that Edge is also based on Chrome, 
+I suspect this kinda changes now as well. So this
+means two things. First I can guarantee you that 
+there exists an exploit for your browser right
+now. A very powerful attacker could theoretically 
+take over your device when you visit a malicious
+website. But then, how does it make sense when 
+I say you shouldn’t be scared of clicking links?
+Well, the economics are different now. These 
+exploits are very expensive. It’s not affordable
+anymore by your random blackhat hacker who tries 
+to spread malware to thousands of people. So yes,
+there are still people being targeted by it, but 
+you are probably not one of them. Let’s be fair,
+you are too unimportant, so it’s a threat you 
+probably shouldn’t worry about. And keeping the
+browser up to date is the most important defense 
+you can do, because it means older, cheaper
+exploits are not usable against you anymore. 
+That’s probably the best defense you have.
+But this also means if your company requires you 
+to use an older Browser like Internet Explorer
+because you have to access some internal intranet 
+application, do not use this browser to visit
+anything else. For any other website please use 
+an up-to-date Chrome, Firefox, Safari or Edge.
+Now before I end this video, I briefly 
+wanted to mention two-factor-authentication.
+Oftentimes 2fa is hailed as the solution against 
+phishing. But this is not really the case. It is
+true, two-factor-authentication is effective 
+against the most basic form of phishing. So
+when you enter your password into a 
+phishing site, the password is stored,
+and an attacker can use the password later to 
+login and take over your account. But a really
+advanced phishing page, can still phish you.
+For example the advanced steam phishing site
+from earlier, when you have an account 
+with two factor authentication enabled,
+the site notices that, and simply also asks 
+you for the code. So how cann this work?
+Well, it’s not different than 
+when a friend sits at the PC,
+and you tell him your username, password and 
+authentication code. And they type it in for you.
+that’s what the phishing website does too.
+When you enter your credentials, in the background
+the site already tries to login to steam, sees 
+that a code is required, asks you for the code,
+and then can supply it. Now the phishing site 
+is logged into your steam account and can do
+anything. This is definitely more technically 
+advanced, and requires a lot more coding skills
+than a basic phishing site. But it’s also 
+not magic. So two factor authentication
+definitely can help against all the basic 
+phishing stuff, but it’s not bullet proof.
+So to summarize.
+It’s good to look at various indications
+to recognize a phishing link early, hovering over 
+links, looking at the email it’s coming from,
+looking at obvious spelling mistakes, 
+and so forth. BUT once you clicked,
+always keep in mind to look at the browser 
+URL bar and make sure the domain, the part
+the brower highlights for you, matches the safe 
+login site you know. And then you should be safe.

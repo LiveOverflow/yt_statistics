@@ -1,0 +1,311 @@
+Two episodes ago we did our first format string
+exploit and in the last video we had a look
+at how dynamically linking libraries to a
+binary works - basically how can a program
+call functions from libc.
+And we also had an idea how to abuse this,
+when we want to redirect code execution.
+In this video we will use this technique to
+exploit format level 4 from exploit exercises
+protostar.
+First let’s have a look at the code.
+The main function calls vuln.
+Vuln reads up to 512 characters from standard
+input into the buffer.
+And then uses printf to print the buffer.
+We also see immediatly that the buffer is
+places as the first parameter of printf - and
+that is the format parameter.
+After the printf there is a call to exit().
+This means that this function vuln will never
+return.
+It will perform the syscall exit to the kernel,
+which will quit this process.
+So if we would overwrite the return pointer
+of this function, we would never return and
+we could not exploit it.
+So we use the technique from the last video
+to overwrite the GOT entry for exit, with
+the address for hello.
+That instead of exit we execute hello at the
+end.
+Let’s get everything ready.
+I use again vmware to run the protostar image
+and connect to it via ssh with putty.
+Open one window for the binary.
+And another window where we can write the
+exploit.
+We also might want to import the struct module
+right away, because we need that to convert
+integers to binary strings.
+Let’s start by first verifying that we have
+a format string vulnerability.
+We can just specify some format characters
+and see if they are turned into numbers.
+Yup!
+That works.
+So to make this exploit work we have to figure
+out a few addresses.
+Let’s get the address of the hello function
+with “x” examine hello.
+Here it is.
+Let’s copy that into our exploit script.
+You can do that easily by simply highlighting
+the area you want to copy and then perform
+a mouse right click in the other window.
+Next let’s try to find the global offset
+table where we want to write this HELLO address
+to.
+Disassemble main.
+Ok.
+Right.
+I forgot.
+We call vuln.
+So disassemble vuln.
+And at the bottom you can see the call to
+exit at the procedure linkage table ptl.
+Disassemble that address and we can now see
+the address that is referenced in this first
+instruction with the jump.
+That tries to reference the address of exit
+from glibc from there.
+So examine that address.
+And yup.
+That’s the global offset table.
+Now we also store that table address in our
+script.
+Now let’s set two breakpoints in vuln.
+One before the printf.
+And one after the printf.
+Next let’s simulate by hand overwriting
+the got entry.
+So we run the code.
+At the printf we then change the entry of
+exit in the global offset table to hello and
+continue to execute the exit at the end of
+vuln.
+Run.
+we enter some random input.
+First breakpoint.
+Now we are befoire the printf.
+Now let’s overwrite the GOT entry.
+Let’s check GOTagain.
+Now write set, in curly braces int, the address
+we want to write to and then the value we
+want to write.
+And now the entry for exit in the got has
+changed.
+Continue once.
+Now we are after the porintf.
+Just one instruction away from the call to
+exit.
+Next instruction.
+And disassemble and info registers.
+Yup, we are at the exit.
+So let’s continue and see if we execute
+exit, or hello.
+Whoop.
+Ok. we executed hello.
+That worked.
+Now we just have to achieve this write with
+a format string and percentage n.
+Ok.
+Step one.
+Let’s exit the debugger and let’s find
+the string we enter on the stack by playing
+around with the format specifiers.
+We use our script to do those tests.
+So first we know the buffer is 512 bytes long.
+So let’s write a function that pads our
+string to that length.
+So we simply append a certain number of characters
+to our string, where that number is 512 minus
+the length of the current string.
+Then we create a variable exploit and print
+that variable padded.
+And when we execute it we can see our exploit
+string and that it’s padded to those 512
+characters.
+So this will print the first 4 values from
+the stack.
+Yup seems to work.
+Now let’s prepend some recognizable characters
+to the string and then try to see how far
+away our string is on the stack.
+Ha!
+Cool.
+Ok.
+Our string already starts with the 4th value.
+Now we can use the number dollar notation
+in the format string to specifically reference
+that offset.
+So 4 dollar after the percentage sign.
+That would attempt to reference the 4th parameter
+of printf instead of going through the parameters
+one after another.
+See, now all values are 41414141.
+I hope you remember that percentage n can
+be used to write the number of printed characters
+to an address on the stack.
+So we could replace our a characters with
+the address of the global offset table address
+to write to that value.
+Let’s try it.
+We use struct to convert the integer address
+to a binary string.
+Struct.
+Pack.
+I. exit_plt.
+Yup, we seem to hit that address.
+Let’s replace the percentage x with percentage
+n and see what that does in gdb.
+But first write the output of this script
+to a file so we can use it in gdb as input.
+Don’t forget to set the breakpoints again.
+Run and pipe in the exploit string.
+And we hit the breakpoint.
+So now we are about to execute the printf.
+Let’s check the GOT entry.
+Now let’s execute the printf and let’s
+check again.
+HA!
+We have overwritten GOT.
+with a fairly small number.
+If we now continue we will segfault in exit,
+because at this address is no function.
+So percentage n has sucessfully written the
+number of characters printed into the GOT
+table.
+Now all we gotta do is print enpugh characters
+so that we reach the number that is the address
+of hello.
+Mhmh… hex 0x80484b4.
+Damn… that’s a big number.
+We have to print like over 134 MILLIOPn characters.
+Each character is a byte so we have to print
+like 128 megabyte of text?
+Will that work?
+Well, first of all we only have space for
+512 characters in the buffer.
+So we can’t simply write them all.
+But we can abuse printf format strings again
+to pad an output string to any size.
+Which allows us to write way more characters.
+Let’s try that.
+Let’s also change the number of ns down
+to only one.
+Ah.
+infact let’s change it back to x, so we
+don’t smash the table all the time and we
+can make sure we always hit the address.
+So let’s pad this to to like 30 characters,
+to see if that works.
+Oh and we must not forget to add another %x
+afterwards, which we will later replace with
+percentage n.
+Run it against the format4 binary.
+And yes.
+See all those spaces.
+Text got padded to 30 characters.
+Now le’ts try that with 134 million.
+Okay.
+seems to work.
+It’s printing and printing and printing.
+All those millions of spaces.
+This taks aaaages.
+And we arrived at the end.
+Let’s try that in gdb again with percentage
+n.
+Urgh man.
+This takes so long…
+:(
+Printing those hundret megabytes is just crazy.
+But it did change the global offset table
+pretty close to hello.
+We just would have to fiddle around a bit
+and adjust it exactly.
+But you know what?
+This sucks to print so many characters.
+Let’s use a little trick.
+Let’s use TWO shorter writes to achieve
+the same.
+The idea is that we could first write the
+lower two bytes with a much smaller value,
+and then perform another write at address
++2 to write another small value to the higher
+bytes.
+Thus constructing the whole 4 byte through
+two writes.
+So let’s try to write the lower two bytes
+first.
+Let’s start with a padding like 30.
+Write the output again into the file.
+And run gdb with it as input.
+Ok, so with the padding of 30 we were able
+to write hex 2e, which is 46.
+Our goal is to write the two lower bytes so
+we want 84b4, which is 33972.
+Because we had a padding of 30, but we ended
+up at 46 we have to compensate for those 16
+characters.
+So we substract 16 from it, so we want to
+put 33960 as a padding.
+And when we run it and look at the GOT entry,
+we can confirm that the two lower bytes are
+now 84b4.
+Now to address the two higher bytes we move
+our address by two forward.
+And perform another write.
+So let’s add this address as well.
+So EXIT_PLT plus 2.
+This means that for the second write we want
+to address the fith element on the stack.
+And now we just have to figure out how many
+we need to write here.
+Let’s try with 30 again.
+Ok.
+The lower two bytes now stay 84b4.
+Perfect.
+And the higher bytes are 84d2.
+But we want to get 0804.
+So how do we get a lower number if we can
+only increase the amount of characters?
+Well, in reality we don’t only write two
+bytes, we always write 4 bytes, this means
+that also currently we screw up data that
+is stored behind our exit GOT entry.
+Now guess what happens if we write enough
+to increase the number such that the 3rd byte
+is 1 and the rest becomes 0 again.
+It doesn’t matter for the GOT, because it
+will only see the other 4 bytes.
+So basically we overflow those two upper bytes
+so we can get there a lower value in.
+Now currently we have 84d2.
+And we want 0804.
+I mean.
+We actually want 10804.
+And if we substract now the 84d2 from this
+we know how much we should write the get to
+10804.
+So 8332.
+But that’s hex, so that is 33586.
+And it already included the 30 padding.
+So we must not forget that.
+Now we might be done.
+Let’s check.
+We write the output file.
+We run gdb.
+We break before the printf.
+This is how the table entry looks before.
+Now continue and examine the address again.
+Wh00p.
+We changed it.
+And that’s the address of hello.
+So now continue and let the program run.
+BOOM.
+code execution redirected.
+We win!
+It’s crazy how a harmless looking function
+like printf can be used to control the instruction
+pointer.x

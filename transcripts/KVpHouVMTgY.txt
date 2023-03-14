@@ -1,0 +1,275 @@
+Let’s start by learning about some JavaScriptCore
+internals.
+I base this video a lot on saelo’s phrack
+paper “Attacking Javascript Engines”,
+or more specifically the the parts where he
+introduces some internals.
+However I hope I’m adding to it by playing
+around with it using the debug version of
+JavascriptCore, which we have compiled last
+video.
+Remember last video when we created an array
+of integers, and even found them in memory?
+We found 1,2,3,4 but they also had this weird
+FFFF in the highest bits.
+So what’s up with that?
+Let’s start by looking at the C++ source
+code of the JavaScriptCore engine.
+[ad] This series on browser exploitation is
+supported by SSD Secure disclosure.
+Checkout the description for more information
+[/ad]
+A very important class that is used to handle
+a lot of values in JavaScript, is the class
+JSValue.
+We can find the class definition in the file
+JSCJSValue.h. class JSValue.
+If we look at it we can see that this generic
+class seems to be able to handle various different
+kinds of JavaScript types.
+The class JSValue has functions that can check
+if it is an integer, an unsigned integer,
+a Double, or if it’s a boolean - true and
+false.
+We can also see here if this JSValue is not
+an Object, this call to getObject shall return
+0.
+Otherwise it returns an address to a JSObject.
+And when we scroll a bit further, we find
+a compiler if, which describes a JSValue on
+a 32bit system or a JSValue on a 64bit system.
+Because basically everything is 64bit nowadays,
+let’s focus on that.
+On 64-bit platforms USE(JSVALUE64) should
+be defined, and we use a NaN-encoded form
+for immediates.
+Immediates are just the values, like a number.
+And here we find this nice graphics that tells
+us what this NaN-encoding is.
+So if our JSValue is a pointer, so a regular
+address pointing somewhere, the highest 16bit,
+two bytes are 0 0.
+And the remaining bytes are just the pointer
+address.
+On the other hand,
+32-bit signed integers are marked with the
+16-bit tag 0xFFFF.
+And this explains why we saw these FFFF in
+memory for our integers.
+Doubles, so floating point numbers are everything
+in between.
+There are a few more special values that are
+important, and that is false, which will be
+00000006, true is a 00000007, undefined would
+be a 0000000a and NULL would be a 0000002.
+Let’s look at this in memory.
+So here I have JSC open with lldb debugger
+and I’m creating a new array a.
+I start with an integer, then a Double, false,
+undefined, true, null, an empty object and
+another integer.
+Cool.
+Then we type describe(a), to get the address
+of the butterfly.
+Now we can hit CTRL+C to break into the debugger
+and then examine memory, 8 64bit hex values
+starting from the butterfly address.
+Here we go… mhmh… the integer 0x1337 looks
+weird though.
+This is not an integer.
+If we continue again with c, and then use
+describe to look at the first element of our
+array, we see that it actually is a Double
+now.
+Mhmh…
+If we create this array step by step and examine
+it with describe, we can kinda see what happened.
+So here I create the list, then I print the
+description of the array itself, and then
+the description of the first element.
+When we only have the single integer in the
+array, then the first value is a 32bit integer.
+Right now it’s still an array with 32bit
+integers.
+But as soon as we add the float, the first
+element also becomes a double.
+And the whole array is now a Double array.
+However when we add a weird element like false,
+it actually becomes now a generic Contigious
+Array and the first element is an integer
+again.
+But adding now undefined to the array, it
+somehow is now a Double again.
+You see the JavaScript Engine does quite some
+crazy stuff to Arrays, depending on the elements
+you put into it.
+Anyway…
+If we go back to our whole array, we can now
+understand that the JavaScript engine decided
+to convert the first integer to a double.
+And this is also a double.
+In the last video I also quickly showed how
+you can convert this double to the raw bytes
+and vice versa.
+And we will actually implement this for javascript
+as well, because that is really helpful for
+exploitation.
+Anyway.
+Here we see the special other values like
+false, undefined, true and null.
+This here is our Object.
+Well it’s not directly the object.
+From our JSValue definition we see that this
+encodes a pointer.
+So this is an address pointing to the empty
+object in memory.
+And our last element actually is a proper
+integer with the ffff.
+Cool…
+But what is up with this butterfly?
+What does that mean?
+Let’s do another test.
+Here is an empty array a, and it is currently
+in memory located here, and has a butterfly
+here.
+Now let’s push two integers into this array
+and look again.
+The addresses didn’t change.
+So it wasn’t reallocated or something, the
+adding of new elements did something else.
+So let’s look at the first address.
+The badbeef values here can be ignored, these
+are just added because of the debug build,
+so if something crashes it can help with debugging.
+Typically they would be 0.
+So our only important values are those here.
+This is an address and this is pointing to
+the butterfly.
+And the 0x61 is actually 97, so that is the
+structure ID of this Object.
+I think the other values here are some flags
+describing some things about this particular
+object.
+Anyway.
+Let’s look again at the butterfly, and we
+can find our two pushed integers.
+Now let’s play a bit more with the array.
+Let’s use a typical JavaScript feature,
+which is we can just define some new properties
+on this.
+Like any object we can assign new properties.
+So let’s do a property b, set it to 3 and
+a property c and set it to 4.
+Then describe a.
+Now the butterfly address changed.
+So looks like JavaScriptCore reallocated that.
+Also the StructureID was updated and our object
+has now two properties.
+It’s still a ArrayWithInt32 though.
+Let’s look at the object in memory again.
+That looks still similar, except of course
+the StructureID and butterfly address changed.
+And the butterfly still looks the same.
+So where are our properties?
+THis is where the butterfly got it’s name
+from.
+This address actually doesn’t point like
+usually at the start of something, but points
+into a middle.
+The phrack paper has a graphics that makes
+this clear.
+To the right, so where the pointer pointed
+to, we have elements if it’s an array.
+But actually before that we have the length
+of the array and properties.
+So if we subtract a bit from the address and
+look before it, we can actually find our two
+properties, or more specifically the values
+of the properties.
+3 and 4.
+And here is the length of our array, it has
+two elements.
+Cool!
+Now instead of an array, let’s do the same
+thing but start with an empty object.
+And then we create two properties b and c.
+If we describe this object now, we notice
+that it doesn’t have a butterfly pointer.
+How can that be, if the butterfly stores properties?
+Well if we examine memory we actually find
+the properties right in the object itself.
+They have been inlined right in the JSObject
+itself.
+However if we add a few more properties, and
+keep checking with describe, eventually once
+we have more than 6, we actually now get a
+butterfly.
+If we print the memory of the butterfly the
+part where usually array elements are is empty.
+If we print the object itself, we find 6 of
+the properties.
+However the 7th one was placed in the property
+part of the butterfly.
+So we have to subtract a bit of this address
+again and here it is.
+Now how does JavaScriptCore keep track of
+the properties.
+As you know the properties have names and
+are somehow accessed through that name or
+string.
+But it doesn’t appear to be in this Object.
+This is where the Structure ID comes into
+play.
+The sturcture always ddescribes the structure
+of an object.
+So the structureID 302 describes a layout
+of an object with the properties b,c,d,e,f,g.
+If we use those properties nothing changes.
+However if we change the structure of the
+object, for example by adding another property
+i, JavaScriptCore has to create a new Structure
+to describe it.
+And now our object has structure ID 303.
+If we look again at the phrack paper, we can
+also find this neat graphic generally describing
+the larger picture of these classes and objects
+in memory.
+So an array is also a JSObject.
+But the highest class is JScell.
+And it points to a structure which describes
+the properties.
+We have actually seen that also in the describe
+debug output.
+Property b was at offset 0 inlined, c was
+at offset 1 inlined and so forth.
+And the properties that are in the butterfly
+have this special base value of 100, to indicate
+that they are not inlined.
+So butterfly offset 0, butterfly offset 1.
+The actual entry of the structure in the structure
+table referenced by the structureID also contains
+A Class Info and holds a methodtable, which
+contains information about the functions that
+exist for this object.
+One last tip.
+We can also use lldb thanks to the debug symbols,
+to pretty print the JSObject from this address.
+And then we can see that it’s inheriting
+from JSCell and here is the structreID and
+some information on what these other special
+flags mean.
+For example cellState is important for the
+garbage collector.
+The CellState of a cell is a kind of hint
+about what the state of the cell is.
+And it might have different values if the
+garbage collector is scanning for objects
+to free.
+Awesome, now we have a good understanding
+of how JavaScript objects and values are represented
+in memory by JavaScriptCore.
+And you also have the ability to investigate
+and look around yourself.
+Next part we will have a first look at the
+JavaScript interpreter and the JIT, the Just
+in Time Compiler.

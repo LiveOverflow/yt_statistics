@@ -1,0 +1,263 @@
+API6 was a hard 0day web hacking challenge 
+from the RealWorld CTF. The description reads:
+“Apache APISIX lets you build Cloud-Native 
+Microservices API gateways, delivering the
+ultimate performance, open source, scalable 
+platform and `free remote code execution bugs`
+for all your APIs and microservices.”. We are 
+given an IP and port to connect to, as well as
+some challenge files. In the end 14 teams solved 
+it, and our team sauercloud got the first blood.
+
+When you connect to the challenge IP and port, 
+you have to solve a proof of work. In this case
+bruteforce a hash that starts with 26bits 
+of zero. That’s kinda like bitcoin proof of
+work. They do this because they want to start 
+individual instances per player and solving a
+computational expensive proof of work serves 
+as an anti DDoS measure. Someone from our team
+Sauercloud implemented a bruteforce program in 
+rust which was fast enough, but that’s not the
+actual challenge anyway. And we don’t really 
+need to connect to the real service, because
+we were given files for a local setup anyway.
+So let’s look at the files. We have a test flag,
+a docker-compose file. And a config. As you 
+probably know from my videos, looking into
+the docker-compose file is a good start because it 
+describes the all the services. So we have etcd,
+which is a key-value store like a database, 
+and apache/apisix. The name of the challenge.
+As you can see, we have NO custom code. Just plain 
+up-to-date latest version of apisix, with this
+config. Does that mean this challenge is basically 
+about finding a zero-day in apsix? Let’s find out.
+Let’s have a look into the config. Now it might 
+seem interesting that there is an admin key,
+but this is actually the default key. If you look 
+into the apisix repository, you can find that key
+everywhere. I mean they write here “using fixed 
+API token has security risk, please update it
+when you deploy to production environment”. 
+But there is a good chance that people still
+use that key. Anyway, let’s keep that in mind.
+ 
+As you can already tell, this is not a typical
+CTF challenge. Like the gitlab challenge from a 
+previous Real World CTF, we have here a real world
+large complex application, with Lots of code and 
+features. It’s the latest image from docker hub.
+So this challenge is closer to a normal pentest 
+than a CTF challenge. It’s almost like you work
+with a client and you are supposed to 
+do a security audit of the project.
+Another great example how good CTFs are not 
+unrealistic. Anyway. how do we approach this now?
+If you remember the GitLab challenge you know that 
+back then, just before the CTF, there was actually
+a security update. And you could find the security 
+fixes, including tests, in the commits and thus
+figure out the vulnerability and exploit it.
+So immediately we were wondering if the
+vulnerability was also reported and if we could 
+find commits fixing some kind of vulnerability.
+we looked at the version of the latest image 
+on docker-hub and then tried to figure out
+which github tag that is. And then we 
+used githubs compare feature to look
+at the recent code changes. Of course there are 
+just TONS AND TONS OF CHANGES. But we could maybe
+search for admin and see any admin related 
+changes. Or maybe authentication related.
+Of course we also looked at the changelog 
+and lukas even found an issue that seems
+security related, but didn’t look that interesting 
+afterall. We also worried that maybe the latest
+image is not even vulnerable anymore because there 
+was a new one pushed just 10h before. So maybe
+it was fixed? I contacted a CTF admin and they 
+confirmed the latest image is still vulnerable.
+Alright. We have to change strategies.
+In parallel we also started studying the apisix
+documentation. What the heck is even apisix???
+Turns out it’s a fancy microservice gateway thing.
+Kinda like a proxy. You can define routes, so 
+URL routes and configure an upstream server to
+forward the requests to.
+For example.
+With this admin API request you can create 
+a new route that lives for only 60 seconds.
+It will configure the server to have an API 
+route /aa/index.html and forwards it to some
+other server listening on localhost 1980.
+And that’s basically what apisix can do.
+Configure some routes and have different 
+features like the expiration, or how to
+load balance incoming requests.
+That’s it. And as you can see,
+with the admin API key you can configure routes. 
+And reading the documentation you can even see,
+that there is an option for scripts. 
+And scripts are cool. “In theory,
+you can write arbitrary Lua code in Script.”.
+So it’s clear. IF we could talk to the admin API,
+we could easily create a route with 
+a lua script that reads the flag.
+But the problem is, you cannot reach the 
+apisix/admin route from the outside. Here I’m
+using my cool burl alias for curl. So we basically 
+use curl, but we send the requests through burp
+proxy. Anyway. I try to get the configured routes 
+from the admin, but we get a forbidden error.
+But if you go INTO the container with docker exec. 
+And from the INSIDE execute curl to the admin API,
+it works! So the admin interface is only 
+accessible from localhost and NOT from
+the outside. And that’s why probably many 
+people don’t change the API key. The admin
+API is accessible from only localhost anyway.
+My immediate reaction was, maybe we can find
+a SSRF. A server side request forgery 
+where apisix itself triggers a request,
+then the source of the request should be localhost 
+and we can talk to the api. But of course,
+no clue if there even is such an issue.
+So we started exploring the very limited
+attack surface. As you can tell, we have 
+the default config and no routes configured.
+We cannot exploit a badly configured route. This 
+is just plain apisix. So what is even exposed?
+We started looking into how apisix 
+implemented. At the core of it all we
+found nginx. Here I’m in the apisix container 
+and basically the only processes are nginx.
+The nginx config would be interesting 
+as this is probably the entry point
+into anything from apisix. Let’s find the 
+config in the container to have a look at it.
+Here for example is the admin api route configured 
+to only allow localhost and deny the rest.
+So immediately this kinda sucks, because I 
+doubt there is a bug in nginx server configs
+that allows to bypass a restriction like this. 
+But maybe other configured routes and features
+overwrite a setting, or allows us to do the 
+SSRF attack. Or maybe there are generally other
+nginx misconfigurations. So I started reading 
+through this and googled a lot. But couldn’t
+really find anything. Grpc was something that 
+caught my attention. Maybe if you try to access
+the admin API through GRPC or HTTP2, maybe that 
+works? I don’t understand much about grpc to be
+honest and I guess it only works if you have ssl. 
+And this is not the case here? Not sure. All I
+know is that all my dumb attempts didn’t work.
+Anyway. Looking more through the config
+we can learn, that apisix is basically implemented 
+in LUA. in the nginx config you can find various
+access_by_lua_blocks. This is where they call 
+into their apisix code. And so looking at
+the general default route accessible from the 
+outside, apisix.http_access_phase is basically
+the main code we deal with.
+And several people from
+sauercloud started to review the lua 
+code. Maybe there are bugs in there.
+In parallel some others were just dirbusting the 
+exposed API. Even though no route is exposed,
+we saw that there are various default plugins! And 
+so maybe plugins have registered their own routes.
+And because it was a bit intransparent what kind 
+of routes were registered by the default plugins,
+they just bruteforced it with wordlists.
+While they did that, I went down the lua
+code review path. I basically modified the 
+code and added debug prints to explore how
+an incoming request is handled. How the url path 
+is handled. Especially in terms of url decoding
+and path normalization. Could for example a basic 
+path traversal bypass somehow the api route check?
+But yeah, nothing really worked.
+Mh…
+But suddenly everything went super fast. 
+Flo discovered an exposed plugin called
+batch-requests. And that plugin will perform 
+requests for you. It’s basically SSRF as a
+service. You can configure here a list of 
+requests and all of them will be executed and
+you get the results of it. Is that the solution?
+Immediately we tried to reach the admin endpoint
+but it didn’t work. Forbidden. And in the 
+nginx server logs I saw that the request
+client source was 172.24.0.1, not localhost. So 
+from somewhere it still took my actual client ip.
+Damn. Mangarmar was looking into the batch 
+plugin lua code and saw that it actually sets
+the X-REAL-IP Header to the current client 
+ip. So that’s the reason why it didn’t work.
+I then just thought, what if we set the 
+header ourselves? Maybe we can overwrite it?
+But I also remembered the header smuggling 
+article I recently read about on my twitch stream.
+And decided to add some variants with spaces and 
+different cases. Send the request. And it worked!
+But only for me?
+In our discord calls,
+others were reporting it didn’t work 
+for them. But there, CLEARLY IT WORKED!
+turns out, I just got lucky. As you can 
+see, I send the request multiple times.
+A lot of times it says forbidden. 
+But sometimes it just works.
+I didn’t investigate but I guess the header order 
+was random, and sometimes it took my fake header,
+and sometimes it took the real header.
+And that was it. That is the vulnerability
+we needed. Now we can easily access the 
+admin API and push a malicious route.
+Flo quickly wrote a Lua script we can use for a 
+new route that reads the flag. Let’s craft here
+the request. The admin API is routes PUSH. And the 
+body has to be a string. Content-type is already
+set. So let’s try it. If we get forbidden, we 
+just have to try it again. There we go! It should
+have worked. Let’s use the admin api to check if 
+we successfully added a new route. And we did!
+So now theoretically we should be able to access 
+ayylmao1234 to read the flag. And it worked!
+Awesome. Let’s head over to the actual challenge 
+server. Solving the proof of work and getting
+the IP and port. Now simply adjust the request 
+target URL to the challenge server. And issue the
+request. Again, if we get a forbidden, just 
+try again. And there seems to have worked.
+Let’s see. AND YES! Here is the flag!
+In the end actually not a super hard
+challenge. What’s really difficult 
+here is the real-world aspect.
+Having to look through a lot of documentation and 
+source code trying to identify the threat surface.
+When I started working on this video script I also 
+noticed that latest APISIX was still vulnerable.
+that means I guess nobody reported it to them? 
+Oops? I guess everybody thought like me “well,
+somebody else will report it for sure”. 
+So I decided to drop them an email.
+It was promptly fixed and it 
+got assigned CVE-2022-24112.
+An attacker can abuse the batch-requests 
+plugin to send requests to
+bypass the IP restriction of Admin 
+API. A default configuration of
+Apache APISIX (with default API key) 
+is vulnerable to remote code execution.
+There is a check in the batch-requests 
+plugin which overrides the
+client IP with its real remote IP. 
+But due to a bug in the code, this
+check can be bypassed.
+I don’t know who originally found it, so 
+it was credited to the Real World CTF.
+thanks for watching and 
+checkout patreon and stuff bye

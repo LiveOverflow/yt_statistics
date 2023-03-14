@@ -1,0 +1,369 @@
+In the last video we built a good foundation 
+to better understand the log4 vulnerability.
+We briefly introduced some features of 
+the logging framework. We talked about
+the disclosure timeline, and learned 
+that there are two parts to this issue.
+We have log4j lookups as one part. And the 
+second part is how JNDI ldap connections
+to a malicious server can lead to arbitrary 
+code execution. Then we ended the video with
+a discussion on the relationship between 
+the hacker and the developer community.
+Now in this video I want to start going a 
+bit deeper and explore different layers.
+
+I promised you we go deeper. So get ready 
+to look into how log4j works internally.
+Chapter 1: log4j lookups in depth
+On github I shared an intelliJ project.
+It’s really nothing special.It’s literally just a 
+logger.info call. But I have no clue about Java,
+it took me way too much time to learn 
+how to use maven with dependencies.
+So here it is. And I’m proud of it!
+So you could also open the project in
+IntelliJ and follow along. To do that go to 
+the maven tab and hit install. After that,
+you can set a breakpoint at the logger.info 
+call, hit the debug button and get started.
+Also by the way, we are using the log4j 
+config I showed you in the last video.
+The config simply logs messages to standard 
+output and this is our layout pattern. Thread
+name. The log message. And newline at the end.
+Anyway. If you now single step INTO the
+loger.info function, intellij will use their 
+decompiler to show you the logger source code.
+But because it’s an open source library, you can 
+actually hit this button to download the sources
+and it will look much nicer. And now you can 
+use step into, or step over to debug the code.
+Here in the debug window you can also see the 
+local variables which we will use to figure out
+whats going on. And of course, here is the log 
+message string we passed in. So let’s see what
+happens. Loger.info first calls logIfEnabled. 
+Single step forward. If is enabled, then we call
+logMessage. We don’t have to step into the 
+isEnabled call, so we can step over it. And
+then step into the logMessage call. Next we call 
+logMessageSafely, which is a pretty funny name.
+Also our string message is 
+passed into this messageFactory,
+to wrap this string in a ReusableSimpleMessage 
+object. Hach java. You gotta love it.
+Now we also learn why the function is called 
+logMessageSafely, because everything is here
+wrapped in a try block. And it’s tracking 
+recursion. Because if you pass in an object
+to log, eventually the logger will have to convert 
+that object to a string, by calling toString().
+And if that toString() method calls the logger 
+again, with itself, I don’t know why, you would
+get an infinite recursion. And so here it keeps 
+track of the recursion depth. If you single step
+on a line with multiple function calls, intellij 
+also offers you to select which function you want
+to step into. So lets head into tryLogMessage. 
+Here we call log. And finally a bit more code.
+We get a ReliabilityStrategy from the config. 
+No clue. Whatever. We call log on it as well.
+But then we get the activeLogger config. And 
+that’s basically our xml config file. Here the
+config is a XMLConfiguration. And the appender we 
+have configured was console. And the log layout
+can be seen here as well. So this is where the 
+logger config comes into play. And with this
+logger config we are now going to log our message,
+In there we now create an event from our logger
+message. So our ReusableSimpleMessage 
+is now turned into a full blown
+log event object. And then we log the event.
+I fast forward now a bit. We just keep
+following down deeper into the logger, 
+and eventually we want to encode the log
+message and turn the event into an actual 
+string that we can write to the console.
+And this is where it gets more 
+interesting. We have here an
+array of formatters that is looped over and 
+the formatted data is written into this buffer.
+Quick reminder, here is the logger layout we have 
+configured and now compare this to the formatters.
+First we have a LiteralPattern. 
+Which is just a literal open bracket.
+Then we have have %t, which stands for the thread
+name. So we have here a threadname pattern. 
+Followed by a closing bracket and a space.
+And then we have a messagepatternconverter.
+And this is the one we are actually interested in.
+As you can see, log4j has turned the layout 
+string into an array of format instructions.
+So lets head into the messagepatternconverter 
+and see what happens to our actual log message.
+in this message formatter, further 
+down we actually have an if case,
+if the optional config to disable these 
+lookups is set. In our case that is not set,
+so the negation is true and we go into the for 
+loop, looping over EACH CHARACTER of the message.
+TODO: can we optimize it. YES what the f’. This 
+library is really a bit the bloated java meme.
+Well as you can see it’s looking here for the 
+dollar sign and starting curly braces. So it is
+looking for lookup strings. And when it is found, 
+it is calling this StringSubstitutor to replace
+parts of the log message.
+Remember this function here,
+because it will become important for 
+the incomplete mitigation advice.
+Anyway. Inside replace we then call 
+substitute which kicks of this big
+parsing function looping over the characters 
+and basically extracting these lookup strings.
+It also works recursively to 
+resolve lookups inside of lookups.
+Thanks to that feature, you can have very 
+obfuscated attack payloads which enables
+all the various WAF bypasses. Well…
+I’m not stepping through all of this
+and set a breakpoint right at this found 
+variable end maker case, by clicking next
+to the line number. And then hit continue.
+Here you can see now it actually extracted
+the lookup string from the curly braces. And now 
+we are left with only env:HOME. Again skipping a
+bit of code here to the call resolveVariable. 
+This is where it gets interesting again.
+In there we get a list of available resolvers. 
+Here is the env resolver, and also the infamous
+jndi resolver. Here you can also see the lower and 
+upper one, which are used in some waf bypasses.
+Anyway. This lookup call will now use the prefix, 
+env, to get the corresponding EnvironmentLookup
+resolver object, which has a very simple lookup 
+function. It simply calls System.getenv(key).
+It gets my home path. Replaces it in the 
+logger message. And you can imagine the
+rest. The message is eventually actually 
+printed on the console with the HOME path.
+I won't actually step through what happens 
+with a jndi lookup message. It’s basically
+the same thing, just that eventually we reach 
+the jndilookup which is using a jndi manager.
+And that then does all the jndi magic. Creating 
+a socket and connecting to the URI and so forth.
+if you are curious you can spend some hours 
+stepping through that crazy code yourself,
+now you know how to do that.
+But let’s look again at the environment lookup 
+example. And I have an honest question. And
+I think this part is very important 
+for every developer who is watching.
+Let’s talk about secure software design.
+I hope I don’t sound judgmental. I just want 
+to ask very directly to think about this. Is it
+better to have a complex logging 
+library with lots of code to parse
+each message to be able to include environment 
+variables. Or is it better to force the person
+who wants to log an environment variable, to 
+call System.getenv and append it to a string?
+I understand that this code looks less 
+pretty than the magical library. And
+there is certainly an argument about writing 
+more readable code. But in terms of security,
+LESS COMPLEXITY is always more secure.
+Now you have to be careful with what I mean with
+“less complexity”. For example it’s less 
+complex to write java networking code with
+readObject and move arbitrary objects through 
+the network, than to implement a more “complex”
+message handling. For example json data that 
+then has to be turned back into an object.
+Lot’s of if and else cases to verify the json 
+data is correct. But it just looks more complex.
+actually it’s simpler. It’s very basic. Some 
+strings or numbers come in and you handle them.
+The readObject call is HIDDEN complexity. 
+There is a binary format hidden from you that
+magically turns into full blown java 
+objects. You can imagine that there is a
+lot of internal magic code to make that happen.
+And so you have to realize that you introduce
+HUGE complexity, thus increase attack surface 
+into your program with this solution. The simpler
+solution, requires you to write a bit of annoying 
+code lines, but you are dealing with very basic
+strings and numbers,and clearly, they wouldn’t 
+directly lead to arbitrary code execution.
+so when you create a bigger system architecture, 
+or you are just tasked to implement a smaller
+feature of a larger project. always design 
+for simplicity. And as I said, I don’t mean
+the simplicity of your code in isolation, I mean 
+the simplicity of the whole stack you plan to use.
+Eventually you can develop an intuition for 
+which functions and libraries mean complexity,
+and what kind of code is “basic”.
+I hope that kinda makes sense. I believe
+it’s one of the most important principles 
+to go by when wanting to write secure code.
+And to continue the topic on secure design and 
+security pitfalls, let’s talk about format string
+vulnerabilities.
+Format Strings
+For that let me show you an excerpt of a talk I 
+gave at fsec in 2017. Listen to what I say here
+about format string vulnerabilities in C, and 
+how I compare it to python and template engines.
+And always keep java logging in mind. 
+I think it will sound very familiar.
+format string vulnerabilities
+If you would do binary then it's
+a basic thing and you know about it. If not, it's
+Maybe hopefully interesting. So when you program C
+for example printf the first part of printf 
+where you specify how you want to want the
+data to be displayed as a format string and 
+Here's another example with two variables
+present, so you want this one to be replaced with 
+a decimal representation of the number and this
+one to replace with the hex display off of this 
+number here. And the former string vulnerability
+happens when you can control this format string
+And So here's kind of how this looks like with
+a simplified stick in memory because printf 
+has a variable amount of parameters And it
+basically just trusts that everything is on 
+the stack so if printf encounters a %d it
+Will take the first number 
+from the stick and display it
+And then it encounters the percent as %X 
+takes it from the stack and displays it
+and you can imagine that when you can now 
+control this part of the string and you enter as
+An attacker just a lot of %X that you start 
+consuming a lot of values from the stack
+And you will leak a lot of data from it
+So this can be used to bypass ASLR for
+example because we know that on the stack is 
+for example the return pointer. So you have
+at least a valid address into valid code 
+and from based on that you can most likely
+Get around the ASLR issue. But there are even 
+modifiers that allows you to write into memory
+And it can be even used to completely 
+take over the control flow of a program
+The idea the abstract the idea of 
+controlling the format stuff is not only
+an issue for C. Here's a Python example, 
+and I mean it's a completely ridiculous
+example who would write this kind of code?
+but the question is would you realize that
+this is happening if you would audit 
+it. There is a global config variable.
+Completely ridiculous example, huh? So I imagined 
+here that somebody could create a logger function,
+that is prepopulated with a config map. And then 
+in the code you can just write curly braces and
+access this config data. Config Name. And 
+as you can see, malicious input from users
+is concatenated to this string. So an attacker 
+could also include curly braces in the input,
+to leak the secret key config variable.
+I think it’s so funny, I made this as a
+ridiculous example to explain why it’s worth 
+it to think about the abstract idea behind
+vulnerabilities and transfer those ideas to 
+other languages. And I just wanted to show that
+“format string vulnerabilities” could also 
+somehow exist in other languages. Turns out this
+“dumb” example is actually so close to the 
+log4j features that I think I’m a prophet now.
+Or alternatively, maybe, just maybe, unrealistic 
+CTF challenges are maybe not as unrealistic as you
+think they are. And that’s why I always say. It’s 
+not about the code being a “redicious example”.
+It’s about that somebody could come up with 
+code like this, and the real question is,
+could you recognize the vulnerability if 
+you would be tasked to audit this code.
+if you look at this and you are Into web 
+security you might think this looks very
+similar to a template injection and in fact 
+if you think about it template injection,
+are also, just kind of a format string. the 
+template specifies how the site is formatted
+so if you didn't get it format strings can 
+be abused make sure that they are usually not
+controlled by an attacker often 
+They are just about leaking data
+But sometimes it can be even worse depending on 
+what kind of template engine or whatever you have
+how to fix this?
+Yeah, keep those
+strings of a static and have you ever seen
+This kind of double format string from Python
+I have also not seen it again 
+the point is would you be able
+to see it if you audit this kind of application?
+By the way when log4j was released my first 
+reaction was. Of course it’s a format string
+vulnerability. And I was completely convinced 
+that if you use it correctly you are safe.
+So don’t pass the input directly into 
+the first parameter, but instead use
+the curly braces to indicate the position 
+of the additional parameters. Like in C,
+this is the dangerous part and this is harmless.. 
+But turns out, that’s not the case. It doesn’t
+matter where the user input is coming from. It 
+always leads to a lookup. And that’s really bad.
+Anyway… let’s talk about. 
+The mitigation that wasn’t.
+noLookups
+Very quickly it was pointed out that you could
+disable the lookup functionality by modifying 
+your logger config. And add the {nolookup} to
+%m. In that case the messagepatternconverter 
+now has the nolookups option. And then later
+in the format function the if-case now results 
+in a false, skipping the part with the replace.
+And when we run this code and look at the output, 
+looks like we are safe. No lookups were performed.
+But check this out. This is all wrapped into an 
+if case, where the incoming message has to be an
+instanceof StringBuilderFormattable. 
+But if that is not the case,
+if msg is another type then we reach this 
+if-case down here. And see that. We have
+another call to the StringSubstitutor.replace. 
+This was the function that handles the lookups.
+And it turns out, when you use logger.printf, 
+with a format string and then the user input.
+It will reach this part. And it 
+will seult in a lookup. Ouch…
+So as you can see, it does mitigate probably 
+most cases. But some people might use other
+logger functions and then the nolookups check 
+doesn’t apply. I guess this is a small coding
+bug where adding the check for the lookup 
+was forgotten to be added in both cases.
+alright.
+I hope with
+the two videos about log4j I could make you 
+see a bigger picture of this vulnerability.
+I think there are some really interesting 
+discussions to be had about the relationship
+between researchers and developers. And 
+how you should think about abstract ideas
+behind vulnerabilities and apply it in 
+other languages I really think this bug,
+or rather this intentional feature that could 
+be exploited with a remote code execution,
+should have been discovered earlier. Anyway.
+Interesting stuff.
+Please checkout liveoverflow.com/support and 
+thanks to all the youtube members and patreons.

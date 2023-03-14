@@ -1,0 +1,336 @@
+In the last video we developed a TCP proxy
+in python that allows us to now analyse the
+network protocol of the game. I think the
+code we have written is a really good example
+of why you should know programming when you
+are interested in IT security. While it does
+require some experience in coding in the end
+it was not much code. And the result is, that
+we now have a fairly powerful tool on our
+hands to reverse engineer the network packets.
+So for now we don’t really have to touch
+the main proxy code and we can focus on the
+parser function that we can play with. This
+function has three parameters, but the most
+important one is data. This is where the TCP
+payload that either the client or server sent
+comes in. And last video we also implemented
+some filters here to only look at data sent
+by the client to the game server. And our
+tool is so powerful, because we can now do
+anything in here. And whatever we change here,
+will affect the output of the proxy. So let’s
+get started. A the end of last episode I already
+hinted at this one packet that doesn’t change
+when we stand still but changes in some parts
+when we move around, and also changes in a
+different part when we jump.
+So… let’s collect some test data. We see
+no data changes when we stand still… When
+we walk forward or backward we see some changes.
+Some Left and right walking… Then also jumping
+up and down.
+And notice that I didn’t move the camera,
+so now also some looking around.
+Which areas of the data was affected by what
+action, was pretty obvious, but we need to
+analyse this very accurately. So let’s copy
+out some samples into our script and look
+at them. So what can we see here?
+First of all, all our actions that we did
+were about moving around. And that packet
+is also the one constantly being sent. So
+it’s really not surprising and doesn’t
+take much guessing that that will somehow
+contain our position. We also can quickly
+see that there seems to be two bytes at the
+start that are fixed. Then when walking around
+data changes in this region, and then also
+back there. So this was forward and backwards
+walking. The walking left and right here is
+very similar, just the other byte here at
+the end is changing. This is perfectly consistent
+with a X and Y position in the world. Just
+to make it clear, of course X and Y is changing
+when we walk forwards and backwards or left
+and right, because it’s unlikely that we
+are aligned to the axis. In that case the
+movement would only change one coordinate.
+But what is bothering me a little bit is,
+that the data that is changing is 14 hex digits,
+so 7 bytes. That’s an odd number. We would
+expect something like 8 bytes, 4 bytes per
+coordinate or something like that. But let’s
+continue with Jumping. Let’s take out the
+two other packets. You see that they are longer
+and have a different ID. So let’s deal with
+that later.
+When we jump, essentially moving up and down
+on the Z axis, only this value changes.
+And this is 8 digits, or 4 bytes. AS you know,
+this is a hexdump, a hex representation of
+the raw binary data of the packet, so two
+hex digits are one byte.
+And cutting the data here also now seems to
+indicate that the previous two values should
+indeed add up to 16 digits. So two times 4
+bytes. That would also make much more sense.
+The last test was looking around and there
+only 4 bytes in the back are changing.
+Now we can try to label everything with a
+guess what the data could represent. We have
+a constant ID that I think means “this is
+a position packet”, we have probably X Y
+and Z coordinates, as well as some kind of
+looking around data, two constant zero bytes
+and then something that indicates which key
+we pressed.,
+Cool! So let’s implement a parser for that.
+I will be using python struct a lot, which
+can unpack different types from raw binary
+data. So let’s start by unpacking the packet_id.
+To do that we simply call struct.unpack with
+capital “H” as a format character which
+indicates we want to interpret 2 bytes as
+an unsigned short integer number. And you
+can see how cool it is to just write something,
+save the file and see the changes. This way
+it’s super easy to learn more about the
+data. So here is the integer number in regular
+base 10 of our first two bytes, but when we
+print it as hex, it’s not quite what we
+expect. We expected to see 6d76, but instead
+we got 766d. So this is now a question of
+how you want to interpret the raw bytes. Either
+as little-endian or big-endian. For the packet
+ID it doesn’t matter and I think it’s
+a bit more comfortable to read the id when
+it says 6d76, so let’s change it to big-endian
+indicated by the greater than sign. Cool.
+We will probably get a lot of other packets
+later, so I thought it would be a good design
+to define a handler for different packets.
+So I create a python dictionary with one element
+so far, and that is supposed to be a function.
+So h_position is a function that will get
+the data as parameter.
+Oh and also a noop, a no operation, function
+would be cool. Bear with me it makes sense
+in a second. Because now we can simply try
+to get the function defined in the handler
+for a given packet_id, and if it doesn’t
+exist the default value, in this case the
+noop function will be returned, and then the
+function is given the data starting after
+2 bytes. So we cut off the packet_id, because
+now we selected the correct function to handle
+the data.
+Mh, maybe we implement an “unknown packet”
+output in h_noop and then we can also test
+that. So this output is coming from inside
+our position handler function, but when we
+jump, and we get these other packets we haven’t
+looked at yet, we see an unknown packet message.
+Cool!
+Now let’s carve out the X, Y and Z position.
+Each of them are 4 bytes large. So it could
+be a signed or unsigned integer, or a float.
+Now if we look at the data again, we can see
+that it changes quite dramatically, even though
+we moved just a little bit. If it were an
+integer I would suspect much smaller changes.
+So maybe it’s a float? But in the end it’s
+just a guess and you can quickly test it.
+If the output makes sense it was probably
+correct, if not, then try something else.
+But I think float is absolutely a reasonable
+assumption here.
+So we can write X, Y and Z and get the value
+of struct.unpack. BTW if something returns
+multiple values in python, you can automatically
+unpack them into individual variables like
+this. So our unpack will unpack 3 floats,
+indicated by fff, which would be 3 * 4 bytes
+long. So 12 bytes.
+And then we can print the data nicely with
+float format modifiers to only show 2 digits
+after the comma.
+Now the moment of truth, let me hit the save
+button. BOOM! Amazing, look at that. Now let’s
+move around a bit in game. And yeah, the data
+changes reasonably. And when we jump, or fly,
+we see that unknown packet for the jump and
+we see the Z value change. Amazing!
+We reverse engineered part of our first packet.
+Now to be honest with you, I’m not sure
+how the looking direction could be encoded
+as it’s also 4 bytes but it must be more
+than one number? But I ignore it for now.
+Let’s do the easier stuff first.
+How about we have a look at the jumping packet.
+That’s an unknown packet for us right now.
+Again, let’s collect a few samples and format
+them so that we can try to recognize patterns.
+One thing you might already notice is that
+when you press space, then you send a 1, and
+when you release space again you send a 0.
+Oh by the way, the packet id is missing here
+because we cut it off when we handed it to
+the noop function where we printed the data.
+So we can extract that one byte with struct.unpack
+using the B format string for one byte. And
+print it along the remaining data that we
+don’t know what it means yet. And we can
+test it again. We jump a bit, and here we
+go. So what could the remaining packet data
+mean. WAIT! Isn’t that the packet ID of
+our position packet? The length of the data
+would also match. Ohhhh…. So the network
+protocol is not just sending a single packet
+with information every time when something
+happens, it might bundle multiple packets
+together. So when we jumped it sent jump information
+together with position information.
+This means we have to change some stuff of
+our parser. You can do this in many different
+ways, I chose to just return the data that
+doesn’t belong to the currently interpreted
+data. So for example for the jump handler
+I cut away the first byte and return anything
+starting with the second byte. For the position
+it’s a bit more tricky, we have to quickly
+count how many bytes that is, so that would
+be 20. So I cut away the first 20 bytes. And
+for noop, let’s just cut away a single byte.
+Now we have to place our parsing into a while
+loop where we always check the length of data,
+and we constantly change data to what the
+handler functions returns. And at some point
+the parsers has fully consumed the data.
+Let’s continue reversing more packets with
+the same methodology. But I also think I wanna
+make some changes to the code. Like I said
+multiple times it’s an explorative process
+and so our tools develop with us, once we
+figure out new stuff. So I decided to comment
+out the position print, so we don’t spam
+the output so much.
+And to not print unknown packets in the noop
+function, but instead check if the packet_id
+is defined in the handler, and if not we print
+the packet. And we can also I noticed another
+unknown packet when switching the weapon.
+And when shooting the fireball.
+But isn’t it weird that we see slowly consuming
+unknown packet data by our loop, when shooting
+a fireball, but not with the weapon switch?
+Even though both are unknown packets?
+Well if you look closely, then you see that
+the weapon switch is also just one byte indicating
+the selected slot. Which is consumed by noop.
+And then after that we find the packet_id
+of the position packet again and fully parse
+that. Cool, huh?
+So let’s quickly create a handler function
+for weapon select, which is basically like
+the jump handler, just a byte. Cool! Another
+packet reversed.
+Now what’s going on with shooting of the
+fireball? Let’s take an example packet shooting
+the fireball, StaticLink, and the RemoteExploit
+Sniper Rifle. And then compare them. One really
+odd thing is that the fireball packet is longer.
+Before that all packets had a defined size,
+so how do we know that fireball is larger
+than the Static link or sniper rifle? So the
+first two bytes are again the packet_id, so
+we know this must be indicating that we are
+using a weapon or spell.
+And then we have what looks like a byte with
+a value that is always different. 0x10, 0xa,
+0xd. Then comes a 0 byte and then what looks
+like the start of some data. And that data
+is very different. Though when you peak at
+the end of the packet, you notice that they
+are the same. So let’s try to lign that
+up. OH! That is another position packet! We
+didn’t move between shooting, so we know
+how to parse that data and can ignore it.
+When looking very closely and comparing the
+packets I noticed more similarities. It’s
+here sarting with 82b, and ending in 535.
+And ligning that up looks like this. Because
+we know that a positon packet would start
+here after these two 535, we can conclude
+that that is definetly an end of another packet.
+Which means this 6672 is another small 1byte
+large packet. And StaticLink, is like jump,
+an action that can be started and held for
+a bit and released again. So it’s probably
+related to that. Let’s create a short handler
+for that.
+THen back to our weapon data. At first I didn’t
+know what that part stands for, but when I
+looked in another direction and fired another
+fireball, and compare that data, I noticed
+that this part changed. So that’s probably
+also some kind of shooting direction data.
+But still, how do we deal with the different
+length packets. Well we know there is a number
+at the start that is different for all three
+of them. The largest one is 0x10 and is also
+the longest packet, then comes the second
+longest packet with 0xd and the shortest one
+is 0xa. And when you count the bytes it suddenly
+makes sense! This is the length.There are
+10 bytes, here are 13 bytes and here 16. And
+the trained eye might have also already recognised
+that that is ascii text. When you read a lot
+of hex values for example because you play
+too much CTFs and spend time in debuggers,
+you start to recognise when data is text.
+It’s just a skill you develop over time.
+So let’s implement that handler, first we
+extract the length. I assume that the length
+is actually not just a single bytes but a
+short, so two bytes unpacked with “H”.
+Then we know that the name starts after the
+second byte up to the length.
+We can use our awesome proxy to immediately
+test that. When we shoot something we see
+the name, but of course the data parsing is
+still missing the last 12 bytes of data. So
+we don’t really know how to interpret the
+direction yet, might be same as the position
+data rotation, or looking direction, but we
+just ignore it for now and return the data
+after all of that. And when we test that,
+we get a beautiful output when using a weapon.
+Also you can see now very well how the static
+link is toggled on and off depending on how
+long you hold the mouse button. Awesome! We
+just parsed a variable length packet.
+Before we end I just would like to mention
+something. Maybe you find it weird how I so
+quickly understand how to parse that data.
+But you know there are not that many options
+how it can be done. If you ever think about
+how you would implement it on this low level,
+then this is pretty much the only option you
+have. You know the basic data types like integers,
+floats, ascii characters, and out of these
+you build more complicated structures. And
+then there are also typical intuitive and
+very obvious techniques such as type-length-value
+encoding. And this is pretty much what we
+had here. The packet_id is indicating the
+type of data, so like a weapon_shoot type
+and because of the name that can have different
+lengths we need also sth that tells us the
+length, and then the data itself. you just
+have to think about it for a bit and then
+I think it’s super obvious. At least when
+there is no addditional crypto or compression
+layer involved.
+See you next video where we will explore some
+more things with the proxy.

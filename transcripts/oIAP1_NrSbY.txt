@@ -1,0 +1,395 @@
+In the previous video I showcased a proof 
+of concept root exploit against Serenity OS.
+A bit of an obscure operating system. But at 
+the end of that video I shared a few thoughts
+why I think looking into Serenity 
+OS, and this particular exploit,
+is NOT a waste of your time, and I 
+want to expand on this with this video.
+To prove a point, I want to give you an example 
+of how the SerenityOS Kernel and the Linux kernel
+relate to each other. And we do that by looking 
+at Ptrace. Ptrace is a syscall that basically
+implements the features for debugging another 
+process. GDB, the gnu DEBUGGER, OBVIOUSLY uses
+ptrace so you can interact with another process. 
+Specifically you can call ptrace(PT_ATTACH), to
+attach a debugger, or tracer, to a process, with 
+PT_PEEK you can read memory from a target process,
+with PT_POKE you can write memory. And with 
+PTRACE_SINGLESTEP, you can single step in
+a process. As I mentioned, it’s the syscall to 
+implement typical debug features like in GDB. Now
+that you know what ptrace does, let’s compare the 
+PTRACE syscall source code of Linux and Serenity.
+In the excellent Linux source code browser elixir, 
+we can search for ptrace and then look out for a
+file that looks promising. You could click through 
+some of the other files, but this one looks most
+promising. A /kernel/ptrace.c file. Alright!
+Now let’s go find the ptrace implementation in
+SerenityOS. Just FYI, I’m here on the commit 
+where the vulnerability was still present.
+So code might have changed in the latest version.
+Here we simply search for “ptrace”.
+And it turns out in the folder 
+Kernel, there is a Ptrace.cpp file.But
+there is also a Kernel/Syscalls/ptrace.cpp file. 
+So let’s look at the latter first. And here we can
+find a very short function, sys$ptrace, which 
+very quickly calls Ptrace::handle_syscall.
+When we now checkout the other ptrace.cpp file, 
+we can actually find that handle function.
+So here seems to be the actual 
+implementation of ptrace.
+Now let’s compare Linux and SerenityOS.
+Linux’s implementation starts by checking
+if the request parameter is PTRACE_TRACEME, and 
+SerenityOS ALSO has a check of PT_TRACE_ME…. But….
+OMG…. why the heck does SerenityOS have another 
+underscore here. I think I changed my mind about
+Serenity. Literally Unusable. Serenity is garbage.
+Just kidding. But you can see the code is similar,
+but different. On Linux, in this case, it 
+calls ptrace_trace() and if that doesn’t return
+successfully it will call arch_ptrace_attach 
+instead. Otherwise it will return via this goto.
+And this function ptrace_traceme has a check if 
+we are currently being traced. And Serenity has
+that check too. If the current process has 
+a tracer already attached we return EBusy!
+Though it looks like Linux returns EPERM. So 
+a permission error. And the Linux man page
+also says that EPERM might be returned 
+if the process is already being traced.
+So as you can see, slightly different 
+implementation of the basically same thing.
+Now if we look further in the code we see that 
+in SerenityOS we start to have various checks.
+For example it ensures that the requested ptrace 
+process id is not the ID of the current calling
+process. Or it also has the setuid check 
+to prevent you from tracing a root program.
+And here it ensures that the requested process is 
+already traced. And traced by our calling process.
+Meaning that our calling 
+process called PT_ATTACH before.
+And here is the Linux equivalent. Linux 
+calls this function ptrace_check_attach,
+where it checks if the requested child to attach 
+to is already being traced and if the our current
+process is the parent of the tracee.
+Totally similar.
+But let’s go on with the Linux code of the 
+ptrace syscall. Because we eventually call
+an architecture specific ptrace implementation. 
+When we click on it and look for references,
+we see that there is a x86, so intel version, 
+there is an ARM version and TONS of other
+processor architectures. That’s the mess 
+you have to deal with Linux. Linux supports
+so many different architectures, and the lower 
+level you get, the more architecture specific code
+you need to implement. Serenity does not support 
+different architectures, but that also makes it so
+much easier to read for educational purposes.
+Now let’s look into the Linux x86 version.
+Here you can see a big switch case statement 
+that checks which PTRACE functionality you want.
+Pretty much the same way how Serenity 
+has here a switch case statement.
+I mean, I think I showed enough. We 
+could go on and on comparing their code.
+As you can see the code looks different. 
+The way stuff is implemented is different.
+But it’s essentially the SAME FUNCTIONALITY.
+So, I believe, if you understand 
+Serenity Operating System INTERNALS,
+You WILL also understand Linux internals. Or 
+at least will understand them much quicker,
+because you already can imagine how 
+something could be implemented. And knowing
+“how something could be implemented” 
+is an extremely powerful skill when
+doing hacking or research. That’s why I always 
+recommend learning to program. Or reading code.
+So SerenityOS is not wasted time. SerenityOS is an 
+amazing learning resource and you can have so much
+fun playing and poking around the kernel sources. 
+And please NEVER think that a “toy project”
+is a waste of time. You can grow your skills 
+MASSIVELY being involved in something like this.
+And so what do we do now? We look into the 
+SerenityOS Kernel source code to understand
+better the exploit we looked 
+at in the previous video.
+So this hxp wisdom2 exploit from the original 
+challenge author, abused a race condition
+where an unprivileged process could actually 
+modify the code of a setuid binary in memory.
+But it’s a race condition, so 
+to have a successful exploit,
+this was only possible within a small window 
+of time just when the new process was loaded.
+To understand the root cause of the vulnerability,
+we have to look into the Kernel code of the 
+ptrace and execve syscall. Ptrace was used
+to write into the other process’s memory, and 
+execve was used to load the victim setuid binary.
+Okay, so you already saw a bit of the ptrace 
+code before. But let’s look at it again because
+last time the purpose was just to compare it to 
+Linux. NOW we read the code with the purpose to
+understand the vulnerability. So when you read 
+code, you might want to read it differently,
+depending on your goal. Sometimes you can ignore 
+parts if they are irrelevant to your goal.
+Anyway. when you start reading here, you might 
+find something very important near the start of
+this function, it checks if the target process 
+is a setuid process. And if that’s the case the
+syscall returns with an access error. This 
+is interesting because this looks safe! This
+looks like it should prevent anybody from using 
+ptrace to change the memory of a setuid binary.
+Mh!
+So I guess we should check the SECOND
+part, how does execve execute a setuid program?
+Because ptrace had it’s own file, maybe execve
+has too, so we can use GitHub’s “Go to File” 
+feature to search for execve. And we can find
+a execve.cpp file in Kernel/syscalls/. Cool!
+In there we can find a function that has a
+similar pattern like the ptrace syscall 
+function. Here is a sys$execve function.
+As I mentioned, I’m reading this code with the 
+purpose of understanding the vulnerability.
+So right now I’m just skimming over the code, 
+looking for any serious/important function call
+related to this. We seem to copy around a lot of 
+the parameters used for execve. But nothing more.
+and at the end we see a call to the function 
+exec(). Let’s follow that. Here it is!
+First we seem to open the program we try to 
+execute. And then we check if we try to exec
+a shell script with a shebang at the start, or 
+if we have an actual ELF binary. In the case
+of our exploit where we executed the setuid 
+binary passwd, we should be in here. And this
+seems to eventually call do_exec(). Follow that 
+as well. I’m still just skimming the code here,
+not really reading it. I’m kinda just looking 
+out for function calls that could be important
+or related to the vulnerability. And all of that 
+sounds uninteresting. Like, we don’t really care
+about the absolute path of the binary, or 
+the stack size, or if profiling was enabled.
+But eventually we can find here a function 
+load(). With this related error message “do_exec:
+Failed to load main program or interpreter”. 
+So this seems to load the binary to execute.
+And that sounds like one of the 
+important functions we DO care about.
+Mhmh…. Keep that load function in mind.
+If we skim more of the code, we see here
+that the effective uid and effective group id 
+is modified. Those variables are prefixed with
+m to indicate they are member variables of 
+the current process object - so the currently
+running process that called execve. And now here 
+we check that the new program is a setuid program,
+and we change the effective uid 
+accordingly. Setting it to root.
+And that’s it. Do you notice 
+the vulnerability here?
+If not, pause the video and think about 
+this code for a moment. 3,2,1. Ok.
+We loaded the new program into memory. And 
+then afterwards changed the effective uid of
+the process. Remember how PTRACE checks 
+if you are allowed to modify the memory
+of a process. It checks the effective uid 
+to prevent tracing of setuid binaries. But
+the new program was already loaded before 
+the euid was updated. So here is the race
+condition. If we can PTRACE and modify the 
+memory, write malicious shellcode into it,
+right after the setuid binary is loaded, but 
+BEFORE we update the euid, then it would work.
+Now that we identified a potential vulnerability,
+we can think about a strategy to exploit it. 
+And because it looks like race-condition,
+which means it might be unreliable as it has to 
+happen in this small window. We could try to find
+a way to increase the time window. So let’s go 
+hunting. Basically NOW you want to actually look
+at every single code line and function that is 
+executed in this window - and think about ways
+to make the code run slower. Typical targets 
+are of course things such as loops. If you can
+make a loop have more iterations, you will have 
+a larger time window. And look at this line here.
+unveiled_paths.clear(). Unveiled_paths is 
+also a member variable, so we can check the
+Process.h header file to figure out the type. 
+And it is a vector of UnveiledPaths objects.
+And Vector is a standard c++ class and so we can 
+lookup some information about the clear() method.
+And according to this C++ reference, the 
+complexity is linear to the size. So the amount
+of elements in that vector, or list. Complexity 
+refers to the time complexity. So the clear()
+function runs longer, the more elements are in 
+the list. Which means! We might have found a great
+candidate to slow down the race condition window.
+And do you remember the cliff-hanger from the last
+video? remember the tens of thousands of paths 
+that were unveiled by the exploit code. Now
+you know why. We wanted to make the size of this 
+vector super large, so that the code runs longer.
+Cool! Now we understood the 
+vulnerability. What could we do next?
+Should we try to find a similar vulnerability? 
+Maybe there is another race condition.
+And actually when I read over this code, I 
+noticed this here “kill_threads_except_self()”.
+As you know, when we call execve, to execute a 
+setuid binary, our process is of course running.
+So our threads are still running. And I thought. 
+WAIT! “Kill_threads_except_self”. If we kill all
+threads after we LOADED the binary, couldn’t we 
+create a similar exploit? Instead of using ptrace
+to overwrite the new loaded code, we just 
+write the memory from another thread running in
+parallel? I got super excited, I thought now I’m 
+also a cool hacker who can find a kernel exploit.
+But my joy was short… I eventually saw the code 
+right before the load, where it says: “Mark this
+thread as the current thread that does exec”.
+Crap….
+But on the other hand I wasn’t sure why this would 
+prevent other threads from running. I haven’t
+looked into the Scheduler code of SerenityOS, so I 
+don’t know why this should prevent it. So we have
+a choice now, how to deal with this uncertainty.
+First, we can just believe this comment,
+OR two, we can try to read the scheduler code, 
+OR THREE, we could do a small experiment.
+Because I’m not super good in reading and 
+understanding low level code like the scheduler,
+AND I wanted to believe I could find a 
+vulnerability, I decided to do an experiment.
+Let’s create a hax.cpp program for that, which I 
+place into the Userland folder. Here is a minimal
+main() method, simply printing a string. Btw I 
+have setup serenityOS development environment
+in a Ubuntu VM. To start Serenity and then run my 
+program, I simply call the ninja or make commands
+to build Serenity. And just a moment later a Qemu 
+window will open, booting Serenity, and give us a
+shell. And now we can execute hax.
+Cool!
+So. I want to figure out if a 
+thread can still be scheduled
+after the load() of the new binary. And we can 
+detect that, kind of the same way how the exploit
+did it. By simply writing a sentinel value to the 
+entry point, and then keep checking that value.
+So how do we create a thread? I don’t remember, 
+so I googled “C create thread”, I found a website
+which said the function is “pthread_create”, 
+which I hope Serenity also has. Because I like
+copy&pasting code I simply search the Serenity 
+sources for other Userland programs using it.
+And with that code inspiration, 
+I wrote my own test.
+Here it is. And please excuse my ugly code.
+First I fork into a child and parent. The child
+gets the process ID of the parent, attaches 
+to the parent, changes the entry address to
+a sentinel value. And then detaches again. 
+It’s just there to modify the entry point.
+The reason why I have to use Ptrace to change 
+that memory, instead of just writing it directly,
+is that the entry point is mapped READ and EXECUTE 
+only. And NOT writable. And I can’t call mprotect
+on this memory area to change the permissions 
+and make it writeable, because the mprotect
+syscall only works on memory ranges that were 
+previously mmapped. And not just loaded through
+the ELF loader. At least that’s how I understood 
+the code. Figuring this out was frustrating and
+took me hours reading more kernel code…. Urgh… 
+anyway… “KIDS! Read kernel code. It’s fun.”
+ANNNYWAY. The parent then creates a thread 
+and simply reads the value of the entry
+point in a loop. While the main thread of 
+the parent simply execve’s a setuid binary.
+Here is how it looks when executing.
+This is the original value at the
+entry point. Then we ptrace from the child 
+and change it to 0x41414141. And then we
+have the thread just reading that value 
+all the time and we exec in parallel.
+If my idea for an attack would work, and the 
+scheduler would still schedule this thread, then
+we might read the new loaded entry point again.
+And to artificially help my experiment, I added
+a few useless loops right into the kernel 
+code where I expected the race condition.
+Of course on a real target kernel this wouldn’t 
+be the case, but just to confirm that this
+race condition could work, we can do that.
+But no matter how often I execute this test.
+Even with an extreme slow-down from my 
+modified kernel It NEVER works. I did
+run into several Page Fault errors. Which 
+I can’t explain. But the experiment failed.
+Though I would still like to understand why 
+this line works, why this blocks threads from
+executing, and so I use a secret OPTION 4, the 
+cheat code, asking Andreas Kling the developer
+directly. WHY does the scheduler 
+not execute this thread anymore?!
+
+So the exec_tid is the thread ID of a thread 
+in the current process, that is attempting to
+perform an exec. And we use that to prevent any 
+other threads from the same process from getting
+scheduled from the kernel, while an exec is in 
+progress. Because if we were to schedule any other
+thread in this process, AFTER we have started 
+messing with the memory layout of this process,
+then that or the other thread will get very 
+very confused when its code is not where it
+supposed to be. So the mechanism is very simple. 
+When we enter into exec here, we simply assign
+the current thread id to m_exec_tid and then 
+the Scheduler, whenever it is picking which
+thread to schedule next, it checks if 
+the process of the candidate thread
+has an exec_tid set, then we will not 
+schedule any other thread in that process.
+EXCEPT, the exec_tid thread. So right 
+here you can see, we look through the
+list of threads that are candidates for 
+execution, and we skip over any threads
+that are not the exec_tid thread in a process, 
+that has an exec_tid. I hope that makes sense.
+Oh… ok this was pretty easy. To be honest, I was 
+kinda scared of reading the scheduler code myself.
+That sounded super complex to me. But I think 
+Andreas just showed again HOW readable serenityOS
+kernel code is. I’m a HUUUGE fan of reading 
+source code to understand systems better.
+But the Linux Kernel code can be very complicated. 
+Especially when you have never done it before.
+This c++ code and low-level cpu stuff is not easy 
+for beginners either, but easier than Linux. And
+learning and reading code is always a very slow 
+progression. So don’t be scared to read code,
+and don’t worry if you don’t understand it. 
+You can always come back to it in a few months,
+and maybe you learned enough to give it another 
+go. Nobody is learning this stuff over a weekend.
+Anyway, I thought that was interesting.

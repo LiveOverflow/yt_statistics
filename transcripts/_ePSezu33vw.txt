@@ -1,0 +1,333 @@
+In most of the other videos where we did technical
+stuff, I have been recording and playing on
+a ThinkPad with Linux that doesn’t have
+the best graphics card.
+So you had to endure this low FPS footage.
+After editing last video I realized…
+wait…
+I just developed a TCP network proxy, which
+means I can run the game on any of my machines
+and just have to make sure the traffic goes
+through my proxy…
+I’m an idiot!
+So now I can just change the game server IP
+on my windows gaming battlestation, to point
+to where the proxy is running.
+So enjoy these EPIC graphics for a bit!
+So like last episode I continued to look at
+a few more packets and implemented them.
+Nothing special.
+There is a sneaking toggle, weapon reload
+and a respawn packet when you die and click
+respawn.
+And when you now play the game there are very
+very few packets from the client to the server
+that we don’t know about.
+Pretty cool to see.
+Btw, one of the bears dropped me an AK47.
+Look at how cool that is.
+But one of the more interesting packets we
+haven’t looked at can be seen when we pick
+up drops from those bears.
+Like this blue one I forgot to pick up.
+Which btw turns out to be the Zero Cool magic
+spell.
+In our Let’s Play we got that drop from
+a boss spider in the Fire and Ice dungeon.
+And if you don’t understand this reference?
+Zero Cool - Mess with the best, die like the
+rest.
+Then please stop watching my video right now,
+and instead watch the movie Hackers.
+Anyway.
+We gun down a few more bears with the AK.
+And then we can collect a few more packet
+samples.
+Let me clean up the output really quick, and
+remove the obvious and already known position
+packet.
+So this seems to indicate an item pickup.
+One interesting and important observation
+is, that one of the drops gave us two items,
+but we still only saw one of these packets.
+Also the amount that we got of something doesn’t
+seem to be encoded in the packet either.
+AND we also got sniper ammo twice, and still
+the value is unique here.
+All this evidence combined let’s me believe,
+that this must be some kind of drop ID.
+And the packet is something like, pickup the
+drop with this ID.
+And so here I implemented a parser function
+for it.
+And then we can test it.
+Let’s hunt some bears!
+And there are two more observations that we
+can make with this now.
+First, the ID seems to be predictable and
+incremental.
+And the second one is, which is actually something
+I wanted to try and that is sending the same
+packet multiple times.
+I don’t know what happened, I assume it’s
+a small bug of the client and some kind of
+hiccup, that it sent it multiple times, but
+it definitely didn’t result in us getting
+the same item a few times.
+I wanted to try that because I was wondering
+if we can duplicate item drops that way.
+But clearly the server doesn’t allow that
+and the drop can only be picked up once.
+However I wonder about another thing, but
+for that we need a new feature of our proxy.
+I want to be able to inject packets into the
+communication.
+We can use the little command loop we have
+written here for that.
+So far we only have a quit command, but now
+I want to add a send to server and send to
+client command.
+To do that I define two commands that start
+either with S or C, indicating where I want
+to send it.
+Then I have to look for a gameserver that
+is connected.
+To do that I add another attribute into the
+proxy class that we can set to true when we
+have a connection.
+This allows us to loop over all game servers
+and see which one has a client connected to
+it.
+And then we just, based on which direction
+we want, have to get the reference to the
+socket, on which we can then call sendall.
+Now over the network we want to send raw bytes,
+but our command line input has to be text.
+So I think we can just make sure we enter
+hex data and that is then decoded into raw
+bytes and send to either the client or server.
+I also make a small modification in the parser
+so we can get the whole packet that was sent.
+So let’s head ingame and shoot a fireball.
+This is the packet we sent, you know how the
+packet is structured from last video.
+But now with our new feature we can simply
+say, we want to send a packet to the server
+with capital S, followed by this hex encoded
+data.
+And BOOM!
+We just told the server to create a fireball!
+Amazing, right?
+Now let’s play with the item drops, we know
+it’s easy to guess once we have a valid
+ID.
+So let’s kill some bears until we get a
+drop, now we just have to collect it and look
+at the ID.
+Cool!
+So now we just have to make sure we have a
+few more drops laying around and then we just
+try some other Item IDs in that range and
+maybe we get lucky and get the correct item
+ID.
+LOOK!
+We just picked that up by faking a packet
+and didn’t have to walk to it.
+We could create an auto loot feature if we
+could figure out the ids of items.
+Our client has to know somehow, right?
+Well so far we have only looked at packets
+from the client to the server.
+And from what we have seen it’s actually
+fairly simple what the client does.
+A lot of the actions like which items we pickup,
+if we killed something and so forth is all
+calculated on the server.
+We just say we want to pickup that drop, but
+not “we want 6 sniper bullets”.
+So the protocol is not designed too badly,
+it doesn’t trust every fake info by the
+client.
+Except of course the position which we used
+to fly and teleport around.
+So I think it’s time to look at some server
+packets.
+For that we have to remove the filter to exclude
+server packets.
+And we get flooded with a lot more info.
+Infact I noticed that when I walk here a few
+steps back and forth, that here I only get
+zeroes, nothing, and here, where I’m closer
+to the forest with the bears, then I get a
+lot of data.
+Which goes away when walking back again.
+So first of all we have a small 00 empty packet,
+which we can add the parser.
+But then what’s up with this data.
+I assume what we witnessed here is a boundary
+between zones.
+And this is the zone with the bears, and this
+one doesn’t have monsters.
+So the server only sends us the monster information
+if we are close.
+And doesn’t when we are further away.
+Saves traffic and also local computation on
+the client to handle these actors in the world.
+But in anyway, we can copy a few example of
+these packets and quickly analyse it.
+Of course the first two bytes is the packet
+ID again and we can quickly see that it appears
+multiple times in there.
+And if we align them below eachother nicely,
+we can also super easily see the format.
+Packet ID, some kind of other ID, maybe monster
+ID, and then this part here.
+which was changing all the time when we saw
+the data in realtime printed by the proxy,
+It’s probably also position data.
+So the XYZ position of the monster.
+And then we have some other values that I
+have no idea what they are for.
+But whatever, let’s implement the parser
+for what we got.
+And that’s super simple, we extract the
+ID as an integer, XYZ as float, and then for
+the remaining data we also unpack it as integer
+for now.
+And then we print it.
+And when we now go into that area, we see
+a super awesome output of the actors in the
+area.
+So if my assumption that these are the bears
+in this area is correct, we should be able
+to kill one, and that should remove an entry
+here.
+So BOOM!
+And quickly have a look and compare before
+and after.
+And yes!
+There is one entry missing.
+Awesome!
+But does this list also contain item drops,
+because the ID looks fairly similar.
+Let’s pick up one item and look for that
+item ID in our output.
+So it looks like the ID of the item drop is
+in kind of the same unique ID system as these
+monsters, it would fit in here, but it’s
+not there.
+So this is really just monster data.
+Mhmh… so where do we get the item drops.
+I remove the output of the monster position
+again, because it’s very spammy, this way
+we can more easily catch new packets.
+One unique packet I noticed was arriving right
+when we join a game.
+So let’s look at that one, it’s quite
+big.
+Again we can split and arrange the data based
+on the first packet ID, and so there were
+obviously a lot of them that look very similar.
+And it looks kinda similar to the shooting
+a weapon packet.
+As there are ascii characters and so I guess,
+here the length.
+You can again look for similarities and lign
+it up, and it becomes very clear.
+What this data back here means, I don’t
+know yet, but let’s explore what kind of
+names there are and start implementing the
+parser.
+So I guess this is another ID, as it was incremental,
+and again a length, some text, probably a
+name of some sorts, and then at the end a
+bit more stuff.
+So let’s check it out, we relog into the
+game, and LOOK AT THAT.
+It contains initial actor information.
+The bush from the spawn, some NPCs, but also
+the Golden Eggs!
+So if this is actor information, I’m wondering,
+is the other data behind maybe again position
+data?
+So let’s parse that as floats and print
+it too.
+Relog again into the game, and here we go.
+Awesome!
+Look!
+This is the real position of the eggs.
+I recognise this one because I was using it
+as the example when we reverse engineered
+the setup in the disassembly.
+Which is sooo awesome, because this is a third
+option on how we could have gotten the position
+of the eggs and solve it!
+First we did it through dynamic analysis by
+accessing the objects in memory with LD_PRELOAD
+and hooking stuff, then we found it with static
+analysis where they setup the eggs and use
+hardcoded position values, and now we have
+a third path through network traffic analysis.
+I think that’s really awesome that there
+are so many ways how you could have solved
+it.
+At least part of it.
+For the ballmer's egg you would have had to
+reverse engineer some of the code, probably.
+Let’s see if the same packet is also used
+when a dead monster drops items.
+Let’s find a bear, kill it.
+And there we go!
+WhiteDrop!
+And here we get the ID of the white drop.
+Let’s implement auto looting with that,
+we just have to send the pickup packet with
+the item id.
+But to do that we have to do some modification
+of our proxy and parser for that, because
+we don’t have a reference to the socket
+in the parser to just write, send this pickup
+packet now.
+And I actually did that first, I added a SERVER
+and CLIENT variable, that I set from the proxy
+with the socket reference, and then I could
+send out that packet from inside the parser,
+but that just broke everything.
+The socket didn’t like it to be called from
+different threads and it always broke.
+So what I did instead was I created a QUEUE,
+where I can add packets I want to send out
+either to the server or game client.
+And then in the proxy thread that handles
+that specific socket sending direction I check
+if there are items in that queue, and if so,
+I pop one off and send it out.
+It’s not perfect, I used a regular list
+and not a thread safe queue, and also didn’t
+loop over the queue to send out multiple items
+AND it only does it after it received a packet
+before.
+But whatever, I just wanna get it to work.
+So now, theoretically when a drop is detected,
+the pickup packet is placed in the queue and
+then shortly also sent to the server.
+So let’s try that.
+We head into the game, and shoot some bears.
+And look!
+We automatically pickup the drops.
+Even from bears super far away.
+That’s awesome for farming items.
+And HOLY SH--HAND GRENADE!
+What is that?
+I wanna throw it at some bears.
+BOOM!
+This is amazing!
+Apaprently it was a purple drop, that must
+be super rare.
+So this is a Holy Hand Grenade, a Legendary
+Grenade and does 300 damage.
+And it has a 10s cooldown.
+Blow thine enemies to tiny bits.
+Thy foe, who being naughty in My sight, shall
+snuff it!
+What an epic end to an episode.

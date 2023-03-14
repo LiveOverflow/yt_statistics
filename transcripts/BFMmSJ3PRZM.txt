@@ -1,0 +1,621 @@
+ally. I have been coding throughout my 
+teenage years, and even in 2009 in high school
+I had a class assignments about databases, 
+and I explained SQL injections. So I had
+prior IT experience. But I was still aiming 
+to do regular computer science and become a
+developer. But this all changed in 2012 with 
+the discovery of my first CTF. The Stripe CTF.
+So I thought to celebrate my 10 year anniversary, 
+and actually my 7 years on YouTube anniversary
+as well, by looking back at this CTF.
+Also if you are a student, watch until the end
+please or use the chapter markers to jump forward, 
+I’m going to tell you a bit more about the cyber
+security challenge germany. like the Stripe-CTF 
+was my introduction into the world of hacking,
+maybe CSCG can be the same thing for you. 
+Anyway. Let’s look at this 10 year old CTF.
+
+If I remember correctly, and my memory will 
+be very fuzzy because it’s from 10 years ago,
+I stumbled over the CTF through news 
+from ycombinator. Searching for the
+domain submissions we can find the “Hack your 
+way through Stripe’s capture the flag. 10
+years ago. I believe this is the post 
+I saw. And thanks to the web archive
+we can even look at the original blog post 
+from then. On the 22. February they wrote:
+“The hardest part of writing secure code 
+is learning to think like an attacker.
+We built the Stripe CTF a security wargame 
+inspired by io smashthestack to help the community
+as well as our team practice identifying 
+and exploiting common security problems.
+After completing our CTF you should 
+have a greatly improved understanding
+of how attackers will try to break your code, 
+and hopefully will have fun in the process.
+And we were given a ssh login 
+to level01 with a password.
+You have to imagine, around this time I kinda just 
+learned how to use ssh. So the fact that I could
+ssh into this server and learn hacking was mind 
+blowing. And of course they reference here also
+io.smasthestack, which was a wargame I started 
+playing afterwards. The domain is dead now,
+but it moved over to io netgarage. If you 
+look for a pretty hard and historical wargame,
+definetly check it out.
+Anyway.
+Looking a bit further I also found the ctf wrap 
+up blog post a month later in march. Here they
+mentioned that 250 people solved all levels 
+and they got a t-shirt. And I was one of them.
+In my t-shirt video series I also showed you this 
+t-shirt, I leave the link to that playlist and the
+video in the description. This t-shirt meant 
+so much for me, more in that video. Anyway.
+The wrap up blogpost also had a link to the 
+Stripe CTF disk image to host the CTF yourself.
+And oh my god, I love the web archive. The huge 
+image file was archived and I could download it.
+On stackexchange I found how to convert this 
+raw disk image to a virtualdisk for virtualbox.
+And then I created a new VM selecting the new 
+stripe vdi image. I also configured a host
+network adapter so I can ssh into it. But first 
+we can login to the ctf user with the password
+ctf and then follow the instructions. We have 
+to run a few commands to setup everything. For
+example here the users and passwords of the 
+individual levels. Then I configure the host
+network adapter by setting a valid IP in 
+this vboxnetwork. Also I created an entry
+in my machines /etc/hosts, so I can use the 
+ctf.stri.pe domain to connect to my local VM.
+And then we can get going. 
+ssh level01@ctf.stri.pe.
+Welcome to Stripe CTF. In the home folder of 
+the level02 user, we can find the password
+for level02. But our level01 user doesn’t have 
+access to it. We somehow need to exploit the
+level01 program, which gives us access to level02.
+As I said in the beginning, I played this 10 years
+ago, so my memory is fuzzy and I probably have 
+a lot of false memories. So take anything with a
+grain of salt. But I believe this was the first 
+time I really learned about linux privileges,
+specifically around setuid - that the program 
+level01 is running with the privileges of level02.
+So exploiting it gives us access to 
+level02. Knowing that also explains
+local privilege exploits that exploit a 
+root setuid binary. That’s for example
+what we did in the sudo exploit series.
+Anyway. Enter your handle and then let’s go.
+Here is the source code of level01. And you can 
+see it executes the date command using system.
+For me, 10 years later of course 
+I know the solution right away.
+But back then it taught me a lot. How is the 
+date program executed when you type date.
+The location of the program is actually 
+in /bin/. And so with that challenge
+you can learn that the shell uses the PATH 
+environment variable to search for the program.
+/bin is one of those locations it looks for. 
+And environment variables are controlled by you.
+So for example deleting the configured paths means 
+the shell cannot find the date program at all.
+Now you would have to directly 
+execute it with the full path.
+But now we know how to easily exploit level01. 
+Just create a shell script that prints the
+password of level02, if executed with level02 
+permissions. And then setting the PATH to the
+current directory and executing level01, it 
+will happily execute our local date script.
+Printing the password. And we can 
+move on to ssh level02@ctf.stri.pe.
+Password for level03 is in the home directory of 
+level03, so we need to exploit level02 to get it.
+And this time it turns out to be a web 
+challenge. Back then, 10 years ago,
+I already had php development experience. So 
+probably this challenge was a lot easier for
+me. Reading and understanding this code was not 
+that difficult. And even today, my professional
+experience is mostly web hacking, so this 
+should be a breeze as well. When visiting the
+site in the browser we have to enter our level02 
+credentials and then we get access to the site.
+Here is the php code and quickly scanning 
+over it, immediately my attention is drawn
+to the file_get_contents function call. Opening 
+and reading files is always a critical sink.
+And we see the file path is controlled by the 
+user_details cookie, and the content of the
+file is just printed to the site. Exploiting 
+this is easy. Here is the website again,
+we can enter some stuff, But we are interested 
+in the cookies. So I open up the developer tools,
+go to the application cookies tab, and here is the 
+user_details cookie. Now we can change the value,
+so the file name. And we do a path traversal 
+to the password of level03. Now refreshing
+the site, and indeed. The site is printing the 
+Password. Awesome. We can move on to level03.
+Level03 is where it actually got really 
+interesting for me. This is basically a binary
+exploitation challenge. This was probably the 
+one that really hooked me. Nowadays this is super
+simple for me. Here is the main function() and the 
+first argument to the program is turned into an
+integer. The integer must not be greater than the 
+number of available functions, because it selects
+here a function from this functions array. 
+In truncate_and_call it then uses the index,
+selecting the function and calling it. While 
+the check in main prevents us accessing memory
+after the array, index cannot be 
+greater than the amount of functions,
+the index is still an integer. And integers can be 
+negative. So we can supply a negative number and
+access data out of bounds. The question is now 
+what value do we select, what would be useful?
+The program code shows a run function, 
+which is calling system. So if we could
+call this function that would be perfect.
+It should be very easy for me. I open up gdb,
+disassemble the truncate_and_call function and set 
+a breakpoint right where it calls the function.
+And then we can run the program with 
+a negative integer -3 and the string
+“liveoverflow”. But doesn’t really matter.
+We hit the breakpoint, so let’s examine the
+variables. Fns, functions is our array. 
+And you can see the first element is the
+to_upper function. The second is, to_lower, the 
+third is capitalize and the fourth is length.
+But now let’s look into the negative direction. 
+Accessing the array out of bounds -1,
+we access some symbol called __libc_csu_init. 
+And we can keep going looking at values in the
+negative direction until we find something useful. 
+And it takes a bit, but around -26 to -28 we can
+find some ascii looking characters. If you want 
+to know how I recognize this to be readable text,
+checkout my “ey look for patterns video”. So 
+yeah, this is text, and quickly converting the
+hex values shows that it’s the string I used as 
+the second argument. I used “liveoverflow”. The
+endianess obviously shows it in reverse, so I’m an 
+evil wolf now, shoutout to all my furry followers.
+But this means we can exactly control the 
+address of a function we want to call.
+We would want to call run, so the value is 
+0x8084875b, and we can use python to convert
+this to a string. We also know this run function 
+would be called with our string. So a malicious
+command would have to start with some valid 
+code. For example cat the level04 password. But
+afterwards we can then place the address of run. 
+I’m using hexdump to verify the bytes are correct,
+and that the address is 4bytes aligned. Which 
+it is. Perfectly aligned, no spilling over.
+So now we just have to hit the address 
+with the negative index and it should work.
+It should be around -26, so I just blindly 
+try out values. After a few attempts,
+-21. There we go. We printed the level04 password.
+It’s really great for me to see how quickly I can
+solve something like this. I have a pretty good 
+mental model of the memory and how C and assembly
+works, so I can cut corners without having to 
+do extensive debugging. 10 years ago this was
+VERY different. Back then I had some assembly 
+and C experience from school, but of course
+not in this kind of gdb reverse engineering and 
+exploitation way. And TBH I’m a bit surprised that
+I was able to solve that bacl then. This is really 
+hard and difficult I think. Especially information
+back then was very sparse. Very very few writeups 
+of challenges like this existed. But I’m sure I
+must have found a few and somehow, maybe also with 
+help from others and asking questions, I ended up
+solving it. And even though I do not remember 
+the exact details, I know the feeling of having
+solved a binary exploitation challenge for the 
+first time. It’s absolutely like magic. it’s no
+wonder that solving this hooked me.
+Anyway. On to level 04.
+This is where things got even more 
+crazy. This is a very small program,
+with a very clear buffer overflow. A string copy 
+into a 1024 bytes small array. Overflowing it you
+can smash the stack. So this was probably 
+my first ever buffer overflow challenge.
+Hard back then, should be straight 
+forward now. I started by firing up gdb,
+set a breakpoint at the return in the fun 
+function() and started the program with a
+very long string. This way we can quickly find 
+the offset to the return pointer on the stack.
+Hitting the breakpoint, printing the address of 
+system. That’s the function I would like to call.
+Then continue and we crash in 0x33766672. Clearly 
+ascii characters again. Decoding it is rfv3. So we
+can look for those characters in the long string. 
+This means these characters here overwrite the
+return pointer. So we can control here where the 
+program will execute code next. I want to call
+into system, so I string encode the binary address 
+of system and add it at the end. Let’s try it.
+Oh… segmentation fault. This is when I 
+realized, maybe I should have checked
+what kind of mitigations are enabled. I 
+kinda assumed: “this is an old challenge,
+there is probably no ASLR”, but turns out 
+there is ASLR, so randomized address spaces,
+for the stack and loaded libraries like libc. 
+So system is always at a random address.
+Bypassing ASLR means we either do a partial 
+overwrite of the return address, bruteforce
+the address of system, in the case of the 32bit 
+system here that’s totally possible, or find some
+useful ROP gadgets. And looking at the objdump 
+disassembly we can find a call to a register.
+Looking at the value of the register at the point 
+of the return, we can see that eax points to
+0xffbf, which seems to be an address in the stack. 
+So let’s look at the stack, and I had a total
+brainfart. I forgot how to print values in gdb. 
+Anyway. The string is “ad”, which was, in this
+case,my input string. So actually with this call 
+eax gadget we can jump into the stack where our
+string is located. As a first test we can replace 
+the first few bytes with 0xCC, which is the
+assembly opcode for a breakpoint. If we actually 
+manage to execute that, we would see that. This is
+a useful tip I shared in some shellcocde debugging 
+video a while ago, you can also find it in the
+description. And indeed, we hit the breakpoint. 
+Awesome. This means the stack is executable,
+and we can lookup some oldschool 32bit linux 
+shellcode from shellstorm. This looks like a good
+execve shellcode. using python we can assemble the 
+whole exploit string. We start with the shellcode,
+and then append As until we reach the offset where 
+we place our call eax gadget. Copy this all over,
+and calling level04 with it. There we go. 
+We are level5 and we can print the password.
+Again, I do not remember a lot of details from 
+10 years ago. But do wonder if this level was
+easier for me than the previous one. Because this 
+level04 kinda follows the most basic scheme of
+buffer overflow exploitation. There is a bit of a 
+twist with the single gadget I used to break ASLR,
+but overall it feels very straight forward and 
+you can kinda follow a generic step by step buffer
+overflow tutorial. I feel like level03 really 
+required a lot more in-depth understanding of how
+arrays and memory and stuff works. Anyway.
+Onto level 05.
+This turns out to be kinda another web challenge. 
+The Code is in python and it implements a system
+with a queue, jobs and workers. So when 
+you send a request it creates a task,
+puts a job in a queue, a worker then takes this 
+job performs the actions and returns the results.
+I totally forgot that this was a challenge in 
+the stripe-ctf and so I was really surprised
+to see this. The solution is immediately obvious 
+for me again, Immediately noticed python.pickle.
+Unpickling untrusted data can lead to arbitrary 
+code execution. So we just have to figure out
+how to get our own data into there. Looking where 
+the data is coming from we see it’s extracted with
+a regex from a string with type, data and job. 
+And here is the code how this string is created,
+and we can see the attacker controls the 
+user data before the pickled job data.
+This means we should be able 
+to inject a malicious job.
+Next we can create a basic pickle exploit, I took 
+one from some random blog post and adjusted it to
+copy the password into the temp directory. And 
+then I construct malicious data that injects
+that malicious job into the queue. We can send the 
+job with curl to the service, the job timed out.
+But when checking the temp file we can see we 
+got the password. Our exploit was successful.
+I know I rushed over this a bit. But we 
+have to cover quite a few challenges,
+and I think it’s more interesting 
+for me to reflect on this challenge,
+rather than providing a detailed walkthrough. 
+You can find all of the writeups online anyway.
+I mentioned that this challenge surprised me 
+and I wanted to tell you why. This challenge
+introduced an architecture concept that is very 
+very commonly used. Jobs, workers and queues. Any
+bigger web application uses that in some way. And 
+it’s actually kinda common that you use some data
+deserialization to share more complex objects and 
+states between the application and the workers.
+And maybe you remember the gitlab exploit video. 
+Or generally other gitlab vulnerabilities. Many
+of the critical ones escalate to a remote 
+code execution by injecting a malicious
+job into a worker queue where deserialization 
+happens. Triggering arbitrary code execution.
+I do not remember where I learned about these 
+kind of attacks, but now seeing this challenge,
+damn, I think I learned it from the stripe-ctf. 
+Right at the start of my hacking adventures. I
+think a challenge like this, spending countless 
+of hours understanding and debuggin and in the end
+solving it, planted the seed in my mind for 
+understanding these very creative and kinda of
+chained attack ideas. And you know how much I 
+like to tell you that CTFs are not unrealistic.
+This challenge was a made-up example, but 
+absolutely derived from reality. And I believe
+gaining this experience 10 years ago, I was able 
+to understand the more complex exploits that came
+in future. Like the gitlab one.
+It’s mind blowing to me.
+So let’s see what awaits us 
+in the last level. Level06.
+Out of all of the challenges so far, this one 
+actually took me the longest to solve again.
+For all the previous ones it took me maybe 
+on average 15-30minutes. Level06 actually
+cost me a few hours. But not because I 
+didn’t know how to solve it. it was about
+implementing the attack and it just didn’t work 
+at first. Anyway, what is this challenge about.
+The level06 program is interesting. 
+You give it a path to a file and a
+test string. It then reads the content of 
+the file and compares your input against it.
+If it’s correct it will tell you. But if any 
+character is different, it will tell you “fail”.
+So in theory, you could pass in the file 
+for the final flag, with the flag string,
+and it will compare your input to the real 
+flag. but you will only know if it’s correct,
+if you entered the complete correct flag.
+With my 10 years of experience it’s very easy
+to notice potential flaws how it can be attacked. 
+The flag and your input is compared character by
+character. For each character it checks it prints 
+a dot, and if you encounter a wrong character,
+it calls taunt. And taunt prints an error. 
+Theoretically if everything works synchronously
+it would be easy. let’s say you entered a correct 
+character, then the first dot would appear, then
+it checks the second character, the dot appears, 
+and right afterwards comes the error message.
+So in theory there is an oracle, a source of 
+information how many characters were correc. How
+many dots are there before the error message. And 
+with that you could bruteforce the flag character
+by character. 10 Years later I figured this out 
+quickly, BUT the actual implementation is a bit
+more tricky. Because the taunt message is printed 
+by forking, so executing a new process. So this
+runs basically in parallel. This means it’s a lot 
+harder to leak the amount of correct characters,
+but of course there are still timing attacks 
+possible. As soon as there is just one small
+difference in the time of execution between a 
+correct and incorrect character, it’s attackable.
+Especially in local environments like this. I 
+don’t want to go over of all the different failed
+attempts of mine, measuring this difference. I can 
+tell you honestly I gave up quickly. And decided
+to look for writeups from other people. And 
+one writeup I stumbled over peaked my interest.
+Here the bruteforce was done by abusing a limited 
+buffer size, which gives you information about the
+correct and incorrect character WITHOUT measuring 
+any timings. And I thought that is pretty clever
+and I wanted to implement that myself.
+Before we do that just a few more thoughts
+I wanted to share. It’s always difficult 
+to balance how much time do you put into
+solving a challenge yourself, and when 
+do you look at solutions if available.
+Somewhere there is a perfect balance where 
+learning is the most efficient. But it has to be
+balance. If you only read writeups, you can read 
+a lot in a short time, and some information and
+ideas will stick, but you also lack any practical 
+experience. In contrast, ONLY doing CTF challenges
+blindly, gives you a massive amount of practical 
+experience. Besides the actual solution path,
+along the way you learn so much more through dead 
+ends and small problems you constantly run into.
+It’s very very valuable, but also very very time 
+consuming. For me I feel my balance is somewhere
+in the direction of mostly solving CTFs, but you 
+see I’m not all the way over there. Sometimes it’s
+totally okay for me to just read writeups. So what 
+I do depends on how I feel, how much fun I would
+have, but also I think about if it really helps 
+me much. That’s why I do not like to play the
+same boring steganography CTF challenges. I did 
+it once. Let me move on please. And in this case
+I have implemented tons of timing attacks over the 
+years, so my excitement wasn’t particularly high
+to struggle so much for this stupid challenge 
+I apparently already solved 10 years ago.
+But looking at writeups from other people is still 
+interesting, and maybe I notice my mistake, why
+did I struggle so much now. But then I stumbled 
+over this very interesting technique abusing
+blocked IOs from the limited buffer sizes, and 
+I don’t think I ever implemented such an attack.
+And this is where it hooked me. I felt like 
+here is another learning opportunity for me.
+From my past experiences I immediately have an 
+idea how it works. Blocked IOs due to full buffers
+is kind of basic linux knowledge. But actually 
+implementing that I thought is good practice.
+So I decided to try to solve it with that. As you 
+can see, I read the writeup just for the idea.
+NOW I want the practical experience of actually 
+figuring out and implementing the attack myself.
+Here is my first setup. I have a function 
+where I pass in a flag and I call the level06
+binary with my flag attempt. And here is the 
+buffer trick. Instead of using the basic IO
+pipes provided by python subprocess, like I 
+use for the standard output. I create a new
+os.pipe. A pipe has a read and write side. And 
+I set it here for the standard error output.
+So the level06 process will write anything 
+going to standarerror into this pipe. So
+whenever we encounter a wrong character, and 
+print a dot, it attempts to write it into this
+pipe. Anyway. First I wanted to know how 
+larger the pipe buffer is. With this for
+loop I just keep writing a single character 
+into the pipe and print the iteration number.
+when we run it it keeps writing As, and suddenly 
+it stops. The IO is blocked. The process cannot
+write another A to the pipe, because the pipe 
+is full. And now we know the size of the buffer.
+Do you see where this is going? If the buffer is 
+full, and the leve06 binary tries to write a dot,
+it would freeze. So we can perfectly control 
+when we want to freeze the target process.
+If for example we want to check if 
+the first character guess is correct,
+we leave space for a single character in 
+the buffer. So letting it print a single dot
+works. So was the character correct or false? 
+If the character is correct it will go into the
+next loop, and then it blocks. We cannot 
+print another dot for the next character.
+So that was it. Program stalled. But if 
+it was incorrect, the code executes taunt,
+and taunt will simply print to standardout. Which 
+is not blocked. That pipe is just free to print.
+And now we have a perfect oracle. If we 
+enter a test character, and the program
+prints the taunt message to standard out, 
+we know the character was wrong. But if it
+does NOT print this taunt, we know it tried 
+to print the dot for the second character
+but the IO blocked and froze the process.
+Now the question is, how to get the information
+if the taunt message was printed or not.
+We can get this information for example
+with select. Select is a syscall that 
+can check if a buffer contains data
+ready to be read. So calling select we can see 
+if we have data available on standard out AND
+standard error, or only standarderror. This way 
+we can detect if the taunt message was printed.
+Now we can write a bruteforce loop. We need 
+a bit of math. For example the buffer size
+has to account for the welcome message printed. 
+That should not block yet, and depending on the
+amount of correctly guessed characters we also 
+want to make space for the dots in the buffer.
+But yeah, now we can run it. And it will 
+slowly bruteforce the flag for us. Here it
+is. The flag followed by random characters. 
+we can take it and log in to the-flag user.
+Amazing.
+Looking back at this 10 years later,
+I’m actually impressed by the quality and 
+difficulty of these challenges. I think they
+totally hold up to todays standard and are still 
+worth playing. It’s crazy how technology changed
+a lot in the past 10 years. And I always say that 
+it’s very hard to stay up-to-date in IT security.
+But also this CTF showed me that there are also 
+tons of concepts that are still applicable today.
+Maybe it’s not php anymore. Maybe it’s not 
+python pickle anymore. Shellcode on the stack
+doesn’t work anymore. But path traversals in file 
+uploads still happen, exploiting deserialization
+is still happening, out of bounds array accesses 
+happen in browser exploitation all the time,
+timing attacks on data is still done in caching 
+attacks against CPUs or embedded devices. it’s
+awesome for me to think about, that I learned all 
+of that through playing CTFs the past 10 years.
+And sure, stripe ctf was a marketing advertisement 
+thing for stripe, but I feel very grateful that
+these engineers invested the time building 
+these very thoughtout and timeless challenges,
+and that it was the spark necessary to lighten 
+my fire. it allowed me to be where I am today.
+So around Feberuray/March 2022 is my 10 years 
+of CTFs anniversary. It’s also my 7 years of
+LiveOverflow YouTube channel anniversary. Really 
+crazy to think back at the amount of videos I have
+released since I started. I’m very proud of that. 
+I’m not much into celebrating arbitrary dates.
+I never celebrate my birthday, anniversaries are 
+dumb, but to be honest, yeah I do feel something
+about this combined 10 and 7 year anniversary.
+As I mentioned in the beginning, right now the
+cyber security challenge germany is happening. As 
+a student 10 years ago I discovered the stripe CTF
+and it helped me to get where I am today, and 
+maybe the CSCG ctf could be your start today.
+On cscg.live you can find the three different 
+categories. Juniors, for german younger students,
+seniors for german university students, and 
+earth, for any other human on earth. Not Mars,
+though. We strictly limit the CTF to creatures 
+from earth, and we are very serious about it. Btw,
+I say “we”, because I’m a member of the non-profit 
+organisation NFITS which is organizing this CTF.
+CSCG is the qualification round for the german 
+team going against the other european teams.
+So the CTF is of course open for anybody to play, 
+but german students can qualify for the german
+team to participate in the european finals. If 
+you are from a different european country check
+on https://ecsc.eu/ how your country handles the 
+qualifications. But of course we would be happy
+if you still play our CTF in the earth category. 
+There is also a CSCG discord to find like-minded
+people to learn hacking together. But please NO 
+spoilers or direct questions about the challenges
+on discord or anywhere else please. It’s a 
+competition! When the CTF is over then you can
+openly talk about it. So if you are a student, 
+or you know other students. Maybe you are a
+teacher at a school, please help us spread 
+the word about it. We highly appreciate it.
+Also if you have too much money because you work 
+in IT, or your work at a company, maybe consider a
+donation to our non-profit org NFITS, you can find 
+the donation details on our site. The money flows
+very efficiently and directly into supporting 
+young IT security talents through the organization
+of for example the Cyber security challenge 
+germany. With your help we can afford for example
+better prizes and fund the trip for the students 
+to the finals competition. Anyway, checkout
+cscg.live. And thanks again for being here with 
+me, for sticking with me over all these years.
+I especially want to say thank you to all 
+the patreons and youtube members who have
+been offsetting some of the cost for running 
+this channel. And I want use this opportunity
+to apologize in advance to my patreons and 
+members for my upcoming video series. I kinda
+expect my regular viewers to not like what’s 
+coming. But luckily YouTube is not my main job,
+so my patreons cannot hold me hostage and I’m free 
+to do whatever I want. And I want to go mining.

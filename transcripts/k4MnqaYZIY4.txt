@@ -1,0 +1,124 @@
+StereoBucket, on twitter, sent me a private
+message about an easter egg he found in the
+VLC player.
+After a video is finished VLC shows the VLC
+logo.
+But when he watched the Kill Bill movie, after
+the film ended, it showed this.
+A little Kill Bill easter egg.
+It made his day.
+But it also made him wonder about the implementation.
+He quickly figured out that it works with
+any video that has “kill bill” in the
+title, so that is a very good information
+to narrow down how it could be implemented.
+But let’s quickly reproduce it.
+So here is a regular video that we can open
+in VLC and when we reach the end, we will
+get the logo.
+That’s the normal logo.
+Now simply changing the filename as I do here,
+doesn’t work.
+It’s still the old logo.
+But if we go into the file properties and
+edit the metadata Title, and then open it,
+go to the end, then we reproduce the easter
+egg.
+Over my own career in programming and IT I
+used to never look at source code of things.
+I was scared, or maybe just intimidated by
+it?
+I never looked into the sources of frameworks
+I used, or even programs I used.
+Nowadays I do that quite frequently, because
+a lot of basic stackoverflow questions can
+be avoided if you just read the source code.
+So I thought maybe I can help you to lose
+some of the fear by showing you a great example.
+Let’s start by looking for the VLC source
+code.
+I’m not sure if I’m just dumb, but I think
+the the source code is way too much hidden
+here.
+Come on, it’s an open source project, be
+more proud of your code!
+Anyway.
+Here is the repository link.
+So StereoBucket obviously tried to search
+for Kill Bill in the VLC source code, but
+wasn’t successful.
+I tried to look into memory when vlc is running
+and still no luck.
+I’m currently trying to find mentions in
+the source code, but they either hit it well
+or I’m just bad at this.
+Nah you are not bad, it’s of course not
+easy to quickly head into a large code base
+and find exactly what you are looking for,
+especially if it’s an easter egg that that
+they maybe tried to hide..
+I wanted to see if there’s perhaps more
+easter eggs of this kind, or at least find
+how they hid it.
+That’s a really cool project.
+So I quickly use the GitHub tool to clone
+the repository, which takes a bit, it’s
+quite large and I have here Visual Studio
+where I open the cloned folder.
+And as you can see, if we search for kill
+bill we don’t anything.
+Unfortunately I didn’t find the time to
+look myself, but a bit later StereoBucket
+came back to me and found it!
+Here is how he described his approach:
+I stopped being dumb and looked for the image
+that was used.
+See, that’s a clever approach.
+The goal is to find the easter egg, and sure
+searching for kill bill is one way, but you
+could also look for the image instead.
+And yeas, we find the filename referenced
+here.
+Then I just traced the name of the image to
+an alias and that alias to the file where
+it's mentioned.
+And we do the same, follow that alias here,
+leads us to this here.
+And that’s it.
+Initially i just tried looking for any mentions
+of kill bill, or kill, or bill.
+Which doesn't work since as you can see, they
+split the string with comments.
+I know, it’s like super simple, right?
+But this doesn’t mean me or everybody else
+will do that right away.
+It also took StereoBucket quite a bit.
+And I think that’s just such a great example
+of how the mind slowly finds the right approach.
+I went as far as compiling vlc myself to see
+if it's going to appear then, and then it
+hit me, if it's going to appear, obviously
+the file is in one of the folders in the source.
+Cool…
+I really like that.
+And he also adds,
+Sadly this confirms that there aren't any
+other easteregg cones :\
+I guess there aren’t, except of course the
+christmas one, but if I remember correctly,
+that always appears around christmas.
+Nothing hidden.
+Now he also tweeted his finding.
+I've found the code responsible.
+The VideoLan devs split the string, making
+it harder to find with naive search attempts
+I tried first.
+And VideoLan responded.
+Good catch!
+Also KiBps could be something valid!
+Ki Bps.
+Bi directional.
+Does it mean something.
+Is more hidden here?
+Maybe?
+That will remain a mystery.

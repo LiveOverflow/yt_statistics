@@ -1,0 +1,445 @@
+Welcome back to your favorite minecraft 
+YouTuber. I survived 100 days in hardcore
+minecraft. Even though I should work on more 
+important projects. Well it’s that time of
+the year again. I AM ADDICTED TO MINECRAFT.
+Quick message to my regular viewers. Don’t
+leave! This is a technical video and I wanted 
+to have some creative fun. And I will explain
+in just a moment what the heck this is about. 
+But feel free to skip ahead to the fun part
+with the chapter markers below in the description.
+Anyway! Before we get going in this new minecraft
+world, let’s go back one minute to the time 
+before the big bang and actually create this
+world. I’m using here a specific seed which I 
+intentionally do not share, because this is a
+small challenge for you. Try to find the seed of 
+this world and if you find it, please don’t share
+it publicly just yet and write to me on twitter 
+or email and tell me how you did it. Anyway. This
+is of course hardcore minecraft survival and so 
+lets trigger the big bang and create this world.
+Well all of this is just fake and acting 
+anyway, I’m not playing in singleplayer. So
+let’s go back and connect to my server.
+Now we can get started in this new world.
+
+Probably the first thing everybody does in 
+a new minecraft world is punish some trees
+to gather wood. So of course I do the same. With 
+the the gathered wood we can craft our first tool,
+a pick axe. It wouldn’t be minecraft without 
+a pick axe. I also climbed on some trees and
+looked into the distance to see if we can find 
+anything interesting. And I saw a village just at
+the horizon. And there was another village much 
+closer just up the hill from our spawn. What a
+coincidence. We really got lucky with this totally 
+random world. And so I went straight into the city
+and pillaged it. THIS IS MY WORLD. I CREATED. 
+I TAKE WHAT BELONGS TO ME. *cough*. Yeah sorry.
+The power sometimes gets to my head.
+Anyway. I wanted to tell you what this
+project is about so while I explore this world, 
+steal *cough* gather material and looking for
+where to set up my first base, let me tell you 
+about the ONE SINGLE IMPORTANT LESSON I want
+you to take away from this video.
+Having fun when exploring hacking or computer 
+science in general is the MOST IMPORTANT aspect.
+In my opinion it doesn’t matter what you do to 
+learn, as long as you learn. I know nowadays there
+are tons and tons of courses out there. Lot’s 
+of free material. Lot’s of paid trainings. And
+I’m sure, theoretically out there, somewhere 
+is the “perfect” training for you. The most
+efficient most straight to the point lecture. 
+BUT it will probably be boring as hell. Just a
+dump of information wont engage you for long. And 
+when you want to get into hacking being into this
+for the long run is important. While some people, 
+maybe including me, give you the impression you
+can learn this stuff in a few weeks, that’s 
+impossible. I have been doing this stuff for
+about 10 years now. And maybe this comes across as 
+arrogant, but I just think it’s the obvious truth,
+you wont learn what I know in a month, or even 
+two years. I know how many thousands of hours
+I have spent working on projects and learning. And 
+so I know it takes time. BUT don’t be discouraged.
+Because I also just told you how you can get 
+to that point as well. Just stay motivated,
+curious, engaged and accumulate the many hours 
+it takes, and you will get there as well.
+And that’s why I think it’s SO IMPORTANT to 
+find projects that are fun to you. For me 10
+years ago it was discovering wargames and CTFs 
+like overthewire, picoCTF. That’s what kept me
+engaged for a long time and that’s where I learned 
+the most. I try to share my excitement and show
+you that it can be fun, but it doesn’t have to be 
+fun for you. But you have to find something else.
+This is also the only advice I can give when 
+somebody asks me what they should study at
+university. I always say, don’t worry. Just take 
+the subject that is fun to you. If it’s fun,
+it will be easier to motivate yourself, it’s 
+less stressful and with that additional energy,
+you maybe on the side on some 
+additional project to learn.
+And now we come back to minecraft. Minecraft 
+is a game. A fun game. At least fun to MILLIONS
+of people. Of course kids but also adults. 
+And recently with the new 1.18.1 caves and
+cliffs update, I installed the game again 
+and got addicted. I wasted my time playing
+minecraft instead of learning more hacking.
+Does that last sentence ring a bell? Around
+4 years ago I made a video titled “STOP WASTING 
+YOUR TIME AND LEARN MORE HACKING!”. In that video
+I explained that it’s totally okay to take 
+a break and play games. It’s fine. Hacking
+takes a lot of hours to learn, so of course 
+you will have periods with no motivation,
+or where other stuff just takes priority. And 
+getting addicted to a game is the struggle I
+often have. And the solution I proposed in this 
+video was to somehow turn the game addition
+into a fun project. In that video I reverse 
+engineered and hacked a mobile game. And now
+this minecraft video makes sense, right? I turned 
+my minecraft addiction into a technical project.
+The minecraft community is incredible. The 
+technical projects that exist in this space
+is fascinating. I hope in this video series I can 
+show you how I use minecraft to practice hacking,
+learn about new technologies and accumulate 
+more computer science knowledge. Yes I could
+have just not played minecraft in the first 
+place and just, I don’t know, buy a shitty
+udemy course and watch 10h of useless screen 
+recording. Or I can spend 100h playing minecraft,
+hacking minecraft and having a f’n blast while 
+doing it. And that’s the whole point. Let’s just
+have fun. And I hope I can make a fun video 
+series for you that on the surface seems to
+be a standard minecraft let’s play, but below the 
+surface, this is just another hacking tutorial.
+So give this series a chance. As I said, I 
+just wanted to have some fun. I’m a creative
+person so I like to try out new stuff. Minecraft 
+video making with replay mod and story telling
+is fun to me. And if you don’t like it, don’t 
+worry. The channel is not transforming into
+a let’s play channel. But if you keep watching. 
+Welcome. This is basically Pwn Adventure Season
+2. Just in minecraft.
+So let’s get going.
+I continued working on my little farm. Breeding 
+animals, planting trees. But I only wanted to
+setup a bare minimum base. I really want to go 
+exploring and collect seeds and other useful items
+from other biomes far away. Because then I can 
+grow stuff here at home. I emptied my inventory
+and started heading into the direction of the 
+savannah village I saw down from the mountain.
+On the way I also found some sugar cane. Of 
+course I also looked through all the houses
+what I can take. Melon seeds. Nice. Uh you have 
+a brewing stand? Now it’s my brewing stand.
+I decided to leave the village behind for 
+now, to continue my journey. I came across
+this little cave with dripstone, which 
+is AWESOME. They can be used to generate
+infinite lava and that is very useful to have 
+in a base. Really happy that I found this.
+After that I stumbled into a 
+little desert and got some cactus.
+In the distance I also saw some jungle trees, so 
+I really want to head there. And just before we
+got there, I ran into a broken nether portal. 
+AWEOMSE! Some really nice gold and other loot
+from the chest. Amazing. But when I reached 
+the jungle I realized I didn’t bring sheers.
+I want sheers so I can cut the vine from the 
+tree. And I didn’t bring or find two iron.
+So I decided to head to a close by mountain 
+to find some iron ore and smelt it.
+I discovered some and was really surprised by 
+the weird cobblestone here. I decided to break
+it and OH MY GOD. Here is a zombie spawner! 
+Crazy. Let’s remember this place, maybe we
+can build a basic XP farm here. Anyway. I built 
+my way up to the iron and finally I could smelt
+some ingots. Get my sheers and I could cut down 
+the vines. In the jungle I also got some bamboo,
+which is awesome and I found this amazing 
+forest fire. Great place for a selfie! Cheese.
+While having a good time in minecraft. 
+Exploring. Gathering. Crafting. I was really
+wondering. How does minecraft even work?
+You know a while ago I developed my own
+multiplayer game in Unity for the cyber security 
+challenge germany. In this game the students had
+to hack it. I had no game development experience 
+before that, and of course also no multiplayer
+game development experience. But of course over 
+the years you see a few things here and there,
+and for example I have looked at the network 
+protocol from the hackable Pwn Adventure game.
+In that series we even developed a TCP proxy 
+to man in the middle the whole traffic and
+decode the packets. We could even use 
+it to inject our own packets into it.
+So in the case of Pwn Adventure, and also 
+my own game, to implement walking around,
+each player simply sends their position 
+update packets to the server. The packet
+just contains the x, y and z coordinates of 
+the player. Nothing special. And so of course,
+when you can manipulate the 
+coordinates in the packet,
+we were able to teleport or even fly around. 
+But how does minecraft do it? Let’s find out.
+Before we start hacking around I wanted 
+to say that we can do our research without
+affecting other players. This is very 
+important to me. This whole project
+is not about cheating to get advantages.
+Minecraft is a game where everybody can
+create their own adventure. That’s what’s so 
+beautiful about it. And even more, you can
+do that together with friends. But when you start 
+cheating around other people, for example in PVP,
+then you cross a line. Your choice of how 
+you want to play is negatively affecting
+other peoples experience. And I don’t want to 
+do that. I want to play the game how I want to,
+with cheating, but I only cheat to dig deeper 
+and learn more, and so I just do that on my own
+personal server without affecting anybody. And you 
+should do that too. We are here to learn hacking,
+we are not to here to be assholes. So have 
+fun exploring minecraft with me. But please do
+it in a responsible and respectful way.
+Anyway, time to setup our own local server
+for testing. I have heard Paper is a typical 
+goto server nowadays. No clue. And also by the
+way if it wasn’t clear by now. I’m focusing 
+on Minecraft Java edition. Not bedrock.
+Okay. So I clone the Paper repository and 
+run the two gradle commands. applyPatches
+and create jar. now we just take the jar when 
+it’s build and run the server with java -jar.
+This will fail, but it created some files. We 
+have to accept the Mojang license agreement no.
+he EULA is important, and next video when we look 
+more closely at minecraft servers, it’s important
+that we read and understand the EULA. no joke.
+we can also modify the server properties as well,
+change the game mode and so forth. I disable 
+online mode so I can connect with multiple clients
+to it without having to worry about accounts.
+Cool! Now we have a local server that we can
+connect to with our minecraft client. So 
+how do we learn about the protocol now?
+There is this amazing wiki.vg site, which 
+documents the minecraft protocol. Every
+packet is listed here. And there is a Player 
+Position and look Packet (clientbound),
+and a Player Positon, and Player Position 
+and Rotation Packet (serverbound).
+So this is sent by the server to the 
+client to tell you the position of
+other players. And this is the packet you 
+send to the server to tell where you are.
+And look at that. Like PwnAdventure, or my 
+own game. Minecraft simply sends the the X,
+Y and Z position of the player. In the Rotation 
+version of the packet, it also includes yaw and
+pitch for the viewing direction. And there 
+is an onGround boolean true or false flag.
+Here is also a note about hacking. 
+Checking if a player is moving too fast.
+“If the total movement distance [...] is more than
+100 (300 if the player is using an 
+elytra), they are moving too fast”
+So you cannot simply teleport across the 
+map. But maybe we can still play with it.
+I really wanted to get a network proxy setup 
+again to play around with the packets. And
+after around for some projects, I found 
+quarry, which is implemented in python.
+Quarry: a Minecraft protocol library.
+It also has some examples. There are
+basic clients that connect to a server. You have 
+basic example servers that you can connect to.
+And you also have a proxy. A hide chat proxy.
+It’s really easy to work with it. Here you can
+see a method that handles downstream chat 
+message packets. And depending on if quiet
+mode is turned on or not, it will throw away and 
+ignore this packet, or forward it to the client.
+Anyway. We can take this example, rip out the code 
+we don’t need, add a handler for all unhandled
+packets, and we have a very basic proxy logger.
+In this case I have the paper server configured
+to not listen on the default 
+port, but listen on port 12345.
+Because our proxy will now listen 
+on the default minecraft port 25565.
+With -q we can tell the quarry proxy the 
+port of our actual minecraft server. This
+is called the upstream server. And then 
+our client will be the downstream client.
+Anyway. We are waiting for 
+a client to connect now.
+Let’s do exactly that. This is where the proxy 
+is running. So join the server. And immediately
+we can see tons and tons of packets flying.
+Let’s go back to the start to learn more about
+how the protocol starts. The first packet 
+we see is Join Game, sent from the server,
+in the downstream direction, to the client.
+As can be seen in the wik, this packet contains
+a lot of information like telling 
+you your entity ID, the gamemode of
+the server, the viewing distance, and so forth.
+But actually this is not really the first packet.
+In the protocol FAQ we find more information. 
+Minecraft actually has encrypted traffic. And
+our proxy handles that already, and so 
+it only shows us the packets after the
+client fully connected to the server and 
+we see the regular game protocol packets.
+In reality the client initiated a handshake 
+with the server and sent Login Start. Which
+sends your minecraft player name. After which 
+the server responds with an encryption request,
+sending you the server public key key. Then you 
+send the server a secret, but encrypt it with the
+server key. As well as your verification token.
+This token is actually what you get when you
+login with your mojang account. Or maybe by 
+the time of this video, when you login with
+your microsoft account. With that the server 
+can ask the official mojang minecraft server
+if this token is a valid token. And that’s 
+basically why you need to buy minecraft
+with an official account. Servers verify your 
+token. Except of course when servers disable it.
+Anyway. After that the client and server 
+know the shared secret, and from now on
+they encrypt every data they send with AES.
+But quarry takes care of all of this for us.
+So when we connect to quarry, it gives us a 
+shared secret. And so every packet we send,
+quarry can easily decrypt it and we can handle 
+it in our code. And when we dealt with it,
+it basically repackages the packet and 
+sends it to the real minecraft server.
+Awesome. Now we have a packet logger. And 
+as you can see, we see SO MANY PACKETS.
+A lot of them sent from the server to 
+our client. Every movement of animals,
+or generally entities has to be sent to our 
+client. So there is a lot here. That’s why I
+decided to modify the logger and only 
+print packets we as the client send.
+And there we go. When we stand still we only get 
+a new position update once a second or so. But
+when we walk around, and move the camera, we see 
+a mix of player position and look packets. Cool!
+So let’s look more closely at the position packet.
+Here I add an upstream handler for the player
+position packet. By the way the function name is 
+dynamically created. It always has the format,
+[packet], [upstream or downstream], so the 
+direction. From client to server or server
+to client. And then the packet name. All of these 
+packets and their expected directions can be found
+in this csv file which is documented for each 
+minecraft version. So here we have player position
+defined as upstream in the latest version, so 
+we can use here a packet handler to handle it.
+Anyway. Quarry actually has some features to 
+unpack and parse the packet to get the position,
+but we can do it ourselves by hand! With 
+buff.read() we get the raw bytes of the
+packet. And looking at the wiki we can see 
+what the binary data means. We have three
+doubles followed by a byte. So we can use the 
+python.struct module to extract exactly those
+values from the raw byte string. And we get 
+the values in x,y,z and ground. Then we can
+print it. To forward the packet to the actual 
+server we have to call upstream.send_packet,
+we want to send a player_position 
+packet and pass in the raw bytes again.
+And when we now run the proxy, we 
+can see that we get the position
+information from the player. Awesome!
+And now let’s play with this. What
+happens when we modify those values? 
+Can we teleport around? Maybe Fly?
+How about we just add a constant value of 5 to 
+the y coordinate. Our client doesn’t know this is
+happening. The client thinks we are standing on 
+the ground. But because the packet goes through
+our proxy, and there it adds 5 to it, the server 
+thinks the player is at +5 in the air. And so
+other players would see that as well. As flying!
+So let’s try it. As you saw I modified the proxy
+to always add +5 to the player position. And 
+now see here the two perspectives. Left is the
+ego perspective of the player who simply 
+stands on the ground. But other players,
+and the server, obviously see the 
+modified position with y+5. We are flying!
+oh. Flying detected. Mh. I mean, it kinda worked,
+for like two seconds. But the server did 
+detect that we were flying and kicked us.
+Okay let’s maybe not continuously modify the 
+value, but just send a single teleport packet.
+I wrote this teleport proxy class And I took 
+inspiration from the quarry chat example. When the
+client sends a chat message packet with the text 
+/port, and a number for the teleport distance,
+we do some maths on the last known position and 
+look direction of the player, so we can manipulate
+the position forward by exactly that distance.
+And then we could send the new manipulated
+position to the server, but actually I don’t do 
+that. But If I would do that, the client doesn’t
+know we teleported. And would just send the 
+old position packlet and basically port back.
+Instead I send the player_position_and_look 
+packet to the CLIENT, aciting as the server
+and tell the client, “ey btw, your positon is 
+now this”. And after that the client sends the
+new manipulated position to the server.
+Let’s try it, can we teleport with that?
+/port and a number. And it works! At 
+least for reasonable small numbers.
+It was clear that we couldn’t teleport 
+very far with the speed restrictions.
+We can also port straight up. That’s pretty cool!
+So I wanted to do another test. Can
+we use that to teleport through walls?
+I quickly setup a tinted glass wall. Of course
+this is all survival and it took me ages to find 
+the amethyst geodes. I swear. Anyway. When I try
+to teleport through the wall it doesn’t work. Mh…
+But when I was testing a bit more and added
+a roof, I realized I can teleport 
+up! We can teleport through roofs!!
+I don’t know yet why. But I take it.
+Now we have a very good first impression how the 
+protocol works, and we found an amazing resource,
+this wiki, which documents everything. Kudos 
+to all the contributors of that wiki. Thanks
+so much for your efforts. And of course 
+thanks to the quarry contributors as well.
+Let’s see where our minecraft 
+journey takes us next episode.

@@ -1,0 +1,282 @@
+The first thing we have to do, is to install
+an operating system that allows us to easy
+understand how the whole system works. Windows
+and OSX are closed systems that make it very
+hard to understand on a technical level. Though,
+actually, OSX is very similar to Linux and
+a lot of concepts can be transferred. But
+we will use Linux, because we can for example
+have a look at the Linux Kernel sourcecode
+to dig deeper. And also most people come from
+a different OS - namely windows or mac - so
+it will be cool to learn something new.
+There are many many distributions of Linux
+that all have their own flavour. For example
+there is Kali Linux (formerly backtrack),
+which is a Linux operating system that has
+a lot of preinstalled tools intended for penetration
+testing. There are other Linux distributions
+that are more aimed to be used as a standard
+desktop environment for example Ubuntu.
+A lot of people run Debian on a server to host
+some websites. And big companies that need
+operating systems with support and service
+contracts they often use Red Hat Enterprise Linux
+And I know many people that build their
+own Linux experience with Archlinux. And there
+are hundreds of other distributions out there.
+So just google them.
+When you want to first check out Linux,
+it’s difficult to decide what to go for.
+I generally just suggest go with Ubuntu. It’s
+a very popular distribution, it's easy to
+use because it’s kinda aimed at people that
+have never used Linux before. So that is what
+we will do.
+But if you are already experienced with Linux,
+why not take a weekend and checkout archlinux
+and build your system from ground up. You
+will fail the first time, but learn a lot.
+So I will install Ubuntu as a Virtual Machine.
+It makes it easier for me to record and create
+those videos, but it also shows another important
+tool that is often used for security research,
+because you can quickly setup new systems
+to test something. Oftentimes you only have
+one physical device, but with VMs you can
+just run a lot of different systems on a single
+machine.
+So first download and install the VMWare Workstation
+Player. As you can see you can download it
+for Linux or Windows. If you are on a Mac
+you might want to try VMWare Fusion but it
+only has a 30 day trial. Or alternatively
+use Virtual Box.
+Then download the Ubuntu 64bit LTS version.
+If you want you can make sure that you have
+the same version like I do, but it doesn’t
+really matter.
+This is the VMWare Player and it is like a
+computer inside your computer. It emulates
+a real PC. Basically you simply create a virtual
+hard drive and install anything you like on
+it. We will use this to install and run Linux
+as a so called guest operating system, which
+runs inside the real operating system.
+Now let’s create a new Virtual Machine.
+This will launch a wizard for easy installation,
+but we will install the OS ourselves. Then
+select Linux as Operating System and also
+specify Ubuntu 64-bit. If you wanted to install
+a different Linux distribution, try to find
+it in the list, if it's not there just select
+Other Linux and select the matching kernel
+version. Give it a name and just use the default
+settings.
+Imagine this to be like a real physical computer.
+To install Linux or another operating system
+on it you would have to insert the installation
+medium. So we will insert the the ubuntu .iso
+into the virtual CD drive.
+When we now start the VM, it will boot from
+the CD and guides us through the installation.
+There are no important settings for us here
+right now, so just click next. In a later
+video I want to explain what partitions are,
+but for now just ignore it and continue.
+After the installation you have to restart
+the machine, but make sure to remove the installation
+medium again, so it can boot from the hard
+drive where it was installed.
+Login and welcome to Linux. First thing you
+notice is that the window is inconveniently
+small, so we want to increase it. We can use
+the search field to find the display settings,
+but the menu doesn’t have the option to
+set it ta proper 16:9 ratio we want. The 16:10
+ratio is slightly too big and we have scroll
+bars. So let’s go crazy and immediately
+check out the command line to fix this. The
+archlinux wiki is a great place to learn more
+about commands that you use. So it tells us
+that xrandr is a tool that allows us to configure
+the monitor. Two open the terminal click on
+the top left and type in Terminal in the search
+bar. And those two commands just add a new
+option for 1920x1080. Now we also see the
+option in the display settings.
+Cool. Now let’s just play a little bit with
+the command line to get a feeling for it how
+it works and let’s compare it to the maybe
+more familiar graphical user interface.
+On the left you can see the terminal. And
+on the right you can see the default file
+explorer which currently displays the content
+of the home folder. In fact the terminal on
+the left is in the same place!
+The first part is the current user. After
+the @ is the computer or host name. After
+the colon you can find the current location.
+And the tilde is an alias for your users home
+folder. For example if you execute the pwd
+command, it will display the current location,
+which is the home of the user liveoverflow.
+Before we look into more commands, let me
+show you one of the most important source
+of information for the linux system. It is
+the Linux manual. So let’s type man followed
+by what we are interested in. In this case
+pwd. You should get familiar how those man
+pages look like, because we will use them
+a lot. Right here at the top it says that
+pwd will print the name of the current working
+directory.
+At the bottom you get the information that
+you can press h to display a help or q to
+quit and get back to the command line. So
+when you press h you will see the summary
+of less commands. I will show you later what
+less is, but for now just think of this as
+some kind of text editor that displays file
+content. And this editor uses key input for
+navigation. So let’s press q to exit the
+help, and q again to exit the manual.
+Now I will quickly go over some commands to
+navigate around the file system. If you don't
+know them or would like to know more about
+them, you should check out the man pages.
+Let’s start with ls which will display the
+files of the current folder. You can see it
+looks almost the same, except the graphical
+interface shows a shortcut to Examples, while
+ls shows a examples.desktop file. That's weird.
+Let’s use cat to look at the content of
+the file and investigate this. Cat just prints
+the file content in the terminal and you can
+now see that this seems to be some kind of
+special file, that defines a type link and
+name Examples. So the terminal just displays
+the actual files, while the graphical user
+interface parses the example-content file
+and displays it in a different way. This is
+one reason why many people say that linux
+command line is very simple because you don’t
+have to know all those weird features that
+are different in every program.
+Now execute ls with the option L to display
+the files as a list which also provides more
+information like the file permissions, ownership
+and date. The first character indicates if
+the file is a directory.
+Maybe you wonder why I say files, while they
+are all directories. The reason for that is
+that in Linux everything is a file.
+Wikipedia even has an entry for “everything
+is a file” and it reads.
+This is a defining feature of Unix, and its
+derivatives - a wide range of input/output
+resources such as documents, directories,
+hard-drives, modems, keyboards, printers and
+even some inter-process and network communications
+are simple streams of bytes exposed through
+the filesystem - as a file. Over time we will
+understand this better.
+Now add the option 'a' to display all files.
+'a' and 'l' are single character option switches,
+which is indicated by the hyphen prefix. Doesn’t
+matter if you combine them or specify them
+separately.
+Suddenly you see a lot more files that start
+with a dot. Those dotfiles were hidden before.
+Historically this was a bug and you can read
+more about it in this post, but now it’s
+a feature and dotfiles are often used for
+config files.
+Now let’s look at the filesystem. We can
+use cd to change the directory. Let’s go
+to the top of the hierarchical filesystem
+which starts at slash. Now you can also see
+that the tilde changed to the slash, which
+is our new current location.
+If you specify a path without a slash it’s
+a relative path going forward from your current
+location. If you have a slash, it will be
+an absolute path. So here are just some examples.
+Maybe you notice the dots and double dots
+that I am using. If you look at the ls output
+again, you notice that there are two files
+with dots. A single dot is referencing the
+current directory. So 'ls' and 'ls .' is exactly
+the same. A double dot goes one hierarchy
+up. So when you are in your home directory
+you can use two double dots to got to the
+top.
+Ok. Slow enough, let’s speed up a bit.
+'mkdir' makes a new directory
+'touch' makes a new empty file
+'rm' deletes a file. If you want to delete
+a folder you have to add the recursive option.
+'echo' and a character sequence just prints
+this text
+'uname' and uname with different arguments
+provide information about your machine
+'ll' is a short cut for 'ls' with multiple
+parameters
+'free' shows you the current memory usage
+and with the parameter h the numbers will
+be shown in human readable format
+'df' shows file system disk space and again
+with parameter h the numbers are in human
+readable format
+'ps' gives information about your currently
+running processes. With parameters you can
+also show all processes with memory usage,
+cpu and more.
+and id shows you your current user id
+One last important feature to learn about
+are pipes and redirections. Linux becomes
+very powerful once you connect multiple commands
+together.
+For example echo prints a string. You can
+redirect this output into a file by using
+the arrow.
+When you print the content of a file with
+cat you can use the horizontal line or also
+often called pipe to redirect the output from
+“cat” into the input of another program.
+For example you can pipe the output of the
+'cat' command into the input of the 'hexdump'
+command - a tool that shows you the actual
+hex values behind each character. And here
+the hex '0a' for example, or decimal ten.
+You should start becoming familiar with hex,
+because you will use it a lot. Check out the
+manual for ascii characters. You can navigate
+up and down with arrow keys. And exit with
+q.
+One last thing, you can press arrow key up
+in the terminal to quickly enter previous
+commands. And even more powerful is CTRL+R,
+which opens a search prompt. Now we look for
+the command where we used for hexdump, and
+once it found it we can just hit Enter to
+execute it. If you want to leave this prompt
+or generally want to quit running programs,
+you can hit CTRL+C.
+Ok cool. That’s it for now so let’s shutdown
+the system with “shutdown now”.
+uh! but what is that. You must be root to
+shutdown the machine. The root user or also
+called superuser is very powerful, because
+this user can do everything. But we are currently
+the user liveoverflow. It’s good practice
+to not use the root user all the time because
+you can do a lot of damage. But there is a
+command prefix called sudo, which elevates
+your privileges. execute id with sudo and
+you see you are liveoverflow. Execute id with
+sudo, first enter your password, and then
+you will see that you executed it as root.
+So you can use that now to shutdown the VM.
+See you next time when we will create our
+first program.

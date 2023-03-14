@@ -1,0 +1,335 @@
+popunders are like popups, just a lot more
+annoying.
+Their goal is to open a popup in the background
+- pop under the current window - so that you
+won’t see it until you want to close your
+browser and you don’t know which site created
+it.
+Creating a popunder used to be fairly easy
+because there are actually functions called
+blur() and focus() which exist solely to focus
+an element with focus() or prevent focus,
+with blur().
+So you would blur() the popup window you open
+and focus() the current main window.
+And that technique still works in for example
+Edge, but Chrome will always try to focus
+the new window - thus preventing popunders.
+But I did some more research into this and
+found a Demo site that actually is able to
+create a popunder, which obviously caught
+my attention.
+This guy even sells a license for a javascript
+library that can create popunders in any browser
+and ad networks pay good money for it.
+So I wanted to know how this script manages
+to do a popunder on Chrome 59, as other libraries
+can’t do that.
+So I started to analyse it.
+Let’s check out the demo for the popunder.
+I click the link.
+And yes indeed, here is a pop-under.
+Let’s try to figure out how it’s done.
+Obviously one of the first ideas is to look
+into the sources, the solution should be right
+there.
+But shortly after you open the developer tools
+a debugger statement triggers a breakpoint.
+And you can’t just continue, as this is
+constantly called on a timer.
+It’s an anti-debugging attempt.
+You can disable breakpoints entirely, but
+then that also prevents you from setting breakpoints
+in the sources themselve and you maybe would
+want that for debugging.
+So that’s annoying.
+But first, let’s look generally at the scripts.
+The main page loads a loader.js file, which
+loads three other scripts.
+Script.js, license.demo.js and demo.js.
+Let’s have a quick look at each of those.
+Demo.js seems to be the script a potential
+client would use.
+It configures the BetterJsPop module and allows
+developers to react on before and after popup
+creation.
+Otherwise not much else is there, the real
+functionality is probably in BetterJsPop itself.
+License.demo could be interesting in how licensing
+works, but when you look at the code it’s
+heavily obfuscated.
+Even if you pretty print it, it’s completely
+rubbish code.
+And script.js, which is presumably the main
+script, looks similar.
+There are some easy functions and nonsensical
+function which you could clean up, like these
+here just return the argument or perform a
+simple operation, but even if you clean that
+up, it still looks terrible.
+And it’s long.
+So… how do we figure out what it does.
+I will go now over the path I took, but it
+would be awesome to hear from you how you
+would have approached this, as I’m sure
+there are many different techniques to go
+about this and I don’t know if I know them
+all.
+So the first thing I did was mirror the whole
+site locally.
+I didn’t really test it, but I assumed if
+they put so much effort into licensing for
+domains and have a demo here, that these scripts
+will check the domain they are loaded from
+and won’t function properly if loaded from
+somewhere else.
+So you can’t simply use the demo on your
+site.
+That’s why I not only downloaded each file
+and placed it in the same path, but also modified
+/etc/hosts to point the domain to localhost.
+This way when I visit the site again, it attempts
+to load it from 127.0.0.1.
+Which means we can start a simple php or python
+server on port 80 and load the site in the
+browser.
+I make a small modification to the local file,
+And remove the embedded video and image and
+cleaned up the site.
+now you can easily see that it loads this
+version instead of the live web version.
+And we can verify that the popunder still
+works.
+So the reason why I want a local mirror is,
+so that I have all the freedom of modifying
+and playing around with it.
+But where do I really start now.
+In theory in the end the javascript code will
+have to call the main API functions.
+functions like window.open and window.setTimeout
+or like createElement or appendChild.
+But we can’t easily search for this in the
+script as these calls are heavily obfuscated,
+but we can try to hook or proxy or intercept
+those calls.
+This way we can learn more about what’s
+happening,
+I’m using a Proxy object for this.
+It’s like a web proxy that sits between
+you and your destination, a proxy object in
+javascript sits between the caller and the
+actual target.
+The Proxy object is used to define custom
+behavior for fundamental operations (e.g.
+property lookup, assignment, enumeration,
+function invocation, etc).
+So now I’m defining a handler function that
+can be used to intercept and log all the function
+calls.
+And then I can overwrite functions I want,
+with a proxied version.
+And because we want to learn more about popups,
+I wanted to intercept window.open, which is
+the function to open a popup.
+Oh and I write this code before the loader
+loads the other scripts, so I can overwrite
+any functions it would use.
+I disable the breakpoints and reload the page.
+But when I click the link, I don’t see any
+call to open, which is super weird.
+But In the console I notice two deprecation
+warnings.
+And one of them is interesting.
+[Deprecation] Using the Notification API from
+an iframe is deprecated and will be removed
+in Chrome version 61, around September 2017.
+You should consider requesting permission
+from the top-level frame or opening a new
+window instead.
+Waiiit.
+That’s so weird.
+First, why the heck does it call the Notification
+API, what does it have to do with a popup,
+and what’s up with the iframe.
+I feel like this must be a key component,
+some kind of trick, to achieve a pop under.
+Mmhh…
+As there are no iframes in the .html code,
+let’s see if we can hook the dynamic creation
+of those iframes.
+It probably uses the createElement, appendChild
+and removeChild functions to achieve that.
+So let’s proxy these.
+As appendChild could be called on any HTML
+element I can use the protytpe of the general
+Element object to overwrite the function for
+all Elements.
+If we reload the page now we can already see
+that it works with some div.
+But let’s see what happens when we click
+the link.
+Uhhh look at that.
+It creates an iframe.
+Unfortunately we can’t inspect what the
+iframe is for, because later the iframe is
+removed with removeChild.
+Around this time I started to get really curious
+about the stuff that pops up briefly.
+So weird.
+So I decided to record it in order to slow
+down and see what happens.
+And when you go step by step you first notice
+a popup window being opened in the bottom
+right corner, so the user might not really
+notice it, then the notification permission
+requests pops up and around the same time
+an alert box is shown with Chrome PDF viewer.
+WTF?
+And then they disappear again.
+What the heck is going on?
+At this point I realized what seems to be
+the basic idea behind all of this.
+To create a popunder you somehow want to get
+the main window back in focus.
+And it looks like with this weird combination
+of notification requests and alert box you
+can get back the focus to the main window.
+Knowing this, let’s move on with some debugging.
+The remove Child prevents us from inspecting
+the iframe, as it is gone by that point.
+So Instead of calling removeChild, let’s
+overwrite it with a custom function.
+We could use the Proxy object and not call
+the original function, but I just wanted to
+show another method how you can change the
+behaviour of something.
+A proxy Object is cleaner, but this works
+also well.
+So now instead of removing an element, we
+log the element it tried to remove.
+And then let’s try it again.
+And it looks like that removeChild was necessary
+to remove the notification permission requestv
+and the alert box.
+Because they stay now here.
+But we can also look now into the iframe.
+Mh.
+It basically just defines a function mkp which
+calls window.open.
+That’s the trick used why we couldn’t
+proxy window.open, because here they will
+dynamically create an iframe and use it’s
+clean new default window.open function instead.
+This is not meant to throw off analysis, it’s
+actually a simple popup blocker bypass.
+Some basic blockers simply overwrite window.open,
+like I attempted to do, and with this trick
+you can get back the original window.open
+function.
+So it’s just a bypass for simple popup blockers.
+And you can also check that window.mkp, which
+I guess stands for make popup, exists here
+in our global scope pointing at window.open.
+So clever.
+But let’s move on, because a few steps later
+there is a second iframe created and if we
+look into that one, we see that it executes
+a script that requests Notification permissions.
+So that’s why we get the deprication warning
+here.
+Not sure yet why Notification permissions
+are requested, but now we know when and where
+they do it.
+At this point I felt I understand what was
+going on more and more and I started playing
+around with this knowledge myself, doing simple
+tests.
+I first opened a new window and then caused
+a notification permission request.
+And as it turns out, with the notification
+request Chrome focuses the main window again.
+But once the user clicks this box away, the
+focus goes back to the other window.
+Two things to observe here.
+First, we get focus of the main window, which
+is exactly what we want, question is just
+how to keep it.
+Second problem, how do you remove the Notification
+request again automatically.
+Both shouldn’t be really possible, but we
+know that removeChild with an iframe could
+be the solution so we can try that.
+First we create the iframe and append it to
+the DOM, then we execute the javascript in
+the iframe and after that use a timeout to
+wait 3 seconds and remove it again.
+And testing that shows that it works!
+But what’s up with the PDF message we see.
+When you think about it, it kinda looks like
+an alert box.
+So let’s play a bit more with our test and
+remove the iframe with the Notification for
+now and instead call alert().
+And we get the same behaviour.
+The main window gains focus because of the
+alert, but as soon as the user clicks it away
+focus is restored to the popup.
+Unfortunately a simple iframe won’t help
+here to remove the alert box, because alert
+blocks and pauses everything.
+But… anyway... we can try to combine those
+two now like we saw in the slowed down video.
+So we trigger the notification permission
+request.
+Then we wait a bit with settimeout and trigger
+an alert, and then we wait a bit longer and
+remove the notification again.
+Let’s run it.
+Aaand when we now close the alert by handt,
+and the netoficiation request is automatically
+removed, surprisingly the popup window stays
+in the backrgound, the main window kept the
+focus!
+So the last remaining question is, how do
+they now remove the alert box automatically.
+It looks like the alert is triggered from
+the PDF viewer.
+It said “please wait” so I assumed maybe
+it happens if you load a huuuge PDF or so,
+I did some tests but it didn’t work out.
+I also couldn’t find useful info about this
+waiting dialog online.
+So I decided to take a step back and analyse
+the demo further.
+And besides the iframes there is another element
+created.
+An embedded object that defines a data URI
+of the media type pdf and base64 encoded.
+So we can decode that and find the raw .pdf
+file.
+Which contains a JavaScript app.alert(“please
+wait…”).
+Ahhhh, so it also calls alert, just from a
+PDF file.
+And that’s the trick, because that alert
+box can be closed again by removing the embedded
+pdf from the DOM.
+To not steal anybody elses code, we can also
+create our own minimal PDF that calls alert
+and convert it to base64.
+Now everything falls into place.
+We first open a new window, then dynamically
+embed a PDF with an app.alert() and create
+an iframe that requests Notification permissions.
+And after a short moment we then remove the
+iframe and the embedded PDF again.
+And that’s it.
+If it doesn’t work, then maybe you have
+the timing wrong.
+It’s not a 100% reliable.
+So wow.
+We created a pop under.
+wasn’t this interesting!
+Hopefully Chrome will fix this, so I don’t
+have to experience these annoying
+popunders anymore.

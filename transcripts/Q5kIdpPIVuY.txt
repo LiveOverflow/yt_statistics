@@ -1,0 +1,452 @@
+Hacking is a legal minefield - very quickly 
+you can find yourself breaking laws. You would
+think as somebody working professionally as a 
+“hacker” for over 8 years, I would know the law,
+but actually I never really look into any of 
+the hacking laws. So I guess it was overdue.
+While the legal system is not as cool as an 
+operating system, it can still be interesting
+trying to understand the legal boundaries. So 
+let’s dig into the laws with our hacker mindset.
+Obviously I have no legal education, I will 
+certainly misinterpret some legal lingo, BUT
+lawyers and judges also have no computer science 
+education, and they are supposed to apply these
+laws to our technical actions. So if they try to 
+judge our technical actions without understanding
+what is really happening, I feel like it’s 
+fair when I try to judge the legal system,
+while lacking legal knowledge. So please don’t 
+take any of this as legal advice, this is totally
+MY interpretation of the laws. And I hope we can 
+get a thoughtful discussion going in the comments.
+Alright. The first huge challenge we 
+have is, which legal system do we even
+look at? I’m from germany so I figured 
+I will look at the german laws, because
+it’s easier for me to understand them. Which means 
+if you are not german those laws might not apply,
+right? Well. According to section 3 of the german 
+criminal code “German criminal law applies to
+offences committed on German territory.”.
+But hacking happens on the world wide web,
+the internet? Is that germany?
+Section 9 defines “Place of offences”, which says
+“An offence is deemed committed at 
+every place where the offender acted”,
+and if you acted on a server located in germany, 
+german criminal law applies to you as well. Even
+if whatever “hacking” you did is legal in your 
+country, sorry. German law applies anyway.
+Marcus Hutchins for example was from the 
+UK when he developed some malware code
+which ended up in the Kronos malware, legally 
+a bit risky, and when he set foot into the US,
+they arrested him. It’s an extreme 
+example, and surely it doesn’t happen for
+“small hacking offenses”, but it shows knowing 
+the laws of other countries can be important.
+And of course laws are more or less 
+similar in different countries,
+so all in all I think even if you are not from 
+germany, stay here and explore the laws with me.
+So let’s have a closer look at 
+some hacking related german laws.
+The ones most interesting for us are 
+around section 202, abcd, data espionage,
+phishing and handling of stolen data, and 
+303, which includes computer sabotage.
+The translation here for 202b might catch 
+your eye, because it says here phishing.
+BUT it’s actually not about phishing. It’s bad 
+translation. This section is about intercepting
+data. Basically man in the middle attacks.
+“Whoever, without being authorised to do so,
+intercepts data which are not 
+intended for them, incurs a penalty
+of imprisonment less than two years or a fine”
+So wifi hacking with man in the middle attack,
+clearly falls under that. Think about 
+that when you use your wifi pineapple.
+Anyway. As you know, a phishing attack works very 
+differently. You send somebody a link that points
+to your website. And the user willingly enters 
+the data into your site. There is no interception,
+so this law doesn’t apply. But it doesn’t make 
+phishing entirely legal, for example Your phishing
+site might violate other laws such as copyright 
+infringement if you steal the facebook logo.
+But more importantly, if you gather passwords 
+and access codes through phishing, and then you
+sell them or use them yourself, then we fall under 
+202c. “Whoever acquires for themselves, selling,
+or making available in another way:
+passwords or other security codes
+which provide access to data”
+So the phishing itself is probably
+not illegal under german law BUT if you use the 
+credentials, or share it with anybody else so
+they can use them, then you face a penalty 
+of less than two years prison, or a fine.
+But phishing is lame. What about “real 
+hacking”, for that let’s look into section 202a.
+“Whoever, without being authorized, circumvents
+access protection to obtain access to 
+data that were not intended for them”.
+If you do that, you get slapped with a 
+penalty of less than three years or a fine.
+And here the real world of hacking 
+clashes a bit with the law.
+Think about IDORs, Insecure Direct Object 
+References. imagine there is a website
+where you can view your invoices, but the 
+API is not protected. And you can simply
+enumerate the numbers and get access to the 
+invoices and private data of other users.
+Now it gets tricky.
+Here is the german text of the law,
+let me try to carefully translate the meaning.
+So if you “get access to data that was not
+meant for you”, I mean the invoices of other 
+people were not meant for you, so this applies.BUT
+you also have to apply the second part which 
+says, “AND the data is protected against
+unauthorized access”. The definition of the IDOR 
+vulnerability is that it’s not protected at all.
+So would exploiting an IDOR vulnerability be 
+totally legal? Mhhh… probably now. I think
+a lawyer could make the case that the website 
+interface itself didn’t provide the functionality
+to access the other invoices. Which means it was 
+“protected”. You as the hacker used exceptional
+technical skill to look into how the website is 
+implemented, look at the network requests, find
+the API endpoint, and start enumerating by hand.
+If you face a non-technical judge I think this
+argument could totally work against you. Even 
+though with our technical understanding we
+understand that there was no protection here.
+Very difficult edge-case. What do you think?
+But it gets more interesting. Let’s say we 
+would be able to convince the judge that we
+did not circumvent any protections in this 
+IDOR case, have a look at this example case.
+Lets imagine to access the invoice of another 
+user you had to perform a path traversal.
+Let’s say this is the user ID and this 
+the invoice number. So to get another
+user’s invoice maybe you have to do that.
+Even, I would think now we maybe crossed
+the line here. We exploited a bug to circumvent 
+access protection. The code tried to limit you
+to your own user’s folder, but you performed 
+a path traversal attack to circumvent that.
+And so two very similar vulnerabilities could 
+be judged legally very differently. Maybe.
+Also there is another detail hiding in here. 
+It’s this: “whoever obtains access to data”.
+It’s not who obtains data. It’s 
+who obtains ACCESS to the data.
+So you are not punished by the severity of 
+the data you actually accessed, it’s that you
+get punished for the data you had obtained 
+access to. Yes, this is a HUGE difference.
+So if you find a serious vulnerability 
+that could give you access to lots of data,
+even if you were a responsible whitehat who didn’t
+actually access the data. You still obtained 
+access to the data. So theoretically you are
+fucked anyway. Might as well steal the 
+complete data. Just kidding. It’s a joke.
+Here is where my naivety and trust into the system 
+comes into play. I would hope in practice that it
+does actually matter. Each of these offenses have 
+a range of punishments you can get. Here up to
+two years imprisonment or a fine. So two years 
+of prison is the upper limit. Which I belive in
+germany is automatically on probation anyway, so 
+you don’t actually have to go to jail? But I’m not
+sure. Anyway. Important is, there is a range for 
+the punishment. And I would hope, even if you had
+obtained access to lots of critical data, if logs 
+or your seized and searched equipment shows that
+you didn’t actually access the data, that this 
+would alleviate the punishment. But who knows.
+By the way, recently I published a video 
+where I scanned minecraft servers for the
+log4shell vulnerability. Log4shell is 
+a serious vulnerability, when executed
+completely gives you remote code execution. 
+So it provides COMPLETE ACCESS to a system.
+According to this law, this would be very serious.
+However I made at the time an ethical decision to
+NOT execute the full arbitrary code execution 
+chain and just kept it at the ldap pingback.
+I didn’t read the laws before, but in retrospect 
+I think that was a very good legal decision,
+because this way I did not actually obtain 
+access to the data. Only to the very very limited
+information accessed from the ldap pingback. So 
+the current working directory, operating system
+and java version. Which is data that I accessed 
+without authorization, BUT also objectively not
+the worst case. Right? Never ever would this 
+be a two year in prison thing. I think. I hope?
+But this led me to another question,
+which I couldn’t find an answer 
+to. I’m curious about your opinion.
+Let’s say I do have a vulnerability 
+with complete remote code execution,
+and I write a script that simply executes “id and 
+uname -a”. So also only accessing very minor data.
+My question is now, if you run this and it 
+succeeds, according to this law, did you
+obtain access to data of the ENTIRE SYSTEM, or 
+because you implemented technical limitations,
+you hardcoded the commands, this maybe prevented 
+you from obtaining full access? I would argue,
+you would have to rewrite this code, or develop 
+an entirely new tool, to exploit the vulnerability
+again in a way to actually obtain access to 
+all data on the system. For example giving you
+a reverse shell. mh… This is my very liberal and 
+naiv interpretation of the law. To me it seems a
+reasonable argument to say, “no, in this case 
+I did not obtain access to all data”. If the
+code were written like this, this would give me 
+access. Hard to say how a court would see it.
+Unfortunately, or maybe fortunately, there are 
+basically no court cases regarding these laws so
+we don’t know how courts would actually interpret 
+such a case. But I find it very thought provoking.
+Anyway… When I was reading over the laws for 
+the first time, there is one thing that really
+stood out to me. there is no mentioning of 
+“vulnerability” or “exploit”. So any kind of
+classification and definition we use in the 
+security industry regarding “vulnerability”
+or “bug” doesn’t apply here. As soon as we 
+get unauthorized access to data that was
+somehow “protected”, whatever protected means, 
+we have a legal problem. So keep that in mind.
+Ehhh LiveOverflow from the future here. I 
+just realized that this should also mean if
+you test on a website but only ever targeting 
+your own test account, you should be fine.
+For example account takeovers, XSS, CSRF, as long 
+as you are careful what vulnerabilities you test,
+where you cannot obtain 
+access to other user’s data,
+I think it could be legal. But of course not 
+sure, definitely a walk on the edge of the cliff
+Another detail that I found very 
+interesting is that the attempt is
+not punishable, for any of these paragraphs. 
+This is interesting because there are criminal
+laws where the attempt is criminal. 
+Attempted murder for example. But
+attempting to circumvent protections to 
+gain access to data is not punishable.
+Which has interesting implications for for 
+example internet wide scanning of vulnerabilities.
+If you have a webserver listening on a public IP, 
+you will quickly get lots of hacking attempts that
+you can see in the logs. And according to german 
+law, all of these attempts are not illegal. This
+must not bother you. Only if you became a victim, 
+because one such attempt was successful on your
+german server, only then the person scanning 
+the internet committed a crime according to
+this section. Which also means if you just do 
+scanning without actual vulnerability tests,
+so for example subdomain enumeration or plain 
+port scanning, totally fine under german law.
+But… uhhh. There is one caveat and that 
+is the infamous german “hacker paragraph”
+section 202c. Because here it says “Whoever 
+prepares such an offence by producing,
+acquiring or selling a computer program 
+for the purpose of such an offence”,
+then you are facing up to two 
+years in prison or a fine.
+This section was heavily debated 
+when it was introduced because,
+on first sight this means, developing, 
+or downloading any hacking tool with the
+purpose of circumventing data protections, 
+is already a crime. Downloading aircrack,
+developing a metasploit plugin, buying burp suite, 
+hell, even using nmap could make you a criminal.
+BUT written laws are one thing. How the 
+laws are actually interpreted in reality
+are a different beast. In this video I try to 
+interpret it my way, but a court or lawyer might
+interpret it differently. And usually if you want 
+to understand laws better you can simply look at
+prior court cases and their decisions to 
+see how the law was applied in practice.
+And as I previously said, we have almost no 
+court cases about this stuff. Except this hacker
+paragraph. This was challenged a lot and it even 
+went up to the federal constitutional court who
+went over a few cases and provide very long and 
+detailed decisions why all of the examples are
+fine and not punishable under this law.
+For example one case was about nmap,
+it’s included in a lot of linux distributions, 
+so is downloading that already a crime? Of course
+not. The court even said that to be punished by 
+this section the state would have to proof that
+the entire purpose of a tool is to commit a crime.
+And basically any of the publicly available
+hacking tools are dual-used, they 
+can be used to commit crimes,
+but they are also used by professionals 
+doing legit security assessments. Which
+But this also means it’s very important 
+how the tools are offered and advertised.
+For example Team viewer is a software 
+to gain remote access to a system.
+Or even ssh can be installed and provides 
+remote access to a system to do anything.
+And a remote access trojan does the same. Same 
+functionality. So what’s the legal difference?
+If you would develop a RAT and sell 
+it primarily on a hacking forum,
+then this software probably falls under this law 
+and you commit a crime by developing or buying it.
+So I think the federal court decision shows 
+us what the lawmakers really intended with
+these laws. I’m a very naiv person and I 
+always like to think nobody wanted to do
+anything bad. And my expectation is that these 
+laws are applied reasonably, for people with
+malicious intentions. Of course these 
+laws can be interpreted in many ways,
+and in the most cynic interpretation this would be 
+killing the entire security industry in germany,
+so it makes sense that the law is not applied this 
+broadly, and that it has a very specific goal.
+Okay. We talked a lot about section 202, but 
+I mentioned there is another section 303.
+303a about data manipulation 
+and 303b, computer sabotage.
+“Whoever unlawfully deletes, suppresses, 
+renders unusable or alters data”
+gets less than two years or a fine. 
+But also. The attempt is punishable.
+So unlike before, when we test various 
+vulnerabilities, all these attempts are
+not illegal, but for example trying to distribute 
+a ransomware ,which deletes or alters the data,
+clearly a crime. the attempt is punishable.
+When I read this I was immediately asking myself.
+Let’s say I test a remote code execution 
+vulnerability. And you simply try to
+print “cat /etc/passwd”. According to the 
+previous law 202a the attempt is not a crime.
+Only if you would be successful, then the 
+law applies. BUT if your payload was rm -rf.
+Now you try to delete all files on a system. 
+Now it seems like, the attempt is a crime.
+And very similar 303b about computer sabotage, 
+if you somehow interrupt systems with substantial
+importance, for example with a denial of 
+service attack, the attempt is punishable.
+Now the system has to be of substantial 
+importance, so it probably doesn’t apply
+to your basic website. But maybe targeting 
+a bank, that is of substantial importance.
+So should we commit a crime!
+Let me look up a command injection
+payload list, let’s grab this one. We add a 
+fork-bomb which if executed could bring the
+server to the knees, and add rm -rf to wipe 
+all files of the system. This one would be
+a double crime because it is data manipulation 
+AND sabotage of processing operations, because
+we attempt to delete the server files.
+Let me send it to my bank.
+OH FUCK!
+FBI OPEN UP!
+Just kidding. But did I really 
+just commit a crime on youtube? mh?
+WEll, I don’t think I did. Or I hope I did 
+not? The only reason why I did this stunt was,
+as somebody with 8 years of doing professional 
+security audits, I know there is no f’n way
+this would have EVER worked. So I think 
+I didn't actually attempt this crime,
+because I knew it wouldn’t work. Or did I? I mean 
+theoretically it could work, you never know 100%,
+it’s only 99.999%? And that’s the crux. What do 
+you think? Did I commit a double crime or not?
+Now I’m not sure anymore either. Uhm… okay… 
+how do I get out of this…. Uhm… well.. A!
+actually this was all fake. I didn’t send 
+this computer sabotage attempt request to
+the server. I just faked it with the developer 
+tools and edited it for the video. I swear.
+Jokes aside.
+There is also
+one more interesting fact about 
+the computer sabotage section.
+For the 202 laws it always talks about 
+unauthorized access. So if somebody
+authorizes you, for example if you get hired to 
+perform a security audit. You have authorization,
+none of these laws apply. HOWEVER.
+303 is a bit different.
+There is no word about “authorizing” 
+somebody for data manipulation or sabotage.
+So testing for denial of service, or 
+“stress testing” is a bit tricky I think
+(do companies still offer that service?),
+there is a very important sneaky word.
+This law applies only when you disrupt “another 
+business”. in german its “fremden betrieb”.
+It basically means if it’s your own 
+business you can disrupt it. And you
+can give somebody else the permission to do 
+so. BUT it has to be literally YOUR business.
+This means, an employee of your business cannot 
+give permission to a contractor to test, because
+it’s not their business. So if you basically want 
+to test for denial of services I guess you would
+require permission of the person actually owning 
+the business. Not a manager lower down the chain.
+Anyway. As you can see it’s very difficult to 
+properly assess different legal situations,
+mostly because we don’t have lots of court cases. 
+I interpreted the law in a certain way, but there
+is always the chance a court or lawyer interprets 
+it differently. So don’t make me responsible for
+anything please. Think for yourself, and when 
+in doubt, contact a lawyer. Who of course also
+can give you no guarantees and just shares their 
+interpretation of a case. Which means, in the end,
+make sure you act with a clean conscience. For 
+example with my minecraft server vulnerability
+scan, I might have crossed some laws? But I 
+did the project in a way where I believe it is
+“harmless”. And I can still sleep at night. That 
+obviously doesn’t protect me from legal trouble.
+But I have a naiv believe in the justice system 
+that it can recognize cases without malicious
+intent. There are so many actual serious 
+cases of hacking that deserve attention. But
+who knows. I can assure you, if I ever get legal 
+troubles, I would milk it for content on youtube.
+Anyway… the lesson of the video, don’t do 
+crimes. CTFs are a perfectly legal playground
+to hack around. Bug bounty is great BUT 
+also there don’t overstep the lines,
+if you abuse a vulnerability beyond the initial 
+verification you can still run into real trouble.
+And yeah. Let me know what you think.
+I have had tons of legal discussions after 
+my minecraft video. I learned a lot. And I
+hope you did too. I’m looking for reading your 
+interpretations, or comparisons to your local
+laws below in the comments.
+Please don’t sue me.

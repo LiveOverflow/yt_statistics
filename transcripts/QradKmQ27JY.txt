@@ -1,0 +1,467 @@
+Well hello there. Welcome back to another 
+episode of minecraft hacked. A let’s play
+where we explore some weird sides of minecraft. 
+last episode on our way back from the spider farm,
+we saw that this island had trees, with missing 
+leaves. And we found this cave entrance here.
+Could this be related to the weird 
+stuff happening in this world?
+Let’s investigate.
+Slow… slow… there seems to be light around 
+the corner. There must be something.
+Oh my god, did you notice the bedrock 
+on the floor. This must be from the
+one that has been messing with us. Let’s see.
+Ohhhh kay… this looks weird. What is this?! I
+have never seen that in minecraft. 
+Is that a computer and a bottle?
+And all these signs. Who is liveoverflow?
+Counting the days here. Oh crap there is a camera. 
+Well now it’s too late. We are fully on it.
+What is this place?! Seems like 
+this person is trapped here somehow.
+This bottle. Club Mate. mh. I think I heard 
+about this before. Let’s use the computer
+and search. Yeah… On Wikipedia it’s described 
+as : “Club-Mate has developed a following in
+computer hacker culture.”
+Vice, “How a German Soda
+Became Hackers' Fuel of Choice”.
+Sounds interesting. Let’s take it.
+Alright. Let’s taste it. Okay… mhh…
+I think you have to get used to 
+it. But yeah. It’s pretty good.
+what else can we find in here.
+Is this a book over there? It’s a Research
+Paper. Interesting. Redstone blocks and sticks.
+Looks like a crafting recipe. Let’s remember that.
+But that seems like all of 
+it. I don’t see anything else.
+Outside it was already getting dark and I wanted 
+to leave before whoever lives here comes back.
+Let’s sleep for the night and then tomorrow 
+we can look at the details of research paper.
+You know. I really tried to sleep. But I 
+just couldn't. I don't know what it was.
+I was just so full of energy all night. 
+And now the sun is coming up again.
+Dammit.
+Oh wait. I
+think I know what it was. Club 
+Mate. That is a crazy drink.
+Well… let’s checkout the crafting recipe.
+We need redstone blocks and sticks.
+Here we go. Keyaxe. What the heck is a key axe? 
+Is this like a keyboard on a stick or what? It’s
+called “axe” so maybe we can hack wood with it?
+Let’s try it. Uh! It drops additional redstone
+dust when we cut down a tree. That’s cool? 
+I guess. Free redstone. Whoever came up with
+this seems to be a really good researcher. 
+I didn’t know this existed in Minecraft.
+Anyway. Focus. I told you last episode that I want 
+to build a creeper farm next. And of course I have
+watched several videos on how to make a creeper 
+farm, but I wanted to research a bit myself.
+I always like to understand how people come 
+up with farms, why they are shaped the way
+they are shaped. And so I went into 
+creative mode experimenting with this.
+From watching videos I know creepers are 
+scared of cats. So first I want to figure
+out how far away a creeper can be and still want 
+to flee from a cat. To do this I created this
+test setup with a cat and some walls. Throwing 
+down a creeper spawn egg will spawn a creeper,
+and it maybe will try to run away.
+We can experiment a few times and
+throw the egg at different distances 
+and simply observe the behaviour.
+So here, the creeper immediately runs. So doing 
+this a few times we should be able to figure out
+the distance. And it seems to be around 6 blocks. 
+But this is just a straight line, and to get more
+out of the cat, it would be better to have it 
+in the middle and the creeper running off in any
+direction around it. So next we can section off 
+an area of a circle to experiment more diagonally.
+And we can also place trapdoors at 
+the edge, so the creeper will run off.
+This is closer to the final farm design. Again 
+I’m just playing around with different spawning
+positions to see if they are triggered by 
+the cat and where the platform has to stop.
+Doing this for a while eventually we can come 
+up with the proper distances for a circle all
+around the cat. Here you can see me test it again. 
+Just throwing down spawn eggs to simulate creepers
+spawning and checking if all of them run off the 
+edge. And maybe we find small edgecases that we
+still need to improve. But eventually we figured 
+it all out. And we have the base for the farm.
+Next we want to make sure that the spawn 
+conditions only allow creepers to spawn,
+but I have seen this in videos. I know that 
+for example carpets placed in this pattern
+will prevent spiders from spawning. Mobs 
+cannot spawn on carpet and because spiders
+require more than just a single free block, 
+they wont spawn. And zombies spawning can be
+prevented by the height of the the ceiling, 
+because they are as high as a player.,
+creepers are shorter. So with additional trapdoors 
+on the ceiling we can ensure only creepers spawn.
+Anyway. I continued to designed the whole farm 
+in creative, but let me show you the result
+on my survival world. Let’s turn on super 
+fast build mode and build the creeper farm.
+
+What do you think?
+For creepers to spawn we also 
+need to be a bit further away,
+so above the farm I built a floating island 
+where we can be afk while the farm is running.
+Awesome. Creepers spawn on the layers, get scared 
+by the cat and fall down on the side into the
+water. Which transports them into the middle, 
+where they fall through and get transported to a
+kill chamber. Awesome. Now we have a great source 
+of gunpowder. Now let’s talk about something else.
+I know, in almost every episode I try to justify 
+why playing minecraft is useful for hacking.
+And here I just want to give you another 
+example. But before I can tell you I need
+to explain something first. it has to do with the 
+crazy cave we found at the start of this episode.
+Of course the computer, the club mate, 
+the camera and the key axe recipe are
+not part of regular minecraft. Actually 
+my significant other and I created them.
+We wanted to learn how to customize 
+minecraft and so we stumbled over blockbench.
+And with various YouTube tutorials we 
+learned how to create our own 3d models.
+But Minecraft is weird, custom models are 
+supported in a really weird way. Let me show you.
+In minecraft you have so-called resource packs. 
+It’s nothing fancy, they are literally just a
+collection of files that can overwrite the looks 
+of items. Mostly the textures. So basically I
+can go into the minecraft jar to the assets, find 
+the stone texture. The go into the resourcepacks
+folder in the minecraft folder, create a specific 
+folder structure with a mcmeta file. It’s the
+same asset path like in the minecraft jar. 
+Now we can extract the stone texture here.
+Then lets modify it. I open it up in photoshop 
+and draw on it. I show you what I made in just a
+moment. I saved the image and now in the game menu 
+we can see this resource pack showing up. We apply
+it. The game will now reload the game textures. 
+And here we go! I made a bitcoin block! Now we
+can go and mine bitcoins. I’m gonna be RICH! Go 
+away hater! You don’t know the power of crypto.
+thumbsup for this amazing joke.
+Crypto is a joke btw. Don’t
+get invested into this scam.
+Anyway. Changing some textures is easy,
+but resource packs support a little bit more than 
+just that. you can also change other stuff about
+items, using these json files. Here for example 
+is the file for a potion, which has a custom
+mate bottle 3d model. But let me show you in 
+more detail the computer we made. I thought
+I just take a carpet and change the model. This 
+is just how the json has to look like, I learned
+this in the various YouTube tutorials. So this is 
+the base carpet file and now we can overwrite the
+model with the new model. This is the path to the 
+model file I created with blockbench. However this
+model is only applied when the item has a special 
+internal custom_model_data value set to 133701.
+To get a carpet item like this, we can go to 
+mcstacker which is a simple tool to help us
+build the command to create such an item.
+So here we say that we want to give our player a
+gray carpet with the custom model data 133701. WE 
+could also change the name of it and do whatever.
+Here is the resulting command. Using this command 
+in game we give our player this special item.
+But turns out, it still looks like a carpet. 
+Somehow overwriting the model didn’t work?
+Even placing it we don’t see the new 
+model. Except when we throw the item
+on the floor. Suddenly it does show up. 
+So we only changed the model for the item
+when dropped on the floor like this. This was 
+very weird and took me a while to figure out.
+Again, I watched YouTube tutorials for this. 
+Turns out, the answer is armor stands. ARmor
+stands can hold items. The actual 3d model of 
+an item. So the trick for custom models is,
+you display it on an armor stand. And Blockbench 
+allows us to change how an item is displayed
+on an armor stand. So here I’m moving the 
+computer all the way at the bottom of it.
+And with mcstacker we can now create 
+the monster of a command we need.
+So we want to give our player an armor stand 
+item, which on its head carries a gray carpet,
+which has the custom model 133701. And we 
+also set the armor stand itself to invisible.
+And this is the result. If I place this armor 
+stand we now see the computer. In this case I
+enabled item glowing so you can see that in 
+reality this custom item is an armor stand,
+the armor stand itself is just hidden.
+And this is when I understood why
+everybody always talks about armor stands 
+when it comes to custom minecraft models.
+here is for example timber forge. On this 
+channel are a lot of awesome datapack tutorials.
+And he created a working tank. When showing 
+details on how this tank is implemented,
+you can see all the armor stands. And same thing 
+with this very popular and amazing datapack of
+bendable pistons. In one video this guy 
+showed how he made it and it turns out,
+all these custom bendy piston parts are 
+again armor stands just holding an item with
+that particular model. I never understood 
+before why armor stands are always used,
+but now I do. It’s the one special minecraft 
+item that can hold the 3d model of another item.
+I don’t understand why mojang hasn’t created a 
+set of items with different properties where you
+can just overwrite the model. Why do we all have 
+to use the dumb armor stands. Anyway. This works.
+And now finally we come to my sales 
+pitch why this was useful for hacking.
+First of all, leave me alone, minecraft is awesome 
+and it was a ton of fun just creating my own
+custom models and seeing them in the world.
+But second of all, if we want to look for
+more vulnerabilities in minecraft, we 
+need to understand the available attack
+surface. We need to know all the different 
+features that exist, and how to use them,
+in order to to think about how we can attack them.
+And file handling is always a tricky area.
+A minecraft server can define a 
+link to a custom resource pack.
+When somebody joins this server the player is 
+prompted and asked if they want to install it.
+Which means the game has to download the resource 
+pack file to load them. And so we just identified
+our first attack surface! Can resource packs 
+downloaded and installed from a malicious
+server do anything bad? And thanks to learning 
+how resource packs work, we know the features,
+for example we know that you can have custom 
+item data which also can reference other files
+here. These are basically file paths. So 
+not only have we identified a possible
+attack surface, but we already understand 
+the feature well enough to hunt for bugs.
+Let’s do it. To do this I use intellij again, 
+specifically my fabric mod project. Here under the
+external libraries the minecraft jar is listed and 
+we can now read the code. But where do we start.
+Well apparently the server has to communicate 
+to the client that there is a resource pack
+and in the wiki.vg we can find the Resource Pack 
+Send packet. It contains the URL to the resource
+pack. Let’s find this code.
+Minecraft, then network, packet,
+and then the packet is from server 2 
+client. So s2c. And here in the play
+folder I found the resourcePackSend packet.
+Here is some code just parsing it. Reading
+the URL. and reading the hash.
+But when the packet is fully
+read it now forwards this packet to the 
+onResourcePackSend() function handler.
+This function looks like its doing a lot, 
+so we can start looking for vulnerabilities.
+When you do code review you always want to think 
+about what an attacker could control. And in
+this case, if we assume a malicious server, any 
+data from the packet, so the URL and the hash,
+they can be completely controlled.
+So what can we do?
+First it calls validateResourcePackUrl, 
+so we have get past this check.
+This function parses the url string into a 
+URI Object and performs various checks. For
+example if the protocol, so the scheme, is not 
+http, not https, and not level, then we fail.
+So I update my mental model. An attacker cannot 
+fully control the URL, it must start with http,
+https or level. Which already means some 
+attack ideas wouldn’t work. For example using
+file URIs or windows network 
+paths starting with just //,
+all of that is not possible. But that 
+doesn’t mean there are no other issues.
+The second if case is also interesting. it will 
+always return true if it wasn’t a level:// URI.
+so any http or https URI will work. But if it is a 
+level:// URI then the URL must not contain .. and
+END in /resources.zip. So obviously they 
+try to prevent path traversals with ../../
+and they want to ensure that the 
+referenced file is named resources.zip.
+I actually know that this is a fix to a 
+vulnerability that was reported in 2018.
+Checkout this blog post by punkeel. Here is 
+how the packet handling code used to look like.
+It simply took the path from a level:// URI 
+and concatenates it with the minecraft saves
+folder path. And now if this path points to a 
+valid file that exists, it would respond with
+a ResourcePackStatus packet with the status 
+“accepted”. If it doesn’t exist it would send
+“failed download”. So with a path traversal a 
+malicious server could basically ask the client:
+“hey, does this file exist?” and 
+the game would respond yes or no.
+It’s not a crazy issue, it’s a small 
+Information leak, but still. It’s a small issue.
+So here we have the fix. But is this fix 
+enough? Mh You cannot use .., so no path
+traversal anymore and it must end with 
+/resources.zip. This looks good, I guess.
+So let’s go out again, we have validated 
+the input now and we reach another if case.
+So either it’s a level:// URI or it was a http 
+or https URI. The level case was the one that
+was vulnerable in the old version. So let’s see 
+what it does here. You can see it’s very similar
+to how the code used to be but also slightly 
+different. We take the URL, we concatenate a
+file path and check if it’s a file. If it 
+exists, we send the packet to the server.
+So can we still exploit this? 
+Or is it really fixed now?
+Here you have to really look at the details. 
+This code includes a few anti-patterns. And
+I’d like to reference a video I made 
+a few months ago about fuzzing java
+for another log4shell issue. Let 
+me play a snippet from that video.
+Now if we look at this function at a high 
+level, there is some things sorta interesting
+that we can observe. So we see that name is 
+the attacker controlled input. In this try
+block they parse name into this URI. Validate the 
+URI, but then use name down here at the bottom.
+And this is sort of a dangerous code pattern. 
+Because the thing they validated is URI. Not name.
+And now apply this to the code here. The 
+URL from the packet has the type string
+and is passed into validate resource pack. Here 
+it is parsed into a URI, to get the scheme,
+and check it. But the .. and the endswith 
+is checked on the string url. Not the URI
+object. that is already an anti pattern. But 
+these two parts are not yet security relevant.
+Though now we know the path traversal 
+check is done on the string URL. But
+look what happens next. Here the string 
+is URLDecoded. THIS TRANSFORMS the string.
+And now this transformed string 
+is used to assemble the path.
+Let me show you. Here is a simple test java 
+program I wrote with a test malicious level URL.
+And here it does the URL decoding and 
+then appends it to a path like the
+minecraft code. And then print some stuff.
+You see, our URL does not contain .. so no
+path traversal, right? Well, do you see the 
+%2e? Those are URL encoded dots. And after the
+decode they become dots. Let me run the program.
+So first it prints the original string and then it
+prints the the absolute path of the concatenated 
+file. And here you can see the ../ path traversal.
+We move out of the tmp/asd folder 
+and try to access a test.txt file.
+Here is also the canonicalPath, so 
+the path after the path traversal
+is resolved. So now we accessed this 
+test.txt file outside of the folder.
+I do wonder if they maybe added the URL decode at 
+a later point, but didn’t realize that they just
+broke their code again. I don’t know. probably it 
+would make more sense to first do the URL decoding
+right here at the star. Well. You probably wonder 
+if I reported the issue. I did not. Because it’s
+not really exploitable. There was one other test. 
+In validateResourcePackUrl they also ensure that
+the url ends with /resources.zip.
+So let’s add this code to the
+test as well and play around with it.
+We could try to put an encoded nullbyte there,
+maybe this way we can get arbitrary paths. but 
+that doesn’t work. Maybe a newline. Mh now.
+Then I was also thinking if we somehow make 
+it think the URL scheme is http but the string
+still starts with level:// then it would not have 
+to end in resources.zip. But I don’t see a way.
+I’m just playing with it and see what happens. 
+For example I cannot put a space at the start of
+the scheme. But I realized a scheme without // 
+is still a valid scheme. And the code then does
+a substring assuming it;s level ://.
+So as you can see, using this URL,
+the code will cut off the first two characters. 
+Which means if we just do /resources.zip, we see
+it would cut off the start. Obviously a bug, but I 
+don’t see it having really any security relevance.
+So let’s continue in the code. we could also 
+checkout what happens if we have an HTTP URL
+then it attempts to download a zip. Could we 
+maybe influence where the file is downloaded to?
+In the download function we can see that a file 
+path is assembled in the serverPacksRoot folder,
+using string. And string is the hash of the URL. 
+So we cannot do a path traversal here either.
+Though we know it’s a zip file and maybe they 
+unpack the zip? That can also open up a whole
+can of worms. But looking into loadServerPack, 
+following down to the instantiation of the
+ZipResourcePack object, we see that access to 
+the files inside the zip never leads to actually
+writing the files to disk. The operations 
+are all done just walking the zip entries.
+Okay… now you have seen the process of 
+doing code reviews, and I didn’t check
+more than that tbh. Feel free to review the 
+code further, now you know how it works.
+Anyway. I think we looked at enough code for now.
+Before we end, let me tell you about one last
+thing. I recorded the lets play footage of this 
+episode, around the time when I published the
+first episode of minecraft hacked. As you can see 
+there is quite a big time gap between making these
+videos and actually releasing them. But check this 
+out. Here I created a lava pool. And below it,
+in this hole, This is the server spawn.
+When I released the first episode on the
+first of april, I removed the allowlist of the 
+server. Anybody can join. The question is just.
+Will people find the server? I 
+don’t know yet. It’s kinda scary.
+But keep in mind the timeline please.
+I published the first episode on the
+first of april. So this is when the 
+server opened. The lets play footage
+of this video is from around that time. now 
+me editing this video is at the end of april.
+And you will get to see the episode even later. So 
+I cannot promise you that at the time of releasing
+this video the server is still available. But 
+there was obviously plenty of time for very
+dedicated people to find the server before. 
+So let’s see what happens. Of course I will
+tell you about everything that happened 
+in a future episode of minecraft hacked.

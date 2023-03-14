@@ -1,0 +1,205 @@
+hey I just wanted to make a quick video
+to remind you of a hardware CTF that
+will be starting soon just quickly want
+to introduce what this Hardware CTF is
+what it is about and then I will tell
+you about the details for how the
+registration process works and basically
+you just have to keep the deadline the
+28th of August in mind for the
+qualification phase so risk U is a
+hardware security company so they offer
+products and services to do Hardware
+attacks for example extracting
+cryptographic keys from chips and so you
+can like consult them for your own
+design for example if it's secure and
+they made already two Hardware
+capture-the-flag competitions before and
+this is now the third installment and
+currently the registration is still open
+that's why I'm making this video to
+encourage you to register and
+participate so what is the CTF about
+let's have a look at last round
+where participated in till you get an
+idea what the CTF is and what other
+requirements for it so if you go to the
+playlist tab and YouTube there is a
+playlist called risk your Hardware CTF
+or you also find it on my website up
+here under CTF says the risk embedded
+hardware CTF and I made up quite a lot
+of write-ups of the hardware challenges
+that I have solved and it all started
+with them having sent you an Arduino
+Nano board it was like a nano clone from
+China but it had a custom bootloader on
+it which encrypts the challenges and you
+would then login and you would select
+the challenge you would load it onto the
+board and then you solve it and they
+were po Nobles where you had to find
+buffer overflows for example but there
+were other challenges as well where you
+had just had to interact with the board
+and you had to build program a custom
+microcontroller to communicate with that
+Arduino board or you had to do use an
+oscilloscope or logic analyzers to you
+know learn what what a certain
+implementation wants to do and somehow
+you have to find flags and so let's have
+a quick look what what kind of
+challenges were there so for example
+obviously a very first step was to
+establish a serial connection that's a
+very calm
+protocol to interact with the hardware
+device and then I went on just like
+solving some of the challenges for
+example there was there were crypto
+challenges and so we performed sha-1
+length extension attack on in one of
+these challenges or there was a
+reversing challenge like a kind of like
+a crack knee challenge where I had to
+reverse engineer a lot of AVR and I
+ended up scripting radare
+to be able to solve this so if you see
+there's a lot of crossover with regular
+reverse engineering as well it's just a
+different architecture in this case then
+there were challenges where you didn't
+have the binary but you just kind of
+like blindly try to exploit something
+you noticed weird behavior when you were
+interacting over a serial console with
+it and there were also challenges that
+included real Hardware side channel
+attacks so for example I actually had to
+solder and modify the board in order to
+take measurements with an attack ball
+called called the chip whisperer which I
+learned from University to perform a
+power side channel analysis attack so
+these are the kind of challenges and it
+was a lot of fun and there's a great
+community on IRC as well so in the third
+installment now it's another theme of an
+automotive challenge so they I suspect
+we will see things like canvas or
+similar things that would remind you of
+automotive and the reason for that is
+also that in this case risk u has teamed
+up with Argos it's great that another
+company teamed up here to organize this
+so let's have a quick look at what now
+the third round is about and what you
+have to do to participate so the
+registration opened a while ago and it
+does closed on the 28th of August so
+that is - and that's why I kind of rush
+out this video without much editing and
+just do a rough voice over here there
+are three challenges and you have to
+find one two or three of these flags and
+some magnetman and if you submitted them
+until the
+Deadline and you belong to the top 500
+participants then you they will send you
+a custom or that they design for this
+CTF you simply go to Twitter because
+they posted here a prototype so this
+kind of what the board will probably
+look like and we might want to analyze
+this already a bit what kind of
+controllers are on here I haven't looked
+at it yet but I guess that's it mega and
+that's definitely the this USB to serial
+converter but what these here are I
+don't know so we will we will figure
+that out and then again pins and yeah so
+this will be fun and so is it still
+realistic that you could be one of these
+500 participants so let's look at the
+scoreboard right now and there are a lot
+of people registered so it works right
+now is that you sign up as an individual
+person and you do these channels but
+later you can form teams of multiple
+people and so if you can see like all
+three challenges were solved currently
+by 109 people and then you see that up
+until the 180th point there were too
+soft and then there are a bunch of
+people that only saw one challenge and
+we are at 275 so it's very very likely
+that when you when you are only able to
+solve one challenge that you can still
+qualify for this because there's quite a
+lot of space so until the 500th place so
+let's have a quick look at the
+challenges they are currently three
+qualifying challenges available each
+gets one point and that's the white box
+unboxing the tracing the traces and
+exploitation as you can see I've
+currently only solved two of the three
+challenges so which one would I
+recommend you to tackle if you are
+interested in participating I would
+suggest you go with exploitation at
+least this one was a much easier one
+than white box for me and with and with
+a lot of my videos on my channel if you
+kind of are familiar with the basics of
+exploitation that that you can find in
+CTF write-ups on my channel you will
+have a fairly easy time with this one so
+there was a quite very comfortable
+challenge
+white boxing on the other hand does
+require some crypto knowledge but a lot
+of the people who solved it used tools
+that other people have implemented and
+don't really quite understand how it
+worked and I have to admit that I'm one
+of them
+after many days of frustrated and almost
+raged quitting and getting burned out
+from this challenge I decided to screw
+it in tracing tracer I haven't looked at
+yet I have no clue but but it's about a
+project you have to analyze there's a
+deadline for the CTF on the 20th of
+August the first 500 participants get a
+free board if you look in the challenges
+they are doable they take a bit of time
+and you have to should get on it if you
+still want to solve it but if you manage
+to solve at least one it's very likely
+that you still belong to one of the 500
+people who can get a board and then you
+can see like I said a little bit of
+hardware is required a lot of time is
+required to participate but it's a lot
+of fun and if you have an interest and
+maybe a little bit of basic knowledge
+with Arduinos and programming other
+innos and how how to make an LED blink
+and stuff like this then I think you
+might be able to have some fun here and
+learn something anyway thank you very
+much well that's it I hope I will see
+you at the CTF I will be on the IRC a
+lot of the times as well I'm looking
+forward to chat with people and to learn
+a lot of new things and thanks for risk
+you for organizing another round of this
+amazing CTF I really hope it's a success
+for them again so that they will do this
+more in the future
+[Music]
+you
+[Music]

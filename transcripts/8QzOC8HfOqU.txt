@@ -1,0 +1,197 @@
+In this episode we start to get a little bit
+closer to a full buffer overflow.
+In the last episode we have learned how a
+Buffer Overflow can change local variables,
+which are stored on the stack.
+Now we will have a look at stack level 3,
+which is very similar.
+If you forgot how we were able to solve stack
+level 0, you should go back and watch it again.
+When we look at this code, we see that it
+is basically the same.
+The only difference is the name, instead of
+a modified variable, we have the fp variable,
+which is defined as a function pointer.
+The syntax looks a bit ugly, but if you check
+the if case, it simply checks if fp is not
+zero, and then just calls fp, as if it were
+a function.
+Now you know that a function has an address
+location in memory.
+So it will basically call whatever address
+is stored in fp.
+Now like the modified variable in stack0,
+the function pointer fp gets set to 0 and
+after the gets function it will be checked
+if it’s not zero anymore.
+So we know that fp must also be stored on
+the stack.
+As a hint it says, that we can use gdb or
+objhump to determine where the win() function
+lies in memory.
+So first let’s use gdb and you can use examine
+or print to get the address of win.
+Then set the disassembly flavor to intel and
+disassemble main.
+Exactly like stack0, we can see that it makes
+space for hex 60 bytes on the stack.
+Then we set esp offset 5c to 0, so that is
+the location of the fp variable.
+After the gets, we compare the value if it
+is still 0 and if that were not the case,
+we load the value into eax down here, and
+call that address.
+So let’s set a breakpoint at this call.
+Now execute it and enter enough characters
+to overwrite this value on the stack.
+Exactly like last video.
+Ok we hit the breakpoint, let’s look at
+the registers, and we can see, that we have
+succesfully set eax to 41414141, which is
+the ascii value of capital A.
+And the next instruction tries to call this
+address.
+So basically jump there.
+But that is obviously invalid memory, se we
+get a Segmentation fault.
+Now open a second ssh session.
+And create a python script, that will be our
+exploit.
+So let’s first try to figure out which offset
+controls eax.
+So simply print a recognizable pattern.
+For example the alphabet.
+Ok. cool.
+So pipe this output in a file.
+Now you can use this file in gdb as input.
+So we dont have to type it everytime, it will
+use the content of that file as input.
+Now “run” and use the arrow left to redirect
+the file contents in the standard-input of
+the program.
+Ok so eax it’s hex 51, and that is a capital
+Q. So now we know which offset modifies eax.
+let’s rewrite the code a little bit.
+Let’s call this part up to the “Qs”
+- padding.
+So now we want to write here the address of
+the win function.
+So simply use backslash x as hex escape for
+those byte values.
+Oh oops.
+That doesn fit.
+There is a leading 0 missing.
+Save, write the file.
+And check it in gdb.
+Huh?
+segementation fault?
+The address looks a bit weird.
+Looks like it’s the wrong way around?
+Well, that is because of the endianess.
+So the numerical value will be basically the
+other way around.
+cool.
+Eax looks fine now.
+let’s continue and we get code flow successfully
+changed!
+Now let’s quickly solve the next level as
+well.
+This level is our first buffer overflow, where
+we take advantage of the stack layout.
+The code doesn’t contain much.
+There is no function pointer variable we could
+overwrite.
+And now modified variable.
+But it still wants us to execute win.
+So how do we do that?
+Now do you remember how the stack looks like
+from last video?
+Here is a quick recap:
+So here on the left you can see the assembler
+code.
+And on the right I will illustrate the stack.
+with the 3 important registers, the instruction
+pointer EIP, the stack pointer ESP and the
+base pointer EBP.
+So first it starts somewhere else with a ‘call
+main’.
+Call will push the theoretically next instruction
+pointer onto the stack.
+And then jump to our main function.
+As you can see, when the address of the next
+instruction was pushed, the stack pointer
+got incremented and the address placed there.
+So now comes our push EBP.
+How do we now know where to return to from
+main?
+Well if you remember, call pushed the address
+of the instruction after the call.
+So the next value on the stack is where we
+want to return to.
+And the ret instruction is basically just
+popping this address into the instruction
+pointer.
+And thus jumping back where we came from.
+So as you can see, when a function is called,
+the address where we want to return to, will
+be stored on the stack.
+So instead of overflowing a local variable,
+we can simply overflow the return pointer
+on the stack.
+And when main would return, it would read
+the wrong value and jump there instead.
+So let’s use the code that we have just
+written, and modify it a bit.
+Let’s make the payload a bit longer and
+simply throw it at this program in gdb.
+Segmentationfault in hex 54, so we succsefully
+redirected code execution, to bad memory.
+And if you look closely you can also spot
+that the basepointer is hex 53.
+So that one was also overwritten, because
+if you remember from last video, the old basepointer
+is also stored on the stack, right before
+the instruction pointer.
+And hex 54 is T. So T allows us to control
+the instruction pointer.
+This time let’s use objdump to find the
+address of the win function.
+With -t we get all symbols, and then we can
+grep for win.
+So there is our address.
+Now let’s modify our exploit code.
+Let’s remove everything up to the S, because
+that is the base pointer.
+Now create two variables ebp and eip.
+We don’t care about EBP so we can just set
+it to whatever we want.
+And next we want to set the instruction pointer.
+But let me show a better way to encode the
+address as a string.
+So import struct.
+And then you can use struct.pack, to convert
+the address from the integer number into a
+binary string.
+Then print the padding and append the ebp
+and eip variable.
+so let’s execute this exploit and pipe it
+into the stack4 level.
+Codeflow was successfully changed!
+Amazing.
+We smashed the stack and controlled the instruction
+pointer.
+But you still get a segementation fault?
+The reason for that is, that after the win
+function is complete, it tries to return to
+the next value on the stack, which is now
+some gibberish, and likely not in a valid
+code area.
+So it will crash eventually.
+But we don’t care, because we executed what
+we wanted.
+In the next video we will write our first
+buffer overflow with shellcode, which will
+show you how powerful a buffer overflow can
+be.
+And it will be our first exploit that will
+get us root privileges.

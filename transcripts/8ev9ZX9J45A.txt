@@ -1,0 +1,176 @@
+Security CTFs, or Capture-The-Flag competitions
+have nothing to do with paintball or shooter
+games, but they are awesome to learn hacking.
+They can be very challenging and teach you
+a lot of new skills.
+In this video I want to tell you about what
+kind of challenges there are and how you can
+find CTFs to play.
+Generally there are two categories of CTFs.
+Jeopardy-style and Attack-and-defense.
+While the second one sounds like a lot of
+fun, personally I have never played one.
+So I will only focus on the Jeopardy-style,
+especially because it’s easier to get into.
+So a typical CTF offers a bunch of different
+challenges that you have to solve.
+Most commonly you have to exploit some kind
+of service so you get remote access to the
+server, so you can then read the content of
+a file that contains a special string, the
+flag, which is proof that you hacked the system.
+You can then enter that string in a form and
+you get points depending on how hard the challenge
+was for your team.
+Usually a challenge has a title, a short description
+and maybe infos on how to reach the service
+or a file to download.
+Oftentimes the title or description is already
+a small hint.
+So for example there was a challenge called
+sha1lcode at the HITCOn CTF 2014, and without
+really looking into the challenge I already
+assumed that you have to write shellcode,
+and it has something to do with sha1 hashes.
+Maybe writing shellcode in the form of sha1
+hashes.
+And indeed, that was the solution in the end.
+There are a lot of different kinds of challenges,
+and sometime you get some new creative ones,
+but the typical topics covered are reversing,
+pwning, crypto, web and maybe misc or programming.
+Reversing usually comes with a executable,
+a program you can download and run locally.
+The program implements some kind of algorithm
+that checks an input key.
+If you find the correct key, which is oftentimes
+already the correct flag, then you solved
+it.
+So solving it requires you to reverse engineer
+and understand the implemented algorithm to
+deduct the correct input key.
+A good example for that is my Zwiebel video
+write-up.
+For pwning challenges you often get also an
+executable, but with it an IP address and
+port of a server running this program.
+So you have to figure out how to exploit the
+program to gain remote code execution.
+You develop your exploit locally and then
+use it against the server, where you can then
+read the flag file.
+These challenges range from simple buffer
+overflows to very advanced heap feng shui
+stuff.
+And they are the most interesting ones to
+me.
+The cookbook challenge vide writeup on my
+channel is one example of such a challenge.
+Crypto, like the name says is about cryptography.
+Sometimes it’s about attacking a self-made
+cipher, or very simple crypto attacks like
+weak random generators.
+But it can get really advanced and mathematical.
+Where you are basically lost if you are not
+up to date with the research and papers form
+that field.
+I have a simple crypto video writeup from
+the Internetwache CTF that gives you an idea,
+but there are way more advanced ones where
+I just yield.
+You should check out hellman’s writeups.
+Web challenges are also clear, they are about
+web applications.
+Usually you get a URL and you have to exploit
+maybe a advanced SQL injection, or bypass
+authentication.
+Sometimes even XSS or CSRF challenges.
+I also have a web challenge writeup where
+you can get a feeling for what it is about.
+Misc basically covers anything else.
+And programming is also self explanatory.
+Mostly it’s about clever implementations
+of solving some kind of problem.
+Now that you are excited about solving some
+of these challenges, let’s talk about where
+you can find them.
+The best platform for all of this is ctftime.
+It’s made by the CTF community for the CTF
+community.
+You can see which CTFs are upcoming and you
+get information like the format, when it happens
+and where to register.
+You can also see the archive of competitions
+in the past.
+So for example the HITCON CTF recently.
+And below, you see the final ranking of all
+teams.
+Each CTF has points attached to it.
+Hard CTFs have high numbers like 50, or 75
+points.
+Easy CTFs have maybe only 5 or 10 points you
+can get for them.
+So if you participate in a very hard CTF and
+do well, you are rewarded more than for easy
+college CTFs where you can easily get rank
+1.
+But those CTFs are also really damn hard.
+At least I struggle a lot with them.
+Over the year the CTF teams collect these
+points and you have an overall ranking.
+Being in the top 50 is quite challenging.
+But how to find a team?
+Well it’s like finding a group of friends.
+There is no one way how to do it.
+I found my group from another security competition
+I participated in.
+And we kept hanging around on IRC and started
+playing other CTFs.
+And suddenly we had a serious team.
+Before that I played CTFs solo, which meant
+I would maybe solve only one challenge per
+CTF but that’s fine, I can’t compete with
+the crazy skilled people anyway, and I just
+play for my own curiosity.
+But you could also checkout the reddit CTF
+team OpenToAll, which is, like the name says,
+open to everybody.
+But all these CTFs are usually short.
+They are over a weekend.
+Maybe 48-72 hours.
+But there are also websites where these kind
+of challenges are available forever.
+So I played a lot on w3challs, smashthestack
+and overthewire.
+In the beginning you will realize you know
+nothing.
+You fail every challenge you try.
+But that’s normal.
+So what I always do, I will look up the challenge
+after the event.
+Because people create writeups or upload their
+exploit script.
+And then you can work through those solutions.
+You can research topics you didn’t know
+about.
+You see how other people solve it.
+And you start to gain experience.
+And you will see that after a couple of CTFs
+you start to be able to make progress yourself.
+So for that prupose you should look up the
+writeups on ctftime, or the ctf writeup github
+repository (maybe contribute yourself by gathering
+other peoples writeups and create a pull request),
+or simply hang around on the IRC channel of
+the competition, because people will start
+discussing solutions afterwards.
+I hope this quick overview was helpful to
+get into challenges yourself.
+And maybe consider recording yourself solving
+them during the CTF.
+Just make sure you don’t beg for flags,
+solutions and hints.
+Respect the competition.
+Be excellent to each other.
+And accept your lack of skill and convert
+it into motivation to learn more.

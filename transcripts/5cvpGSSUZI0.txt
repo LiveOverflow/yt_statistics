@@ -1,0 +1,443 @@
+It is time to get serious.
+Reverse Engineering isn’t about toys and
+games.
+Sometimes it’s about malicious software.
+I recommend you run this next challenge in
+a VM or someone else’s computer you have
+gained access to, especially if they are a
+Firefox user.
+Okay, this time I needed to get a VM.
+And I saw that they also offer this Flare
+VM which is like the Kali Linux of Windows
+Malware Analysis.
+And because I have no clue, I go with that.
+For this I used a free Windows Test VM and
+then executed the Flare installer to install
+all tools.
+The challenge description is hinting at malicious
+software and itt may target Firefox?
+So I also install firefox.
+And then we can get started
+Before we head into it, I have to say again.
+I have very little experience with windows.
+I would say about myself, that “I have no
+clue what I am doing”.
+Of course that is not completly true.
+You can’t go a few years in this field without
+picking up some knowledge over time.
+Actually my very first introduction into reverse
+engineering and exploitation WAS with windows,
+namely a friend who introduced me to game
+cracking with olly debugger and then the corelan
+and lena tutorials.
+And generally by having a more abstract computer
+science knowledge and a basic understanding
+of how computers work, I don’t feel completely
+lost.
+I have a rough idea what I want to do, and
+I can somehow figure it out.
+I just very much lack detailed technical knowledge
+and experience.
+for example I have very limited knowledge
+about the windows APIs.
+And I only know a FEW popular TOOLS.
+And so I will be a lot more inefficient and
+my approach is a lot less structured than
+usual.
+But let’s learn together and share your
+tips in the comments.
+So here we have the binary.
+If you forgot to turn off windows defender,
+then windows will actually detect it as malware
+and then remove it.
+So make sure to deal with that.
+Because I’m unsure how to approach this
+I decided to throw it into virus total.
+Of course somebody else did that before.
+But I’m not really interested in what tool
+flagged this as malware, I was actually interested
+in the file details tab.
+That one provides a good first quick overview
+over the binary, without executing it yourself.
+So binstall is a browser assitant installer,
+which would match with the firefox hint in
+the description.
+And it appears to be .net, so maybe another
+c# program?
+We can also go on the comments tab where other
+plattform analysis tools posted their results.
+For example we can checkout the joe sandbox
+result.
+That service appears to run the binary and
+record what it does.
+It also labeled it malicious.
+And here are some great first hints.
+It creates an undocumented autostart registry
+key.
+And it drops a PE file.
+PE file is a regular windows binary file.
+And you can see it drops a browserassist.dll.
+But into the Internet Explorer folder?
+Not firefox?
+Mhmh..
+There is a lot more nice information there,
+but let’s move into our own VM.
+So Flare installed a lot of tools in various
+folders.
+Disassemblers, debuggers, decompilers and
+other utility tools.
+One of the first tools that were ever showed
+to me wa PEID, so I use that again.
+It’s a tool to detect what kind of binary
+it is.
+And for binstall it detects that it’s a
+C# .net binary.
+Extra information will also show some guesses,
+that the binary might be packed, so parts
+of it might be encrypted.
+Because it’s C# we can also trhow it into
+IlSpy again, but you can quickly see it got
+obfuscated.
+So while all the names are gone, you can still
+click on them and follow their references,
+but also the functions them selve appear to
+implement decryption or deobfuscation routines.
+So not something we want to really analyse
+if we don’t have to.
+And we know it drops a .dll anyway, so it’s
+probably also not important.
+Nontheless I was playing around a bit with
+it a bit.
+And so I used Process Monitor to monitor all
+events on the system as well as checking out
+API monitor to monitor all calls.
+So when running binstall we can then use the
+filters or the search in Process monitor to
+hopefully find interesting things it did.
+Like accessing the registry or creating a
+file.
+And so after a bit of digging we can also
+discover here the dropped dll location.
+I also tried API monitor and selected a few
+possibly itnersting APIs such as file system
+or networking stuff.
+And then I wanted to launch and attach to
+the binstall .exe.
+But it didn’t really work and crashed.
+But trying out different attach methods I
+found one that works.
+And so API monitor recorded all the Windows
+APIs that binstall was using and we selected
+to trace.
+And also here with a bit of digging we can
+find the file it creates.
+The browserassist.dll.
+With peid we can also investigate the dropped
+dll.
+And this one looks like a regular binary.
+So not C#.
+And the extra information checks also think
+that it doesn’t look encrypted.
+Great.
+We can also throw it into the ida free version
+here and check a bit the strings.
+Here are references to typical HTTP header
+values.
+Content-type, encoding, POST, GET and so forth.
+So again it makes sense that it does something
+with the browser.
+Now I was confused why the dll was dropped
+into the internet explorer folder, so I actually
+thought maybe it does infect IE.
+And when I opened the internet explorer, I
+noticed this weird smiley face.
+Send a smile, send a frown?
+Did the malware inject that?
+That’s funny.
+Mhmh.. it appears to fake a Internet Explored
+feedback form.
+That’s quite interesting.
+Let’s have a quick look at the privacy statement.
+Mhmh… that looks like the normal microsoft
+privacy statement?
+Ehhmmm….
+Oh… whaaat?
+This is not the challenge?
+This is actually in the Internet Explorer?
+Let’s pretend this didn’t happen.
+We move on.
+Now in the meantime it was kinda hard to avoid
+spoilers on reddit and twitter becasue people
+talked about the challenges publicly.
+SHAME YOU!
+Just kidding, I think it’s great that you
+help eachother.
+And somewhere I read that you should use an
+older firefox version, something like firefox
+version 40, so that’s why I also downloaded
+that one.
+In that moment I was kinda annoyed that it
+would only work with older firefox versions
+and was wondering how you could even figure
+that out.
+Anyway… so I opened the old firefox version
+and now I was wondering what to do.
+There didn’t appear to be anything obviously
+different, but it’s a malware right?
+So it would do something a bit more sneaky.
+Next I thought I could try to trace calls
+to the browserassist.dll in case firefox does
+anything with it.
+You can add external dlls to the API monitor,
+but it says that it doesn’t export any functions.
+So the .dll appears to not work like a typical
+.dll with exported functions…
+mhmh… next I decided to attach the x32 debugger
+to firefox.
+And I wasn’t really sure how to approach
+it, but I thought a good start would be to
+see if the dll is loaded somewhere in memory,
+so I checked the Memory Map tab and also found
+it in there.
+Over her eyou also se a description of the
+different segments, but for the debugger the
+text segment, the code is obviously the most
+interesting.
+This lead me to this area here.
+So that’s kinda like the entry point of
+the dll, I guess.
+And because I didn’t know what it does I
+simply set a breakpiint at the start and end
+of it.
+But it didn’t trigger right away when using
+the browser, only when I restarted it.
+And while pressing the button to continue
+execution after that breakpoint, I noticed
+that this code was executed quite a lot on
+load.
+And I happen to notice some ascii strings
+being referenced at some point earlier on
+the stack.
+This is the stack view here.
+That’s just memory that’s still around.
+For example I saw an injects and content string.
+So while I kept doing this continue break
+continue break thing, and looking at the stack,
+eventually I noticed this json data…
+Code, addCmd.
+After.
+askPassword.
+Ont he path js/view.js?
+On the host *flare-on.com?
+What?
+That looks like a filter.
+It applies to all flare-on.com domains, includign
+subdomains.
+And js/views.js is obviously a javascript
+file.
+So I went into the browser, went to flare-on.com
+where we had this simple command line interface,
+opened js/views.js and noticed some very suspicious
+javascript.
+I mean that looks very obfuscated.
+So I opened up the same javascript file on
+my regular host chrome browser and compared
+it.
+And holy cat.
+Look at the difference.
+The malware in firefox appears to have injected
+javascript into this script.
+In theory this could be now injecting ads
+or a script to steal your credit car dinfo
+or so.
+But this challenge apparently added an askPassword
+function.
+So clearly this comamndline interface was
+extended with some functionality, but what
+exactly?
+I just randomly tried some stuff but it didn’t
+work.
+But askPassword is a javascript function,
+so we can open the developer tools and just
+directly call it.
+Now the function itself was defined inside
+of com.fireye.flareon.view.
+So here is the function.
+When we call it, we see that we are now asked
+to enter a password.
+And when we enter something, we get a su,
+authentication failure…
+ahhh..
+So su is the secret command.
+Switch user.
+So now we need to find the password.
+By looking around the other javascript files
+I noticed a controller.js which also had additional
+code injected.
+A cp function which seems to be called when
+the password is Entered.
+We can also set a breakpoint in cp, then trgger
+su and enter a password.
+And here we go.
+So we see that p in this case is the password
+we entered.
+The first check is if the length is 10.
+So we know the password must be 10 characters
+long.
+And then we check the first character.
+The first character xored with 16 must result
+in 123.
+Because it’s xor, we can simply xor 123
+with 16, and the result will be the first
+valid character of our password.
+And peaking ahead we can see that there are
+similar rules like that for all other characters
+of the password.
+So I copied the javascript code into a new
+html file, to more easily work on it and cleaned
+up the if-case a bit.
+But then we quickly reach some of these functions.
+So the 5th character is equal to an integer
+which is returned by this function.
+If you carefully check how far this function
+spans, you can just copy the whole thing,
+let it evaluate, and this is the result.
+The whole thing is just obfuscation for the
+number 66.
+And there are a few more like that, but same
+principle.
+Here are all the rules cleaned up.
+Oh f.
+That’s the problem with using this test
+vm.
+I think it expired and after a little bit
+of time it will, you know, shut down.
+This is annoying….
+Ok… we are back… here are all the rules
+cleaned up.
+And then I started to write the reverse of
+each of these conditions to create the whole
+password.
+We can simply use the String function fromCharCode,
+which takes ascii integer numbers as parameters
+and turns them into a regular ascii string.
+So the first character is 16 XOR 123.
+The second character is shifted to the left
+by two and must be equal to 228.
+This means if we shift 228 right by 2, we
+get the next valid character.
+Character three has a little twist, I will
+take about it in second.
+Next character was this obfuscatied function
+and so it’s just 66.
+Fifth character subtracted by 109 will result
+in -22.
+Which means if you subtract 22 from 109 you
+will get the correct password character.
+And it’s all kinda simple, but then in the
+end we reach two more rules that are a bit
+more complex.
+Feel free to practice your school level math
+to rearrange the equation so that our password
+character is alone on one side.
+But I’m not in school anymore.
+And I’m really lazy.
+So I just decided to bruteforce those two
+values.
+I mean each of them only has less than 128
+options.
+we are talking ascii characters here.
+Oh and the 3ird character was a bit special
+because the check is doing here a shift right.
+Which means the lower bits of that number
+will be lost.
+So 14 is the result of a shift right, which
+means if we shift the 14 back, we don’t
+know what the lower bits were.
+And up here we do the reverse.
+We shift the bits up, but then remove them
+with %255, so now only the lower bits remain.
+So based on these two values you can easily
+assemble all bits of the whole ascii number.
+But again, I’m lazy.
+I just brute force it too.
+I clean up a bit more and here is the final
+script.
+If we find the correct password I alert it,
+and otherwise just return false.
+And then I have three nested for loops, each
+one is responsible for one of the three unknown
+characters.
+And then I just open that file in the browser,
+and basically instantly it finds the correct
+password.
+Awesome.
+We can copy it now, execute su, enter it and
+BOOM!.
+We are root.
+Awesome……….
+Right?...
+ehm… how do we get the flag now?
+I was hoping this was it?
+Goddamit.
+After a short moment of rage I tried to approach
+it again with logic and saw that when we enter
+the password correct, it sets the root variable
+to 1.
+So I searched the sources for location where
+this variable is used.
+And I find one location here.
+And scrolling up we can see it’s in the
+function changeDirectory.
+So that’s interesting.
+The other aprt in the if case where it checks
+for root is again obfuscated.
+When we carefully copy that out again and
+evaluate it, it evaluates to “key”...
+sooooo… let’s try that.
+Let’s try to cd to key.
+Oh wow that works.
+We are now in key.
+And as we learned in the first video, we can
+enter “ls”.
+Urgh… what is that… so first time I saw
+that I was a bit shocked, but I think I screwed
+up some internal state.
+Because I had the clever idea to refresh the
+browser and do it again, on a clean session
+where I didn’t debug, and now it works.
+We get the flag.
+Command Injection.
+Let’s submit the flag and we are done…
+awesome.
+Oh and btw.
+At the end I checked also the latest version
+of firefox, and the malicious javascript was
+also injected there.
+So the spoiler or tip to use an old firefox
+version wasn’t actually necessary.
+Eeehhh…
+LiveOverflow from the future again.
+I was just editing this part, happy that I’m
+almost done and then I realized.
+Wait a moment.
+Could it be that the js file was just locally
+cached and the new firefox used the old firefox’s
+cache?
+So here is the old firefox, showing the injected
+js.
+Then I open the new firefox, open that js
+file and we also see the injected JS.
+But now I force a refresh with CTRL+SHIFT
+R and boom.
+File is actually loaded and the injection
+is gone.
+I first thought not to include that part in
+the video, but I thought it’s quite interesting
+that the new browser version 60 was able to
+still use the cache written by the older version.
+AND this also means another question stands.
+How could you have figured out that you needed
+an older version.
+Were there any references in the dll to that?
+Please let me know in the comments.

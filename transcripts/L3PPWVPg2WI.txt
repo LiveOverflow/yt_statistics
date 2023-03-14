@@ -1,0 +1,403 @@
+So quite a while ago the Nintendo Switch was
+released and I made this video about the webkit
+bug.
+I didn’t really understand it well enough
+to actually participate in the switch research
+and a lot of it was then done in private anyway.
+But since then we have seen quite a few releases,
+a nice talk at congress, a nintento bug bounty,
+some infighting between groups … and I have
+no clue.
+But I remember hearing about this bootrom
+bug, and that it was apparently super awesome,
+though I never really looked into it.
+This was until Andy - G33KatWork on twitter
+- told me about a talk he gave at OpenChaos,
+a very small Chaos Computer Club event in
+some random german city and I should check
+it out.
+And so let’s talk about this.
+So the talk Andy gave is pretty long with
+1:30h.
+And staying concentrated and listening to
+it all might be hard, But this also means,
+the talk is very detailed and can be fairly
+easily understood.
+You don’t need a lot of prior knowledge.
+And it is kinda structured in chapters as
+well, so that you can easily watch and pause
+and continue another time.
+So there is no excuse to not watch it.
+And I really want to recommend this to you
+because, he explains how he together with
+q3k from the Dragon Sector CTF team approached
+the nintendo switch.
+They were not coming from the browser exploit
+software side, they tried to come from the
+hardware side.
+And so Andy is telling what their thought
+process was and also explains a lot about
+hardware in general, how booting a system
+works, the different stages, basics of USB
+and also about how they then tried to glitch
+the switch, the title of the talk is “glitching
+the switch”.
+I had one CTF video writeup where I used an
+FPGA to glitch a very simple software on a
+simple arduino board.
+But in this talk, glitching is a lot better
+explained and you get an actual real-life
+example of how AND WHY they wanted to glitch
+the switch.
+But enough of this praise and worship, I hope
+I convinced you to watch it.
+Soo...
+first of all, the nintendo switch is kinda
+unique because it is based on Nvidia’s Tegra
+X1 chip.
+This chip contains a lot of stuff, it contains
+a CPU, GPU and a lot of more parts.
+Here you can see the block diagram of all
+the components.
+It’s a whole system in that chip.
+The cool thing was, that this chip is available
+for us consumers.
+You can buy a tegra X1 development board,
+which has the X1 chip on it and exposes a
+lot of different peripherals for you to develop
+and test software and create prototypes and
+so forth.
+You can kinda imagine that nintendo might
+have used such development board during early
+software development, before the switch hardware
+itself was finished.
+So the reason why gaming consoles are so locked
+down is mostly because of piracy, and a lot
+of security researchers who work on consoles
+are very vocal about not being interested
+in piracy at all . They are usually not motivated
+by free pirated games later, because that
+NEVER would cover the cost of tools, hardware
+and time invested into those hacks.
+Economically this only make sense for people
+who want to directly or indirectly profit
+off piracy.
+A lot of these researches just do it for the
+challenge.
+So please don’t support that commercial
+form of piracy and instead buy the games and
+celebrate the cool hacks that were done.
+Anyway, so what I wanted to say is that the
+the goal of “hacking a console” is to
+somehow run your own code on there or even
+get so far to build a whole homebrew environment
+so that anybody can develop games for the
+switch.
+When exploiting a browser you only get some
+user-land access.
+Maybe the browser is even sandboxed or there
+are other mechanisms that make this priviledge
+level less powerful, and it definitely is
+not persistent.
+So you would have to find more vulnerabilities
+to go down the layers.
+But of course you could also ask yourself,
+can you not just start from the other side?
+Could you not just like replace the internal
+hard drive or storage and just overwrite the
+raw switch code with your own code?
+Kinda, yes, that would be an idea and might
+theoretically work.
+But we have just learned that the tegra x1
+is like this whole system inside of a chip,
+so physical access has some practical issues
+- there is no like external hard drive that
+you can just replace.
+And there is also some crypto involved too.
+Another idea would be to use some kind of
+update or flash mechanisms to overwrite those
+things in storage, but these kind of “attacks”
+are of course mitigated.
+There are a few security measures in place.
+But let’s start with the beginning, let’s
+Andy introduce the first step in booting the
+switch.
+this is the so called bpmp.
+Bpmp stands for boot and power management
+processor.
+And this thing is the first CPU that runs
+code when the system is turned on.
+The CPU, GPU and so on don’t even have power
+when you turn on the CPU.
+When this core executes code the DRAM is not
+configured yet.
+So you don’t have memory.
+And also here is a block called iROM.
+And irom is the boot rom.
+This is the first code that this bpmp processor
+executes when the system turns on.
+And this code in the ROM is responsible for
+checking a lot of stuff that is security related.
+This is the code that enforces that you can’t
+run whatever you want on this platform.
+This is key.
+So booting a system has a lot of different
+steps.
+Modern computers are very complex and there
+are multiple chips, and multiple little programs
+that will configure hard ware and whatever,
+and eventually handover the execution to the
+operating system kernel, which can then use
+a lot of the configured hardware to create
+a user land environment for regular programs.
+So during the different stages of booting,
+those stages verify the integrity of code
+that follows by checking hashes and signatures,
+or it drops other forms of privileges.
+Like moving from ARM level 2 to level 1.
+Or for example locking down certain memory
+areas that contain secrets, like cryptographic
+keys and so forth…
+Here you can see how the Tegra X1 development
+board boots, this is very similar to the switch,
+but the switch obviously doesn’t go into
+Linux.
+But the bpmp processor, which executes the
+boot rom is the same.
+So if you could somehow change the code of
+one of these stages, the previous stage would
+see that some signature doesn’t match anymore
+and refuses to execute it.
+So it all starts with the boot rom.
+The rom is interesting, because the ROM is
+the root of trust.
+If you defeat any kind of security in that
+rom, you can load whatever code you want.
+So running your own code here, would be kind
+of the holy grail.
+And like a lot of devices that you know, if
+something goes wrong during boot, you end
+up in some kind of recovery mode.
+The other path is interesting.
+It’s called RCM and stands for recovery
+mode.
+If the boot rom fails to load nvtboot for
+example from the emmc, because the emmc is
+not there or is corrupted or whatever then
+it goes into that RCM path.
+You can also force this by pressing some button.
+And then you have a USB device that you can
+use to load code into the chip.
+And then you usually load somethng called
+nvtboot recovery.
+Which then runs from ram and then you can
+talk to this thing and reflash the emmc or
+whatever mass storage you have on your board
+or device where the operating system lives.
+so could we just somehow get into RCM and
+then load our code?
+Of course we can’t use this, because RCM
+has well enforced security.
+Because everything that you load has to be
+signed by a certain private key from nintendo
+That would have been to easy.
+But maybe there are other vulnerabilities.
+But the issue is, that these parts are proprietary.
+There is no source code available for the
+boot rom.
+So how could you get the boot rom?
+even just the binary to reverse engineer and
+analyse for bugs would help.
+This is where the development board comes
+into play.
+On there you CAN run your own code and it
+has the SAME boot rom as the switch.
+So can you maybe run code, that will access
+the boot rom memory and just read it out?
+well...
+it turns out that the boot rom is locked down.
+once your code is running you can’t access
+this memory anymore.
+And this is what Andy and q3k tried to glitch.
+They ran code that keeps trying to read from
+the boot rom, and tried to glitch at a specific
+moment in time to hopefully circumvent this
+protection.
+Here you can see an oscilloscope trace of
+the glitch attempt by andy.
+In his talk he explains exactly why they wanted
+to glitch at this moment and how they do it.
+So if you are curious about the setup, watch
+the talk.
+But so now he had a glitching setup and now
+you have to try for a bit.
+The glitches would do something, some time.
+Maybe I am lucky.
+And then on another screen I suddenly saw
+this.
+And this was my facial expression.
+This is the code that was running there and
+said all the time “boot rom locked, boot
+rom locked, boot rom locked”.
+And always cehcked “is the boot rom locked?”
+yeah, hmpf okay then.
+Don’t do anything.
+Wait for the reset, be glitched again, and
+suddenly it said boot rom unlocked and started
+dumping stuff at mev.
+And iwas like “what?”.
+And again we can see, this actually worked.
+Awesome.
+The glitch was succesfull , and now reading
+the previously locked boot rom is possible.
+This is actually also how at least one other
+group acquired the boot rom as well.
+Now you have the boot rom and you can reverse
+engineer it in the hopes to find bugs.
+For example, maybe there are cryptographic
+vulnerabilities so you can bypass some signature
+checks, or they forgot to check one small
+thing ...
+So multiple people and groups got the boot
+rom and independently started to find the
+same security issue.
+And that one is this holy grail vulnerability.
+Keep in mind this boot rom cannot be updated
+by a switch software update.
+This boot code basically is baked into the
+hardware of the switch.
+That’s why Nintendo had to release a new
+fixed hardware revision.
+All old switches will forever be vulnerable
+to this.
+Here is the advisory by Nvidia: “Security
+Notice: NVIDIA Tegra RCM Vulnerability”.
+This notice is a response to recent publications
+on a security issue regarding NVIDIA Tegra
+Recovery Mode (RCM).
+[...] a person with physical access [...] could
+connect to the device's USB port, bypass the
+secure boot and execute unverified code.
+This issue cannot be exploited remotely, even
+if the device is connected to the Internet.
+Rather, a person must have physical access
+to an affected processor’s USB connection
+to bypass the secure boot and run unverified
+code.
+So what is this bug.
+First we need to talk about the RCM, the Tegra
+Recovery Mode.
+A lot of devices you own can somehow be interrupted
+during boot.
+For example on your PC you can like pres del
+or f1, to enter the BIOS, or on your phone
+you can keep like volume down or so pressed,
+or on your mac you can like press the option
+key during boot, I don’t even know the keys,
+I might have just said completly wrong ones,
+but you know what I mean.
+And the Tegra also has a way to interrupt
+regular boot and instead go into RCM mode.
+This works by holding down the Volume Down
+button, the HOME button and then power.
+The home button in this case is not the home
+button on the switch joycon, it’s what the
+TEGRA sees as the home button and there is
+no real button exposed, you actually have
+to bridge the 10th pin here inside of the
+joycon connector.
+So if that is like shorted, you press volume
+down and then power, the switch will go into
+the RCM, the recovery mode.
+The screen stays off, because it actually
+just communicates over USB.
+There are special RCM messages you can send
+to the board, for exmple to write new code.
+But as you can see here the RCM message contains
+crypto stuff like signatures and you would
+need the nintendo private key to actually
+send valid messages to the boot rom.
+So most of the functionality of the boot rom
+is implemented after messages are verified.
+SO a lot of the bug prone more complex parts
+might only be reachable if you could send
+verified messages.
+So How likely do you think is it, that there
+is vulnerability even before the message could
+be verified.
+Like, during the whole receiving of the messages.
+Also here I encourage you to watch the talk,
+because andy explains very detailed how the
+RCM message protocol works AND how USB works.
+I just try to explain the gist of it.
+There are two parts to this bug.
+First, here is a loop in the RCM receive message
+function:
+This just receives the message.
+It does all kinds of sanity checks already
+so you don’t overflow anything.
+And it puts the header in one place and the
+payload into another place.
+Here is the memory layout of the boot rom.
+This is continuous physical memory, but divided
+into dedicated areas.
+This here is the RCM payload buffer, which
+is pretty big.
+And so when you send data via USB to the switch,
+and it receives it, this is where your payload
+is placed.
+And here we have USB DMA, a direct memory
+access area.
+If the switch would want to send data via
+USB, it would write the data into that DMA
+buffer, and then tell the USB stack in the
+chip to send this USB data out.
+And there is an issue in one function that
+sends out data.
+You can request some status from the switch
+via USB and this is then processed in the
+handle_pending_control_transfer function.
+And in here you can control a length value,
+which will result into a memcpy from the buffer
+area into the USB DMA buffer so that the data
+can be sent out as a response.
+But you control the length.
+And now you can combine the receiving of a
+large payload, and the copy of data from the
+payload area to the DMA.
+And In the meantime it also has to handle
+these control transfers.
+At that point we send the GET_STATUS_CONTROL
+request, with that overly long w_length value
+that we can control.
+So to send out data, the data is copied from
+the payload area into the USB DMA buffer.
+But the stack is directly behind the DMA buffer.
+So we always copy stuff from here, to here.
+what would happen if we copy 16kb from 12kb
+from here to here.
+Like this.
+We overwrite the stack.
+BOOM!
+So overwriting the stack happens during a
+memcpy, andy shows the call stack for this
+here.
+The rcm_receive_message function is receiving
+a lot of data, that we can send to the switch
+in multiple packets, an places it in the buffer.
+But before we complete the transfer you send
+a different USB packet to call that GET_STATUS_CONTROL
+function, and set a large length.
+And you can imagine what happens next.
+The area you previously wrote here is copied
+with a memcpy into the DMA, but you copy so
+much, it overwrites the stack.
+You smash the stack with the data you control.
+So once memcpy would return, it will pop the
+return address from the stack and jump there.
+now you can redirect code execution to anywhere
+you want.
+You have full control over the boot rom.
+The switch is fully owned.
+So if you are curious in more of the details,
+check the link to the talk in the description.

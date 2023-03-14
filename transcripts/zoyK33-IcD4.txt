@@ -1,0 +1,119 @@
+TROOPERS is a security conference in Heidelberg
+Germany which I attended in 2017.
+One fun event that happens there every year
+is Packetwars, it’s kind of like a CTF competitions
+during one evening, but only for a few teams.
+And I didn’t have a group to play with.
+But it was held in this restaurant we were
+all at and the task was shown on a beamer.
+This was one.
+Battle I: Whale Spotting.
+Identify the email address of @darealtrump
+and achieve bonus objectives on the way.
+We have 45minutes to solve it.
+And we get points for various objectives.
+some for the email address, for evidence of
+whistleblower assassination and if we identify
+a favorite coffee shop to organize a boycott.
+So my friend TheVamp and I had nothing else
+than our phone but we were really craving
+to play.
+So we tried it.
+First we looked up the obvious twitter handle
+and found this account.
+Oh and this is all going to be screenshots
+I made from my phone while playing.
+The latest tweet we can find says that we
+should ignore the tweet before, because it
+was not relevant.
+So obviously the first step is to look into
+for example the web archive, because we hoped
+it had saved the deleted tweet.
+And yeah, there was.
+It was a URL to some kind of report.
+We clicked on it and downloaded the pdf.
+Unfortunately certain parts were blacked out,
+but I assumed they were just overlays, because
+that’s such a typical pdf redaction fail.
+So I simply tried to copy the whole page into
+a notes app.
+And yeah that worked, it revealed the text
+underneath.
+But it turned out that the text was actually
+an image.
+And it had this cipher text on it, which looked
+like some kind of simple substitution cipher
+like caesar or vigenere.
+So we had to get the text out of the image
+and we didn’t want to type it on the phone.
+So we pulled up an online OCR service and
+uploaded the image . And now we copied the
+text into an online cipher solver, which bruteforces
+the key and applying some heuristic if the
+result sounds like valid english.
+And we got this text out.
+It’s not quite perfect because the key is
+a bit jumbled and maybe OCR was also not perfect,
+but you can guess most of the text:
+After some further research, blah blah, and
+eliminate them.
+So that is evidence of assassination and we
+solved that task.
+But there were more tasks, so where is the
+other stuff?
+We checked back to the web archive and found
+another entry of deleted tweets, with the
+favorite coffee shop starbucks, which was
+another task.
+And what looks like login credentials.
+So we logged into this account, I tweeted
+that I was here, got the account’s email
+from the settings and we solved the last part.
+And now comes the not so humble brag.
+We were faster than the actual teams!
+I think the reason for that might be, that
+with a phone you are sooo limited that you
+can’t try out crazy stuff.
+Steganography, metadata and so forth is just
+out of reach, so we only tried what was possible
+for us and got lucky.
+I’m sure the other teams over complicated
+things because they had laptops.
+I think it’s something to keep in mind but
+it was really fun to solve something like
+this on just a phone.
+Because we solved it first, the organizers
+even gave us the flag for participating, even
+though we were not officially part of packetwars.
+So that was really awesome!
+And we also got this awesome shout-out at
+the end of the conference when they were announcing
+the winners.
+The actual first people to solve the first
+challenge were the spectators.
+So our players actually got off to kind of
+a rough start.
+Are those two guys out here?
+That’s us!
+We were sitting somewhere ther here in the
+back.
+OK!
+Let’s hear it for those guys, because...
+And they did a debrief much better than I
+or mathias could ever do.
+I think you gave me the debfrief and all the
+proofs in about 45 seconds.
+So I think you have a future in this sports!
+I really appreciate it, that was really fun.
+So i can only recommend the TROOPERS conference
+in heidelberg.
+It’s a solid conference and if you have
+a chance to go there, you should.
+Unfortunately it’s a professional conference
+which means ticket prices are really high
+and not something you generally buy privately,
+but the cool thing is they have limited spots
+available for students and you can write a
+motivational letter and maybe get a free ticket.
+So that’s really cool and I encourage you
+to do that.`

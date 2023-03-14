@@ -1,0 +1,340 @@
+I like helping people that's also why I
+have this YouTube channel I like to
+share what I know I get a lot of
+questions by Twitter email Instagram
+whatever and I really try to answer as
+many questions as I can but it's it's
+impossible to answer all the questions I
+there's just no time for it I also have
+two separate life overflow where you can
+ask questions and the great thing is
+that not only I can answer about other
+people as well if they see it so so
+there's a great book thing if you have
+been answering questions to other people
+on there thank you so much thank you
+[Music]
+but I also want to thank people that
+write really good questions one
+important rule I have for the subreddit
+is use expressive titles so here I
+included two examples of like bad titles
+that were just new here or new help
+which doesn't contain any information
+and so I gave here a constructive
+example of what an alternative could
+look like and there would be way better
+so for example this first question here
+is talking about some stuff and a better
+title would have been should I learn C
+or Python with small examples or should
+I just read books that would have been a
+way better title anyway so let's see
+what kind of questions are here oh look
+at this one so this is not directly a
+question but at least the title gives a
+good context it's about exploding buffer
+overflows it's a Linux binary and also
+this added details about statically
+linked and stripped so I can assume that
+the person asking this question here has
+some issue will sell some trouble with
+getting around that if you link toaster
+binaries and look at this there's a
+actual text it's not just like a
+one-liner I like this I want people to
+actually like explain what they have
+been trying maybe you remember my video
+how not to ask a technical question
+where I was asking please please PLEASE
+include everything you can and explain
+everything you did because then it's
+only possible to actually help you so
+yeah this person kind of did this and
+explained a little bit what the person
+was doing and trying so I've been
+practicing different types of buffer
+overflows and can exploit simple ones on
+Windows and Linux machines now however
+I'm trying to teach myself reverse
+engineering as well but I have hit a
+roadblock I have an elf executable
+64-bit statically linked and stripped
+binary that has a buffer overflow
+vulnerability and so far I've downloaded
+the binary and ran the file comma to
+find the previously stated information
+then I try to execute it but I get a
+bind address already in use error so I
+then ran s trace and it looks like the
+error message is hard-coded I can't run
+L trace
+so I ran read elf to find the entry
+point of the program gdb has been
+unsuccessful as well since there is no
+symbol table and I also received a no
+registers error
+try and locate our IP or our VP I ran
+strings as well and nothing is really
+jumping out at me since I don't see any
+buff or vulnerable codes such as string
+copy
+I've tried researching what to do next
+and I believe I need to rebuild the
+symbol table but I'm honestly lost and
+would appreciate if anyone could push me
+in the right direction my main goal
+right now is just to understand the
+binary and figure out how to crash it
+what is this I make a whole video
+explaining that if you do anything like
+with debugging and it clear you're
+exploiting it if you are copying pasting
+all your output that I can actually
+follow what you did and then I get stuff
+like Iran s trace and it looks like the
+error message is hard-coded whether is
+that coming from
+I don't know show me the esterase output
+what are you seeing have you googled
+what bind does and what address already
+used means and then gdb is unsuccessful
+of course from experience I know what no
+symbol table means us but I also
+received no register arrow and try to
+locate our IP and our VP and that
+doesn't make any sense
+show me your goddamn gdb output ok then
+what we things are so simple here's a
+really good response this arrow means
+something else is already bound to that
+port you could have two instances of the
+binary running or it's trying to bind to
+a port you already have a service on
+uses s - t LPN to get a list of
+listening services and the respective
+ports then find the process ID of the
+process that's listening on the port it
+needs to bind and then kill it and look
+at that thank you
+I was able to find the process and kill
+it but now when I run nothing happens
+additionally to the advice already given
+regarding the connection to the port you
+should use s trace again maybe you want
+to use s trace - f to also follow
+forking children because it could be may
+be that the process is forking it's why
+you didn't catch it because it happens
+in a different process it is something
+with networking so there should be like
+a receiver or something like that
+you ran asteroids - F but you don't see
+any receive cost what does it be what do
+you see instead so the person actually
+sent me the binary and then I was also
+able to have a quick look at it myself
+when I use a binary next execute s trace
+here I see the output there's the call
+to bind then I use net kiddin sent a a
+to that port and then I see
+I received from so I can I don't know
+why you don't see that what do you do
+wrong I have no clue but it clearly is
+there
+my output stops at Exeter okay your
+output stops at exit three come right
+when you send but clearly you do
+something wrong because if you would
+actually send it there you should see
+receive so something else is going wrong
+again where the is the detailed
+technical information I don't see
+anything here where's your shell output
+water what are you doing this is exactly
+the reason why I want technical
+output like this why the didn't you
+provide this earlier because look at
+this you call Python and you sent this
+output to the challenge server to
+Ponyville Praetorian 288 but you want to
+debug your local binary obviously you
+need to then connect to localhost
+this is a typical mistake this can
+easily happen this this probably
+happened to me before too but people
+can't help you if you don't share your
+details is an easy mistake to spot
+that's good why you ask and why other
+people should look at this Morais can't
+see more issues like this sometimes you
+are blind with the basic stuff you don't
+even recognize that something like this
+is the issue so I'm happy to tell you
+exactly what the is wrong here no
+shame there but this could have been
+solved easily maybe even in the initial
+post if you had just posted all your
+output and all the things and stuff you
+did and stuff you do then it would have
+been already clear so yeah this is a
+perfect example why it is so important
+that you take time with your question
+and include all the technical
+information as well
+I'm the two-time cybersecurity challenge
+Germany winner 2013 in 2014 send me a
+command line output and not just your
+whining oh it doesn't work it doesn't
+work
+show me what doesn't work what exactly
+and that's it show me okay so this this
+was obviously just character please
+don't take my language too seriously
+this was obviously just a little bit of
+a joke and a character but I have to
+admit it is kind of frustrating to get
+these questions that's also why I made
+that video on how to not ask a technical
+question but I also know that there is
+like a many to one relationship the the
+problem for me is that I get a lot of
+questions right I get to get so many
+questions so seeing the same issues in
+this same pattern of not providing
+enough information is really really
+frustrating and sometimes I can get a
+little bit
+a little bit angry you know I know I
+shouldn't because for the person that is
+asking it's just a single connection and
+obviously if you have a one-on-one
+interaction with somebody you are a lot
+more chill obviously and so it can from
+the perspective of the person asking it
+can maybe look a little bit mean when
+the person like me gets a bit frustrated
+with the question because you know
+there's no need to be frustrated so
+anybody who has asked me questions and I
+have gotten a bit frustrated I'm really
+really sorry about that
+typically I also say sorry about this
+because I I know that I shouldn't be
+frustrated and I hope you can empathize
+with me that I get a lot of these
+questions and just think the math gets
+very frustrating because it's
+time-consuming I don't have time to
+address everything so it's it's taking
+my time away there's also taking away
+attention in time that I could give to
+other people it's not just for me it's
+it's it's it applies to any questions
+you ask online like the subreddit life
+overflow or Stack Overflow or wherever
+you are asking so sorry cookie for this
+a very strong language I hope you didn't
+feel attacked by this that this was
+really me just like acting a little bit
+and obviously exaggerating the situation
+and and I hope you don't mind that I use
+you know as an example to kind of like
+make a point because I would like to use
+this kind of video to also then share
+with people when they ask questions to
+highlight again what I'm looking for
+what the kind of information it is that
+I would need also a small little detail
+here so this challenge is part of like a
+recruiting company challenge and the
+person didn't mention this at the start
+of the question which always makes me
+feel a little bit like why are you not
+straightforward with this what why are
+you not saying what it's for because
+then when I find out there is like a CTF
+that is actively running right now or
+it's even part of a challenge where you
+can win money or words for a job it
+always feels a little bit cheating so be
+upfront with it I actually would love to
+help you when it's like a job kind of
+thing so so please be upfront with this
+because there's also influences how to
+react to these questions and be a bit
+more guiding rather than telling you
+might think that I would not
+to help you when it's like a job
+application kind of challenge but it's
+actually the contrary is true and glad
+that you find motivation to try out such
+a challenge and you want to apply and I
+would love to help you and teach you
+based on that challenge and you're
+applying for a job you are not in school
+anymore okay
+you don't necessarily need to sit there
+alone you are googling and researching
+all the time anyway that's part of the
+job having a good Network and asking
+other people for advice and help in your
+job is also helpful skill so recognizing
+where you need help and being able to
+ask the correct questions and reaching
+out to the right people that's part
+that's a good skill I'm obviously not
+solving it for you but I'm I'm happy if
+I can help with your process there just
+be honest with yourself in the end that
+you didn't quite solve it yourself and
+maybe in the interview process you can
+even talk about this that it was tough
+on you and you needed a lot of research
+but a tough challenge doesn't stop you
+right this shows dedication the shows
+that you have the smartness to power
+through that and be able to learn maybe
+the job is for an experienced senior
+position and they want already a lot of
+experience that could be but then you
+already also know that maybe it's not
+the position for you but if they are
+generally a bit more open with their job
+description and it's more like a junior
+position or an entry-level position then
+I think this actually would look great
+that that you were able to identify
+where your weaknesses and if you were
+able to help yourself and that you in
+the end were able to find the resources
+that were necessary to be able to solve
+it I think that is mostly a positive
+thing and I guess with active CTFs if
+it's just a weekend then also just wait
+until the CTF is over just wait two days
+and then talk to the people that solved
+it and look at write-ups like at this
+point is kind of just cheating if you're
+then asking because you will get the
+solution anyway I want to help you when
+you can't figure it out and the fact
+that you could figure it out two days
+later with write-ups from other people
+then that should be sufficient anyway
+keep the questions coming and I'm sorry
+for when I get maybe a little bit angry
+and frustrated in my responses I'm
+really really sorry but please let me
+have that okay
+I'm frustrated but I'm still helping you
+okay I might I might have a little bit
+of a strong language but I'm still
+helping you I'm still here
+my goal is still to help you just just
+let me have my little bit of frustration
+okay that that would be really really
+great thank you thank you for that
+anyway I hope this wasn't too bad
+see you tomorrow
+[Music]

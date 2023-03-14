@@ -1,0 +1,239 @@
+If you follow me on twitter you have seens
+some tweets about the riscure embedded hardware
+CTF that has been running for around 3 months.
+The CTF is over now and I have already prepared
+several video writeups of the challenges that
+I have solved and they are going to be released
+over the next weeks and months.
+In this video here I wanna talk a little bit
+about my experience with it and a little recap.
+So it all started last year when riscure announced
+the second round of their embedded hardware
+ctf.
+To enter the competition you had to reverse
+engineer a very very simple crackme, which
+you could have easily done when you follow
+my videos.
+They were preparing arduino nano boards to
+be shipped to every participant.
+So we all got a free boards.
+But they replaced the standard arduino bootloader
+with their own custom one.
+The bootloader is the part that is responsible
+for stuff like making it easy to flash your
+own code on it.
+They did that, because they didn’t want
+to distribute binaries that could be easily
+reverse engineered instead of having to interact
+with the board.
+It also allowed them to have unique flags
+for every participant.
+So to work on a challenge you chose one from
+this beautiful map, in an area that you want
+to try out.
+I for example started with the first crypto
+challenge.
+You get a little bit of text and a file to
+download.
+That file is actually the encrypted challenge
+code.
+You could then flash this encrypted code onto
+the board, exactly like you would flash regular
+arduino code on a normal board, just in this
+case, the bootloader would decrypt the file
+and then flash the actual code.
+And then it was just fair game.
+Find the flag.
+How I approached the challenges and what I
+learned along the way and how I solved them
+will be covered in the upcoming videos.
+Also I spend waaaaay to much money on equipment
+I might never use again.
+I’m sure riscure would have preferred I
+spend it on them.
+But I was really excited about this CTF and
+wanted to do some hardware stuff.
+But my bad conscience is hunting me.
+Anyway.
+fast forward to end of February 2017, the
+CTF is over.
+As you can see I was not able to compete with
+the top ones.
+Look at this points difference.
+I actually kinda only solved the easy ones,
+but I learned a lot.
+On my profile you can see which challenges
+I solved when.
+This will also be the order of the videos
+that will come out, so you can experience
+the CTF from my perspective from start to
+finish.
+You can also see that I have not consistently
+played and obviously now I regret that.
+I mean I was busy, or just lazy, but I think
+I missed out on some good challenges.
+Let’s also have a look at which challenges
+were solved by how many people.
+As you can see I basically covered all the
+simple ones.
+They are mostly challenges that don’t really
+have anything to do with the fact that it’s
+an embedded device, they could have just been
+regular CTF challenges, and I guess that made
+it a lot easier to approach.
+Though I did not solve one of these apparently
+easier challenges, and that is Impostor, I
+did not start doing that one, because I was
+hanging out on the IRC channel of the CTF
+and heard people raging over it.
+Not because it was a bad challenge, just because
+it was apparently really hard.
+And I think it shows, that generally more
+people have good reversing skills than there
+are people with good hardware experience,
+at least in the CTF community.
+The most fun and educational challenges for
+me, and the ones I’m really looking forward
+to show you all, were the ones where you really
+had to do some hardware stuff.
+So whac the mole was great, and I have have
+some fun fails to tell you about piece of
+scake.
+And I think the coolest challenge of the ones
+I have solved, not because it was new or creative,
+just because I have actually never done it
+myself and it’s so magical, was the Fiesta
+challenge.
+If you are a software person, that will blow
+your mind.
+So overall, this CTF was a huge success.
+The organisation was awesome.
+The timeframe with the roughly 3 months were
+perfect.
+There were no big issues on the system or
+hardware side.
+I think riscure really deserves huge respect
+spending quite a lot of money on running this,
+and obviously the biggest thanks goes to the
+challenge creators and the riscure employees
+who have been hanging out on their free time
+on IRC and were super helpful.
+It was just a really really great experience
+overall.
+And I absolutely can’t wait for a riscure
+embedded hardware CTF round 3.
+This was just solid.
+The only criticism I have is that some challenges
+were relying a little bit too much of guessing
+or generally knowing exactly what it is about.
+CTF challenges are designed best when you
+could approach them without knowing exactly
+what’s going on and there is enough information
+given or discoverable to piece together the
+puzzle and progress and figure out what it
+is about.
+But that is criticism on a high level.
+Designing good CTF challenges is really hard,
+and overall they have been great.
+But I wouldn’t mind if they improve on it.
+And another small thing is, that I didn not
+want to try hardware related things until
+the last 3 weeks, because I was scared of
+accidentally destroying the board.
+Because if you brick it or fry it, it’s
+game over.
+You couldn’t use your own arduino board.
+Though, no idea how that could be solved.
+Maybe next time they could sell the challenge
+boards, so you could order a bunch at the
+beginning, or get another one if you destroy
+it.
+I don’t know.
+Anyway, you probably think now: “damn, why
+did I miss this.
+This sounds awesome”.
+And if you don’t think that, leave an subscribe
+to some kali metasploit tutorial channel,
+you are wrong here.
+Just kidding.
+Stay here.
+I’m have to try everything to manipulate
+you into actually learning something cool.
+Well.
+Lucky for you, riscure is slowly releasing
+all the challenges unencrypted, which means
+you can load them onto an arduino nano board
+with the regular arduino bootloader.
+And those arduino boards are really not that
+expensive.
+So if you want to follow along with the videos,
+attempt some challenges yourself, or just
+want to learn a bit more about electronics
+and build a fun little project blinking an
+LED, you should get one.
+For the easy challenges no other hardware
+like a soldering iron or an oscilloscope is
+not needed.
+They are only software based.
+If of course you do want to learn more about
+hardware security, then you need some equipment,
+and that’s not cheap.
+A binary ninja license is a lot cheaper than
+hardware.
+Hint hint.
+I did get one email asking me what this thing
+is in a previous video.
+It’s a multimeter.
+And I realised, maybe not many people know
+really anything about electronics.
+I don’t know how much that is covered in
+school or physics class.
+Or have had a small electronics learning kit
+as a child.
+So I’m wondering if I should do a video
+on the basics like transistors, and resistors,
+and current and voltage.
+At least so you understand a basic digital
+circuit.
+I mean, I don’t know much beyond that either.
+But let me know if you need that or if that
+would be a waste of time for me to make.
+I think it’s important to have a rough understanding
+and intuition on how digital circuits and
+computers work on a low level.
+Another thing I wanted to mention, thanks
+everybody for sending me suggestions for the
+i.onik giveaway.
+I have selected a winner who wrote me a nice
+list of ideas and actually put some effort
+in the mail.
+And I just send the package out.
+But thanks everybody!
+Also I’m wondering and really curious about
+how you discovered my channel.
+Where do those 50 subscribers a day come from.
+Who are you.
+What are you doing?
+Are you a student or a professional.
+What do you you get out of this channel.
+What are you hoping to find here.
+How did you get here.
+I would really love to hear your story, so
+if you are bored and wanna tell me, write
+me at liveoverflow@gmail.com
+Near the end of March I will be at the TROOPERS
+conference in Heidelberg, Germany.
+I plan to bring a camera and hope to find
+somebody who is interested in sharing some
+knowledge, experience or a cool demo, so I
+can make a video about it.
+I don’t even care about if it’s some kind
+of impactful 0day, and I don’t really care
+about products.
+I’m mostly interesting about weird bugs
+or interesting research.
+So if you have something neat to share, let
+me know.
+And maybe see you there.
+Let’s wrap this up.
+And see you soon.

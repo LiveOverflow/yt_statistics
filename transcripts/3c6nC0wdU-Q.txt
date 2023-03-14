@@ -1,0 +1,381 @@
+Let’s have a quick look into the table of
+contents of saelo’s phrack paper “Attacking
+JavaScript Engines”.
+Section 4 is about “Constructing exploit
+primitives”.
+And the first exploit stage was to build the
+primitives addrof and fakeobj.
+You have seen this extensively covered in
+the previous videos, so please check them
+out if you haven’t seen them yet, or refresh
+your mind before moving on…
+But the question is, how do they fit into
+the larger context?
+What is our “plan of exploitation”?
+From here on our goal will be to obtain an
+arbitrary memory read/write
+primitive through a fake JavaScript object.
+And We are faced with the following
+Questions:
+I guess for us, most important right now,
+is the first general question:
+What kind of object do we want to fake?
+Now in this video we won’t quite achieve
+an arbitrary read/write primitive, but we
+will create some beautiful f’ed up memory,
+that serves as a strong foundation.
+After we learned about the fakeobj() primitive
+we had a quick look at what Linus does in
+his WebKit exploit.
+And he was building up these wasmBuffer and
+wasmInternalMemory objects.
+Wasm is, web assembly, which is a fancy JavaScript
+or browser feature, and Linus is using it
+to craft an arbitrary read and write primitive.
+But don’t get confused with “WebAssembly”
+now, it doesn’t really have much to do with
+WebAssembly itself.
+The underlying principle, or idea, is different,
+and more important….
+I think we can kinda see what he wants to
+achieve, with the wasmInternalMemory object.
+Let’s have a quick peek into the mozilla
+developer documentation to learn what a normal
+JavaScript WebAssembly.Memory object is.
+The WebAssembly.Memory() constructor creates
+a new Memory object which is a resizable ArrayBuffer
+that holds the raw bytes of memory accessed
+by a WebAssembly Instance.
+Anyway…
+I really tried to wrap my head around what
+exactly he is building here, but it’s really
+mind bending.
+Here are some of my notes trying to walk through
+the code and understand the objects.
+It’s so crazy because these objects are
+of course, overlapping, even at some point
+they are pointing to themself and then you
+have the whole WASM thing.
+It’s pretty crazy and I didn’t fully get
+it.
+Maybe I revisit it at a later point or maybe
+you can explore it on your own.
+But just to get a feeling for it, here is
+the wat, WASM text format code, that he uses.
+It just implements load and store instructions
+on the WASM memory.
+And the memory object is passed to the WebAssembly
+instance via this importObject, which uses
+the fakeWasmBuffer.
+And that one has some relation to the wasmInternalMemory
+object, which is used to craft an object with
+apparently huge size values?
+I imagine this internal wasm memory will just
+span the whole memory now and you can just
+freely read and write around?
+But I’m honestly not sure.
+And because that was too crazy for me, I decided
+to look into a different proof of concept
+exploit, from niklas, who of course also builds
+an arbitrary read/write primitive.
+but a bit more clear?
+At least to me.
+So I removed the proof of concept parts we
+had in our exploit, kept the little gadget
+to convert between float and integers, started
+jsc with lldb, ran our script and kept an
+interactive javascript console, and now we
+go step by step through the technique niklas
+used.
+Like in our proof of concept where we had
+a loop to spray objects for new StuctureIDs,
+we also have here a loop.
+This loop always creates an ArrayWithDouble,
+sets one property .a.
+And then a unique property, so we force to
+allocate new structureIDs.
+We do that a thousand times and always add
+the new array to the stucture_spray array.
+Then we pick one in the middle, which one
+isn’t really of significance, we just need
+a victim object.
+So let’s take notes of how our objects in
+memory look like.
+we can do that, by first describing our objects
+to get the addresses, and then we interrupt
+the process with CTRL+C, to examine the memory.
+We want to look at the object itself, as well
+as the butterfly pointer.
+So structure_spray looks simple in memory.
+This is the CellHeader which we know contains
+some flags and the structureID that says “this
+is an ArrayWithContiguous”. and this is
+the butterfly.
+Following the butterfly we can look at the
+array content.
+As we know to the left of the butterfly pointer
+we have the size, or length, of the array,
+and non-inlined properties of this object.
+To the right of the pointer we have the actual
+elements of the array.
+So here I subtracted 16 bytes from the butterfly.
+the butterfly address points here.
+And here we can see the size of 0x3e8 which
+is 1000 in decimal.
+So this array has 1000 elements.
+And starting here we have the array elements.
+Which of course are pointers to the array
+objects we have created.
+So you see the values in memory, but let me
+also try to visualize the relationship of
+the objects, because it will get a little
+bit crazy.
+So currently we only have the structure_spray
+object, which is an array has a butterfly
+with the elements.
+And remember we picked one of these elements
+and called it a victim?
+So an entry here points to an ArrayWithDoubles
+which we call victim.
+And this array of course also has a butterfly.
+So let’s look at that in memory.
+Here is the CellHeader which has flags to
+describe that this is a ArrayWithDoubles.
+And here is the butterfly.
+But remember it also had two properties set
+to 13.37?
+They are of course stored on the left side
+of the butterfly, so when examining the memory
+I subtract a bit more of the address - so
+the butterfly points here.
+This array has the size or length of 1.
+We only had one element in the array, and
+the element is here.
+This is the hex representation of the float
+13.37.
+And on the left we have the two properties.
+.a and the other one.
+Both have the value.
+13.37.
+Eazy.
+So this is how our objects structure_spray
+and victim in memory currently look like.
+Next we are preparing two CellHeader values.
+But the flags for one will be ArrayWithDoubles
+and the other one for an ArrayWithContigous.
+See here the difference.
+7 and 9.
+You could of course just get that from creating
+such an object and looking at the memory with
+lldb.
+The structureID is set to 200.
+This should be a structureID that was allocated
+earlier in our array spraying loop.
+Which means there should be a property .a
+attached to this structure.
+Then we use our addrof() and fakeobj() primitives
+again to craft an arbitrary Javascript Object.
+First we define an outer object, where we
+will set two properties.
+The first property we will call cell_header,
+which will be the value that we just set for
+ArrayWithContigous.
+And the second property will be the butterfly
+pointer, and that we set to the victim array.
+So this is how this object looks like in memory.
+This is the CellHeader of our outer object,
+it is not an array and only has two properties,
+so there is no butterfly pointer.
+In this case the two properties we set are
+inlined here, this is the .cell_header and
+this is the .butterfly.
+And then we do our magic again.
+We get the address of outer.
+We move the address by 16 bytes up.
+And then return a JavaScript Object from that
+address.
+Boom. we crafted an evil object.
+So hax is now the object we crafted.
+It has this cellheader, which makes it an
+ArrayWithContiguous.
+And its butterfly is set to victim.
+So here is how this looks like drawn.
+We have this outer object.
+And then we used our memory corruption with
+fakeobj() to get a hax object, that is just
+16bytes shifted forward.
+So the properties of outer became the hax
+object metadata.
+The outer object can be ignored now, and we
+only consider our hax object.
+And like already said, the butterfly points
+to victim.
+Buuuut pay attention here.
+make sure you get this.
+Hax is an ArrayWithContiguous LIKE our victim
+object.
+But a normal ArrayWithDoubles, like victim,
+has the actual array elements inside of the
+butterfly.
+This is how a normal Array looks like.
+And our hax object looks very different.
+The vicitm’s object metadata are the butterfly
+of the hax object.
+Think about what that means.
+The hax object is an ArrayWithDoubles.
+So accessing an element, like hax[0], means,
+you will have to follow the butterfly, to
+get to the array elements.
+Which means you actually access the victim
+object’s metadata.
+So for example hax[0] is the victim’s cell
+header, and hax[1] is the victims butterfly.
+Now if you are just trying to just read that
+value and trying to print it in the console
+will cause an immediate crash.
+I mean these objects are so screwed up now,
+right?!
+But looking at what niklas does with this
+- this is pretty interesting.
+We start by creating two new arrays.
+First another generic ArrayWithDoubles, called
+unboxed.
+By the way if you would create this in a script
+it would actually be a CopyOnWriteArrayWithDouble.
+Only in this interpreter console it will be
+an ArrayWithDoubles straight away.
+So to make sure it also will be an ArrayWithDoubles
+when executed from a script, you can just
+assign a new value, and it will have to copy
+the array… on write… anyway.
+This solves that.
+The second array we ceearte is called boxed.
+Quick refresher from last video.
+Unboxed means you have raw double values in
+memory.
+Boxed meanes you have JSValues.
+And there you can have pointers, doubles or
+integers, depending on the highest bits.
+Doubles in that case also have this fixed
+value 0x1000...000 added to it.
+Anyway.
+We have now two new arrays.
+Unboxed and boxed.
+Both have a cell header and a butterfly that
+points to the actual array data.
+Here we can add them to our image of the objects.
+Just two boring arrays.
+But now wait for it.
+like I said.
+hax[1] is actually referencing the butterfly
+value of the victim object.
+And what we do now is, we assign unboxed to
+it.
+So we overwrite the butterfly of victim.
+But like with the hax object, victim now doesn’t
+point to an actual real butterfly with array
+elements anymore, now the butterfly of victim
+points into the metadata of unboxed.
+Now accessing the second element of victim,
+with victim[1], gets us the butterfly of unboxed.
+And we remember that butterfly address in
+a temporary variable.
+And now it gets crazier.
+We overwrite the butterfly of victim again,
+by setting the first element of hax, and we
+set it to the boxed object.
+So now victim[1] is the butterfly of the boxed
+array object.
+And then we overwrite now that butterfly address,
+with the butterfly we temporarily stored.
+Which means, unboxed and boxed now point to
+the same butterfly in memory.
+So here is the mental model again.
+We use hax[1] to access the butterfly of victim.
+Point it to unboxed.
+Then we extract the butterfly address of unboxed
+and remember it.
+Then we set the victim butterfly to boxed,
+and then use it to SET the butterfly address
+of boxed to the previously remembered butterfly.
+So unboxed and boxed point to the same butterfly.
+And why is that so cool?!
+Well unboxed is an array that deals with raw
+double values.
+No encoding just raw binary double values.
+But boxed deals with JSValues.
+It can hold integers, doubles or objects in
+the form of pointers.
+It does that by encoding them as JSValues.
+This is in principle the exact same thing
+that we achieved with the original bug.
+There we were able to abuse a bug in the JIT
+Compiler to confuse the type of an array.
+It thought it had a ArrayWithDoubles, but
+we sneakly had converted it to an arraywithcontiguous
+and shoved in an object.
+That object would be stored as a JSValue pointer,
+so reading that pointer as a double gave us
+the raw address of said object.
+To achieve that our original addrof and fakeobj
+primitives had to always abuse this JIT compiler
+bug to achieve this confusion between raw
+doubles and JS Values.
+But now we have our unboxed and boxed objects,
+which point to the same memory, and we can
+use them.
+If we write a double into the unboxed array.
+It will just get stored there.
+Now if that double happens to reprensent a
+POINTER in memory, then accessing this value
+from the boxed array, it will be returned
+as an object.
+And of course this also works the other way
+around.
+Writing into the boxed array some object,
+we can extract that pointer now as a double
+via the unboxed array.
+Let’s use that to reimplement a stage 2
+version of addrof and fakeobj.
+addrof() takes an object and puts it into
+the boxed array.
+And we return that element again, but accessing
+it from the unboxed array.
+Let’s verify that it works by using a test
+object.
+Here is the address from the old addrof().
+And here is the stage2_addrof().
+Same result.
+this new method here is so much cleaner, faster
+and more straight forward.
+Let’s actually overwrite the old addrof
+with our new stage2_addrof.
+We don’t need the original anymore.
+And of course fakeobj works the same way,
+just in reverse.
+Given an arbitrary address, as a double, we
+write it into the unboxed array.
+But then we return the first element interpreted
+as JSValue from the boxed array.
+Cool… so much cleaner already.
+Except if we look into our memory.
+Our objects in memory look really f’ed up
+now… or it looks beautiful?
+I guess that depends on who you ask.
+TO me this is just mindblowing.
+But now you may say: “WTF?
+We just reimplemented addrof and fakeobj.
+We didn’t actually get arbitrary memory
+read and write.
+what‘s up with that?”
+Well having new and more stable addrof and
+fakeobj primitives is cool, and we will use
+them, but more important is the memory layout
+that we have crafted.
+This f’ed up memory will become very important
+to implement reading and writing from arbitrary
+memory.
+Thus it was so important to dedicate time
+to understand it.
+And I promise.
+Next video we will get there.

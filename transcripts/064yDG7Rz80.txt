@@ -1,0 +1,340 @@
+I cannot believe that I would ever say this. But 
+the internet is full of hacking tutorials. Really,
+nowadays it’s not difficult to find some article 
+or tutorial or tool that tells you about possible
+security issues. But this also somewhat 
+has created a problem where we feel like
+any small thing can be a serious security 
+vulnerability. But of course not everything
+can be critical and serious. So where is the 
+line, and where is the educational content that
+tells you “chill”, “it doesn’t actually 
+matter that much”. Where is the balance?
+In case you didn’t know, me and some other 
+creators have been partnered with Google to create
+video content for the Google Vulnerability Rewards 
+Program. So the Google bug bounty program. But we
+didn’t make just more of the same hacking tutorial 
+that you can find everywhere online. We try to
+explain why Google does not accept certain kind 
+of reports. Simply speaking, at Google there work
+tons of skilled hackers who understand the impact 
+of certain vulnerabilities and they always have
+a good reason why they decided they wont reward 
+certain kind of reports. But it’s a very fine line
+between what is a vulnerability and what is not a 
+vulnerability, this is a difficult topic and you
+can argue about it a lot. And so we made videos 
+where we tried to explain Google’s position.
+And in the video I’m going to share today I talk 
+about various HTTP Security headers, including
+Cookie flags and CORS misconfiguration, and 
+I’m going to be a bit more critical about them.
+As I said there is tons of content telling you 
+about why they matter for security and of course
+that material is not wrong, of course they 
+exist for good reason, but there is basically
+no content that tries to balance the sides 
+a bit and so in this video I try to be like
+“calm down. Chill. The world is not gonna end” 
+if a site didn’t use certain security headers.
+Also I believe when you consider, at 
+least for a moment that maybe they
+are not so serious issues, it really helps to 
+develop a deeper technical understanding about
+this topic. And even if you watch the video and 
+in the end you say “I still believe this should
+be reported”, at least you have actually 
+thought about the other side. Anyway.
+Two more things I wanted to mention as well. 
+First of all, this video was not meant to be
+advertisement for google, but of course it kinda 
+is. That’s why I labeled it this way. Google paid
+for this video but not to be shown on here. 
+I know it sounds weird but it’s important for
+me to mention this. This video was produced for 
+google, to be embedded on their site. Not as an
+advertisement to be shown on this channel. But I 
+thought my video is a very good educational video,
+I really like it myself. And that’s why I wanted 
+to share it with my audience on here as well.
+So I’m very curious if any of your 
+opinions about HTTP security headers
+has changed after watching this 
+video. So make sure to leave some
+angry comments at the end. Also this 
+video was made before I got glasses.
+So I guess I take them off now to make the 
+transition into the main video less awkward.
+When you are hunting for bugs you probably 
+look at all the HTTP requests and responses.
+And they contain a lot of HTTP headers. The 
+response headers are especially interesting
+as they can contain interesting information from 
+the target. For example it might tell you which
+web server is running. Other response headers 
+are important for the functionality of a webapp,
+such as the content-type, telling the 
+browser how to interpret the response.
+Or the content-disposition header, which tells 
+the browser if a returned response should be just
+shown or downloaded as a file.
+But also some of these headers
+are so called “HTTP security-headers” 
+and they can be important for security.
+I’m LiveOverflow and I run a YouTube 
+channel covering various IT security
+topics. and Google asked me to talk about 
+http security headers in this video.
+Generally HTTP response headers can be 
+placed in two categories. Headers that
+“weaken” security if they are added, and headers 
+that “strengthens” security when they are added.
+So the big question is now, if a site 
+does not set certain security headers,
+is that a vulnerability? Online you will find 
+many guides on best-practices on what headers to
+set or not set. So if you identify such a header, 
+could this be reported to a bug bounty program?
+Let’s learn more about http 
+response headers for bug bounties
+Example #1:
+To figure this
+out we have to look at a few security headers in 
+detail, to understand what exactly they are doing.
+And only then will we be able to assess if 
+it's a vulnerability when they are not set.
+X-Frame-Options: “The X-Frame-Options 
+HTTP response header can be used to
+indicate whether or not a browser should be 
+allowed to render the page in an .”
+With the  HTML tag you can embed another 
+website into your website. And this could allow
+an attacker to perform a so-called click-jacking 
+attack. If you don’t know what clickjacking is,
+checkout this article, which also has a 
+great video from reconless explaining it.
+But they also explain why clickjacking is not 
+a very serious vulnerability, and why often
+it is not accepted for a bug bounty reward.
+The thing is, yes, setting the X-Frame-Options
+header in the response to SAMEORIGIN 
+or DENY, would prevent such an attack.
+But that’s not the only way you can protect your 
+website from clickjacking. Maybe sounds dumb,
+but when you simply have a website where 
+there is no actual impact with clickjacking,
+clickjacking makes no sense. In that case 
+it’s safe as well. Does that make sense?
+Generally speaking:
+very critical functionality on a
+site + clickjacking can be a vulnerability. Then 
+setting the X-Frame-Options header makes sense.
+“Boring” and less critical actions available on a 
+website + clickjacking, doesn’t matter that much.
+Setting the header in many cases doens’t 
+hurt. It probably adds a bit of protection,
+but the missing header doesn’t necessarily open 
+you up to attacks. You have to understand that.
+AND then of course there are cases where the 
+website WANTS to allow others to embed it.
+For example on YouTUbe, when you click on SHARE, 
+you can copy an HTML snippet for embedding the
+video, and it has an  tag. So YouTube 
+WANTS you to be able to embed the content,
+it’s a feature, and of course in that case 
+they won’t ever set the X-Frame-Options header.
+So you can see, it depends on the context 
+of the website if it’s important for this
+header to be set or not. Which means you shouldn’t 
+blindly follow best-practice guides, or scanners
+that tell you that the header is missing. You 
+need to understand if there is actual impact.
+Example #2
+Another important security header is the
+Content-Security-Policy. CSP. And CSP is awesome 
+because theoretically it can protect your website
+pretty much from any Cross-Site-Scripting attack. 
+And it even has more features beyond XSS. With CSP
+you can also set the frame-ancestors to “none” 
+- which kinda acts like setting X-Frame-Options.
+So if it could block XSS, wouldn’t 
+it be a very important header to set?
+Let’s do an example and let's go to the Google 
+bughunter site and have a look at their CSP.
+Oh?! There is no CSP. mh…
+There is this awesome tool
+from Google engineers called CSP evaluator. 
+And it can help to assess a given policy.
+In this case there is literally no policy. 
+So let’s just submit an empty text. And
+the tool reports a high-severity 
+finding. script-src [missing].
+So is this a vulnerability in itself? Well… 
+as I said, CSP can protect websites from XSS
+attacks or other kind of attacks. But because CSP 
+“just” protects, it doesn’t make it the fix for an
+issue. If there is an XSS CSP doesn’t fix it, it 
+could just block exploitation. it’s a defense in
+depth strategy. So setting script-src CSP only 
+matters in the context of an XSS issue existing
+in the first place. And that means, missing 
+CSP in itself is not really a vulnerability.
+again, it depends on how critical the website is,
+if this protection is really 
+important or doesn't matter.
+Example #3
+Let’s have a look at another header. HSTS. 
+HTTP Strict Transport Security. This really
+sounds like an important header to 
+set! But what does it exactly do?
+[it] lets a web site tell browsers that 
+it should only be accessed using HTTPS,
+instead of using HTTP. [...] for example, 
+the visitor types http://www.foo.com/ or even
+just foo.com. This creates an opportunity for a 
+man-in-the-middle attack. [...] The HTTP Strict
+Transport Security header informs the browser that 
+it should never load a site using HTTP and should
+automatically convert all attempts to access 
+the site using HTTP to HTTPS requests instead.
+This sounds very useful but then why 
+is it considered an invalid report if
+a site from google is missing it? Well 
+right below there is also this note:
+The Strict-Transport-Security header is ignored by 
+the browser when your site is accessed using HTTP;
+this is because an attacker may intercept HTTP 
+connections and inject the header or remove it.
+[ONLY] When your site is accessed 
+over HTTPS with no certificate errors,
+the browser knows your site is HTTPS capable and 
+will honor the Strict-Transport-Security header.
+So we already have this weird situation 
+where the header is supposed to prevent
+users from loading the site with HTTP, 
+but if the site hasn’t been loaded yet,
+the browser doesn’t know about it. And only 
+honors it once the site was loaded securely once.
+Which of course is better than nothing, but modern 
+browsers do the same anyway. For example when
+I visit liveoverflow.com with an http URL, you 
+can see that it tries to go to the http version,
+but it was redirected to https. Now let me try 
+to go to the HTTP version again, and there is
+no HTTp request going out. We directly go to the 
+HTTPS version. All of that without an HSTS header.
+So as you can see, HSTS is not a silver bullet 
+protection and browsers kinda mitigate it anyway.
+But it’s still generally recommended, and 
+especially together with the hsts preload list
+(by the way a project by google) it’s good. 
+But you also see that it’s a very known
+and popular header, Google knows about it. 
+Which you can also see here in the article:
+“Internally, we are already well aware of our 
+HSTS posture and are actively working on adding
+HSTS support to additional endpoints”
+So it’s a known issue to them.
+CORS
+Now we just talked about headers that “add”
+security to a site. But there are also headers 
+that could “weaken” the security of a site. And
+a very typical report is “CORS misconfiguration”.
+Generally websites are protected by the same
+origin policy. This means javascript 
+code on for example liveoverflow.com
+can not send HTTP requests to gmail and 
+leak your emails - the browser says “no
+I won’t allow liveoverflow.com to access your 
+gmail”. But a webserver can use CORS headers
+(Cross-Origin Resource Sharing) to actually 
+allow another website to send requests to itself.
+And at first sight this seems to weaken 
+the same origin policy. Which it does,
+so why would anybody do that? Is there any 
+negative security impact? It of course depends.
+Let’s imagine two websites. One website uses 
+cookie authentication. There is a session cookie.
+And the other website has token authentication. 
+For each request the code on the site
+adds an Authorization header with a token.
+Both websites have very permissive CORS setting,
+allowing arbitrary origins to make requests. 
+And even allow setting credentials.
+Is this a security issue in 
+both cases? Only for one of
+them this CORS setting is actually an issue.
+Setting Access-Control-Allow-Credentials tells
+the browser, that it can add the session cookie to 
+the request. So in this case the request would be
+authenticated as the current user. And 
+the security impact of this is similar
+to Cross-Site-Request-Forgery CSRF or XSS. In this 
+case you can perform authenticated requests as the
+current user. And even read the response. This 
+is really bad. And definitely a security issue.
+But for the other website 
+with token authentication,
+there is no session cookie. The browser doesn’t 
+set the authorization header for you. So this
+request would not be authenticated as the user, 
+thus there is no CSRF-like attack possible.
+So as you can see, context matters and you have 
+to understand if there really is any impact.
+And you cannot blindly report 
+an open “misconfigured” CORS.
+So keep in mind that CORS exists for good 
+reasons. Many websites from Google allow
+CORS requests, because it’s meant as an open 
+API, that is intended to be accessed from
+other origins. So you always need to be 
+sure that there is really security impact.
+Cookie HTTPOnly
+And before we have a
+summary of this video, I briefly wanted to 
+mention the httponly cookie flag as well.
+Cookies are technically part of the 
+headers, so it fits into this video.
+And the setting causes cookies to only be 
+transmitted in HTTP request, but cannot be
+read from javascript. It often is considered a 
+defense against XSS attacks stealing cookies,
+but it’s rather ineffective. Yes the cookie 
+cannot be stolen, so you as the attacker cannot
+perform requests as the user, but when you have a 
+XSS, the XSS can just send the requests you want
+for you. And those requests will be authenticated. 
+So it’s really not that big of a deal.
+And on top of that, not every cookie is really 
+used for authentication. Cookies are a great way
+to “store” a bit of information about a user and 
+the app. And they don’t really have any security
+relevance. So if they are missing the http only 
+flag, or even the secure flag, it doesn’t matter.
+So as always, you have to really understand what 
+a cookie is for and if there is really any impact.
+Security Header Summary
+So let’s summarize what
+we learned. There is a reason these security 
+headers exist. They do really good things and
+can protect an application from exploiting 
+other vulnerabilities. But them missing,
+doesn’t necessarily create a vulnerability. Most 
+websites probably could benefit from setting
+some of them, but it depends a lot on the 
+context. You have to understand the functionality
+of websites to judge if there is a significant 
+risk. And if it even makes sense to set them,
+because maybe there is an intended feature why 
+they don’t want it. For example YouTube embedded
+videos that deliberately don’t want to set the 
+x-frame-options. You cannot blindly copy & paste
+the result of a scanner reporting that headers 
+are missing. So make sure to read and understand
+what certain headers do and make sure you 
+understand if it makes sense for an app to add it
+or not. Does it really do that much for security? 
+Or are maybe developer resources better invested
+into working on other things? When it comes to bug 
+bounty, always think about the realistic impact.

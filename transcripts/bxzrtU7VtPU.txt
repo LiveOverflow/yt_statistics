@@ -1,0 +1,575 @@
+The Pokemon Red and Blue MissingNo glitch
+is such a beautiful bug.
+In the previous video we have already done
+some research and found out that the shore
+tiles at cinnabar island are buggy, because
+they make land pokemon appear.
+And not water pokemon.
+In memory we found the data that decides what
+pokemon, and which level, can show up in the
+current area.
+And that there is different data for what
+can appear on land stuff, like grass.
+And what can appear on water.
+This encounter data also does not reset in
+cities, and so when we go to the island, it
+always contains the values from whatever zone
+you were in before.
+That’s why Safari Zone Pokemon can show
+up here, after you left the safari zone.
+And then we found out that the Old Man Tutorial
+happens to write our player name temporarily
+at exactly this memory area.
+Thus corrupting the data of possible land
+pokemon encounters.
+Normally this is reset when you enter a zone,
+like here, but at the island, there is a programming
+mistake, and this tile makes land pokemon
+show up.
+Even though there should only be water encounters.
+Thus pokemon show up based on this corrupted
+data.
+As EVERYBODY knows, there are only 151 pokemon
+in this game, but a byte can store 256 values,
+so many of those values are invalid Pokemon
+IDs.
+And they seem to lead to MissingNo appearing.
+This makes all sense.
+But we still don’t know why the 6th item
+gets multiplied when a MissingNo is encountered.
+The number can’t be displayed here, because
+there are actually more than 99 items.
+So let’s investigate more
+
+Let’s first try to find where the items,
+and more specifically the sixth item is stored.
+For this purpose it would make sense to have
+a functionality similar to Cheat Engine.
+Cheat Engine is a cool memory search tool
+which I have used in the Pwn Adventure series
+before.
+I link this Game Hacking playlist below.
+Such a tool would allow us to find in memory
+where the items are stored.
+For this we basically only need one function.
+Search Memory, which I add as a new Emulator
+debugger command.
+We did this also last video.
+We can even re-use the memory trace array
+which we used in the last video.
+So my new command takes one argument, a value
+we search in memory.
+And then we loop through the complete memory
+of the gameboy.
+For each address we read the value and then
+do this check.
+If the value in memory is not the same as
+the value we search, we flagg this memory
+address in our trace memory array as wrong.
+We do this with a 0xff.
+So all addresses where our value was found
+will remain the default 0.
+That’s all we need.
+Let’s start the game and buy an item which
+we can easily use.
+I go for repellant.
+20.
+I also put it into the 6th place in my item.
+That’s the one that would be affected by
+MissingNo.
+Now let’s do a memory_search for 20. we
+found 1157 occurrences.
+Then let’s use one, which decrements the
+amount to 19. and search again for 19.
+Only 5 memory addresses are left now.
+Let’s filter it again.
+Let’s decrement the item once more, 18.
+Search again.
+Uh… nothing changed.
+Like with cheat engine, it makes sense to
+perform various kinds of actions to overwrite
+as much data as possible which is not the
+value we want.
+I thought I have a quick encounter then try
+again.
+And I was going crazy why no pokemon would
+show up.
+Until I realized.
+I used repellent.
+Oops. well… it wore off eventually and then
+I had an encounter.
+Now we can search again.
+2 left.
+Let’s decremnt once more for good measure.
+17, search again.
+Remains 2.
+Well. we can work with this.
+We can now use the old function trace_dump
+to write out the search result array.
+And open it in a hex editor.
+So all the FFs were the memory locations that
+did not contain our value.
+So we can search for a 0.
+And there we have one.
+At address 0xd329 we apparently found our
+values.
+So let’s look at this in the live memory
+view of the emulator.
+Here is 0xd329.
+It currently has a 0x11, which in decimal
+is 17!
+So if we assume this to be the amount of items,
+we should be able to change it!
+Let’s change it to a 2!. Mh nothing changed.
+But I noticed I have to scroll once, and then
+I see the new amount.
+It worked!
+We have now only two repellant.
+Change it again.
+To a 5.
+It worked!
+Now the item before and after it we only have
+one time.
+And we notice here ones.
+Which seems like every second value is the
+amount, and then these could be the item IDs.
+We can verify this.
+Let’s change this 1, which should change
+the amount of Master Balls.
+Update the view.
+YES!
+We have 15 master balls now!
+So if this is the item ID, then Master Ball
+seems to be ID 1.
+Let’s try to change our max repel into a
+master ball as well.
+We overwrite it with a 1.
+Update the view, and there it is!
+We got another Master Ball!
+Alright.
+Looks like we found the item data storage
+in memory!
+Cool.
+So… next I thought I could trace all reads
+and writes between the encounter data being
+read, and the item amount being written.
+And maybe from that we can deduce the logic
+what happened.
+So I extended again the emulator to log all
+of those reads and writes.
+We start once we enabled a trigger and we
+observe the read from the encounter data.
+And we stop when we notice the write to the
+6th item amount.
+In this read/write trace we should then see
+how we get from the encounter data, to the
+modified 6th item.
+Let’s try it.
+First prepare the bug, talk to the old man.
+Fly to the island.
+Surf.
+And enable the trigger.
+Now we wait.
+THERE.
+We did it.
+And it stopped again.
+So here we are at the end of the trace.
+And you can see it writes the item amount
+data.
+0x81.
+So in decimal we have now 129 of this item.
+And just before it read the data at this address
+and there it still was a 1.
+So it added 128 to this item.
+Or more precisely, if you look at the bits
+of this number.
+It set the highest bit to a 1.
+This is equivalent to adding 128.
+Cool.
+Unfortunately this trace is craaazy long.
+Over 26000 events happened between reading
+the encounter data and the write to the item
+amount.
+Of course there is a lot of unrelated things
+in there but not so sure how to go about it.
+I tried to compare it to a trace of some other
+pokemon, but didn’t really give me much.
+The only thing we know is at the start of
+the trace, it reads our encounter data.
+So the 0x92 is the level of the encounter,
+and the 0x87 is which pokemon to show.
+0x87 is in decimal 135.
+And there are 151 pokemon, so you might think
+it should be valid, but it made MissingNo
+show up.
+At first this seems weird.
+But remember that these IDs do not map to
+the Pokedex Numbers.
+It’s an internal value.
+And it seems like the internal value 0x87
+is not a valid Pokemon.
+So how do we go from here?
+Well.
+It’s probably time to look at the code being
+executed.
+So what we can do is, we can use the debugger
+functionality from SameBoy to set a watchpoint
+at the 6th item being written to.
+This will cause the game to break and stop
+execution when this write is detected.
+So here is the watchpoint set, and now we
+can look for a MissingNo.
+And there we go!
+It got hit at address 7693.
+But it’s weird because this is a JUMP instruction,
+and we would expect a write instruction.
+Turns out that Sameboy is weird and the break
+happens on the instruction AFTER the one that
+caused the watchpoint to trigger.
+So we can disassemble one address before,
+and we can see a LOAD from a into HL.
+If you look at the registers, we can see HL
+is the address of our 6th item and a is the
+value 0x81, it’s exactly what we have observed
+in our write trace.
+Now I have NEVER read this Gameboy assembly.
+I have no clue about the architecture, which
+registers exist and so forth.
+But I’m still confident that I somewhat
+can figure out what happens, because basic
+assembly instructions are often similar and
+self explanatory.
+LD clearly must stand for LOAD, because we
+knew it wrote a value.
+And we know that HL is the address where we
+wrote to and 0x81 in the A must be the value
+we wrote.
+And the brackets are often used to signify
+we reference an address, so we write where
+it points to.
+With BT, backtrace we can also look at the
+call stack where we are coming from.7693 is
+where we are right now.
+And apparently we came from 6c17.
+Cool!
+As you know I’m collaborating with stacksmashing
+on this video series, and he recommended me
+to checkout GhidraBoy by Gekkio.
+It’s a plugin for Ghidra to load gameboy
+ROMs.
+So I installed this extension and then loaded
+the game.
+So let’s first go to where we see the load.
+Address 7692.
+But then the Ghidra Plugin asked me which
+7692.
+Because this game uses Banked ROM.
+I introduced banked RAM in the previous video,
+so it’s basically the same.
+Depending on which bank is loaded, there is
+different code at the same addresses.
+But we can examine which byte is currently
+loaded at this address with the debugger and
+see it’s 0x77.
+And in this list of potential addresses, we
+find this here.
+In ROM bank 3.
+This is also when I realized that the backtrace
+output lists the bank here.
+This is address 7693 in bank 3.
+And this is address 6c17 in bank 15.
+So anyway.
+In Ghidra we can now hit D to disassemble
+this address.
+Not sure if JR is a conditional jump or not,
+but I assume the addresses right after it
+must be code to.
+So hit there D as well.
+Same here.
+Allright.
+There is the end of the function and we have
+a RET.
+Now we also would like to find the start of
+this function.
+And we don’t really know where that is.
+But we see that c9 seems to be a RET.
+Which means we can search backwards up until
+we find the next potential RET.
+This should be the end of another function.
+Which means right after our function might
+start.
+And when we disassemble that, it looks like
+we found our full function now!
+Cool!
+We get also some decompiler output.
+But it’s kinda hard to read.
+And also for some reason the renaming of symbols
+is broken.
+When I press L to rename it doesn’t do anything.
+So a bit annoying to not be able to clean
+up the code.
+But we know our address we eventually write
+to and modify the 6th item, is in the HL register.
+And so we can try to find where it got that
+address from, or how it was modified.
+And when we look at the instructions of this
+function, we don’t see HL being loaded.
+We only see H and L separately being modified.
+Here an ADD and here INC.
+Like I said, I have never seen this kind of
+assembly, so I’m a bit confused how an ADD
+works with only one register, but I guess
+it could work by default always on the A register,
+or it means it simply doubles itself.
+So I looked up an assembly reference for the
+GameBoy and I found out, YES it works by default
+always on the A register.
+What I want to highlight here is that even
+though I have never studied this particular
+assembly, the knowledge of other architectures
+and playing around with not only x86, but
+also ARM and AVR over the years accumulated
+experience and knowledge, that allow me to
+have educated guesses about this.
+So if you ever wonder how somebody can research
+and figure out something new, most of the
+time it’s because there is prior related
+knowledge a person can draw from.
+That’s why I think it’s so important to
+play around And that’s why playing around
+with something seemingly useless like pokemon
+RED from 1997, will in fact add to my experience
+and knowledge and I will be able to use that
+for some other more relevant project in the
+future.
+This playful research is never wasted!
+Anyway.
+A is modified here with some SHIFT RIGHTS?
+And then L is added to A. And then A loaded
+back to L. This means the address in HL is
+modified here.
+But it’s not the source of it.
+So before we look deeper at what this code
+does.
+Let’s try to find the source of it.
+From the backtrace we learned about where
+it was coming from.
+BANK 15 6c17.
+So let’s go there and do the same to disasemble
+the code.
+We look for the previous c9 again and disassemble
+from there.
+So the address where we apparently came from
+is a CALL to 3e6d.
+And this call happened before too.
+So it’s not calling our function directly.
+But keep in mind that the code here is in
+bank 15.
+And the next function was in bank 3.
+So so somehow there must be logic to switch
+out the banks in between.
+When we look into this function we see for
+example a write to the hardcoded address 0x2000.
+And when we look at the Memory Bank Controller,
+we can see that writing to 0x2000 will select
+the ROM bank.
+It’s hardcoded here 13.
+But afterwards writes a value loaded from
+somewhere else.
+So this very much looks like the logic to
+jump to a function in a different bank.
+Anyway.
+Details.
+It’s not that important because I noticed
+that just before this call, HL is loaded with
+the 0xd30a.
+And that is also very close to our HL address
+we write at the end d329.
+So it seems like the function that writes
+to the 6th item, starts out with HL 0xd30a.
+Does some modifications and ends up writing
+to 0xd329.
+Let’s try to understand what this function
+does.
+And let’s set a breakpoint at the start
+of it.
+Break, bank 3, address 766c.
+Continue.
+Oh… it breaks ALL the time.
+This function seems to be called a lot.
+From a different place though, than when we
+are interested in it.
+So maybe let’s set the breakpoint in the
+previous function.
+Where it loads HL.
+This seems to be fine.
+Let’s look for an encounter.
+There we go, it got hit.
+So now we can just single step forward until
+we are in our bank3 function of interest.
+THERE we go.
+So now let’s see what happens.
+First it moves C into A. So that was 0xff.
+And then it moves A into D.
+Now it performs a binary AND onto A. 7 is
+a special binary value as it has the lowest
+three bit 111 set.
+We are masking the three bits of that value.
+In 0xff, which is all 1s, we obviously are
+left with 111.
+A 0x7.
+Now we take this value and put it into e.
+And then A is set back to the original 0xff.
+Followed by three shifts to the right.
+This matches the 3 bit mask.
+We are shifting out the three bits we masked
+out.
+So we are now left with the remaining 5 upper
+bits.
+And this value is ADDED to our address.
+So 0x0a + 0x1f is 0x29.
+This is the address we later write to.
+So how do we determine what to write?
+E still contains the lower three bits we had
+earlier.
+And we increment that now to an 8.
+Then we load a 1 into d, and decrement e.
+And we can see here this is part of a loop.
+It always decrements E and shifts D to the
+left.
+And it probably jumps out when e reaches 0.
+So this is actually shifting a single bit
+E times to the left.
+E was basically the lower three bits of that
+original value.
+So it was shifted based on whatever that value
+is.
+And then we later load the current value stored
+at our address, loads that single bit into
+A. Applies a binary OR, basically setting
+that one bit, and then writes it back.
+This might seem super complicated, and you
+might want to take notes when walking through
+this.
+But this function is simple.
+It takes two parameters.
+An address as a pointer and a 1 byte value.
+It moves the pointer forward by the upper
+5 bits.
+And then sets the bit based on the lower 7
+bits.
+This is simply a function that says “set
+the n-th bit starting from this address”.
+And in our case it was 0xff.
+So set the 256th bit starting from this address.
+Let’s look at what our parameters would
+be for a regular pokemon.
+Because this was a glitch pokemon, right?
+Let’s get a regular encounter.
+Swim here to the right.
+THERE WE GO. hit a breakpoint.
+Continue until we reach the function.
+Alright.
+Okay!
+So here our byte that affects which bit to
+write was a 0x47.
+Which is in decimal a 71.
+So it should set the 72th bit from the start
+of this address.
+And when we follow that through, and look
+at the memory, this is exactly what happens.
+We can do the math ourselves.
+Each byte has 8 bits.
+So which byte do we modify, we simply do 71
+divided by 8.
+And we get 8.
+With a remainder.
+But the integer is 8.
+If you pay attention, then you might realize
+that a binary shift right by 3 bits, is equal
+to a division by 8.
+So when we did those shifts, we actually did
+exactly this math.
+To figure out which byte it will modify.
+And now we need to find which bit exactly
+inside of that byte.
+For that it takes the remainder.
+The bits it was shifting out.
+It was a 7.
+So it’s the 8th bit.
+The highest bit.
+When we now continue the game and we see the
+pokemon that showed up, it’s a TENTACOOL.
+And as an ULTIAMTE NERD!
+We KNOW that Tentacool has the pokedex number
+72.
+Because we are DOUBLE NERDS, we know that
+programmers start arrays with index 0.
+So 71, is in fact the pokedex ID of TENTACOOL
+if you start at 0.
+This means this memory range starting at the
+start address 0xd30a contains some information
+about pokemon in the pokedex.
+And when you modify here a value into a 0xff.
+And we look at the pokedex now.
+Suddenly all those pokemon are seen!
+This bit array controls which pokemon you
+have seen!
+And so to flag a pokemon as seen when you
+get into an encounter, it calls this function
+that takes in the start address, where this
+bit array is, and the pokedex ID of this pokemon.
+And for MissingNo this input was 0xff.
+And this caused this function to write beyond
+the bit array length.
+And after this Pokedex seen bit array, we
+have the item array.
+This is the array we figured out contains
+all the items.
+So we have here and array out of bounds write.
+When we encounter a MissingNo it tries to
+flag this invalid pokemon as seen, thus going
+out of the bounds of the pokedex array and
+write into the item amounts.
+Crazy!
+If this were one byte off, instead of manipulating
+the amount it would change which item you
+have.
+And if there were a boundary check in this
+function, it would have never written to the
+Item array.
+Oh my gosh this is awesome.
+There is still a missing link here.
+Because from the encounter information we
+know it uses internal IDs.
+And now here it uses the actual Pokedex ID.
+But that’s probably simple.
+Somewhere there must be a big table which
+simply translates from the internal ID to
+the Pokedex ID.
+And maybe the invalid IDs leading to missingno
+had there a 00.
+And due to a decrement it became 0xff.
+Like the pokemon ID 72 of tentacool actually
+became a 71.
+Because of the zero indexing.
+We could probably find that by tracing more
+of the code.
+But for me I’m satisfied now.
+I think we have done enough research to understand
+what went wrong here.
+A buggy tile making land pokemon show up,
+uses old data which got corrupted by a tutorial
+which wrote our player’s name there.
+Causing an invalid pokemon to show up, looking
+up it’s pokedex number, which tries to flag
+this pokemon as “seen” in the pokedex
+and inadvertently writes out of bounds of
+the pokedex bit array into the Item array.
+Causing the 6th item to multiply.
+Wohooo!
+Quick reminder.
+I’m working on this series with stacksmashing.
+So go checkout his channel to find more pokemon
+and gameboy hacks.
+Or other kind of awesome technical content.

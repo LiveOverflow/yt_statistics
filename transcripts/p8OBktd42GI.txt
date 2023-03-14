@@ -1,0 +1,503 @@
+I don’t know how it was for you.
+But the Missingno Glitch in Pokemon Red or
+Blue was incredible to me as a child.
+Imagine as a child you explore this Pokemon
+world normally, and then in school another
+kid tells you about a dangerous Pokemon which
+multiplies your items.
+That sounds weird…
+You first have to talk to this old man.
+This old man is one of the first characters
+you talk to in the game and you probably never
+talked to him afterwards.
+But he can explain to you how to catch Pokemon.
+And then afterwards you have to fly to Cinnabar
+Island.
+Alright?
+Then you walk all the way to the right, get
+on your pokemon and surf along the coast.
+Up and down.
+And suddenly a very weird pokemon appears.
+MissingNo.
+Your game looks kinda weird.
+Very scary as a child.
+You flee.
+And then when you look at your Items, mysteriously
+the sixth Item looks glitchend and actually
+this item multiplied to over a hundred.
+Wow.
+It’s such a beautiful Glitch because it
+fits so well into the game’s narrative.
+It doesn’t feel like a mistake or a bug.
+It doesn’t break your immersion as a child
+and rip you out of the game’s world, how
+many other bugs do.
+It added to the game.
+It gave it depth and even more mystery.
+A sense that there is much more to explore.
+For many MissingNo has become a real pokemon
+that is part of the Pokemon universe.
+So let’s explore it!
+
+When I play around with stuff like this, I
+always wonder how did people discover it,
+because I wonder if I could have found it.
+I use this as a method for learning.
+Instead of just looking at excellent writeups
+that already exist on this bug.
+And making just another video that is basically
+the same, I want to approach it with a more
+research mindset.
+Be explorative and invent a story how one
+could have figured that out.
+I think this way you get a much better understanding
+as well as learn more general skills you can
+apply elsewhere.
+So let’s start.
+What could have been step 1 in discovering
+MissingNo?
+Imagine you play Pokemon and you want to fill
+up your Pokedex and so you look for some Mankeys.
+Or maybe you hunt for another Pokemon in this
+area.
+And then you are done and you decide to catch
+some water Pokemon next.
+So you fly down to this Island.
+You decide to surf, but stay at coast because
+you want to walk back onto the safe land anytime.
+You are not there for fighting or exploring,
+you just want to chill and find some pokemon
+to catch.
+And suddenly a Mankey shows up?
+WHAT?
+How does that make sense?
+You are in the water.
+You are confused and tell your more intelligent
+friend about it.
+Your intelligent friend is a NERD and is very
+analytical about it.
+So without knowing anything about the inner
+workings, you can find out two important behaviours.
+First you could notice that it only happens
+right here on the right coast.
+Even here at the corner piece typical water
+pokemon show up.
+And one tile over, if you swim here, also
+water pokemon.
+As soon as you return to the coast piece,
+the weird pokemon show up again.
+You also told your friend you were hunting
+for Mankeys, and suddenly a Mankey was showing
+up in the water.
+Which could be an indication, that the pokemon
+that show up here, depend on what you were
+looking at before.
+To play around with this you travel to different
+regions and look at the pokemons you could
+here.
+For example a Kukuna.
+After that you fly to the island, you surf.
+And suddenly a Kukuna shows up.
+So now we know.
+It only affects this coastline.
+And the pokemon that show up depend on where
+you were before.
+Now.
+Even bigger Nerds were wondering.
+WAIT!
+If it shows the Pokemon from where I was before,
+what does that mean for weird places like
+the Safari Zone?
+When you went to the safari zone, and got
+annoyed you can’t catch the pokemons you
+wanted, with the limited steps and weird capture
+system, you throw a rock at the pokemon.
+Then you leave and fly to the island.
+And suddenly those Pokemon show up here as
+well.
+And now it’s easier to catch them.
+That is interesting, right?
+Now I was actually wondering, what happens
+if you go to the Pokemon Tower.
+Because there are these unidentified Ghosts
+if you haven’t completed a certain quest.
+This is not a real Pokemon.
+So could we use the island to catch these
+Ghosts?
+Fly back to the Island.
+Surf.
+And?
+No.
+We see a Ghastly.
+The unidentified Ghosts are actually Ghastly
+and other Ghost Pokemons.
+But you only see those when you get the Sliph
+Scope.
+Or now we know, you come to the magic island.
+And surf here.
+So still, the pokemon that show up depend
+on regions you were before.
+Now it doesn’t seem too far fetched to experiment
+more with it.
+Find exactly what actions cause certain pokemon
+to shop up and what doesnt?
+For example you could check what happens when
+you fight a trainer and then fly away.
+What happens when you were in a water area
+before.
+Or what happens when you talk to the Old Man.
+And this could very well be the story on how
+the first MissingNo was discovered.
+And magically you would also see your items
+multiply.
+Even though this bug seems so obscure, it
+seems realistic to just be found by accident
+and some analytical research mindset.
+Fine.
+But how could one figure out what goes wrong
+under the hood.
+What happens in memory that this is the result?
+Like I said there are many explanations of
+this already online.
+But like I said, I want to approach this differently
+- “how could we figure out this by ourselves”?
+So I thought.
+Getting the Pokemon Capture Tutorial by the
+Old Man, has to write to certain memory, which
+is then later read when we surf on the island.
+Talking to the old man changes something,
+so that missingno shows up.
+So this concversation has to WRITE something.
+And then later we READ that when the pokemons
+show up.
+And memory reads and writes is something we
+could analyze.
+So I went into the emulator source code and
+added some new functionality.
+The source code of the SameBoy emulator is
+very clean to me.
+It was really not hard.
+First I found here the list of commands available
+in the debugger console, and added my own
+ones.
+Trace_read, trace_write, trace_clear and trace_dump.
+I then copied the function definition from
+an existing command and renamed it to mine.
+These commands are pretty simple.
+For example in trace_write we simply toggle
+a boolean if have write tracing enabled or
+not.
+And then in the memory class where the gameboy
+reads and writes are being executed, I added
+a check that if write tracing is enabled,
+it will write the value that was written to
+this memory array.
+The gameboy’s memory is so small, that we
+can easily track the whole memory in a single
+array.
+I basically do the same for reading data as
+well.
+When that is enabled we track the values read
+in the memory trace area.
+And also for printing I’m tracking the ignore
+array.
+If we printed this address once, we don’t
+print it anymore.
+It’s just so we don’t spam the output.
+The trace_dump command then writes the whole
+memory_trace array into a file.
+So let’s do this.
+Let’s go to the old man and just before
+the tutorial starts we enable the write tracing.
+Trace_write.
+And you can see now the gameboy is writing
+tons of data in different addresses.
+We go through the whole tutorial, see a lot
+of writes happening, and at the end we disable
+the write tracer again.
+We know from experimenting before.
+That one of these writes must have caused,
+that MissigNo will show up on the island.So
+let’s dump all the memory written, with
+trace_dump into a write.bin file.
+This binary file contains now a memory snapshot
+of all the values and addresses being written
+to.
+And then we can also clear and reset the trace.
+Now let’s fly to the island.
+We go to the right and surf.
+We can assume, that to choose which encounter
+to show, it probably reads from a certain
+memory address this information.
+So let’s enable trace_read, to track all
+reads.
+again we see toooons of activity.
+A lot of memory being read.
+But.
+Okay pokemon appeared, at this point it must
+have done the important read.
+It’s decided which pokemon shows up.
+So we disable the read tracer and dump the
+the trace into a read.bin.
+Cool.
+So let’s analyze this.
+We have a file containing all the writes.
+And we have a file containing all the reads.
+The old man must have written something, which
+we later read on the island.
+And if we overlay these memories, we can identify
+all the addresses where this is the case.
+So let’s write a simple python code.
+We can open the read and write binary file.
+And then go through all addresses and compare
+them.
+The Old man wrote something.
+And the island surfing read something.
+And that should be the case.
+If memory changed between those two, it’s
+probably not the memory address we are interested
+in.
+So we only want to print all addresses and
+values, where read and write was the same
+data.
+And also not 0.
+Because everything is 0 by default.
+We assume it must have written some kind of
+value.
+When we run this we get quite a few possible
+locations.
+But it’s still quite a lot.
+But.
+When we did the tracing, we noticed a lot
+of reads and writes that were obviously unrelated.
+Stuff that just happens in the background.
+And from experimenting earlier, we know that
+simple walking around and talking to people
+doesn’t affect if missingno shows up or
+not.
+So we can do another write_trace.
+And we do all the actions in game that should
+have no effect on us.
+We walk around.
+Talk to people.
+Look at our menu.
+We even fly.
+Once we are satisifed with the writes and
+we don’t see many new writes happening,
+we can be sure we must have captured all the
+important writes that should have NO impact
+on MissingNo.
+So we can dump this as an ignore.bin.
+Let’s extend our python code by including
+this additional information.
+We open ignore.bin, read it as well and add
+it to our comparison.
+We want c to be 0.
+This means, when we go through all addresses
+where the oldman WRITEs to an address, that’s
+b.
+And the surfing READs from that address.
+That’s a.
+AND when we did any kind of other actions
+it didn’t touch our address.
+it didn’t write to it.
+Taht’s c.
+Then we print it.
+Let’s run it!
+Only three values are left!!!
+Awesome!
+Let’s look at them more closely.
+We can patch the emulator again to print whenever
+a write occurs to these addresses.
+Let’s play the game and observe when this
+happens.
+Okay we got some initial writes when we loaded
+into the game.
+But let’s ignore it that.
+Let’s see what happens during gameplay.
+Let’s fly.
+Going into a house.
+Walking around.
+It doesn’t change anything.
+That’s what we expect.
+And talking to another person, also doesn’t
+do anything.
+Let’s talk to the Old Man again.
+THERE.
+When the battle starts, it wrote a 0x50 to
+0xcfe4.
+Interesting.
+Oh! when the tutorial started it wrote two
+more values.
+0x92 to 0xd888 and 0x87 to 0xd889.
+And right when the pokemon got cought.
+It wrote again 0x50 to 0xcfe4.
+Let’s fly to the island.
+We go to the water and surf again.
+Let’s go for an encounter.
+THERE! that caused another write to 0xcfe4
+with 0x50.
+This doesn’t really make sense.
+We would NOT expect this value to get written.
+It’s the same value as before anyway.
+And it got written for the Old man and HERE
+when the battle started.
+So it’s more likely to have something to
+do with a battle starting.
+And not what makes MissingNo or other pokemon
+to show up.
+So let’s pay more attention to the other
+values.
+For example we can notice that when we walk
+past the Old man into the Zone, we see a 0x03
+and 0xa5 being written to these addresses.
+And when we get the tutorial again, we see
+that 0x92 and 0x87 is written there again.
+We can also go somewhere else, a different
+town.
+Hasn’t changed yet, but as soon as we walk
+out into the zone, the values update again
+to a 0x06 and a 0x24.
+It seems to write there some information,
+everytime when we enter a zone where pokemon
+could show up!
+Not in cities.
+Only when we enter zones with Pokemons.
+And weirdly it’s written by the Old Man
+too.
+So let’s go back to the Old Man and open
+the proper memory view to get a better overlook
+on the values around it.
+Here is the 0x06 and 0x24.
+So let’s talk to the Old Man and keep an
+eye on here.
+BOOM!
+There we go.
+Data was written to it.
+In fact it wrote more than the two bytes we
+knew about.
+It wrote one byte earlier.
+0x80, 0x92, 0x87, 0x50 and then zeroes.
+Do you notice something?
+If you have seen my last video about the savegame
+structure of Pokemon, you might remember that
+0x80 is a special value.
+It could mean the character capital “A”.
+So if we assume that these are characters,
+we can decode them.
+This is an“A”, this is 0x92, the A starts
+at 0x80, so the difference is 0x12, which
+means in decimal it’s 18 character.
+0 is the A so the 19th character is an S.
+And the last one would then be an “H”.
+ASH.
+In this case this is the name of our player!
+Our player name was written to this address.
+So let’s summarize what we learned.
+We found out that somehow the pokemons you
+found in grass somewhere else, show up when
+you directly fly to the island and surf along
+the cost.
+It doesn’t seem to affect water pokemon.
+You can swim here, find water pokemon, move
+back to the shore and you get the other ones
+again.
+Which means that water and not-water pokemon,
+so pokemons you can find in grass for example,
+seem to be handled differently.
+We also noticed that as soon as we enter a
+zone where there is grass and where we could
+find pokemon, it updates this address here.
+This address is read when we encounter pokemon
+at the shore.
+It seems like it writes here information about
+the kind of pokemons you can find.
+And it is not reset when you travel or walk
+around cities.
+Only when you enter zones.
+And for whatever reasons, non-water pokemons
+show up on this shore tile.
+And because it was not reset, the old ones
+showed up.
+Which seems fun for the Pokemon Tower or Safari
+Zone Pokemon.
+But for some reason, the tutorial of the Old
+Man writes your Player’s name exactly into
+that spot.
+It seems like it had to reu-use some memory.
+And this memory seemed safe, because as soon
+as you keep walking into the zone, the name
+is overwritten with the correct data again.
+But there was this edge case with the buggy
+shore line.
+Cool!
+We figured out where the information is stored
+on what kind of pokemon can show up!
+Now that we know that we can also play around
+with it a bit more.
+Let’s overwrite the data with some recognizable
+data.
+Simply 1,2,3,4,5, and so forth.
+Now let’s see what kind of pokemon show
+up.
+A Nidoran lvl2.
+A lockitung level 10, an ivysaur level 8,
+a nidoking level 6.
+Huh!!!
+All powers of two.
+And coincidentally exactly values we entered
+here.
+2, 6, 8,10.
+If we keep looking we can even find a spearow
+level 4.
+So it seems like every second value is the
+level of the pokemon that can show up.
+And so maybe the other number is WHICH pokemon
+shows up.
+So let’s check that.
+Let’s change them all to ID 1.
+Now allways the same pokemon should show up,
+just different levels.
+And when we do that, yes!
+That’s the case.
+Rhydon level 0.
+Rhydon level 10, rhydon level 12.
+So internally, the pokemon with the id 1 seems
+to be a Rhydon.
+Another test we can do is set all this data
+to 0, to better see when it is updated.
+And we can for example see, that when we head
+into the water, the data that is updated is
+just below this data.
+So this should be the water pokemon information.
+And this is the on-land pokemon encounter
+information.
+So there seems to be a programming bug that
+on this shore tile land pokemon show up, using
+this data here.
+Instead of like the other water tiles, using
+the water pokemon information!
+Also it should be clear, that this game only
+has 151 Pokemon.
+But in a byte you can address 256.
+So it makes sense that something weird should
+show up if you try to set an encounter Pokemon
+ID that is not mapped to an actual Pokemon.
+And when you write the values like in the
+name ASH.
+Along with the zero bytes being written.
+It’s very likely you get some invalid ID
+and MissingoNo shows up.
+That’s really cool.
+We just learned a lot.
+Unfortunately we still haven’t figured out
+how and why the 6th item is multiplied when
+you encounter MissingNo.
+But I think we have understood the foundation
+of this bug pretty well.
+And can build from that next video.
+Quick reminder.
+I’m working on this series with stacksmashing.
+So go checkout his channel to find more pokemon
+and gameboy hacks.
+Or other kind of awesome technical content.

@@ -1,0 +1,366 @@
+Last time we have used JTAG and the st-utility
+to dump the firmware from the Ledger Nano
+S. In this video I want to setup the reversing
+environment and go over some basics.
+But before I want to go over a few general
+things.
+First... using JTAG is not the only way to
+get the firmware.
+I mentioned in a previous video that I had
+the Ledger chrome app open, and it was dumping
+all the APDU commands sent to the device in
+the developer console.
+And so there we observed the commands where
+the firmware update was sent to the device.
+And you could just extract the firmware from
+these APUD commands.
+In fact that was how Thomas got the firmware
+originally, not through JTAG.
+And you can actually find these firmware update
+APDU commands hardcoded in the scala source
+code of that chrome app as well.
+Yes it’s scala.
+And yes the APDU commands are hardcoded.
+So for example this is the APDU command to
+select the memory address where to write the
+updated to.
+8003000
+Maybe you even remember this address, because
+this is where the magic value f00dbabe is
+located.
+And looking at the next APDU message, which
+contains the first actual firmware data, you
+can see that it now writes f00dbabe there.
+So from these apdu commands here, you could
+extract the regular application firmware - the
+firmware part that would be loaded at 8003000.
+But the bootloader code starts at 8000000.
+And if I remember correctly, I think those
+APDU commands were streamed directly from
+a websocket connection down to the ledger,
+and were not included in the chrome app itself.
+So it is kinda insane to think that the ledger
+webserver can directly issue APDU commands
+to the ledger device using websockets, and
+the chrome app serves as a proxy.
+Anyway.
+Point is, there are other ways to grab the
+firmware, not only with jtag.
+One other thing I’d like to emphasize, the
+fact that you can dump, debug and FLASH new
+firmware to the chip via JTAG.
+This maybe sounds bad, but can not be compared
+to the malicious update via the f00dbabe technique.
+The difference is that JTAG actually requires
+physical access, opening it up and hooking
+up cables.
+While a malicious firmware update, abusing
+the f00dbabe magic value, can be triggered
+from malware on your PC.
+So the attacker does not have to have physical
+access to the device.
+It’s a software issue, while open JTAG could
+be considered a hardware issue.
+However I personally don’t really care about
+the accessible JTAG on the Ledger’s insecure
+processor in terms of security.
+I’m just happy that JTAG is enabled, because
+it really allows us to learn a LOT about embedded
+devices.
+Anyway… let’s start reverse engineering.
+So a few years ago I actually bought an IDA
+license.
+I got a student license for it, not sure if
+you have ever seen that.
+And it’s not IDA Pro, it’s IDA standard.
+Which means it doesn’t come with decompilers
+AND doesn’t even support x86 64bit.
+But it was only around 250$ at the time, and
+that was a christmas present for myself back
+then.
+The reason why I mention it is, because it
+does support ARM - so we can use it for this
+project.
+But of course it’s now quite a few years
+old - version 6.6.
+So the UI and a few things will have changed.
+Anyway.
+Let’s open up the dumped firmware file.
+Once we selected the architecture ARM for
+our firmware dump file, we get this form.
+Here we have to enter some information about
+the chip memory layout.
+You have seen it already, we can find this
+in the chip’s documentation.
+And for example the flash memory area where
+the code will be, starts at 0x8000000.
+And it’s 0x8000, so 32kb large.
+Now IDA asks us if we also want to create
+a RAM section.
+And let’s do that.
+SRAM starts at 0x20000000, and according to
+the chip information, it is 6kb big.
+So 0x1800.
+So we just told IDA at what addresses the
+chip has RAM and ROM.
+But now we also have to tell IDA where the
+input file, so the raw binary firmware dump,
+should be located.
+For example if we had extracted one part of
+the firmware from the APDU commands at 8003000,
+then YES, ROM still would start here, but
+we would load the code we have starting at
+3000.
+Makes sense right.
+But our firmware dump is the complete memory,
+so we just set that.
+Then let’s continue.
+We get a first warning.
+This processor has two instruction encodings:
+ARM and THUMB.
+IDA allows to specify the encoding mode for
+every single instruction.
+For this, IDA uses a virtual register T. If
+its value is zero, then
+the ARM mode is used, otherwise the THUMB
+mode is used.
+You can change the value of the register T
+using the 'change segment register value'
+command (or hotkey Alt-G)
+Let’s remember that for a second.
+Because we get the next warning:
+You have just loaded a binary file.
+IDA can not identify the entry point automatically
+as there is no standard of binaries.
+Please move to what you think is an entry
+point and press 'C' (to mark it as code) to
+start the autoanalysis.
+So first of all ARM vs. Thumb.
+We talked about this last episode when we
+looked at this in GDB, and we know that we
+have THUMB instructions here.
+Which means we need to change that already.
+ALT+G, and then we set the T segment register
+to 1.
+Now this segment changes from 32bit code to
+16bit code.
+The second warning was about not knowing where
+code is.
+An ELF binary for linux, or a PE binary for
+windows has a defined ENTRY POINT which IDA
+can use to start analysing code.
+But with a raw binary dump like this, IDA
+doesn’t know where code and data is.
+So that’s where we humans come in and we
+have to do it by hand.
+But we will deal with that in a moment.
+First something else.
+At the top you can see a color representation
+of the whole memory map.
+And so this chunk here is our ROM, so the
+code we loaded, and then we have this black
+divider, because here the SRAM starts, the
+RAM of the chip.
+We also can notice this grey area, which when
+we go there, shows, that IDA found there a
+raw ascii string.
+That might be a signature that is used for
+verification.
+At least that’s my guess.
+Anyway.
+Looking back at the memory map of this chip,
+we can see that this chip has of course more
+than just ROM and RAM.
+For an embedded device that has stuff connected
+to pins, the peripherals are obviously important.
+So at these memory ranges, the external pins
+and other features like USB and SERIAL can
+be accessed.
+So starting from 0x40000000 we have a few
+different segments, and we also have the Cortex-M0
+internal peripherals.
+There is actually a more detailed memory map,
+especially when it comes to the peripherals
+further down in the documentation.
+So what was listed as just AHB2 in the general
+memory map, is actually one internal BUS inside
+the chip and there are these peripherals mapped
+to it.
+For example the GPIOs.
+General Purpose Input and Output.
+Basically your pins.
+Here is another good peripheral example in
+the APB bus. here we have access to the USB.
+I found this excellent blog article about
+“Understanding the STM32F0's GPIO”, which
+will help you understand how to read these
+tables and information, and how that translates
+to actually writing code and accessing these
+memory areas to interact with these external
+pins.
+I can really recommend it.
+So if you want to seriously prepare your IDA
+environment, you would want to properly create
+all these memory segments and name them accordingly.
+Now I’m a bit lazy, and I also already kinda
+know where we are going, so I resort to create
+only a few important ones to me.
+To do that you can go to Edit -> Segments
+-> Create Segment.
+And then enter the name and memory ranges.
+I do that for all the segments I’m currently
+interested in.
+And you can see how the overall memory view
+updates up here.
+Now we have the different memory segments
+registered with IDA.
+Next we need to figure out where does the
+code actually start?
+First let’s try this dynamically, by using
+the st-util to establish the JTAG connection
+to the device, and then using the arm-gdb
+to connect to it using remote debugging.
+Then we can see that the device resets and
+pauses at 0x80000c0.
+Now we can go to that address in IDA and press
+C, or I actually press P, to mark this as
+a procedure.
+This triggers ida starting to analyse the
+code.
+And you can see on the left, that IDA found
+a lot of functions now.
+So this is where the code starts - let’s
+call this reset.
+With [SPACE] we can enter the graph view and
+already observe something cool.
+Here you see it loads a special magic value
+into R2, and it says “B0075ec7” - bootsector.
+Then it moves an address into r3, and that
+address looks familiar, right?
+If you hover with the mouse over it, you can
+actually see that it references 0xf00dbabe.
+So once the address is in R3, it then loads
+the value f00dbabe into R1 and then compares
+b00t5ec7 with f00dbabe.
+Branch if not equal.
+So if the magic value loaded from here would
+have been b0075ec7, then we apparently don’t
+have a normal firmware and we directly jump
+there.
+But in our case we have a regular firmware,
+with the f00dbabe magic value, so we move
+into this block instead.
+But that still tells us that the entry point
+for the normal firmware loaded after 0x8003000
+should be here.
+And that’s why I rename this to firmware_main().
+But like I said in our case we now move on
+to the block here blow.
+And here is a branch, so a jump, to… the
+ascii signature?
+This is a bit unfortunate here.
+Let’s go to that signature and actually
+press U, to undefine this variable, so it’s
+raw data again.
+You then actually see that the branch goes
+to this address 0x80004000.
+And IDA didn’t recognize this as code, because
+previously it was right at the end of that
+string.
+IDA thought it was the null-byte delimiter.
+But we know better now, and we can force here
+code by pressing P - and a lot more code is
+found and analyzed now.
+At the top you can now see a lot of blue stuff.
+So all of that is being recognized as code.
+The green/brown stuff is still undefined data.
+Anyway.
+I decide to call this function now bootloader_main.
+And if we go back, this is how reset looks
+now.
+Okay, so we figured out dynamically how to
+find the start of the code, but how could
+we do that just statically?
+That is also super simple.
+By definition, the ARM architecture expects
+an interrupt vector table at the start of
+the memory.
+The vector table contains the reset value
+of the stack pointer, and the start addresses,
+also called exception vectors, for all exception
+handlers.
+Figure 2.2 shows the order of the exception
+vectors in the vector table.
+The least-significant bit of each vector must
+be 1, indicating that the exception handler
+is Thumb code.
+And as it looks like, at address 0x0 we have
+the start address of the stack.
+And at address 0x4 we have the reset address.
+So when the device resets, code starts executing
+there.
+Further up we also have a few other interrupts
+defined.
+Interrupt 0, 1, 2 and so forth.
+But let’s look at our firmware blob.
+By repeatedly pressing D, I’m changing the
+data size of these data values.
+This allows me to define this data to be 32bit
+values.
+And theoretically the first two values should
+be now, the start address of the stack, and
+the address of reset.
+And from the documentation we know again that
+the least-significant bit of each vector must
+be 1, if you have THUMB code.
+And that fits perfectly.
+0x80000c0 was our start address.
+And it has the 1 bit set, because we have
+the 16bit THUMB instructions.
+By pressing O we can also tell IDA that this
+value here is in fact an offset, or address
+or pointer somewhere.
+So now it points to reset.
+And I call this RAM START.
+If you paid attention you might have also
+noticed this other value that looks like an
+address.
+0x80000ED.
+Having a look at the definition table, we
+see that it maps to SVCall, PendSV and SysTick.
+SV stands for SuperVisor:
+As with previous ARM cores there is an instruction,
+SVC (formerly SWI) that generates a supervisor
+call.
+Supervisor calls are normally used to request
+privileged operations or access to system
+resources from an operating system.
+So you can imagine this like a syscall on
+your PC.
+There you can, with a special instruction,
+trigger a syscall and enter privileged kernel
+code.
+And here you also can trigger privileged supervisor
+calls and then the CPU will start executing
+the SuperVisor handler defined here.
+So we can follow this address, and of course
+because it’s THUMB again we have to ignore
+the last bit, so the handler starts at E.
+THen we press P, and here is the SV_handler
+code now.
+And in the vector table we can press O again,
+to mark these as offsets.
+So this is how you could have found the start
+of the firmware statically with IDA.
+There is one last thing I want to do.
+In the Options, under General, I can set Processor
+Specific analysis options and I can edit the
+ARM architecture options.
+here I can then select the base architecture
+to ARMv6-M, because we have a Cortex-M0.
+I have to do this through the options, but
+if you work with newer IDA versions.
+you get to change these options already when
+you load the file at the beginning.
+Alright!
+Now we are ready to start.

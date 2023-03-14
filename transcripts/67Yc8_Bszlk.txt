@@ -1,0 +1,188 @@
+Welcome to this video walkthrough of a real
+life exploit.
+We will have a look at a Javascript Framework
+called AngularJS.
+You can use that to create fancy modern web
+apps.
+While the concept is pretty cool, the framework
+suffers from a design issue.
+Any exploit I will show in this video was
+not found by me.
+References and credits are in the description
+and displayed here.
+Big thanks to mario from cure53 and gareth
+heyes from PortSwigger web security blog - most
+of what I show is based on their research
+and work.
+In the first part I will give a very quick
+introduction to how to write apps with AngularJS.
+If you haven’t used it before, take some
+time and follow a simple tutorial to understand
+it better.
+For example the official AngularJS getting
+started tutorial.
+And after we had a look at a simple angularjs
+example, I will explain my setup here how
+we can debug angularjs.
+So that in part two we can focus on stepping
+through the code of an old version of AngularJS,
+where we try to bypass the sandbox an learn
+about the Angular internals.
+In another video I will then show off some
+more advanced sandbox escapes for more recent
+versions.
+But let’s start.
+I have written a very simple AngularJS Testbed.
+Meaning a place where you can easily play
+around with Angular.
+Let’s start by looking at an angularjs example
+app.
+Look at this table.
+On the left you can see angular JS expressions
+in double curly braces, basically how you
+would write them into your html.
+And on the right you can see the result after
+AngularJS evaluated those expressions.
+And I have made here several examples with
+a variable username, and some functions…
+Also note that the alert function did not
+trigger a popup!
+The result is empty.
+But where do those values, variables and functions
+come from?
+Let’s have a look at the HTML sourcecode.
+Just to make it clear again, AngularjS is
+a pure Javascript framework.
+So here is no server part.
+All those expressions are evaluated on the
+client side in the browser after the html
+page got downloaded.
+Here you can see now that we use angularJS
+version 1.5.7.
+And then we create a new angular application
+with the name “scopeExample”.
+And then attach a controller to it with the
+name “MyController”.
+We can pass different variables to the controller,
+but most important to us is the scope.
+The scope is just an Object from AngularJS
+which is available inside the app.
+And you can see in the code we write, that
+all variables and functions we define are
+attached to that scope.
+They are a property of that scope object.
+And when we look again at our table where
+we used the double curly braces to get the
+username, angularjs will basically evaluate
+the expression, and check if the identifier
+username exists in the current scope...
+And in this case there is a username in the
+scope and it contains the string “World”.
+Thus the result is “World”.
+Similar with the function sayHello.
+The scope has this function attached and thus
+we can call that function within the expression.
+But alert, is not in the scope.
+We didn’t define that.
+So this function doesn’t exist and thus
+has an empty result.
+Two more things I want to point out.
+The first coloumn has also curley braces but
+they are not evaluated, because they have
+the ng-non-bindable attribute set.
+That deactivates angularjs for that element.
+The other thing is the $eval.
+This is not the normal javascript eval function
+it’s dollar eval.
+Again, this is evaluated against the scope.
+We didn’t define the function $eval ourselves,
+but angularjs has that already attached to
+the scope object.
+And that dollar eval is similar to regular
+javascript eval.
+But it doesn’t evaluate arbitrary javascript,
+it evaluates angularjs expression.
+Thus $eval sayHello is equivalent to double
+braces sayHello.
+Double braces also evaluate angularjs expressions.
+Ok no let’s dive in.
+Let’s open the testbed for angularjs version
+1.0.8.
+Which is very old.
+But we need that to understand later exploits.
+So this is a very simple .php app.
+If you look at the sourcecode you see a form
+where you can enter a text.
+And then whatever is in the GET variable q
+will be html escaped and safely echoed into
+the page.
+You can see that when you try to inject a
+script tag to pop alert.
+It doesn’t work.
+It’s properly escaped.
+So are we safe from XSS?
+NO!
+We are not.
+AngularJS destroys everything that we have
+tought web-developers.
+Escaping your string is not enough in this
+case.
+The crucial detail here is that our input
+is reflected into an html element that has
+angularJS enabled.
+Two things to mention here, first of all,
+this is not how angularjs apps are supposed
+to be written.
+AngularJS apps should not be mixed with server
+side templating.
+Meaning that the intended way for angularjs
+apps to get data is via API calls after the
+site is loaded.
+So mixing here php with angularjs is bad practice.
+Does that mean that this example is irrelevant?
+No!
+In reallife this happens all the time.
+Some older php app gets extended with some
+fancy angularJS and boom.
+You have a just genetically engineered a monster.
+You can test for angularjs expression injection
+by using something simple like 1+1.
+If the result shows 2, instead of the curly
+braces, then you likely have a angular js
+(or a similar frmework) injection.
+Ok so let’s start.
+Let’s first explore why alert doesn’t
+work, by looking at angularjs internals.
+Open the developer console and then go to
+the sources tab.
+On the left you can see available javascript
+source files.
+In the center you see the javascript code.To
+the right you can find stuff like the call
+stack, the variable scope, breakpoints etc.
+Which is important when you debug javascript
+code and step through it.
+We will make use of that shortly.
+And at the bottom (maybe you have to hit escape
+first to open it) you have a console where
+you can type in javascript code.
+If you pause at a breakpoint, you have access
+in that console to all the variables at this
+point in execution.
+Before we execute it, let’s quickly take
+a look at the angularjs code.
+This is a not minified version, meaning everything
+is nicely commented and indented.
+I have also modified the code by adding the
+keyword “debugger;” in different places.
+Those are like breakpoints.
+When javascript executes that statement, it
+will stop execution right there and we can
+look at the state of the variables etc.
+Ok now let’s execute the expression by submitting
+this form.
+The site loads, executes angularjs, the expression
+gets evaluated and we hit our first breakpoint.
+In the next video we will step through the
+evaluation of this expression and try to understand
+how angularjs evaluates them.

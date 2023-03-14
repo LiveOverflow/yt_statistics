@@ -1,0 +1,252 @@
+alert(1) is the typical javascript payload to 
+proof that you found a cross-site scripting
+security vulnerability. And in this video I want 
+to explain why we USE alert() in the first place,
+but also why you should NOT use alert(1), 
+and instead use alert(document.domain),
+alert(window.origin), or maybe even console.log().
+THIS is very important to understand when you are 
+hunting for XSS issues, especially on very modern
+web applications. It allows you to assess the 
+IMPACT that your XSS has. And so it’s crucial
+to determine if you actually found a critical 
+vulnerability, or maybe an invalid issue.
+So first of all, why do we use alert(). Actually 
+I don’t know historically why, but it has two
+huge advantages. First of all, the obvious, 
+it’s very visual. If you randomly try to put
+XSS payloads in various input fields, 
+and then continue to browse a website,
+you might just see an alert popup. Which means you 
+don’t need to carefully investigate each input.
+This is why XSS can be very simple to hunt for. At 
+least the basic XSS cases. It’s as simple as spray
+the input around, and pray that an alert pops.
+But there is another advantage to alert. There
+are some browser client-side javascript frameworks 
+with templating features allowing some limited
+form of javascript. And you can imagine that if 
+you have input where you allow some restricted
+version of javascript, for example printing some 
+scope variables or doing basic math, then if you
+can inject this, it doesn’t matter for security. 
+You can’t do anything evil with that. However
+alert is a function, that is part of the 
+window object. And the window object holds
+the most critical data an attacker might be 
+interested in. For example the localStorage,
+which might contain session tokens. Or the 
+famous window.document.cookies. This means,
+executing alert() can be an indication 
+that your XSS finding has a high severity.
+But, as a small sidenote, nowadays we mostly have 
+given up on these restricted javascript templates,
+as it was a cat-and-mouse game with fixes 
+and bypasses, and we learned it’s too hard.
+Checkout the history on angularJS sandboxing 
+attempts if you are interested in that. I also
+have a small playlist about this. anyway.
+Even though it seems that alert(1) is a
+great indication for a XSS injection 
+actually being critically exploitable,
+it’s not a good metric anymore. Even if you see an 
+alert() pop up it might not be a security issue.
+This might be a bit surprising to you. Why 
+would an alert() popup not be a security issue?
+I hope I can explain that to you, and 
+this is where alert(document.domain) or
+alert(window.origin) come into play. With those 
+it’s much clearer for you to understand if you
+found a critical XSS vulnerability. And 
+so if you use that in a bug bounty report,
+then it’s also easier for Google 
+to review your finding as well.
+So let’s investigate why this is the case. I’m 
+using Google’s Blogger service as an example.
+Keep in mind the date of this video, bug bounty 
+scope information might change over time. But
+right now all subdomains of blogger are in scope. 
+And when you explore the features of blogger,
+you might come across a feature that allows you to 
+put arbitrary HTML into your own blog. Which means
+you can inject a script tag with an alert(1). 
+You don’t know yet if or where it executes,
+so you continue to use the page. Maybe you write a 
+blog post and then you hit the preview button, and
+suddenly, you see the famous XSS payload trigger.
+“Look! the domain is blogger.com and that site is
+in scope, right?! Give me my bounty please!”
+Mhh… did we really just find an easy critical
+XSS bug on a Google’s service? 
+Well… actually no. we did not.
+To explain why, let’s modify the alert(1) 
+to the preferred alert(document.domain),
+and try it again. We save the new 
+payload and preview the blog post again.
+The XSS triggers, but it shows the domain 
+“usersubdomain.blogspot.com”. So why does
+the XSS trigger on this blogspot.com and 
+not blogger.com? The reason is simple.
+Look into the chrome developer tools. This 
+website blogger.com actually has an iframe,
+where it embeds the usersubdomain.blogspot.com 
+site. And the XSS is located on this domain.
+NOT on blogger.com. So NO! We did not find a 
+real XSS on the the in-scope url blogger.com.
+But hopefully you ask yourself now,
+why does google use two different domains 
+to implement their blogger service.
+Well XSS is a reason...
+Google uses a range of sandbox
+domains to safely host user-generated content. 
+Many of these sandboxes are specifically meant
+to isolate user-uploaded HTML and JavaScript and 
+make sure that they can't access any user data.
+So what exactly does that mean? The goal of 
+an XSS attack, like with any hacking attack,
+is to access stuff you shouldn’t have access 
+to. For example the cookies of another user.
+But the cookies are on the blogger.com domain. So 
+a XSS on usersubdomain.blogspot.com can not read
+those cookies. It’s simply not possible thanks 
+to the same-origin policy. These are considered
+two different websites. And that’s why we want 
+to look at the document.domain or window.origin
+in the alert, because it tells us, on which 
+domain this XSS is actually executed. It tells
+you what data can this XSS access. And it can 
+only access stuff on usersubdomain.blogspot.com.
+Google wanted to allow users 
+to customize their own blogs,
+and allow them to include arbitrary html 
+and thus javascript. But they also want
+to make sure that this cannot be used 
+to attack other blogger users via an
+XSS. Thus they put the user data on this 
+other domain and embed it via an iframe.
+So when you see an alert pop-up, make sure to 
+do it with document.domain or window.origin,
+so you can check if your XSS 
+triggers on a critical domain,
+or on an unimportant sandbox domain. This decides 
+if you found an actual security issue, or not.
+Now besides sandboxing via actual different 
+domains (or origins), there exists also the
+concept of sandboxed iframes. I have introduced 
+this before in a video I made “Google Script
+Gadgets! Google Docs XSS Vulnerability 
+Walkthrough”. Here google implemented a so
+called json-p sandbox. They basically injected 
+an iframe, with a user controlled XSS payload,
+but also set the sandbox attribute on the iframe. 
+Let’s do some experiment with iframe sandboxes.
+I have implemented here a very simple tool that 
+allows users to execute javascript expressions
+via eval. You can write 1+2, and it prints 
+the result 3. You can also see here a secret
+session token. And of course it’s no problem to 
+execute alert(document.session), to prove that
+you can steal the secret session token.
+But look at this second example. It has
+essentially the same features, but this time the 
+script being executed is inside of this iframe.
+Which also has a sandbox attribute. But ignore 
+the implementation details, try to execute alert
+again. And you see it works! So... is this 
+equally vulnerable as the previous example?
+No! Try to alert the secret session 
+token. It won’t work. And to see why,
+simply use the preferred alert(document.domain) 
+or alert(window.origin). And you will see,
+that it’s empty. This is a bit different from the 
+sandbox subdomain blogger uses. But you can see
+that this sandboxed iframe ALSO has a different 
+origin. Albeit a weird origin. It is isolated
+from the website it is embedded into. You cannot 
+steal the secret session. So this achieves the
+same isolation as the blogspot subdomain did. 
+This alert would not be a valid security issue.
+That’s why you always want to alert 
+the document.domain or window.origin.
+But before we end this video, I want to give 
+you another tip when hunting for XSS issues.
+First of all, if you find an injection 
+into a sandboxed iframe, it’s uncommon
+that the allow-modals option is enabled.
+For example here on sites.google.com,
+you can also create your own website and 
+embed raw HTML code. Similar like on blogger.
+Thus you can also embed a XSS payload. 
+But when you try it, nothing would happen.
+However, if you are an experienced bug hunter, 
+you might always have a look at the devtools,
+and then you might notice that alert 
+is blocked due to a sandboxed iframe.
+So in this case it would be 
+better to use console.log,
+to actually see where or IF it is executing your 
+XSS payload. But this means you need to pay very
+close attention to the console output of the dev 
+tools. Maybe use filters to quickly identify them.
+As you can see, hunting for XSS can be a bit more 
+cumbersome. Anyway, we did execute javascript
+and confirmed that by executing console.log!!!
+So did we find an actual XSS on sites.google.com?
+That would be in scope, right? Do 
+I get a bounty now? Well... again,
+we want to look at the actual execution context 
+by looking at the document.domain output. And
+when we change our payload to that, and look at 
+the page executing this payload again, you see
+that we are on another sandbox domain. This time 
+googleusercontent.com. So NO! This apparent XSS is
+not really a vulnerability. It’s by design 
+put on another domain to make it harmless.
+So now that you know how to identify when a 
+XSS is invalid, you might ask ask yourself:
+“why should I even be interested in further 
+investigating a XSS in a sandboxed iframe
+or on a sandbox domain, because it doesn’t 
+qualify for a bounty”, right? Well!
+When you have for example 
+an injection into a JSONP
+sandboxed iframe, the actual site usually 
+communicates with the iframe via postMessages.
+And so there could be a way to exploit 
+a message to get XSS on the actual site.
+Basically doing a sandbox escape.
+But in this case
+the vulnerability is NOT this first XSS, 
+the vulnerability is the ESCAPE out of it.
+So reporting the sandboxed XSS itself DOES 
+NOT qualify for a bounty. But it means,
+if you can somehow CHAIN other bugs, escalate 
+it, and execute javascript on the ACTUAL IN-SCOPE
+domain, then it would be a valid issue you can 
+report. But you see, those are really advanced XSS
+issues, so make sure you really understood it, 
+and don’t just report invalid XSS findings.
+So to summarize:
+Most important for you to remember is 
+that, Google intentionally allows XSS
+by design on sandboxed subdomains or sandboxed 
+iframes. And a simple alert() is not proof enough
+that you actually found a serious XSS issue.
+You should always look at the actual domain
+the XSS is executed on, by using a payload like 
+alert(document.domain) or alert(window.origin).
+Hopefully now you understand why sandboxed 
+subdomains and sandboxed iframes are cool!
+At least for defense. But unfortunately 
+that also means, an XSS on there is not
+actually a security vulnerability that 
+a bug bounty program would pay for.
+I know it kinda sucks when you see an 
+alert triggered, but it turns out to
+be on a sandbox domain. But if you find 
+such an invalid XSS, be happy anyway.
+It could be useful for a longer chain, so 
+take notes to remember where you found it,
+but also understand that by 
+itself it’s not a valid issue.
+Good luck hunting.

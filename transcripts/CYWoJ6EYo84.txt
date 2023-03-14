@@ -1,0 +1,200 @@
+We are trying to develop an exploit for a 
+sudo heap overflow. And last video we did
+an investigation to look for function pointers on 
+the heap that we could overflow, thus hijack the
+execution. But currently our overflowing buffer is 
+placed after all those function pointers, and we
+can only overwrite forward. So now we have to try 
+to find a way to force our buffer to be allocated
+earlier on the heap, or the pointers later. And in 
+this video we want to develop a tool that can try
+to help us to find such a condition automatically.
+Let’s head in.
+
+as I mentioned in the last videos, I don’t really 
+have a clue what I am doing. this idea I have
+might not work, but it feels like worth trying .
+So I want to write code that takes configuration
+arguments or randomly generates them,
+constructs the input for sudo, runs sudo and 
+tells us where the important heap areas are.
+This way we can check if we found inputs where our 
+overflowing buffer is before a function pointer.
+But how will we be able to tell where our buffer 
+and the function pointers are on the heap?.
+Let’s think about this problem.
+The first important thought I have
+is that we should be careful on what kind of 
+sudo build we do this research on. The closer we
+get to writing an actual exploit, the closer we 
+need to be to the regular compiled sudo binary.
+For example for fuzzing and some debug purposes 
+we used to build the binary with disabled-shared.
+This creates a single sudo binary, which is a 
+significant difference from the real target.
+The real target is a smaller sudo binary 
+with a shared library that is being loaded.
+For debugging we also built a sudo version 
+with address sanitizer. That also changes the
+binary AND especially heap allocations a lot.
+And so because we get closer to exploitation,
+I think we need to make sure we have a 
+more “normal” compiled sudo binary to
+work with. With only minimal and less 
+intrusive changes. Ideally no changes.
+But I hope that one particular change is small 
+enough, and that is to collect heap information.
+I use a very simple approach, I want to add a 
+few debug printfs to print the heap addresses of
+our buffer and the two function pointers. I got 
+the locations from last video when we looked at
+the callstack. So this is where a function pointer 
+was called. Then we can ./configure and make sudo.
+Keep in mind, we didn’t use --disable-shared 
+for configure. Which means we now have,
+./src/sudo as a bash script wrapper. And 
+the real binary is in ./src/.libs/sudo. A
+few videos back we talked about that. Caused 
+some major issues. I have PTSD from that.
+Anyway. To test specifically sudoedit we of 
+course need a sudedit symlink to that binary,
+and then we can try it. Sudoedit -s 0000\. And 
+we get…. Almost no output? huh?! No printfs
+for the function pointers are being executed?
+This blocked me for like an hour, I couldn’t
+figure out why this happened. We clearly tried 
+to execute those function pointers earlier
+so we should reach that code. Why not now. Any 
+guesses? Anybody have a guess what the issue is?
+Again, this was a dumb problem, and so 
+I decided to keep this in this video,
+just to show you that doing security research is 
+not ever a smooth straight path. You constantly
+have to fight with small issues like this. ANd 
+these issues are what really cost you time.
+Well… you see the problem with ldd. Ldd 
+shows the dynamically linked libraries and
+from where they are loaded. And the code where 
+the function pointers are used, are part of the
+sudo shared library. And this is not our newly 
+compiled one, it’s the system one which doesn’t
+contain the printfs. Which means, we simply call 
+make install, to move our new debug print library
+into the system paths, and then it works! Now we 
+see the heap addresses of a few function pointers.
+Let’s look at this output. The sudo code is 
+executing, and everytime a function pointer
+is executed, the heap address is logged. And 
+this is our buffer address. So if we would want
+to overwrite a function pointer to hijack 
+execution, we have to look at the cases that
+were executed AFTER we got our buffer which 
+we overflow. Our goal is to find some inputs
+where one of these function pointer addresses is 
+smaller than our overflowing buffer user_args.
+Next we need to write a python script that uses 
+this information to do the heap location research!
+To better understand what I try to do, let me 
+quickly summarize how to think about the heap.
+The heap is full of memory being allocated 
+and freed. These chunks have different sizes.
+So over time the heap becomes fragmented with 
+holes. When we then allocate new stuff, we look
+for a fitting hole. And how the heap fragments 
+depends on the size of those allocations before.
+So if we identify inputs that will control 
+the size of allocated chunks, we can end up
+with different heap layouts, where our buffer 
+might be placed in front of a function pointer.
+So what inputs do we control for sudo 
+that might influence allocation sizes?
+Generally we don’t have many choices. There are 
+only so many possible “inputs” into a program.
+Typical ones are std input, opening and reading 
+files, but also command line arguments themselves
+or environment variables. And for sudo 
+basically only the latter two make sense.
+So we can “simply” write a script that 
+tries different inputs and logs all
+input cases where we find our buffer before 
+the function pointers. Sounds simple.
+But it’s not that simple. I’m not a professional 
+programmer. But I’m also not a beginner in
+programming. But developing such a tool can be 
+quite tricky. And reality is that you enter now
+a very time intensive loop of iterating over your 
+code. You write code, then you run into bugs and
+you always have to verify and test if it does what 
+you hope it does. So I want to save you some time
+so I’m just going to summarize the 8h of building 
+the first “working” revision of this script.
+Anyway, here was my script after 8h. I 
+defined a few different length ranges for
+different arguments. This already is not a trivial 
+decision. For example we could use a full random
+value between a number range. But after a lot of 
+trial and error and thinking about probabilities.
+It’s very unlikely to get special cases like 
+length 0 or 1, or maxInteger. So in the end I
+used these biased random values. The number can be 
+anything from 0 to 255, and then we have power of
+twos including a small offset version of the power 
+of twos. Those should be more interesting length
+values. Also I haven’t verified or know if command 
+line arguments for sudo influence the heap,
+but to be sure, I just hardcoded some of 
+the existing flags I got from the sudo help.
+In the main loop I then generate different 
+configurations of random arguments and random
+environment variables. Which environment 
+variables you ask? I decided to use one
+typical existing one, and one made up. At this 
+point I didn’t know if that actually helps us.
+This is definitely an area where we could 
+do more research to identify environment
+variables that actually influence the heap.
+Anyway. Once we have generated random inputs,
+we can then call run_sudoedit.
+This function is “simple”
+it executes sudoedit with the arguments and 
+environment variables and then tries to read
+the heap information from the output.
+Also see this here? I’m not directly
+calling sudoedit, but I call stdbuf with 
+-o0 as a wrapper instead. Wonder why?
+But when I started running the script, 
+when the code read the output of sudoedit,
+I often times never saw the heap address 
+information. It was just gone. But testing
+the same inputs on the terminal by hand 
+worked, it shows it. Even when we crash.
+I quickly had the thought that output buffering 
+could be the issue. Sudoedit might buffer the
+printf outputs, and then comes the malloc 
+crash abort, which throws away the buffers.
+In that case we might never see the output. So I 
+somehow had to disable the buffering, but there
+was no way that worked with python subprocess. 
+But eventually I found a solution wrapping the
+execution in stdbuf, which can disable buffering 
+of the std output. now I was ready to find the
+perfect heap layout and I ran the new script.
+And yeah! I did start to find a few cases where
+our buffer is placed before any of those function 
+pointers, and we crash the binary too. But
+unfortunately the function buffers are very far 
+away from our buffer. Over 10000 bytes. I still
+tried to make it work. Maybe you can overflow 
+other buffers with carefully chosen values so sudo
+doesn’t crash until we reach the critical function 
+pointer calls. I spent hours in gdb, and debugged
+it. Basically run the script overflow, look where 
+it crashes, try to manipulate the exact place
+in the overflow and change the values to 
+something that doesn’t crash. And repeat.
+But it just didn’t work. I never could get past 2 
+crashes. The problem is, we overwrite thousands of
+bytes on the heap. Stuff just keeps crashing, 
+way before we reach the function pointer.
+So I have to change something in my approach. 
+But that has to way, let’s dig deeper next video.

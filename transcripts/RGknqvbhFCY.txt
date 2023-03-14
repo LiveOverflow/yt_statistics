@@ -1,0 +1,261 @@
+I guess you know what two factor authentication
+is.
+And there exist hardware tokens for example
+yubikeys or even your google authenticator
+on your phone that can generate some code
+that you have to enter as additional proof
+when you want to get access to something.
+In this video we will break a bad two factor
+implementation and learn something about randomness.
+This example is a special challenge from the
+riscure embedded hardware ctf.
+It actually has 400 points.
+That’s an insane amount of points looking
+at the other challenges that I struggled with.
+But I still solved.
+How?
+I solved the challenge in an unintended way,
+which coincidentally teaches you something
+about randomness.
+So let’s head in.
+Twistword.
+A company is developing a new hardware 2fa
+token for their employees as existing solutions
+are too expensive.
+The development team got many complaints about
+the slowness of the first version and sometimes
+it was not even working.
+Most likely this is due to resource constraints
+of the used board.
+You managed to get one of the first boards
+with a new version of the system that was
+given to a few users to test if it is an improvement
+or not.
+However, is it also secure?
+Let’s have a look at how this looks like
+on the board.
+When you connect to it says:
+Twisted Inc.
+Scure Token auth 2.0 Debug build.
+Again a message that they changed the algorithm.
+Presumably made it now smaller and maybe more
+insecure.
+And then they ask for your 2 factor authentication
+token.
+Now would be the moment you take your actual
+hardware token, generate the key and hand
+it in.
+If it matches the one the board calculated,
+you get in.
+But when you enter an incorrect one it will
+tell you what token was expected.
+That will be very helpful.
+So… what can we do.
+Well, one of the first things that comes to
+mind is mersenne twister.
+Because of the title twistword.
+The Mersenne Twister is a pseudorandom number
+generator (PRNG).
+This means you give it some kind of seed,
+and then it will scramble, flip, twist around
+the bits, if you so wish, in order to create
+new random states.
+Pseudo random because it’s not truly random,
+the same seed will produce the same values,
+but it’s random enough for a lot of applications.
+And actually with 2 factor tokens you want
+pseudo random generators, because the token
+generator as well as the service you want
+to access has to generate the same value so
+it can be compared, right?
+Also when you scroll a bit further down you
+can read that:
+The algorithm in its native form is not cryptographically
+secure.
+The reason is that observing a sufficient
+number of iterations (624 in the case of MT19937,
+since this is the size of the state vector
+from which future iterations are produced)
+allows one to predict all future iterations.
+So this mersenne twister can be implemented
+with different values and parameters and MT19937
+defines one such implementation.
+I assumed that for this challenge they used
+their own parameters and you have to research
+how this attack works, how you can recover
+the state with enough samples.
+Another idea I had was, that randomness is
+really difficult to do for computers.
+They are deterministic machines that just
+execute instructions, there is nothing random
+about them.
+So what you can do is you can try to collect
+entropy from different sources.
+On PCs you often see that they tell you to
+move your mouse a lot, because that movement
+is hard to predict.
+But what to do on an arduino?
+I assumed one of the most likely ways would
+be to read an analog value from some of the
+pins.
+You reading a digital state would be a 0 or
+1, but the arduino can also read analog values
+from some pins, well it uses an ADC, analog
+to digital converter to convert the voltage
+at one pin to a digital number.
+And if the pins are not connected it could
+pick up interference from background radio
+noise or something and that is pretty random.
+So maybe you just have to pull all pins to
+ground, so make them 0.
+This way the initial random seed would always
+or often be the same.
+I thought that’s a cool attack, but I felt
+like for 400 points, it would actually be
+harder than that.
+So I assumed it’s about cracking the math
+of it.
+In order to do this I first wanted to start
+with capturing a lot of tokens that I can
+later work with.
+The board is so nice to respond with the expected
+token.
+So I wrote two scripts.
+One would connect via serial and then just
+enter a wrong string and collect all the expected
+tokens and the second script I wrote would
+always reset the serial connection, which
+resets the board and should newly initialise
+the PRNG.
+I figured that maybe I can learn something
+interesting about the initial states.
+And this data collection takes a while.
+Especially the method with resetting the serial
+is very slow.
+So I let the data collection run over night.
+The next morning I did a first quick check
+of the data.
+I didn’t expect much because I was sure
+the real work now just started.
+Having to research how to recover the initial
+state and the data just helps testing.
+So I was casually looking over it if I notice
+anything.
+And WTF!
+One of the files contained a dublicate value.
+This cannot be the case.
+These numbers are so big that a duplicate
+is highly unlikely.
+In fact there were a couple of duplicates.
+Something is fishy.
+If this is about calculating the state of
+the PRNG and predicting the next value, this
+wouldn’t happen.
+So…
+I went easy way.
+I modified my script to now just send this
+one duplicate value all the time.
+Also a PRNG, like I said earlier, starts with
+a seed and then all following values are predictable,
+if you know the implementation and parameters.
+This means when we got a duplicate value the
+next expected token should have been also
+the same.
+So if I had saved the first two expected tokens
+after a board reset, and I had encountered
+the same first token a second time, I could
+have used the previous expected second token
+and win.
+So let’s write script for that and let it
+run overnight and i’m sure I get another
+duplicate.
+This is the script I wrote.
+These functions, you know them already just
+help me to interact with the board, to read
+what text it sends me.
+The most important variable here is the list
+of tokens I encountered before.
+And at the beginning it’s empty.
+I also will write every token pair that I
+see to a file, so that when I interrupt the
+script I can simply reload previous tokens
+I collected to not loose any data.
+And that’s what I do here.
+So I have rerun this a couple of times.
+It just adds the pairs I found before to the
+tokens list.
+Anyway.
+In an endless loop I then create a fresh connection
+with the board.
+Then I wait until I get the text that I have
+to press Enter.
+Then I read until it wants me to enter a Token
+and send one of the duplicates I got earlier.
+Maybe I get lucky, but most of the times I
+won’t, so then I read the token that was
+expected.
+Now I extract that token and check in my tokens
+list, if I encountered that token before.
+If I did, I know what the next token will
+be.
+If it’s new I will just enter an empty token
+and get the next expected token, which I also
+extract and save it together with the first
+token in the tokens list.
+And down here I have some nice fancy debug
+output.
+So theoretically this should just work.
+It will just take a while.
+In my case I think it ran for 3 hours or so,
+and then it found a duplicate.
+So my script sent the token it would expect
+afterwards and surprise suprise it’s the
+correct token and we get the flag.
+Now that was way easier than I thought.
+It was also not the intended solution.
+But it really highlights how hard it is to
+properly initialise the PRNG with a truly
+random seed in this small arduino.
+I don’t know how they tried to get a this
+good random seed value, but it clearly didn’t
+work.
+Randomness is not trivial for computers.
+Lessons learned.
+By the way there was another small annoyance
+with this challenge.
+So when I found my first duplicate it didn’t
+work.
+I saw that I predicted the correct value,
+because the second expected token was the
+same, but it didn’t work.
+And it was an issue with the line endings.
+Let me explain what happened.
+It basically comes down to not being really
+user friendly and flexible regarding input.
+But basically it expected 32 bytes of input
+followed by some kind of terminator.
+Like when you press enter.
+Typically that could be a newline, or a carriage
+return or even a newline or carriage return.
+So in this case it only expected a carriage
+return.
+There are basically two stages when communicating.
+The buffer and the data that is actually handled.
+So at first I sent a carriage return and a
+newline.
+So the buffer was filled with this data and
+then the application read 32 bytes for the
+token and the carriage return.
+And that meant it was done.
+Now it asked for the second token.
+Now the newline was still in this buffer,
+it was never read by the application.
+So now I supplied the second token, which
+got written into the buffer, and when the
+application then read 32 bytes, the first
+byte was a newline.
+So obviously the expected token and the one
+I sent were not correct.
+This was really frustrating.
+But I got a hint regarding that issue and
+then I was able to solve it at the end.

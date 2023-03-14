@@ -1,0 +1,334 @@
+During the Real World CTF we had to decide
+which challenges to try and which not to.
+Flaglab was listed as a web challenge and
+had the following description: “you might
+need a 0day”
+You get a link to a hosted website as well
+as a download link.
+It turns out that there was a GitLab hosted
+and from the download, which contains a docker-compose
+file, it tells us that it’s gitlab version
+11.4.7…
+So we quickly searched for how old that version
+is and we found this blog post from 21.
+November about this release.
+Remember that we were playing on 1.
+December so we thought: “oh crap.
+That seems like the latest up2date version.
+We won’t ever find an 0day in this huge
+codebase.
+Let’s not waste our time.”
+Turns out, we kinda f’ed up.
+During a post-CTF dinner with other teams,
+some people from RPISEC told me that it was
+NOT the latest release, there was a 11.4.8
+AND the commit history of that newer version
+reveals several security patches.
+And one of them, the SSRF in webhooks was
+even by nyangawa of Chaitin Tech, which is
+the company that was organizing this CTF.
+Knowing all that, it was actually a super
+simple challenge.
+And I’m soooo mad that I gave up on this
+challenge so quickly, because 5 more minutes
+of research would have been enough to lead
+me down to a path of solving this.
+Anyway… after the CTF I sat down and I tried
+to use this knowledge now to solve this challenge.
+Okay so first we have to set everything up.
+I noticed that in the docker-compose file
+some absolute paths are used, so I changed
+them to relative paths.
+These folders will be mounted onto this path
+inside of the docker container.
+We can also see here that a flag file is required
+that is loaded into the root of the filesystem,
+as well as some other password file.
+Then we can simply type docker-compose up
+to pull the docker images, which during the
+CTF would have taken ages because of Chinese
+Internet.
+Once it’s all downloaded the dcker container
+is starting up and gitlab starts to do it’s
+setup magic.
+Which takes more time.
+But looks like it’s done now, we see here
+network logs.
+Then I start Chrome with some parameters to
+set a HTTP proxy.
+From the docker-compose file you can also
+learn that the http port 80 is mapped out
+to port 5080, so let’s try to open the page
+in chrome.
+But I haven’t started the proxy yet, so
+let me start Burp and here we go.
+Btw I wasn’t able to intercept requests
+to 127.0.0.1 at first, and I’m not sure
+exactly why, I checked the excluded ranges
+but that wasn’t it, however I found out
+by specifying a fake domain in /etc/hosts
+for localhost, so localhost.com, chrome will
+do the request over the proxy and we can see
+here the requests in the history.
+Okay.
+Now that we are set up we have to find the
+bug to exploit.
+Like I said in the beginning we thought it
+was an up to date version, but in fact there
+was a newer version 11.4.8 with several security
+issues fixed.
+And one even referenced Chaitin Tech who organized
+the CTF.
+We also know that the flag is in the root
+of the filesystem, so we need a file disclosure
+vulnerability or a remote code execution.
+So let’s have a look at the patches.
+To do that we can simply go to the official
+gitlab repository and search for the tag with
+the 11.4.8 version.
+Next we can look at the commit history to
+look for security patches and we can immediately
+find these merge commits of security patches.
+A SSRF issue with ipv6 in webhooks, a xss
+which is rather uninteresting and a crlf issue,
+carriage-return/line-feed, so a newline injection.
+Now we can have a quick look at them.
+Here is the SSRF issue with ipv6.
+“Fix SSRF in project integrations”
+The cool thing about well documented and structured
+software projects is that developers write
+tests!
+So we can just scroll down to the tests that
+will make sure no regression of this bug reappears.
+These tests basically tell us how it was possible
+to exploit this issue.
+So apparently ipv6 URLs like [0:0:0:0:0:ffff:127.0.0.1]
+bypasses the blocked_url check.
+This is a special ipv6 address to embed an
+ipv4 address.
+Cool!
+The other issue was “Fix CRLF vulnerability
+in Project hooks”.
+And also scrolling down to some tests, we
+see it was simply about urls with newlines.
+Either URL encoded as %a or simply regular
+newlines.
+So now the question is, do these issues make
+sense and help us in any way to exploit gitlab?
+Yes!
+This can be turned into a remote code execution.
+It’s actually a very typical security issue.
+It’s a SSRF, a server side request forgery
+which you can use to target the local internal
+redis database, which is used extensively
+and very typically for different types of
+workers.
+And so you can push a malicious work package
+that leads to a arbitrary code execution.
+And gitlab was exploited like this several
+times before.
+It’s a known CTF challenge and there are
+many bug bounty writeups about this topic.
+It’s difficult for me to remember where
+I saw this technique the first time but I
+believe it was Agarri, Nicolas Grégoire,
+in like 2014 or 2015, but I definitely also
+read several bug writeups over the years about
+it.
+So every web pentester and web bug bounty
+hunter should actually know this.
+But let’s first check if we can trigger
+a SSRF somewhere.
+At first I thought about targeting webhooks,
+which can be used to specify a URL that gitlab
+will send a request to when things happen
+on the repository, but specify a localhost
+URL instead, but when I clicked on create
+new project I noticed the import project option.
+And here are multiple ways to import a repository,
+one being from a git repository URL.
+And here are a few examples we can use a http,
+https or git URL to enter a repository.
+And so for example we could try to enter localhost
+here instead, so 127.0.0.1 and try to import
+from there, we get an error that the Import
+url is blocked.
+Requests to localhost are not allowed.
+But we can try the ipv6 bypass which we have
+found in the patch.
+I a;ready went ahead into burp and put the
+request to import this URL into the repeater
+and replaced the URL with the ipv6 version.
+I also added port 1234 here, for a reason
+you see in a second.
+To test this SSRF we need to get into the
+gitlab docker container.
+So docker ps to find the running container
+and then we can do docker exec with -it, to
+keep STDIN open and create a pseudo tty terminal,
+specify the container id, and execute /bin/bash
+to get a shell.
+This process is now running inside of the
+container so we have a shell here.
+Netcat is not installed so we first have tip
+apt update and then apt install netcat.
+Once this is done we can simply netcat and
+listen on port 1234.
+Next we go into burp repeater.
+We have to adjust the name of the project
+because we created it already and so for a
+new project we need a new unique name. and
+when we send the request to import this repository,
+after a short moment, we receive an HTTP GET
+request to the URL that we have specified.
+Awesome.
+SSRF to localhost confirmed.
+Now we want to target redis with this.
+Redis is an open source , in-memory data structure
+store, used as a database, cache and message
+broker.
+And it works basically with key and value
+pairs.
+And the protocol it uses to communicate is
+absolutely simple.
+It’s a line based command protcol.
+With ps we can find the redis-server command
+and the port.
+6379.
+And then we can use netcat to connect to it.
+And as you can see, we can enter any invalid
+commands and redis will simply inform us from
+it being wrong.
+Even when you enter valid but incomplete commands,
+it just responds with an error.
+Let’s try a valid command, let’s set the
+key liveoverflow to test, that went OK, and
+send more garbage, and now we get the value
+of liveoverflow, and here it is.
+Test.
+As you know, netctat simply opens a TCP socket
+and we are sending here simple ascii payloads
+to redis.
+HTTP is also a simple ascii text based protocol.
+And some really smart people realized, well…
+then… what would happen if you simply send
+a HTTP GET request to redis?
+Each line of the HTTP get request would then
+be a redis command, no?
+To test this we can simply copy the GET request
+from the SSRF and paste it into the netcat
+session with redis.
+And we see an error, wrong number of arguments
+for ‘get’ command, which makes sense,
+because GET is a redis command, right?
+But then we also somehow drop back to the
+shell… let’s connect again and do it line
+by line.
+GET, and we see the error.
+And next the Host HTTP header Host :... boom.
+Connection dropped.
+Because SSRF to redis is such a huuuge issue,
+redis has actually introduced a fix where
+they basically try to detect an arriving HTTP
+request.
+This callback is bound to POST and "Host:"
+command names.
+Those are not really commands, but are used
+in security attacks in order to talk to Redis
+instances via HTTP, with a technique called
+"cross protocol scripting" which exploits
+the fact that services like Redis will discard
+invalid HTTP headers and will process what
+follows.
+As a protection against this attack, Redis
+will terminate the connection when a POST
+or "Host:" header is seen, and will log the
+event from time to time.
+So you should maybe check your redis logs
+for this warning.
+If you see it, you have some big issues.
+So that’s why this connection is dropped
+here at the Host:
+But…
+This is a get request, and GET is actually
+a valid redis command.
+so if we can somehow get redis commands infront
+of HOST, then we could still execute some.
+And this is where newline injection could
+help us.
+Commands have to be at the start of the line,
+so the idea would be to simply use newlines
+in the GET path, and if that works we could
+inject commands before the host header.
+But when I tried that with a few lines to
+test it, I noticed that no request arrives.
+I don’t have the time to dig into the code
+why, maybe this particular request was already
+protected against this.
+Damn…
+But I had another idea.
+The supported protocols are http, https and
+git…
+I actually have never looked into how the
+git protocol looks like and what is sent when
+you try to git clone this repository, so I
+simply used netcat again, and performed a
+git clone with a git url to localhost and
+that port and this is what we get.
+Netcat receives some weird data, git-upload-pack
+and that url path ere. test/protocol.git.
+So we can control this part and maybe newline
+injection works there.
+Let’s try it!
+I go to burp again, change the protocol from
+http to git and check if netcat will receive
+it.
+One moment please… there we go.
+We receive it and the newlines are there.
+Awesome.
+Now we just have to figure out what we can
+send to redis to get code execution.
+Luckily, like I said, gitlab had this issue
+multiple times before so we can find an awesome
+writeup by jobert where he shared this technique
+of using the gitlab queue for system hooks
+and registers a gitlab shell worker which
+eventually will execute this command here.
+In this case whoami and sends it via netcat
+away.
+Cool.
+So first I quickly check if we can reach my
+outside laptop from within docker and so I
+lookup my IP and setup a netcat listener,
+and then from inside the docker container
+I try to connect to there, and yes that works.
+So now we just have to copy those redis commands,
+I noticed that each command has to have some
+spaces infront, because for whatever reason
+they get swallowed by something, and I also
+added a few execs, because otherwise the last
+command would be invalid just because of how
+the ssrf sends this.
+And of course very important, we replace the
+payload with cat /flag and send the output
+away to my laptop with netcat.
+Now we just have to execute it, wait a moment
+and BOOM!
+The flag arrives.
+Darn this was soo simple.
+After having heard from the guys at RPISEC
+that 11.4.7 was not the latest version and
+there were security issues reported by chaitin
+about ssrf, it was just a matter of maybe
+2 or 3 hours.
+I had to fight with some setup issues and
+stuff never goes smooth.
+But it was all straight forward regardless.
+If we had just looked at this during the CTF.
+gnaahh Why did you write 0day, when in fact
+it was a 1 day.
+We were so scared because of that reasn.
+Grrrr It makes me so mad.
+Dangit.
+Anyway…
+Glad I solved it after all.

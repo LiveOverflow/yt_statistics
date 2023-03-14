@@ -1,0 +1,225 @@
+In the last video we looked at what html,
+css and javascript is and how the browser
+uses that to render and display a webpage.
+In this video we will now talk about how the
+html code gets to your browser in the first
+place.
+So we will learn about the URLs and the HTTP
+protocol.
+Let’s start by running a simple webserver
+on our local machine.
+Depending on what kind of language you want
+to use for development, there are different
+options for running a production or development
+server.
+For example if you want to write php code
+there are projects like XAMPP that set up
+an apache with mysql database and php enabled
+for development purposes.
+Or if you want to write a python web app in
+flask, it will come with it’s built in debug
+webserver.
+But let’s start simple.
+Last video we wrote a very simple .html page
+and opened it in the browser from the local
+file system.
+Now let’s try to serve this html page via
+http from a webserver instead.
+Recent versions of php as well as python have
+cool features to run a simple http server.
+So… a server is just a program that gives
+you files if you ask for them.
+Let’s start a simple server with php.
+If you don’t have php installed yet, install
+it with apt-get install php5-cli on ubuntu
+or whatever matches your operating system.
+Then write php - capital S followed by an
+IP address and a port where to listen from.
+In this case we only want to listen on 127.0.0.1,
+which is a special IP referencing localhost.
+Meaning this IP points at your own computer.
+And then port 8080.
+Port 80 is the default port for websites,
+because people on the internet agreed on that.
+But generally you can run a server on any
+port you like.
+A port is just a number inside of a tcp packet.
+So when the network card and your operating
+system receives a tcp packet, meaning just
+a bunch of bytes, it will look at the port
+number inside that packet of bytes.
+And then it will check in a table if a program
+is listening, meaning it’s waiting for packets
+on that particular port.
+Then the operating system will give the content
+of the packet to that program.
+And we registered php to listen on port 8080.
+So now let’s open this in the browser.
+We want to load a site via http://, whatever
+that means, then the IP address, which is
+localhost and pointing to this local machine
+and the port 8080.
+Go.
+Mhmhm…
+Not Found.
+The requested resource slash is not found.
+Let’s look at the terminal.
+We can see here that on that date this IP
+address tried to access slash, but there is
+no such file.
+When we started this server it displayed to
+us that the document root is here.
+And we know we have the test.html file in
+here.
+So let’s try to access test.html
+Cool, that worked.
+And in the terminal we can see that this IP
+performed another request, this time to test.html.
+We can also see that we apparently tried to
+access favicon.ico.
+We didn’t type that into the browser?
+Well see those tiny icons for websites you
+visits?
+Well those are favicons, and people on the
+internet agreed that that file is supposed
+to be called favicon.ico by default.
+So the browser is checking if you have such
+a file, so that it can display a neat icon
+for you.
+Now let’s open the browser developer tools
+again and go to the network tab.
+Then we reload this page.
+Here you can see now all the requests the
+browser is doing to display this page.
+In this case it’s just two simple request
+to test.html and the image.
+But if you do the same for example on reddit,
+this is going nuts.
+It’s loading sooo many resources.
+So let’s look at that test.html request.
+So first of all it accessed the file with
+the name test.html.
+The HTTP method was GET.
+You will see in a minute what that means.
+The Status return code was 200.
+This means everything went fine.
+For example earlier we saw the error status
+code 404, which stands for not found.
+There is a huge list on what certain status
+code numbers mean.
+Next up is the domain, in this case it’s
+not a domain like youtube.com, but an IP address.
+The other stuff is not that important for
+us.
+Now let’s click on it.
+Let’s first check the Response tab.
+This is what the server returned to us, after
+we asked if we can get the file test.html.
+That’s just the content of the file we requested.
+But how did we actually ask the server to
+give us test.html?
+Let’s do an HTTP request by hand.
+We use a simple tool called netcat for that.
+Netcat is a simple unix utility which reads
+and writes data across network connections,
+using TCP or UDP.
+But why would that help us with the HTTP protocol?
+Well HTTP is built on top of TCP.
+The TCP layer is responsible for the ports.
+And TCP sits on top of the IP layer which
+handles the IP addresses.
+IP addresses identify the receiving computer
+in a network.
+And the ports are used by the operating system
+to decide to which application it should forward
+the content of the tcp packet.
+So the webserver will handle the content of
+that packet.
+And that content will follow a special format
+- which is HTTP.
+So that means we can use netcat to send TCP
+packets to the webserver with any payload
+we want.
+And we can decidet that we want to talk HTTP.
+Now let’s request the test.html page.
+First we open a connection to the IP and port.
+And when we type something, that text will
+be sent as a TCP payload to the webserver.
+To request test.html we have to do the following.
+We start with the http method GET.
+so we tell the server that we want to GET
+a resource.
+Followed by a space and then the resource
+path.
+In this case slash test.html.
+Now some webservers want you to follow the
+http protocol more strictly, but in this case
+this is already enough..
+To finish up this request we have to indicate
+that with an empty line.
+Aaand we get immediatly a response back from
+the server.
+So it responded to us with, code 200, everything
+is OK.
+And there are some key value pairs called
+HTTP headers, for example informing us that
+the requested resource has the content-type
+text html.and how long the content will be.
+Followed by an empty line and the content
+of the resource.
+Now if we were a browser we would read that
+content type, we would know we have html.
+And then take the file content and render
+that in a window.
+So HTTP is literally just human readable plaintext
+that is sent between your browser and the
+webserver.
+Now let’s go back to the developer console
+and check the first tab of the request - the
+headers.
+Here you can see the response headers from
+the server again.
+Those key value pairs before the content of
+the file.
+But you can also see request headers.
+So the browser also added some key value pairs
+to the http request, and did not only send
+this one line.
+We can also see that if we quit our webserver
+and us netcat instead to LISTEN on that port,
+so we can see the content of the tcp packet.
+And now, when we refresh the page, the browser
+will send the HTTP request again to this IP
+and port, but this time netcat will display
+us what was received.
+Netcat will not respond to this http request
+properly, and thus violating the http protocol,
+but doesn’t matter.
+We just want to see a full proper http request
+from the browser.
+And now you can see it sent a User-Agent,
+with Chrome, so the webserver knows that a
+web browser chrome is requesting the file
+and can act accordingly.
+For example if the user-agent were a phone
+it might want to sent a special mobile version
+of the file instead.
+It also sent an accept header, telling the
+webserver what kind of content types it can
+work with.
+Or what language the user prefers.
+So HTTP is super easy right?
+A browser simply creates a connection to a
+server, which is another program that has
+the purpose of providing files when requested.
+The browser can ask for files or resources
+by using this plaintext human readbale http
+format, and the server will respond with the
+content of the requested file.
+In the next video we will write a little bit
+of shitty php code, which can be used to dynamically
+create files, that are returned by the webserver
+instead, of only serving static files from
+the filesystem.
+And after we got that knowledge we can then
+soon head slowly into security related topics.

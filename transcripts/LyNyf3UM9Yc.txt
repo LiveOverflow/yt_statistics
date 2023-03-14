@@ -1,0 +1,495 @@
+so let's talk about modifying or
+patching binaries it's generally useful
+for cracking something but it has users
+beyond that sometimes you just want to
+change the behavior of a program a
+little bit and for example sometimes in
+CTF challenges you want to bypass some
+checks just to make the exploit
+development easier and then later you
+can go back and edit the check back in a
+very long time ago at the beginning of
+my channel I created this episode called
+reversing and cracking first simple
+program it's in the binary exploitation
+playlist and it's the episode hex 5 it's
+a very simple program that we are
+looking at we are basically just having
+a very very simple password check and
+back when I made this I decided to just
+dynamically show you that you can change
+the execution flow of a program so back
+then I just used gdb and then changed
+what happens at the if comparison and I
+didn't patch the binary because I
+thought that would add a bit too much
+complexity to that video I just wanted
+to show you that you can change and
+debug these things and I always thought
+eventually I will make a video about
+binary patching almost four years later
+I still haven't done it so I guess now
+it's the time where I just show you the
+basics of patching a binary
+[Music]
+so here's the code again of the license
+key check it was checks that you have
+supplied an argument if you didn't it
+will tell you how to use it so you have
+to pass in a key if you pass in a key it
+will print that it's checking this
+license then it performs a simple string
+compare to this hard-coded password and
+then it prints access granted or wrong
+so here's it compiled and when we enter
+a wrong license it's checking the ast
+license and it says wrong obviously it's
+easy to find the license key simply
+enter strings on this binary and you'll
+find the hard-coded key but let's patch
+this binary so let's open this in gdb
+and look at the disassembly so here's
+the string compare and after that we
+have a test
+exe ax the return value from string
+compare is an integer in this case we
+are checking if it's zero or not and so
+it uses this test instruction on EAX
+basically this will decide if it's was
+zero or not and this is then followed by
+a jump not equal so it will either jump
+to 7 3 a down here and execute this puts
+call or will execute this code here so
+this jump not equals obviously
+determining if we are jumping to the
+wrong case or the access granted case so
+if you would invert that jump not equal
+and make it a jump equal then in the
+cases where we supply a wrong license
+key it should jump to the access granted
+so if we look at the addresses here we
+see that the jump not equal instruction
+starts at 7 to 8 and then at 7 to see is
+the next instruction so this instruction
+is 2 bytes long it's 7 to a and 7 to B
+this is the jump not equal instruction
+and then at 7 to see we have this load
+immediate address ok so let's look at
+the bite value of this examine two bytes
+at this address
+ok bytes wasn't really useful it shows
+that an integer here with X in hex
+format you can see the raw hex values so
+he can also learn about a small detail
+of how the jump not equal extraction
+works so you see that the jump
+destination address here is 2 bytes but
+the whole instruction is only 2 bytes
+large and actually if you think about it
+this is position independent code so it
+could be placed anywhere in memory so
+hard coding addresses inside of this
+jump instruction wouldn't make sense at
+all that's why this is a relative jump
+you can calculate the jump destination
+yourself and the way it works is you
+take the address of the next instruction
+and then you add the offset that is
+specified in this jump not equal
+instruction so seven - c + e is 7 3 a
+and the jump not equal is 2 7 3 a so if
+you want to control where it would jump
+to you have to control this byte so here
+I have the Intel Architecture manual so
+in here we can look up the jump not
+equal instruction so you can see here
+it's hex 7 5 and then jump destination
+the byte after it and and this matches
+our jump not equal to 7 5 so let's look
+for a jump equal here's the jump equal
+and it's 7 4 okay so we only need to
+change despite from a 7 5 to 7 4 and it
+should work so how do we do this let's
+go a little bit of the hardcore way
+first like the old school kind of way
+okay so our instruction is at 7 to 8 and
+because we have here a position
+independent executable this is actually
+also the offset inside of the actual
+like binary file so it will be easy to
+find but if you're debugging this
+program and this program somewhere else
+loaded in memory and the address is much
+larger you always need to figure out
+what is the base address where is this
+binary loaded into memory and then you
+need to subtract that base address
+because you are only interested in the
+offset inside of the file the second
+method that you can do is pattern
+matching so let's actually print a
+couple of more instructions so 7 5 0 4 8
+80 and so forth and let's just keep that
+in our mind so I created a new tab so we
+can have the list here easily accessible
+I told you we do this like old-school
+dirty so let's go into vim ok obviously
+this looks crazy because it's a binary
+file so you can find in here a few
+printable characters with slash you can
+also search for stuff it's jump to the
+usage all right and I press I to insert
+mode and then I change here something
+but notice when i delete a character
+everything shifts to read a character
+everything shifts if you do this you
+need to always make sure to add the
+exact number of characters again you
+must not move
+the binary around you can't just like
+remove characters this will shift
+everything around and and everything
+breaks what you can do is only modify
+binaries in place and change into
+something so P had three letters so we
+can replace all three keys so let's save
+that file and now that's executed and
+now the usage says a a instead of key
+but we want to change the jump that
+equals so we can use here a little bit
+of vim magic we can basically run this
+whole file through x60 which gives us
+hex dump so now we have here the hex
+dump output generated by X 60 and so now
+we want to basically find our bite
+pattern here so 7 5 0 e 4 8 so let's
+search for the 7 5 by pressing escape
+slash 75 so here's a 75 but after
+there's a 2 F so not ours next one is
+here F 0 not ours
+7 5 5 9 not our bites so here is a 7 5 0
+E and we have a 4 8 8 d 4 8 ad so this
+looks like the correct location okay
+maybe I should have mentioned this on
+the left you can find the addresses the
+offset inside of the file in the middle
+you can find the raw bytes of the file
+and to the right you can see the ascii
+interpretation of these bytes so let's
+change the bytes we know 7-5 is the jump
+not equal so let's turn this into a 7 4
+again you are only allowed to change in
+place things so no moving around so we
+have 7 4 and now we reverse it so we
+basically do the same command again xxd
+but with minus r because now we take the
+hex dump type it back through X 60 and
+we get the binary output again let's
+save that file let's execute license and
+now let's enter a wrong key access
+granted
+also a SD works now which earlier didn't
+work so this was a little bit the hard
+call method obviously there are nowadays
+a few more tools that are a bit nicer
+so let's recompile the code to recover
+the original one probably the best tool
+for binary patching is
+binary ninja and they make it really
+comfortable binary ninja is more than
+just patching it's full disassembly and
+so forth I've used it a lot in the pony
+adventure series so check that one out
+but for patching here I downloaded now
+the demo version so let's start it and
+we open the license file so we are here
+at start here it finds main so here's
+the main function so you can see the
+checking license and then the printf
+here's the string compare and you see
+before it the loading of the one string
+constant with the real key and then you
+can see here the wrong branch and the X
+is granted branch and here you can see
+the jump not equal the binary ninja also
+has a very comfortable hex editor so
+here in the bottom right you can change
+the graph view to the hex editor and so
+it's basically you know just a regular
+hex editor and so we can go to the 7 - a
+and you can also see here our 75048 but
+let's go back to the disassembly graph
+okay so let's check this out
+so when you hover over it you can see
+the opcode seven five zero e but let's
+patch it you can do a right click and
+then patch and because it's aware that's
+a jump not equal it will offer you a
+couple of options you can say always let
+it branch to the target address you can
+invert the branch or never branch so we
+could for example just invert the branch
+and now you see that it's jump equal and
+if we go into the hex editor we see that
+was changed to a seven four zero Ian now
+you can save this file license to crack
+make it executable and let's check it
+out
+it works access granted you can also use
+ctrl Z to undo let's check out the
+linear disassembly so here's our jump
+not equal and you can see that right
+after our jump not equal you get the
+access granted
+this means only when this check
+basically fails it will jump to the
+wrong case so another thing you could do
+is you could just replace this jump not
+equal with a knob so you can say here
+never branch which basically turns the
+two bytes into knots instead and now it
+will always run into access granted
+and obviously here inside we have
+theoretically the other code but it's
+never reached you can also just
+assemble any assembly code you want so
+we can click here on assemble so we
+could restore this jump here so let's
+jump not equal sin 3a and now it and now
+I did something bad so this is where you
+need to be careful so you see here this
+code suddenly makes no sense somehow our
+access granted is gone and the reason
+for that is here the green value is the
+address and faint gray value here those
+are the actual opcode bytes and suddenly
+it's not 2 bytes anymore it's not the
+small relative jump that was before now
+it takes 1 2 3 4 5 6 bytes for this
+whole instruction and but there was only
+space for knobs and so it has
+overwritten other instructions after it
+and that's corrupted here completely the
+code after it so this is something you
+need to be careful with you always need
+to think about how many bytes does an
+instruction take does it fit in there
+and never move bytes around you must
+always only in place replace them so you
+always have to think about how many
+bytes does an instruction take and then
+you must never remove them or add them
+always only replace them always replace
+the bytes if you need to get rid of an
+instruction don't just delete the
+opcodes but replace them with knob 9
+zero and if you need additional code
+somewhere then it gets a bit tricky and
+you can't insert here a lot of code so
+especially if you need more complex code
+what typically people are doing is
+called they are looking for code caves
+they look for executable space inside of
+this binary that is not used and then
+use that to write something so I'm not
+sure if we can find a lot in this small
+binary here but for example like this
+code is unused right now so you could
+write here a very small relative jump
+that jumps back here and then you can
+have a couple of bytes where you can
+write your own code and then you can
+jump back that that might be an idea
+things like this could work you know you
+need to be just just have some
+creativity and then you can figure this
+out just make sure you don't overwrite
+stuff you need and you don't move the
+bytes around don't shift them don't
+delete stuff
+and stuff always only replace let's try
+patching with Deidre okay let's go to
+main so here we also obviously have the
+nice D compilation of that so you would
+see here also the string compare the
+cool thing about Deidre is also you can
+now click in the D compilation here at
+this F and then we'll take you to where
+this F here is evaluated now kitra
+disassembles this as a j and said jump
+not zero while gdb and binary ninja
+we're disassembling it as jump not equal
+they have to say meaning it doesn't
+really matter okay
+like mnemonics the way the text
+representation is just something for
+humans to understand important is only
+you know the raw bytes 75 that's
+actually what the CPU is interpreting
+anyway I'm not sure if I ever pitch
+something with ki dhaara but let's just
+go with the flow I would just assume a
+right-click fetch instruction this
+processor received a rating of gold
+during testing you should really encode
+an arrow but please let us know if you
+do okay okay this is fancy it gives you
+here like two text boxes so I guess jump
+0 ah
+cool it has Auto completion so let's
+make a jump here Oh out of this oh it
+also tells you how it will change it
+seven-four-zero ii i guess okay let's
+press enter
+okay this worked that was a pretty good
+experience let's turn it into an op
+enter so now i don't want to have an up
+with this as a parameter can I just like
+remove that yeah oh oh it shows me
+different variations that I can do so I
+could do like a two button up or I could
+just do a plain 90s knob so let's do
+that and then obviously we have the
+second instruction here that we know and
+also need to change fetch instruction
+and so let's make that I wonder can it
+type now okay so let's make this also
+just a regular knob there we go and now
+you can see also the d compilation
+update now it's just access granted
+cool so let's see if we can also save
+this
+okay so it's license key drop in its
+recognized as an executable segmentation
+segmentation fault okay okay so I don't
+think this worked
+gdb says it's not an executable format I
+guess let's Google okay so this person
+is also using the binary export I mean
+it does say it creates like an
+executable l/o it says missing section
+headers it's also like interpreter lip
+64 l it just stops yeah so this is how
+the normal license file looks like they
+also have a different size I don't know
+so something is broken with key drum if
+you figure it out please write it in
+their comments and I will pin it and
+then maybe other people can find the
+solution what's wrong here but you know
+know how to do like hardcore patching
+with vim so you can still use key draw
+and perform the change you want and then
+you can observe here the changes and
+then together with the memory map you
+will find the base address which is 1 0
+0 0 so you subtract from this address
+here the base address and then you have
+the remaining 7 2 a so now you know the
+offset inside of the file 7 2 a and then
+you can open a hex editor and then you
+can do the change to the 74 so you know
+you can't do it directly the
+modification with Deidre you can still
+use it to figure out what the byte
+values are and then go into the hex
+editor and change it I guess I owe it to
+her there to also show you quickly how
+you can patch with right there or adhara
+always always always install Rodari from
+github and never use the packet manager
+and i guess you can also always use
+master if something breaks in master you
+can always let go back to some other tag
+well this is compiling I can also show
+you the red air to book if you want to
+get started with right there I can
+really recommend this radio book here
+and I also can't remember anything about
+right there every time I use it I need
+to look up write-ups and tutorials and
+blog posts and stuff
+so I guess I want to know how to write
+data right there can manipulate a loaded
+binary file in many ways and there are a
+lot of options okay it's in the W ok I
+should be able to figure this out so
+let's install over there okay so now
+let's open this license one file and
+we're very brief right there
+introduction at the left you can see an
+address that's basically offset inside
+of the file and we can also analyze it
+but it's not like super important for us
+right now seek you have also heard in
+the context of any kind of file
+manipulation secrets just like moving
+the cursor around we're inside of the
+file you are you are seeking somewhere
+so we'll seek and an address you can
+seek there and seek entry 0 we'll go to
+the defined binary entry point but was
+there already by default I guess so it
+sent a visual mode oh we press space so
+here's the entry function we know here
+slip see start main and here's main so
+we can we can seek no this didn't work
+so it knows off the symbol main so we
+want to go there
+help no question mark okay so with colon
+we can just type in right there c'mon so
+you we can do seek to some main all
+right so now we are in main so here we
+can see the check if it shows the usage
+or checks the license key check and then
+here we have to jump not equal so there
+was some word somehow a way okay
+I love for a direct but I don't know how
+to use it okay so here's oh okay so I
+press just be because I don't know why I
+pressed it but then you get this view of
+functions isn't it cool you can just
+quickly go through the functions so this
+is also how we could have gotten to Main
+all right I want to see address
+P okay P okay so now so now we also get
+the output we have here the address the
+opcode seven five zero E and D and we
+see the disassembly so basically we want
+to seek to this address here :
+seek seven to a and I guess we want to
+leave visual you know okay C 0 X 7 to a
+and then I guess we want to quickly just
+to verify read something so I guess
+that's the wrong command oh we want to
+print stuff right it's called print so P
+we want to print assembly so pa pa
+question mark
+okay PA and no up PD for print
+disassembly and we want a PD okay now I
+prints a lot more so we want P
+disassemble PD length of one cool okay
+so here we have to jump not equal now we
+want to write something so right
+question mark right opcode opcode right
+assembly write an opcode jump equal and
+then the address fail to write okay
+modify opcode oh and let's turn this
+into a jump equal oh okay it doesn't
+know je so maybe JIT jz did we do
+anything oh I'm an idiot my bad I had to
+make sure that the file is in writable
+mode that's why the writes failed
+earlier and now it works but you know
+small pet peeve I try to assemble je but
+there was not a lot jay-z was a lot but
+the disassembly then chose je again
+right there never change never change
+place okay so let's check did we already
+like write to the file I assume so lot
+so let's just exit and execute the
+license file so we patch it with fried
+air to that joke was good
+[Music]
+you
+[Music]

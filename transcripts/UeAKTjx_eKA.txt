@@ -1,0 +1,475 @@
+This post caught my attention.
+A reddit user posted pictures of a mysterious
+raspberry pi zero.
+He wrote that his roommate found a bunch of
+these hidden behind desks, vending machines
+and trashcans in the college library.
+Some people were speculating: a wifi dongle
+attached and used to intercept internet traffic...
+Looks like a pi he was using it as a rogue
+access point to do a man-in-the-middle attack.
+YEP.
+definitely
+So I reached out to them and offered my help
+to figure out what it does.
+And to my surprise, they were interested and
+we hopped onto a Skype call.
+So in this video I want to tell you the process
+of us analysing this raspberry pi zero and
+how we figured out what it does.
+Before I joined this fun, they already took
+the SD card out of the raspberry pi and plugged
+it into a PC.
+This caused an F: drive to show up.
+It’s called boot and contains some weird
+files that can be really confusing.
+they first thought it’s encrypted stuff,
+But they quickly realized that maybe windows
+is not the best operating system to look at
+this.
+Actually when you open the Windows Disk management
+utility, you can see that the F drive is only
+one partition on this whole removable disk.
+And there are 3.6GB in another partition.
+But Windows didn’t mount this.
+Windows only automatically mounted, and made
+the filesystem accessible for the first partition
+called boot.
+That filesystem was FAT32.
+The File Allocation Table (FAT) is a computer
+file system.
+The FAT file system is a [...] , legacy file
+system and proves to be simple and robust.
+If you're a windows user you definitely have
+seen FAT before.
+It’s very simple and very old, so a lot
+of systems support that.
+And so it’s used for the boot partition
+of the raspberry pi.
+Also google is your best friend, if you are
+confused by those files here, you can simply
+pick one and google it.
+You will immediately find this repository
+with that file, and it looks exactly like
+that partition.
+And as you can see this is part of the official
+raspberrypi firmware repository.
+This repository contains pre-compiled binaries
+of the current Raspberry Pi kernel and modules,
+userspace libraries, and bootloader/GPU firmware.
+Because we are looking here for whatever this
+raspberry pi does, these files are mostly
+uninteresting.
+They are just part of the raspberry pi system
+and we can ignore them.
+However when you are very careful you might
+notice that there is one weird file.
+Waitz.txt.
+And it contains the wifi and bluetooth mac
+address.
+We didn’t know what to make from it, just
+keep that name in the back of your mind, it
+will come up again.
+So our goal was it to look at the second partition.
+And the issue why Windows can’t mount it
+is, because it’s very likely a typical linux
+filesystem like ext4.
+The ext4 or fourth extended filesystem is
+a journaling file system for Linux, developed
+as the successor to ext3.
+And Windows just doesn’t have filesystem
+drivers to understand that filesystem.
+Those bits and bytes on there just don’t
+make sense for Windows.
+Because I was in a skype call with this guy,
+we first tried to make this work on his windows
+machine.
+And we found and downloaded a program called
+ext2fsd, hoping it would allow windows to
+mount it, but it later said that it can’t
+process ext4.
+So that didn’t work.
+Of course we were also thinking about different
+options.
+Either we try to create an image of the sd
+card, and upload it so I can have a look at
+it on a linux machine, or he could install
+a linux virtual machine.
+Before we install a full VM, we tried the
+windows linux subsystem, where you get kinda
+like a ubunut VM inside of windows and I thought
+that could then just mount it.
+Then we thought about using dd in linux to
+create an image.
+But nope.
+The drives are not exposed and accessible
+from in there…
+This was all so frustrating…
+okay… so I guess we have to download a tool
+for windows to create an image of the sd card.
+I did a quick google search for windows dd
+alternatives and I found this image burner
+tool.
+Hoping it could just create a damn image from
+the card.
+And now something very embarrassing happened.
+So… when downloading that tool we made sure
+to use the site’s own mirror, so we don’t
+get malware bundled software from these shady
+mirrors, and when he installs it, this happened…
+next next next.
+Installed.
+Then we execute it…
+Search Manager added…
+uhmmmm……
+ooooops... this doesn’t look good….
+Virus threat protection.
+Doing a quick scan… and… 1 Threats found.
+Cleaning that up… hopefully…
+We are so dumb…
+I’m such an idiot… later during editing
+I actually noticed that we just cliked next
+next next when the installer asked if we want
+to install that crapware.
+I feel so embarrassed.
+I’m supposed to be a security professional
+here, and I just made some computer science
+student install some malware…
+And even I fall for these shitty tools once
+in a while out of frustration…
+I’m so sorry that I did that to your laptop…
+And it turns out this tool is crap and can’t
+create an image from the disk… goddamit…
+Then I had some other idea… maybe the git
+bash comes with dd???
+I remember that git for windows comes with
+a nice bash terminal where you get a lot of
+linux tools…
+so I made him install that and to my surprise,
+it does list the drives in /dev as sda, sdb
+and so forth…
+And it also has dd… awesome!!
+dd is a command-line utility for Unix and
+Unix-like operating systems whose primary
+purpose is to convert and copy files.
+But here comes the cool things.
+On Unix, device drivers for hardware (such
+as hard disk drives) [...] appear in the file
+system just like normal files; thus dd can
+also read and/or write from/to these files.
+As a result, dd can be used for tasks such
+as backing up the boot sector of a hard drive.
+I link an older video from me where I talk
+a bit more about linux files as well.
+But what this means is we can now use dd,
+and then specify the correct device drive,
+in our case sdc as in file… so sdc is the
+whole drive, and sdc1 and sdc2 are the two
+single partitions.
+But let’s take an image of the whole card.
+the input file, IF, is the sdc drive.
+And as out file, OF, we can write a sd.img
+file somewhere.
+And then he uplaoded it for me and then I
+downlaoded it.
+All of that took a while because it’s a
+full like 7GB image of the whole disk.
+Anyway… so here I have it now on my linux.
+The first thing I did was using fdisk.
+For computer file systems, fdisk is a command-line
+utility that provides disk partitioning functions.
+As we know the SD card contains two partitions,
+so fdisk can help us understand the raw bits
+and bytes of that sd.image file to understand
+the partitions.
+And it finds two.
+It also specifies at what exact sectors inside
+of the sd.img this particular partition starts
+and ends… a sector is simply a unit of 512
+bytes. and now you can also understand why
+you can’t easily move or insert partitions
+in front of another, because they are at fixed
+places in there on that disk.
+At exactly this offset.
+So now we are going to mount that second filesystem.
+To do this we have to find the byte offset,
+so we can take the sector offset from fdisk
+times the sector size in bytes and this is
+it.
+Then we use the mount command to create a
+loop device from this particular sd.image’s
+byte offset…
+A loop device is like a virtual or pseudo
+device that doesn’t physically exist.
+We could also write that partition onto a
+real disk, like a usb stick and then plug
+it in and mount it, or we use that loop feature.
+And we tell the mount command to mount it
+into the folder partition2.
+So now it will take the sd.img file and understands
+it as if it was a disk that was just plugged
+in.
+And ubuntu automatically noticed that a new
+file system got mounted and opens the file
+explorer of that device… see here, the device
+now shows up as rootfs… the name of that
+partition was root filesystem.
+When we look at these folder, we can already
+tell that this is a typical linux filesystem.
+Here are well known folders like bin, dev,
+etc, home, lib, media, mnt, opt and so forth…
+We also can immediately see a tshark.txt file…
+TShark is a network protocol analyzer like
+wireshark, just as commandline tool… sooo…
+were the people right?
+Does this try to sniff and man-in-the-middle
+WIFI connections?
+Is this a malicious device?
+So now we need to find out how it works.
+This is actually just a bit of boring detective
+work.
+We have here a linux system and we have to
+look for programs that could run here…
+But like with the boot partition, here experience
+really helps.
+If you know how a typical linux filesystem
+looks like, you can just ignore that stuff
+and directly look for non-typical files.
+And looking at locations where a developer
+might have placed the programs that are executed
+on here.
+You could also directly look for scripts and
+config files that determine what will be automatically
+executed on start.
+All this is just experience you acquire over
+time if you work on linux.
+So I start with the home folder.
+When you login as a user, this is your default
+folder, so maybe important or interesting
+files are located there.
+And we can then immediatly find a clean.sh
+script.
+That is definetly not a standard linux file.
+And here we can see a systemctl call to stop
+the waitz service.
+You remember that name, right?
+So there is a systemd service called waitz
+running.
+There are also other intersting paths here
+which are definetly worth investigating too.
+But before we moved on, we thought that waitz
+is maybe the person’s nickname.
+So we did a quick google search for things
+like a potential github profile, but no luck.
+Now that we know there is a service called
+waitz, and waitz appears to be an important
+string, we can search for files and folders
+with that name…
+And this reveals that there is a folder in
+home/pi/hubCode/bin/com/waitz… and there
+are java classes in here… so com.waitz.hub.scanning
+blah are typical java paths.
+This is a java program.
+And look at those class names…
+CommandListener, NetworkThread, Channel Hopper,
+WifiData, WifiPacket, BluetoothPacket, BluetoothReader,
+SHELL COMMAND THREAD?
+Whow… okay…
+At this point I was wondering if hubCode is
+maybe a known tool that people use.
+So we can google for names and snippets like
+that, and search on github directly, but nothing
+shows up.
+So then the detective work continues.
+Let’s look at some of these files here…
+the state.txt turned out to be itnersting.
+There is a wifiCmd specified with a tcpdump,
+so a packet reading dump of the wlan1 interface…
+there is also a flood 1 config and maybe some
+bt, bluetooth settings…
+mhmhhm… really suspicious.
+here we also found the systemd waitz service
+configuration file.
+systemd will use this config file to automatically
+start the service described in here… the
+name is Waitz MQTT Service…
+huh??
+I know MQTT, it’s a machine-to-machine connectivity
+protocol.
+It was designed as an extremely lightweight
+publish/subscribe messaging transport.
+It is useful for connections with remote locations.
+For example, it has been used in sensors communicating
+[...] and in a range of home automation and
+small device scenarios..
+It kinda would make sense because the person
+said that there were multiple raspberry pies
+scattered around the library, hidden in various
+places.
+And so maybe MQTT is used to create a distributed
+network of wifi and bluetooth things… for
+whatever purpose?!
+Well..
+We can also learn from the systemd service
+config here, that the following script is
+executed on start.
+Service.sh…
+And in there are a few interesting comments…
+get device information, download bundle.
+Unzipping bundle… blah… looks like an
+update mechanism…
+And then when that is done it will call the
+hubCode scripts, start.sh.
+And look at that one… this prints “starting
+waitz service script”.
+It will make sure the system has tshark installed.
+Then it will call tshark on the wlan1 interface.
+And it also seems to get some broker credentials…
+broker is a term from MQTT, so this again
+reinforces that MQTT is infact used here.
+And then later the java application is executed…
+the waitz.hub.production program and it even
+sets include path for a mqtt library…
+so yep okay, there is some mqtt communication
+going on.
+We can also have a look at the getcreds python
+script, because credentials are always cool.
+And it will use this amazon API to get them.
+But to do so you need to know those parameters
+sent along that request.
+And in the gen_token module we should be able
+to find those parameters.
+And that module will actually execute a shell
+script called fingerprint.sh and take the
+output as a secret, and then calculate like
+a secret token… crc32 of the secret + the
+current time…
+Okay…
+my code audit inner-self is screaming loud
+right now.
+Because I see what they try to do here.
+But they use crc32 with a secret concatenated
+to the time t.
+My chest hurts…
+They actually want to use HMAC instead…
+but in the end it doesn’t matter too much,
+because while the fingerprint is like a unique
+hardware ID based on the bluetooth mac, the
+wifi mac and the pi serial number, this is
+not perfect.
+Anybody with access to such a raspberry pi
+can easily extract or possibly even guess
+those values, because none of these are really
+random.
+So becasue anybody with physical access can
+always extract those tokens, I suggest to
+just use preshared secret unique to each device,
+like an API token.
+It can be compromised but you can then also
+revoke access for that particular api token.
+This little bit of obfuscation here is useless
+for anybody who actually wants to do harm
+and figure out the secret…
+it just takes like 1minute longer to get it,
+but adds unecessary development complexity…
+You actually can’t do this better with a
+raspberry pi.
+It’s not a secure hardware device.
+Anyway… we were going basically slowly through
+all scripts and codes…
+at some point even used JD-gui to look at
+the java classes to understand what they are
+doing.
+I mean at this point it’s just like reading
+code of any programming project.
+It’s just like a code audit or getting familiar
+with a new project.
+You just have to know how to read code and
+how software projects might be structured
+and deployed.
+Our main goal was to determine if this is
+a malicious actor who wanted to attack or
+sniff wifi of students in the library, or
+if this is a harmless school project…
+So we spent maybe 1 or 2 hours on looking
+around, reading those files and slowly assemble
+the mysterious puzzles of “what this is”.
+So fast forward a bit.
+We slowly realized that it doesn’t do much.
+It does not collect any packet data or trying
+to sniff passwords or whatever.
+Actually it just logs MAC addresses that it
+finds from bluetooth and wifi devices in the
+area…
+This is to 99% just to track people…
+This is a very typical application.
+Probably every public place you go has stuff
+like that.
+Probably most shopping malls or airports do
+that…
+it helps to autoamtically record how busy
+areas are and how people are moving through
+a building.
+This is very valuable data for businesses…
+they don’t care about the individual person,
+it’s just to understand the flow of people.
+So this is probably doing a similar thing...
+One other thing we did was, We knew the raspberry
+pi zero has bluetooth and the wifi dongle
+is actually dual band and offers two wifi
+interfaces.
+So if it is monitoring bluetooth and wifi
+in the area, it probably would use the second
+wifi to connect to the school’s wifi to
+use MQTT and send away the data.
+So we thought it would be interesting to find
+the username and password they are using to
+connect to the wifi.
+So I can easily search for that in files on
+the raspberry pi. he told me the name of the
+school and the name of the school’s wifi.
+He is from UCSD… and like I often do, I
+google stuff… and for whatever reason I
+decided to google “waitz ucsd”,l to see
+if there is any connection… and this reddit
+thread pops up…
+UCSD - the name of the school - Waitz.
+Did they stop supporting the app?
+Now listen to this beautiful reaction.
+Oh wowowowo…
+what?!
+And we find this website…
+Is this it?!
+What does Waitz do??
+Waitz reports the real-time "busyness" for
+locations around campus.
+How does waitz work?
+Waitz gathers our data through small hardware
+devices.
+These devices pick up smartphone signals in
+the area around them.
+We then normalize these signals to reach a
+"busyness" measurement.
+Don't waste time
+Know before you go
+So this was just part of a network to give
+students indication how busy certain areas
+at the school are… actually that’s a really
+cool and useful project… but Oh man…
+Oh my god!
+Hahahahah… you found it…
+I guess I contact them and and say I found
+one of their cthings…
+And you know what makes the whole story even
+more beautiful?
+There was actually a comment 9h before we
+figured it out, on the original thread on
+reddit.
+Please return this to the Library, this is
+the property of Waitz, it isn’t nefarious,
+it is extremely basic and giving you an idea
+of how many people are in the library.
+Waitz was started by a recent graduate who
+did this as a project while enrolled at the
+university.
+This was so much fun...

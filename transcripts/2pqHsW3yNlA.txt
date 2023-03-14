@@ -1,0 +1,109 @@
+Over the course of 4 videos we have reverse
+engineered the key verification algorithm
+implemented in Pwn Adventure 3.
+Now we know all steps involved to verify it,
+and we simply have to implement it in reverse
+order.
+There are two major algorithms that we have
+to reverse.
+One is the custom base32 decoding, but that
+should be fairly simple, it’s just encoding.
+And the other one is an RSA decryption.
+And reversing RSA, or getting the private
+key is usually not possible, but in this case
+a very small key size is used for RSA, so
+we are able to get the prime factors of the
+modulus easily.
+Which means we get p and q and then are able
+to recover the private key.
+We have done this in the hardware video so
+check that one out for more details.
+So in the final loop we compare the rsa decrypted
+result with the buffer combined out of the
+string PWNADV3 and 4 bytes.
+Those 4 bytes were from our user input.
+So basically the first 12 bytes of our input
+are being decrypted, and they have to decrypt
+to PWNADV3 + the 4 remaining bytes.
+This means we start by choosing 4 bytes, combine
+it with the PWNADV3 string and encrypt that.
+The RSA encryption result will be the 12 first
+bytes of our input, and the last 4 bytes are
+the 4 bytes that we chose.
+And then that buffer is base32 encoded with
+our custom base32 encoding and alphabet and
+that is our key.
+Pretty simple basics, right?
+But there are a few details we still have
+to figure out.
+For example one byte of the 4 bytes taken
+from our input, is actually and 0x3, and also
+the 4 bytes are then being shifted to the
+right and then xored with 0x2badc0de.
+Also the 4 bytes and the 12 bytes are obviously
+overlapping by one but yeah.
+So here I wrote the keygen in JavaScript.
+I reimplemented the whole RSA encryption,
+or to be more specific, I reimplemented the
+modulus exponentiation with the same algorithm
+the assembler code in last episode used.
+Including the add and subtract and so forth.
+So if you had trouble to understand those
+algorithms last time, you can use my javascript
+implementation and add debug outputs and play
+around with it.
+Anyway.
+So here we generate the 4 random bytes.
+This buffer is the “PWNADV3” string and
+we combine those two.
+Then we have to apply the xor and the shift
+and pass that to the RSA encryption.
+Afterwards we have to combine the result with
+the 4bytes from the beginning and we are almost
+done.
+To repeat myself for the tenths time or so,
+this is the buffer that will be split up,
+the first 12 bytes are being decrypted with
+RSA, and the last 4 bytes will be combined
+with PWNADV3 and compared to the decrypted
+result.
+So, here we have the output, which we now
+just have to base32 encode, with the custom
+encode function and then also calculate the
+checksum.
+Here you can see the base32 encode and decode
+function.
+And you can also see the divide by 8, modulo
+8 and bit shifting that was implemented in
+assembler.
+So maybe you can understand it better seeing
+this in code.
+After all that we just have to print it.
+That’s it.
+So like I said, I have implemented this in
+JavaScript, so you can find the website here
+to generate keys!
+Let’s get a key and submit it.
+We copy it.
+Enter your unlock code below and BOOM.
+Acquired Flag of the Pirate!
+We also got a ROP Chain Gun.
+1337 Machine Gun.
+The Ridiculously Overpowered Chain Gun is
+especially effective against stacks of enemies.
+Smash ‘em and stack ‘em
+And here is the Flag of the last real challenge.
+Flag of the Pirate.
+The key is “Avast!
+Ya got my arr es eh.
+Awesome.
+We have now completed almost all challenges.
+Only one left.
+“Overachiever”.
+One last tip.
+You can also look at the javaascirpt source
+code and play around with it.
+Maybe compare it to the equivalent assembler
+code to study how this stuff is implemented
+in assembler.
+See you soon to the finale.

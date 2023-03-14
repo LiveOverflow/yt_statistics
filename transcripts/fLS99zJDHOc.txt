@@ -1,0 +1,337 @@
+In the first episode I made, I said that we
+will use Linux, because it allows us to have
+a look at the Linux Kernel source code.
+In this video we will learn what syscalls
+are.
+And we will try to understand what user-mode
+and kernel-mode means, by having a look at
+a specific kernel function copy_from_user.
+If you have ever wondered what it means to
+have an operating system in a more technical
+way, I hope I can show you some very interesting
+stuff.
+You may have seen pictures where it says user-mode
+and kernel-mode.
+Or those circles with ring-0, ring-1 and so
+forth.
+They introduce this stuff in school and even
+as a kid who knew how to program, I had noooo
+imagination of what that actually means.
+You may even have heard that syscalls are
+an interface between those two worlds...
+So let’s start by looking at what kind of
+syscalls exist.
+And again, you can read about syscalls in
+the linux manual.
+So ‘man syscalls’.
+It says here, that “system call is the fundamental
+interface between an application and the Linux
+kernel.”
+and “System calls are generally not invoked
+directly, but rather via wrapper functions
+in glibc”.
+“Often the glibc wrapper function is quite
+thin, doing little work other than copying
+arguments to the right registers before invoking
+the system call”.
+Invoking the system call.
+Mhhh...
+We will find out what that means soon.
+Further down we find a huge list of available
+system calls.
+I mentioned in earlier videos that the libc
+function printf, is just a fancy wrapper around
+the syscall write.
+And you can see that, when we use the program
+strace to trace all system calls.
+Instead of showing printf, it shows us write.
+The manpage of write says it takes 3 parameters.
+First the file descriptor, then an address
+to a buffer and a count.
+So let’s create a simple C program that
+calls this function.
+The first parameter is a file descriptor.
+We will talk about that value in another video,
+but we want it to be 1.
+Which is the file descriptor for the standard
+output.
+For the second parameter we want an address
+in memory that points to a string.
+We can simply write our string here, the compiler
+will find a place in memory for it and place
+the address of it here.
+And the last parameter will be the length.
+So in our case 5.
+Now open it in radare with -d to debug it.
+Analyse all and seek to the main function.
+Then print the function and place a breakpoint
+at the write with db.
+Then dc to start the program and switch to
+a visual view with V!.
+With s you can now follow this write function.
+We follow some weird stuff.
+This is the Procedure Linkage Table.
+The plt section.
+It’s also sometimes called function trampoline.
+Again.
+A topic for another video.
+Now at some point we reach some more code.
+This is now the actual code from the libc
+library.
+Now press s to step through this huge amount
+of code.
+I fast forward and cut a bit.
+There is sooo much stuff in this libc wrapper.
+But at some point in the end it reaches the
+interesting part.
+Here it is.
+It moves 1 into the eax register and then
+comes the syscall instruction.
+A peak into the intel assembler reference
+tells us, that this is “a Fast call to privilege
+level 0 system procedures.”
+and has the opcode 0f 05.
+It also says “It does so by loading RIP
+from the IA32_LSTAR MSR”.
+MSR stands for model specific register.
+So like a jump that set’s RIP to another
+value to continue execution somewhere else,
+it loads RIP from a model specific register
+(MSR).
+This address was configured in this special
+register at some point during booting of the
+system through the WRMSR instruction.
+But to use this instruction you have to be
+in privilege level 0.
+So you cannot set this from a simple C program,
+because there you are in user mode, which
+is privilege level 3.
+And if you wonder now how you could get into
+level 0 from being level 3, then the answer
+is, through instructions like syscall.
+But then you cannot control what will be executed
+when you switch to level 0.
+Because it will jump to a predefined address.
+So do you get now what it means to have different
+privilege modes, levels or rings?
+When you turn on your computer the CPU starts
+in level 0.
+The kernel then can configure stuff like the
+IA32_LSTAR MSR register with an address through
+the WRMSR instruction.
+Then later drops privilege of the CPU to level
+3.
+Now the hardware is kinda locked down.
+We cannot reconfigure this register.
+We cannot reconfigure the hardware.
+We only can enter level 0 again, through a
+syscall, but we cannot control what will be
+executed, because that address is fixed.
+Does it make sense?
+So aaaanyway...
+Let’s come back to the syscall invocation.
+What we do is, we load a number in a register,
+in our case it was 1, and then we syscall
+to enter privilege level 0 by jumping to a
+fixed address in the kernel.
+And the kernel takes the number from the register.
+And it knows which syscall that is.
+So this nice table here shows us that the
+write syscall has the number 1.
+So the kernel knows from a table like this,
+what it has to execute.
+And it’s implemented in the source-code-file
+read_write.c
+And here it is.
+So that is what will be executed in the kernel
+when you invoke the write syscall.
+There is an awesome free book called Linux
+Device Drivers, which goes into great details
+how the Kernel works.
+Especially how to write a device driver and
+kernel modules.
+And in chapter 3 section 7 it reads:
+“The code for read and write in scull needs
+to copy a whole segment of data to or from
+the user address space.
+This capability is offered by the following
+kernel functions, which copy an arbitrary
+array of bytes and sit at the heart of most
+read and write implementations”
+So first, what does user address space mean.
+Maybe when you debugged some programs with
+gdb, you wondered how it can be, that every
+program seems to use the same addresses.
+Code is always at the same addresses.
+Stack is always at the same addresses.
+That doesn’t make sense.
+How can all programs use use the same addresses
+in memory?
+Wouldn’t they overwrite each other?
+This is why we have a MMU.
+A Memory Management Unit.
+The kernel sets up the MMU with special CPU
+instructions and configuration registers and
+so forth.
+And this tells the MMU how to translate between
+virtual and physical addresses.
+So when you use the instruction mov eax, [0x08004200]
+in your C program, the MMU will know how to
+translate this address for a given process
+to an actual physical address in your RAM.
+So it might request address 0x7f527320.
+But you don’t have to care about that.
+The magic happens deep inside the hardware.
+This allows us to write programs without having
+to think about which addresses are still free.
+So when you are in the kernel, after you have
+entered it with a syscall, you might want
+to copy some data from user address space,
+for example to write it somewhere else.
+To do this you can use the copy_from_user
+function.
+And I thought it might be an interesting function
+to trace through the kernel source code to
+get a feeling how the code of an operating
+system looks like.
+So let’s use the Linux Cross Reference,
+because it allows us to easily search for
+labels.
+So let’s start by looking for the function
+copy_from_user.
+And we get a list with multiple places this
+function is defined.
+That is so weird.
+Why are there multiple places for that?
+Well if you look closely at the file path,
+you will notice that each different CPU architecture
+has it’s own folder.
+So you can see here
+ARM, for processors that you can find in your
+smartphone
+or POWERPC which is used by the Playstation
+3 or the Nintendo Wii and also x86, which
+is probably the architecture of your computer
+right now.
+So the code get’s pretty crazy.
+And I don’t know a lot about it.
+But let’s just follow the main functions
+here and ignore the checks and stuff around
+it.
+So copy_from_user calls an underscore copy_from_user.
+That function calls access_ok on the from
+parameter, which is an address the user specified,
+in our case the address of the string we wanted
+to write.
+And this checks if this particular process
+is allowed to read from the address.
+Imagine if the process tries to read some
+secrets from another process.
+And if everything is fine it calls underscore
+underscore copy_from_user.
+Uhh… now it seems to split up in either
+32bit or 64bit.
+And because we have a 64bit ubuntu linux,
+let’s follow that path.
+This looks like just a wrapper around copy_from_user_nocheck.
+Indicating that the following functions won’t
+check the access rights again.
+But luckily the kernel already did that.
+Ok we follow that and we arrive at a pretty
+big function.
+So here is a big switch-case statements which
+seems to check the size we want to read from
+the user space.
+So let’s say we just wanted to read 1 byte
+from userspace.
+We would be in this case 1: here.
+So get_user_asm is a preprocessor macro.
+This get’s into how a C file is compiled
+in stages.
+But it’s actually very simple.
+This statement is just a simple copy and replace.
+So it means that this code that is defined
+here, is just simply copied at the location
+it was used earlier, before the compiler starts
+to compile it to machine code.
+So you can basically just read it like a standard
+C function.
+And get_user_asm defines some actual CPU instructions.
+And this move here is the instruction that
+moves data from the user space into a variable
+here.
+So itype and rtype are from the parameters
+up here.
+And they were set to “b” for a single
+byte.
+And in the way how those preprocessor statements
+work, you just replace this text with b.
+So the actual instruction would look like
+‘movb %2,%b1’.
+Eh so this is at&t assembler syntax so it
+means it moves whatever %2 is into %b1.
+Now this is C inline assembler syntax and
+it refers to the variables that are defined
+down here.
+So percentage 2 refers to the third parameter.
+0, 1, 2.
+Which is the address we want to move data
+from.
+And we want to move it into %1, which is x.
+And that is the location we want to move it
+to.
+The move is wrapped with STAC and CLAC, which
+stands for set and clear ac register.
+And it has to do with SMAP, an anti exploitation
+feature.
+And there are the raw opcodes from that instruction.
+And below the move we see something with section
+fixup and assembler exception table.
+That goes into how the kernel handles hardware
+exception.
+But there is a great documentation I found
+and you can read what it does there exactly:
+Anyhow.
+As you can see, there was no code that would
+somehow translate the user supplied virtual
+address to a real physical address.
+It just executes a mov.
+That is because the magic happens somewhere
+else.
+When the kernel executes this instruction,
+it will cause a page fault, because it tries
+to access a virtual address.
+And that is an interrupt, which means the
+CPU will jump to another predefined code location
+in the kernel where this exception will be
+handled.
+Pretty similar how the syscall instruction
+made us jump to a predefined address.
+And in that page fault handler in the kernel,
+all the address magic with the MMU will happen.
+I will not go into that, because it’s already
+enough information for now.
+But I hope this random dive into the kernel
+code was interesting and maybe even eye opening.
+So many smart people worked together on creating
+such a complex and amazing platform.
+Almost makes me emotional thinking about how
+the media celebrates new iPhone apps, while
+the real magic happens down here.
+Don’t worry if you didn’t understand everything.
+Hell, I even didn’t understand a lot of
+it.
+But it’s important to just dive into some
+unknown stuff once in a while and get a first
+glimpse of what is there.
+And I am sure that at least subconsciously
+you now have a feeling for what it means to
+have a Kernel.
+I start to worry a bit that I may forget to
+explain certain things that seem clear to
+me and that you guys get lost.
+So please give me feedback on how the first
+couple of videos of the series were for you.
+And what is still unclear.
+So I can improve and make content that helps
+as many people as possible.

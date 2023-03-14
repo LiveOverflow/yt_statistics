@@ -1,0 +1,80 @@
+do you know how a buffer overflow really
+works have you ever wondered what goes
+into these amazing memory corruption
+exploits have you ever really try to
+understand modern XSS attacks that abuse
+JavaScript sandboxes the world of
+security vulnerabilities is amazing
+behind each exploit is a story of
+creativity and incredible knowledge and
+I want to help others appreciate this
+form of art
+[Music]
+welcome to life overflow this is a
+channel where we don't just use exploits
+because it makes us look cool
+transfer to tourism but we actually want
+to understand how they work I want to
+explain underlying concepts and ideas
+about insecurity and not just show how
+to use a tool this means I will
+demonstrate technical stuff from
+low-level hardware to high-level web
+apps as well as talking about abstract
+ideas such as weird machines and
+language security I know how boring
+introduction tutorials can be so I try
+to do it differently the videos are
+highly condensed and cover way more than
+just the obvious on this channel you can
+find a binary exploitation course that
+introduces buffer overflows formats
+during exploits heap corruptions
+networking and much more there's also a
+web security course and I also cover
+real-life exploits where we actually dig
+deep to understand how they work
+no [ __ ] upper management summary I
+also love to play security capture the
+flag competitions where you have to
+exploit challenges and collect Flags I
+got hooked on security after
+participating in a CTF organized by
+stripe in 2012 so you will find several
+video walkthroughs of challenges
+covering many different kinds of topics
+including pawning reverse engineering
+crypto web and more I also like to play
+around with some hardware though I still
+have to learn more about that but why
+don't you come with me on this journey
+if you like what you see please
+subscribe on YouTube to always get
+notified of new videos if you want to
+get started from the beginning check out
+the playlists I've created for the
+different series or you can use the
+website life overflow comm to browse the
+video courses in case the playlists are
+a hassle I know my English is not
+perfect so almost all of my videos have
+subtitles available which should make it
+easier to follow when I mumble thanks
+for watching my introduction video I
+hope I was able to convince you to give
+it a try if you have feedback for me let
+me know about it I always love to hear
+from people watching my stuff there's a
+subreddit where you can engage with
+others from the community feel free to
+post and discuss anything remotely
+related just keep DPS and snake-oil
+stuff out you can also follow me on
+Twitter where I post new videos and
+occasionally retweet cool stuff I hope
+to see you as a subscriber
+and heck the planet
+hyped up again
+[Music]
+you
+[Music]

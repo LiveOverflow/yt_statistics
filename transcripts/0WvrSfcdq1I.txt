@@ -1,0 +1,256 @@
+In this episode we will have a look at format
+level 1 from exploit-exercises protostar.
+This class of vulnerability is weird, but
+was mind blowing to me, when I first saw it.
+So first of all...
+What are format strings?
+Probably the most known function in C is printf.
+Printf prints formatted data to stdout.
+In my “programming in C” video I have
+used printf to print a name that a user can
+supply.
+The parameters for printf() are the following.
+The first parameter is the so called “format
+string”.
+In that early video that was “Knock, knock.”
+percentage ‘S’.
+And as a second parameter we used argv[1].
+Which contains a string.
+So printf read the format string and found
+the percentage ‘S’ which means, that at
+this position belongs a string.
+So it takes the first supplied variable, in
+this case argv[1] and places the string there.
+Format strings support a lot of different
+types of variables, for example %d, which
+is a signed decimal integer.
+Or %x, to display a number in hex.
+And you can do even more than that.
+For example if you specify a number between
+the percentage and the specifier you can tell
+to what size it should be padded.
+And you can for example prepend a 0 to that
+number, to pad the result with zeroes.
+Format string functions like that exist also
+in other languages.
+For example you can use pretty much the same
+features in python.
+Print.
+A format string, with percentage and then
+the variables afterwards with another percentage
+sign.
+Or better use the format function which has
+a slightly different syntax.
+But in the end it’s all the same.
+And now you wonder.
+How the hell can something, that just prints
+text, be exploited?
+So let’s have a look at the source code
+of format level 1.
+Main calls the function vuln with the string
+from argv[1].
+And that string is placed in printf.
+And then we have a global variable target,
+which is checked if it got modified.
+So pretty similar to the early stack buffer
+overflow challenges.
+We need to manipulate this value.
+But how can we manipulate a variable in memory
+with printf?
+Well.
+Let’s do this step by step.
+Let’s first execute the program.
+As you can see, it will simply print whatever
+we supply in argv[1].
+That looks simple.
+But there is one small thing you should notice.
+Which parameter of the printf() does the attacker
+control?...
+It’s not the second parameter like in the
+programming in C video.
+It’s the first parameter.
+The format string.
+Soooo…
+Can we just use some percentage syntax?
+Let’s try.
+Let’s enter a format string.
+Test ‘%d’.
+Oh damn.
+it printed a number.
+Weird.
+Let’s add some more!
+Woha.
+more numbers.
+Let’s print them as hex instead of signed
+decimal numbers.
+That looks more familiar.
+Remember the videos where we were looking
+at the stack?
+Do those values starting with bffff remind
+you of something?
+Those were stack addresses.
+So what are we printing here?
+If you have watched the previous episode about
+reversing C, you know how functions are being
+called.
+Especially in 32bit.
+The parameters are simply placed on to the
+stack, and then the function is called.
+So if you would use printf normally, your
+variables that you want to print would be
+placed on the stack.
+Well now there are no variables being placed
+on the stack, so what values are you reading?
+Obviously you are reading whatever printf
+can find on the stack.
+So any value on the stack.
+So what can you do with that?
+First of all, it is a memory leak vulnerability.
+You can leak all kinds of stuff from the stack.
+Imagine you had a program with ASLR, meaning
+that the location of the stack in memory is
+random.
+And you don’t know where it is, but you
+need the address for a buffer overflow to
+jump to shellcode.
+With this here, you can leak values from the
+process memory, more specifically from the
+stack, and thus possibly leaking stack addresses.
+Which can then be used in a second step for
+a buffer overflow.
+In a recent CTF which I played there was an
+exploitable challenge where I used a format
+string vulnerability to leak the stack canary.
+I will do a video about exploit mitigations
+at another point, but the stack canary is
+a random value which protects from buffer
+overflows.
+If I can get this number, I can defeat this
+protection.
+Which I did.
+So at first leaking som weird values from
+a process memory doesn’t sound like much,
+but there are many examples you could come
+up with, where disclosing some memory could
+help exploiting a target.
+After all, bugs like heartbleed were “just”
+leaking some memory and it was awful.
+Ok but in our particular case.
+How can we use that to modify a value.
+At the moment it only looks like we can leak
+values from the stack.
+Let’s have a look at the printf manpage.
+man 3 printf.
+And let’s scroll to the well known BUGS
+section.
+It says here,
+“if something comes from untrusted user
+input, it may contain %n, causing the printf()
+call to write to memory and creating a security
+hole“
+And a little bit further up the specifier
+‘n’ is explained as:
+n The number of characters written so far
+is stored into the integer indicated by the
+int * (or variant) pointer argument.
+So percentage ‘n’ writes the amount of
+characters that were already printed, into
+a variable.
+And a variable is just some area in memory.
+And we know that to specify where that area
+is, we need use a pointer.
+Or if we just look at the assembler code,
+a pointer is simply an address, so that printf
+knows where to write the result.
+So if you were to write a legit C program
+with %n, you would place a pointer to an integer
+variable as a parameter to printf, or in assembler
+this would simply be putting the address of
+the variable onto the stack.
+This means, that whatever value is on the
+stack, is used as a location where printf
+will write to.
+Now you can basically solve this challenge
+alone.
+We need to write a value in target.
+So let’s use objdump -t to find all symbols
+from this binary.
+And here is the address of the target variable.
+Now, when we want printf to write something
+at this location, we have to find this address
+on the stack.
+Let’s start investigating.
+I will use python and a one line script directly
+from the commandline via -c to help me with
+printing a test string.
+For example 10 hex numbers.
+Mh.
+Maybe I want to seperate them.
+Doesn’t look like the address is here.
+Maybe if we print more values from the stack.
+Nope.
+Not here.
+Maybe more?
+Wait a minute.
+What is that weird pattern.
+From the values of those hex values it could
+be ascii.
+hex 20 is a space afterall.
+With python we can quickly convert those hex
+values to a ascii characters.
+And wooohh.. %x?
+That loooks like our string that we have supplied.
+Let’s test that.
+Let’s add some capital As, because we can
+recognize those ascii values easily.
+Now we just have to look for 4141414141.
+And indeed.
+there are our As.
+And that makes sense.
+Because the program arguments are simply stored
+on the stack, like the environment variables
+and other stuff.
+Cool.
+This means we can simply place the address
+from the target on the stack ourselves, by
+adding it to our string.
+So get the address again for target, and then
+we can add the address in our string.
+Maybe wrap it in some As and Bs, so we can
+find it in the output easily.
+Uhhh.
+yes.
+There it is.
+cool!
+So in theory, we just have to replace the
+%x that was printing this address with %n
+to instead write to this
+address location.
+You could do it more intelligently, but I
+will just figure it out with trial and error.
+You have to be careful, because remember from
+our previous videos where the stack was shifting
+around because of stuff like environment variables?
+The different length program argument that
+we supply, moves around the stack as well.
+So you might have to fiddle around quite a
+bit until you just get it right.
+Ok that took a bit, but looks cool.
+The last %x seems to reference our address
+now.
+And when we replace the x with the n, to write
+to that address we modified the target.
+And you can imagine, that if we can write
+anywhere in memory, we could overwrite things
+to redirect code execution as well.
+So that will be the case in later levels.
+Just a small tip for when you work on format
+string exploits.
+It makes sense to keep your attack string
+always the same length.
+Then you don’t have to fiddle around much.
+Just use a python script that always extends
+or cuts the string at like 500 characters
+or something.
+And then you have enough space to play around
+and the stack doesn’t move around.

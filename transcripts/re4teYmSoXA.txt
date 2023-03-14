@@ -1,0 +1,240 @@
+so when you get started with binary
+exploitation and you have done your
+first buffer overflow with shellcode you
+will run eventually into some issues
+because I get often questions where
+people run into these kind of issues I
+thought I quickly make a video and show
+you a couple of things so here you can
+see just a simple test program it's a
+typical shellcode tester it's really
+just to basically simulate binary buffer
+or flow exploitation challenge
+so this compiled in a way that I can
+pass in shellcode via the argument and
+then the shellcode should be executed so
+I went to shell storm and I looked for a
+64-bit shellcode and just randomly here
+I selected this one this should execute
+finis age so obviously now I'm copying
+the raw bytes to my exploit so on first
+side looks pretty okay I'm executing
+test and then we have the first argument
+so inside this argument we have an
+expression that will be evaluated in
+this case we are using echo because we
+have these escaped raw bytes and we
+basically want to get the raw bytes out
+so let's try this illegal instruction
+okay so what went wrong how can we debug
+this now so we don't really know yet
+what's wrong here but there's a quick
+test that you can do so this is
+instruction called n3 which is called
+trap - debugger it's an interrupt three
+and it has the opcode CC so let's
+replace the first byte in our shellcode
+with CC okay it still didn't work we get
+a segmentation fault and this is not
+what we would expect if we would see the
+CC being executed then we would get a
+trap we would see a different output so
+this means the CC is not being executed
+as we want to so let's use gdb to look
+deeper into what's happening okay so we
+get the segmentation fault at this
+address here so let's try to figure out
+what might have caused the seg fault
+let's look at until this assembly all
+right so we can see here a very weird
+move it tries to move a value from our
+ax at the offset RDI times two plus 34
+and move that into FX like that's a very
+weird code and all of this looks like
+very weird code this doesn't look like
+normal assembly but when you just got
+started you might not really recognize I
+have the experience to see that this
+just looks wrong but regardless of this
+this instruction caused a segfault which
+means it tried to access some memory
+that is not accessible and so we can try
+to figure out why this happened so this
+instruction tries to move a value at an
+address specified by our ax
+together with our di and we can see that
+our ax is 0 so probably here that that
+is the issue it try to move a value from
+address 0 which just there's nothing
+there now in our setup we do assume that
+we were jumping to our shellcode like we
+understood the vulnerability I mean this
+is just a shellcode test we know it
+would jump to whatever is in the
+arguments we we assumed that this should
+work so for whatever reason it jumped
+into bed code here we must have supplied
+some bad code and clearly this assembler
+code looks kind of wrong so you would
+want to verify that this data you want
+to input is exactly what landed in
+memory so one way to do that is to look
+at the disassembly here with examine
+five instructions at our IP and compare
+that to the intended a shellcode but
+this doesn't match at all this looks
+very different but let's look at the raw
+bytes of this so he I'm examining 10
+bytes from our IP and again here is
+again a little bit experience required
+when I look at these byte values here I
+see these are ASCII values so let's
+actually look at this as a string this
+looks exactly like our input there is
+literally X 4 2 X 5 8 in memory right
+now so this means your input was not
+interpreted as raw bytes it didn't parse
+X 4 2 as literally the byte 4 to it put
+in there X 4 2 you want to input the raw
+bite for two and you would expect the 4
+to to show when you were looking for
+bytes but it's not here but interpreting
+the spite sequence as a string then the
+X for two shows up so X for two are just
+ASCII characters so literally the string
+X 4 - it's not a robot for 2 so we can
+go back out and look at our shellcode
+again let's just check if our expression
+in here is correct
+so let's just echo the string and we
+notice we get the raw bytes out another
+tip here is just to check this briefly
+with hex dump to the left you can see
+the raw bytes and to the right you can
+see what it's interpreted as ASCII
+characters and again this confirms that
+our echo did not actually properly
+encode here raw bytes but place them as
+literally strings and then maybe you
+will realize you forgot the e flag to
+interpret the escape sequences and when
+you do that then suddenly the bytes on
+the left look correct so now we can fix
+our code see now we get the expected
+trace breakpoint this is caused by the
+CC
+let's say you got this far and so you
+will replace this you see again with the
+real bite which was a six a but
+something else in your code in your
+shell code was broken okay so I'm
+corrupting here the shell code now and
+you get again segmentation faults very
+weird so you try this again you places
+you see at the start and you see it
+trace breakpoint this means you
+successfully started to execute your
+shellcode this CC was executed and
+triggered this trace breakpoint TREB
+output but the rest of your shellcode
+seems to be broken because when you
+execute it without the CC you get a
+signal tasteful so again you can now go
+into gdb and we can run it with that and
+notice that with the CC we are
+triggering a breakpoint because this is
+the instruction for breakpoints so gdb
+now stop and then you could even like
+step forward and check what happens and
+now you can actually debug step for step
+your shellcode and see if it works and
+now we run into a sec fault so we know
+something is wrong with our shellcode so
+again let's examine our shellcode and
+let's compare with the real shellcode
+now I know I already kind of made a
+mistake because I replaced the 6/8 with
+CC so this means I corrupted already the
+first instruction here and that's why
+this already looks wrong but it's
+something
+keep in mind and just compare but other
+than that we have the increment a H but
+we are missing these instructions so
+here you can see that just the shellcode
+is not correct and you were able to
+debug it so here you can clearly see
+that your shellcode is incorrect and you
+successfully debug this and now you can
+just make sure to fix that using CC in
+this case can also be useful to find
+exactly where it went to your shellcode
+because now we have here a breakpoint
+and we can look at the back trace so we
+can see here that it's coming from main
+now this depends on if your stick frames
+are still proper when you do buffer
+overflows and you are over writing stuff
+on your stick then this output will be
+wrong but if you look at this before you
+are smashing the stack you can still see
+here where you were coming from and so
+we can see here that we were coming from
+this address in main and you could use
+this to now set a breakpoint there
+so now obviously you could disassemble
+mein because we have symbols and we
+would see here a call and we could we
+would know what this is like the
+vulnerability here this is where we want
+to set a breakpoint to debug things so
+this is another good way to debug your
+shellcode before you would if you know
+where you would enter your shellcode for
+example from a buffer overflow at the
+return so then you set a breakpoint at
+the return if it's no in this case we
+know it's this call here that will jump
+to our shellcode so we will set a
+breakpoint there run our code again and
+now we are still in main and with the
+next single step forward we would enter
+our shellcode this is another way how
+you can debug and see does it jump to
+the correct address does it actually
+execute the shellcode you expected here
+Jemma just examine the memory that you
+think is your input yeah this looks like
+the code we've entered in three is the
+CC so so this worked so I hope this was
+helpful to you maybe I even sent you
+this video because you asked me a
+question about something not working for
+your shellcode or your buffer overflow
+in this case I just want to quickly
+mention at last please make a good test
+case like this here and then copy it
+show me that you set a breakpoint that
+you return and that you step through it
+and that you look at the registers and
+that you look at the instructions and
+show me how you compared your shellcode
+and made sure everything fixes now you
+have the tools to be able to debug this
+yourself and there are many
+complications that you might still run
+into where you maybe need to ask
+somebody but if you show people that you
+have tested this yourself and you can
+just copy and paste this into paste bin
+and share this along your question then
+we can see oh yeah ok look at this
+instruction this looks wrong you
+overlooked this or so we would be able
+to very quickly help you so that's all I
+got for you today
+quick reminder check out my binary
+exploitation playlist and also check out
+the playlists of this short series see
+you tomorrow
+[Music]

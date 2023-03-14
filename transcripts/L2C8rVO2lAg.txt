@@ -1,0 +1,356 @@
+Capture the Flag, hacking competitions, are
+awesome to learn hacking.
+And teach the most valuable skills needed
+for various IT security jobs.
+My introduction to IT security was the strip
+CTF and then wargames such as io smashthestack
+or w3challs.
+They are not the best resource to learn security,
+nowadays I would point at picoCTF and overthewrite,
+but they were fun!
+There is a reason why modern schools move
+away from teacher-centred teaching.
+It seems efficient, but it doesn’t engage
+students.
+To become an expert in IT, you just need to
+accumulate thousands of hours doing IT.
+And the competitive and playful environment
+by CTFs provide the motivation and energy
+to spend countless hours on various technologies.
+And maybe some beginner challenges like a
+buffer overflows from 1995 seem out of date
+and useless, in the process you learn MUCH
+MORE.
+You learn how to use gdb, you understand memory
+and assembly, you start to learn C and system
+programming, you learn about other debugging
+tools such as ltrace and strace, about processes
+and the proc filesystem, and about linux permissions
+like setuid.
+And this is HUGE!
+The amount of knowledge you acquire just along
+the way is crazy.
+It’s the old saying, “The path is more
+important than the goal”.
+The alternative would be, that I have to read
+up on those tools directly, maybe read a book.
+But that is F’n BORING!
+Why not just learn all of this, while playing
+a game?
+So let’s explore why CTFs are awesome!
+Let’s look at a bit more up to date example.
+Checkout for example the challenge uploooadit
+from the DEF CON Qualifiers, it was a web
+challenge that many teams solved.
+Here for example the writeup by BullSoc.
+When you read the source code and poke around
+at the application, you can find out that
+some errors are coming from gunicorn, and
+other errors come from haproxy.
+Which gives you some information about the
+overall system architecture.
+And the challenge turned out to be a HTTP
+request smuggling, or HTTP desync attack - against
+this combination of HaProxy and Gunicorn.
+If you do casual google research you might
+even find a writeup by nathan davison describing
+one technique for haproxy, which you can try
+to apply here.
+But a challenge like this, which forces players
+to do research, might even lead to the discovery
+of unintended solutions, because many players
+do not just read blog posts by other people,
+but dig into the source code of the software
+used, and find new vulnerabilities.
+Ultimately pushing their own knowledge AND
+the field forward.
+It’s worth mentioning that I also tried
+to use the Burp plugin that automatically
+scans for this issue, but it didn’t find
+it.
+At least with default configuration.
+So this challenge is great to learn about
+and execute your own HTTP desync attack.
+And it teaches you to not rely on tools but
+to do it yourself.
+So this was pretty introductory.
+It’s a challenge where as a beginner you
+can learn something new, or where I, somebody
+who works in security, can reflect on myself,
+and ask “would I have found this, if this
+was the setup by a client asking for a pentest”..
+Mmhh?
+Ask yourself.
+Would you be able to find that?
+Next let’s look at something more advanced.
+For example this Magic Tunnel challenge.
+It was a website, a photo album where you
+could enter an image as a URL, and then the
+website would download it and show it to you.
+That’s a very typical web application feature,
+for example on imgur when you want to add
+a new image, you can also enter a URL to download
+it from.
+So let’s checkout Carolinas writeup of this
+challenge.
+First she noted that there is a Local File
+Inclusion vulnerability.
+If instead of providing a URI with http://,
+but you enter a URI that starts with file://
+the web application will read a local file
+to you.
+Like /etc/passwd.
+Cool, this already is a typical web security
+vulnerability worth reporting.
+But the goal for this challenge was to escalate
+further.
+And you could use this vulnerability to examine
+the server.
+So Carolina writes, you could read from /proc/self/cmdline
+to see the commandline of the server process.
+Which turned out to be a uWSGI server.
+And it was listening on local port 8000.
+When you send your HTTP requests to nginx,
+it communicates internally with the webapp
+using uWSGI on port 8000.
+You could also figure out that the web application
+was a django app, the python web framework
+django, which has a typical folder structure
+and thus you can now leak most of the source
+code.
+In there you can also find the reason for
+the local file inclusion, which stems from
+using Pycurl.
+And now the challenge gets actually crazy.
+Nginx talks to uWSGI via a special protocol
+and it supports a few features, such as the
+“loads the specified file as a new dynamic
+app”.
+The attack idea is now to use the request
+sent by Pycurl and target it’s own local
+port 8000, performing a SSRF, Server Side
+Request Forgery, and make uWSGI execute an
+arbitrary script.
+Problem is, that this is a special protocol
+and you can’t easily send those packets.
+But then she abuses a trick, where she used
+the gopher:// protocol to smuggle it in.
+To summarize.
+By making the webapp download this image URL,
+it will use gopher to talk to local port 8000,
+and this portion basically is a smuggled uWSGI
+packet, making uWSGI executing a script like
+/tmp/test.py.
+Because this website downloads images and
+you now know the location of those downloaded
+files, you can place a reverse shell there
+and execute it.
+You get remote code execution and can read
+the flag.
+This exploit is totally realistic.
+Anybody who says it’s not, is stupid.
+It might be rare, sure, but that doesn’t
+matter, IT.
+CAN .HAPPEN.
+And if a client pays you to find shit, they
+expect that you are able to do so.
+And keep in mind, in a real app there is so
+much more functionality, which might make
+it even harder to identify.
+So THIS CHALLENGE is easier than it would
+have been in the real world, which means,
+if you cannot solve this as a CTF challenge,
+you are unfit to do real world work.
+I don’t actually mean that.
+Because people miss stuff all the time.
+Everybody has a different skillset, and everybody
+constantly has to learn.
+But it’s a good mental exercise.
+And CTFs constantly remind me, to not be a
+lazy ass and sit on an OWASP Top 10 checklist.
+always dig deeper.
+I think that is expected of me in my job.
+Let’s have a look at a similar challenge.
+But this time in an actual real application.
+The FlagLab challenge.
+This was just plain GitLab.
+It was a real world application which had
+a similar security issue and I made a whole
+video about that..
+But there you also had a Server Side Request
+Forgery, and to exploit it you had to use
+the git:// protocol to smuggle a REDIS command
+to the redis server.
+Similar to how in Magic Tunnel you used gopher://
+to smuggle uWSGI packets.
+You see, those are the same principles and
+ideas just executed on different technologies.
+I bet that 99% of all web developers who ever
+used nginx with uWSGI, or REDIS, have noooo
+clue what exactly they are using.
+And more importantly, the risks the setup
+has if there is a SSRF.
+There is an argument to be had that they don’t
+have to know this, it’s not their job.
+True?!
+But for myself, I don’t care what the average
+is.
+I want to be better.
+I want to be the web developer who knows this.
+But those two examples should also show you,
+that the goal is not necessarily to know all
+the different things, but to learn about those
+fundamental principles and practice them,
+so that you can identify and execute them
+in the real world on real targets with all
+kinds of technologies.
+When we look into Carolina’s conclusion
+for Magic Tunnel, we learn that she and her
+team didn’t actually solve this challenge,
+but thanks to other writeups she was able
+to work through the solution afterwards, and
+learn a lot about how uWSGI works.
+And this is where we get into the next important
+part of CTFs.
+The writeups.
+The fact that they weren't able to solve it
+during the CTF is irrelevant.
+Playing the CTF is just mostly for fun.
+But having worked through this challenge afterwards,
+Carolina now knows a bit more, and is now
+a bit more skilled than other people.
+I say this all the time, it’s normal not
+to solve challenges.
+It doesn’t matter.
+Reading writeups and working through solutions
+is as much part of CTF as playing the challenges
+themselves.
+I would even argue that reading the writeups
+is MORE important for learning, than playing
+the CTF itself.
+Solving a challenge often means you already
+had the ability and skills to do it.
+But not solving a challenge, or just BARELY
+solving it after 12h of work, THEN you learn
+something new.
+If you find yourself solving a challenge every
+hour, you do it wrong.
+You are just getting dopamine kicks, which
+is fun too, of course, I do the same, but
+you are not learning anything.
+Good CTF challenges teach you about issues
+and techniques that are usable when doing
+real world work.
+They teach you about vulnerability classes
+you should know about, but also teach you
+about various technologies which can be useful
+to find other vulnerabilities in the future.
+Instilling a research mindset into the players.
+Knowledge transfer can happen in very different
+ways.
+In our industry, we see many experts giving
+talks at conferences.
+But I fall asleep at ANY conference talk - no
+matter how interesting the topic.
+I’m not kidding.
+If I fall asleep in your talk or class, it’s
+not your fault.
+I just can’t stay awake.
+So for me that’s not a good medium.
+And like there are good and bad talks, making
+a good CTF challenge is not easy.
+To have great knowledge transfer through a
+challenge, it requires a lot of thought and
+work by the author.
+But if they are done right, for me CTFs are
+the best way to learn something new.
+And when I say CTFs I mean the whole package,
+including, or maybe mostly, CTF writeups.
+Mhmh writeups.
+This also means bug bounty writeups can be
+a great source.
+And in fact, the GitLab challenge I mentioned
+earlier, heavily references a bug bounty writeup.
+BUT!
+Bug bounty writeups are rarely reproducible,
+because the platforms got fixed.
+This GitLab writeup is obviously an exception.
+So not super ideal for learning, and that’s
+where CTFs, where the challenges often get
+released, are so much better.
+Good CTF challenges, like Magic Tunnel, are
+made up, but implement a realistic vulnerability
+to teach you about a specific thing.
+And that’s the point.
+It might be made up, and maybe nobody will
+ever implement it like that in reality.
+And you will never see this in your career
+again.
+But the importance is that THEY COULD exist.
+And me wanting to be a professional, I want
+to be able to find it.
+We all know, finding all vulnerabilities in
+a product is unrealistic, but that doesn’t
+mean you just find the low-hanging fruits
+and call it “job done”.
+NO!
+I want to strive towards 100% and go for the
+bugs that might be a bit obscure, but could
+totally exist.
+WHY THE F’ WOULD ANYBODY hire some shitty
+consultant who admits they only can do OWASP
+Top 10, because that’s 95% of all vulnerabilities.
+That‘s such a bullshit management calculation.
+“95% is close to 100%”.
+Even if you won’t find 100% (and that’s
+reality), wouldn’t you at least want to
+be theoretically have the skill to find them?
+Striving towards that goal?
+We accept that we won’t ever reach it.
+But being deliberately ignorant about this,
+staying still and never wanting to learn more,
+makes me furious.
+And so CTFs help me to always improve.
+Always learn more.
+Always get more experience to find the interesting
+bugs that most people would miss.
+And from my work experience I can tell, I
+found the craziest issues in client’s code
+that really look like a CTF challenge.
+Not often, but that’s not the point.
+When they are there, I want to be able to
+find them.
+I think any professional who says CTFs are
+unrealistic, has never actually reported crazy
+vulnerabilities to their clients, or played
+only shitty CTFs.
+*breath*
+The CTF Guidelines document summarizes CTFs
+as:
+CTF competitions are about creative infosec
+problem solving in a competitive environment.
+Competing in creativity, problem solving skills,
+and speed, in a wide range of areas related
+to security.
+For me speed is not important at all.
+But creativity and problem solving are where
+CTFs excel.
+And I would add to this list, the community
+aspect.
+I started out playing alone, but after a few
+years I found a team.
+And solving challenges together and celebrating
+the CTF afterwards, and explaining solutions
+to eachother, is amazing.
+But beyond your team, something every soloplayer
+can participate in too, is the sharing and
+exchanging of writeups.
+The time in IRC or nowadays Discord after
+the CTF is special.
+It kinda has the oldschool hacking vibes,
+where research was exchanged in zines.
+I hope I was able to convince you why CTFs
+are AWESOME.
+Of course I’m very biased.
+But I tried to look at both sides.
+So checkout the other video “CTFs are TERRIBLE”.

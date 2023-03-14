@@ -1,0 +1,218 @@
+In the last two episodes we had a look at
+static html and how the http protocol is used
+to get files from a webserver.
+In this video we will introduce the programming
+language php, which can be used to create
+dynamic websites.
+At the end of last video I did a google search
+for php tutorials and got very angry. So here
+is why…
+When I start programming and I want to learn
+about php, I start googling. I look for tutorials.
+Like this one. And it looks very trustworthy.
+But this is one, like so many other php tutorials
+are responsible for so many insecure php websites
+and bad php developers. I show you why.
+Let’s take this example code and copy it
+into a new file called “form_get.php”.
+Let’s have a quick look at this file. So
+down here we have some html code that we already
+know. We have a form tag with some input elements.
+Presumably to enter your name and your age.
+The method of this form is GET, we will see
+later what that means. But at the top we have
+this weird opening questionmark php tag. Which
+closes down here with another question mark.
+And inside we have stuff that doesn’t look
+like html.
+Well, this is the php code. So php code can
+be mixed in with html. Let’s see how this
+affects the site loaded from the webserver.
+We use our php simple webserver with php - S
+again and if we now visit this site form_get.php,
+we can see the form with the two input text
+elements.
+Now let’s have a look at the HTML source
+code.. Rightclick - view page source. This
+is the raw html code the browser received
+from the server when it requested this file.
+Huh…
+Ok… there is our html code. But where is
+that php stuff from before our html code?
+Well, when we requested this file, the php
+program read the file and checked for embedded
+php code. And this embedded php code is never
+part of the response, it always gets removed.
+But php code could modify the response - like
+here with echo. But it found this if statement
+and either name or age has to be set, so that
+it can reach those echos. THus doing nothing.
+Now open the developer tools with the network
+tab again and when we enter something in this
+form and press submit, we see the page load
+again.
+If we look at the file name, as well as the
+browser URL bar, we can see that it now appended
+a question mark with some stuff to it.
+This again is part of how URLs are structured.
+After the domain or address we have the path
+to a file. But if we reach a question mark
+at some point, then the file name is complete
+and another part of the URL is starting - the
+so called GET variables. So GET variables
+are always part of the URL. And you can see
+that they are key-value pairs. Name is LiveOverflow,
+and age is 12 - and they are spererated by
+an apersand.
+So even though we are loading the same file,
+form_get.php, the response is completly different,
+no text boxes anymore... Even if we look at
+the source code, there is no html left.
+So in the original php file we can see now,
+that this time the php block is more interesting.
+the first line of code is checking if there
+is a GET variable name or a GET variable age.
+Which is true, we have those now in the URL.
+And if that’s the case then we echo the
+string “welcome” which we append the GET
+variable Name to. In php you concatenate or
+append strings with dots. AFter the name comes
+the br tag, which is a newline in html. The
+next line of echo prints “You are”, followed
+by the GET variable age and appends “years
+old” to that. Which is exactly what we are
+seeing now in the response.
+And the reason why we don’t see the html
+after this php block is, because inside of
+this if is an exit() call, which basically
+means - stop php execution right here. THus
+never reaching the html down here.
+So this php code ran and echoed those variables.
+We often refer to this behaiour as “reflected”.
+Because like a mirror, it will return what
+we threw at it. So in this case we throw LiveOverflow
+and the number 12 at the webserver, and the
+webserver responded with exactly those strings.
+Now why is this code so shitty?
+Well who prevents us from injecting html tags.
+Let’s start slow. Let’s enter a b tag
+which should print some text bold. And when
+we submit the form, it works. Now you could
+argue, there is no harm in printing something
+bold. That’s a nice feature for customization,
+for the users of this website, right?
+Well consider this, you can now inject all
+html you want. Which means I can completly
+fake the content of the site.
+… Oh btw, you can write your strings directly
+into the URL. No need to go through the form
+everytime. That’s just how GET parameters
+work.
+So I can inject a fake News article. And now
+I could take this URL and send it to unaware
+non-technical users. And when they see that
+their trusted website asked them to donate,
+they might do it. It’s not even on a fake
+domain like many phishing mails. It’s on
+the real domain, using this injection to fake
+content. This makes it very trustworthy and
+efficient for phishing attacks.
+Now this is already cool, but could you also
+inject javascript? You know javascript can
+also manipulate the html, but could also do
+much more than that.
+You can easily show what javascript can do
+if you simulate this attack. For example on
+reddit.
+Let’s say you theoretically found a way
+to execute javascript with a special crafted
+URL like on our shitty php example before.
+Just to make it clear, reddit is not vulnerable
+to this - this is just simulating what could
+happen. So open the developer tools and then
+the javascript console. Because here you can
+write javascript as if you were executing
+that javascript on the site. So I could write
+a line of code which upvotes the first story
+on here, by simulating a click on an upvote
+button. And If I check my upvotes I apparently
+upvoted this weird thread here.
+Now imagine I had a URL that could execute
+this line and upvote my post, now I spam a
+lot of users with it, they click on it and
+upvote it without them knowing. And theoretically
+I could also write code that sends now private
+messages to random other users containing
+my evil URL. Thus creating a javascript worm.
+So I hope this makes it clear that javascript
+execution controlled by an attacker is really
+really bad.
+Now the question is, can we inject javascript
+on our example php page?
+Let’s try to inject a script tag that executes
+alert. Because alert would trigegr a popup,
+which would be nic visual proof that we can
+execute javascript. So let’s enter this
+as name and let’s see what happens.
+Mh. No popup. And the console threw an exception.
+The XSS Auditor refused to execute a script
+in…blah blah... it’s sourcecode was found
+within the request.
+This is the Chrome XSS auditor, who tries
+to prevent, so called, cross site scripting,
+short XSS, attacks, which means injecting
+a script into a webpage. So apparently we
+cannot execute javascript because chrome prevents
+it. If you check the source code of the page
+you can also see the violating script part
+highlighted in red. And that’s why chrome
+said it found this javascript sourcecode,
+this alert, in the request. In fact it was
+here in the URL as a GET parameter.
+So damn. Our attack failed. Looks like this
+page is safe afterall. I guess not so shitty
+php?
+Weelll… this is just half of the story.
+in this case it’s actually super easy to
+bypass the XSS auditor to get our javascript
+executed. But you will have to figure it out
+yourself or wait for the next video.
+But before we finish this video, let’s quickly
+talk about how to fix this properly.
+The keyword here is “escaping”. We have
+to escape user supplied input before we echo,
+or reflect it into the page.
+In this case our output from echo would be
+in the context of html. I specifically mention
+this because output could also be placed inside
+of an HTML tag attribute, or inside of a script
+tag. Those are all different contexts that
+come with their own challenges.
+But in this case it’s the most basic example
+- Just echo into the html code.
+So to prevent this we would like to escape,
+special html characters such as the greater
+than sign, so we can’t inject new html tags.
+The php function for that is `htmlspecialchars`.
+If we use that around our _GET variables before
+we echo it, then we can’t inject html, or
+script tags anymore. If you try that with
+the form you will see it will now display
+the greater than sign instead. And the reason
+for that is if we look into the html source
+code, we can see that the greater than sign
+character got replaced with “apercant, gt,
+for greater than and semicolon.” This is
+now a special HTML code, that is obviously
+not a tag anymore and will be rendered as
+a greater than sign when the page is displayed
+to us.
+This is making our output completely safe.
+Or… does it? this is mostly true. And I
+don’t want to make it sounds like this can
+be easilly bypassed, but there are some edge
+cases where this might not be true anymore,
+so keep a look out for a short, slightly more
+advanced series, on angular js sandbox escapes
+that will be released soon in parallel to
+this web series.

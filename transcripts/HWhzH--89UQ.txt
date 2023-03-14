@@ -1,0 +1,280 @@
+Last video we had a look at the dlmalloc implementation
+of free().
+We discovered the unlink() macro that can
+be used to write almost arbitrary data to
+another address.
+We constructed a proof of concept heap with
+gdb and observed a successful write to the
+global offset table.
+But eventually we realized, that our plan
+wouldn’t work, because it contains too many
+null-bytes and we can’t write those with
+strcpy.
+Let’s quickly recap and summarize what we
+know about the heap and the free algorithm
+to refine our exploitation plan.
+The last video was more explorative, taking
+you along how you could discover the exploit
+yourself, but this video will be more of a
+presentation.
+This way we have to different styles of video
+about the same topic, which I hope increases
+the amount of people who understand how it
+works.
+So let’s look again at how a heap chunk
+looks like.
+When you allocate a chunk of a certain size,
+the size of the chunk will be written to the
+2nd word and malloc will return the address
+here.
+This means you have this area for user data.
+The last bits of the chunk size have special
+meaning.
+Most importantly the last bit is the previous
+in use bit.
+So that is information about the chunk BEFORE
+the current chunk.
+So that’s a little bit weird to wrap your
+head around at the beginning.
+This means if this block here is allocated,
+the block after wards would have the last
+bit set.
+Because the chunk in front of it is in use.
+Now a free chunk could contain more information.
+So once we free this chunk, we obviously can
+set the last bit of the chunk afterwards to
+0.
+To indicate that the previous chunk is not
+in use anymore.
+Now imagine there is a third chunk.
+A chunk after the 2nd one, which has it’s
+previous in use bit NOT set.
+This means the 2nd chunk is free.
+Now the algorithm would like to merge, consolidate
+those two blocks.
+This is where the two words after the size
+start being important.
+They are the forward and backward pointer.
+Just as a sidenote, this only applies to chunks
+that are bigger than the fastbin size.
+Because fastbins are very small chunks and
+they don’t use a double linked list.
+So our chunks are bigger.
+Let’s consider this heap setup.
+We have a chunk we want to free, which is
+followed by an already free chunk.
+And that free chunk has two pointers, forward
+and backwards pointing to some other free
+chunks.
+So they are in this double linked list.
+Now what will happen is, the free algorithm
+will merge these two blocks together.
+It will do that by first unlinking the free
+block from the linked list, by using the unlink
+macro.
+And we learned what it does, it takes the
+forward pointing address and writes it at
+the forward pointer of the previous chunk.
+And it will take the backward pointing address
+and write it to the backward pointer of the
+next chunk.
+And when we obviously control the pointers
+of a free chunk that will be unlinked, we
+can point into the global offset table and
+write there the forward address.
+In the last video we stopped here and didn’t
+check out what happens next.
+But let me tell you now.
+So next we will increase the size of the chunk
+we are freeing with the size of the already
+free block.
+And then we will insert this block into the
+double linked list.
+Which means we take one chunk, and look up
+it’s forward chunk.
+And then we update the pointers accordingly
+to now include our chunk.
+This is the whole magic of the heap.
+Now let’s go back to the famous phrack articles
+“Once upon a free” and “vudo malloc
+tricks” to see what they tell us about the
+unlink exploit.
+Both articles contain a cool little trick
+to overcome the limitations of the null-byte.
+So when we want to construct a fake chunk
+that we can unlink, we want to make sure that
+no field has to contain a null-byte.
+This means we have to use very very large
+values for the size.
+But that doesn’t seem useful, because the
+heap is not that big.
+Mh.
+But the clever idea showed in the phrack articles
+make use of how computers handle negative
+values.
+So let’s quickly explore what happens with
+a 32bit integer value, when we add a very
+very large number.
+For example fffffffC.
+That would be over 4 billion.
+Now what happens when you add 0x64, which
+is decimal 100 to that 4 billion?
+That doesn’t fit in 32bit.
+And the carry of the addition will be lost.
+And now you have a very small value again.
+In fact it’s 0x60.
+Which is 4 less than 0x64.
+This means by adding 4 billion, the ffffffc
+to 100, we actually subtracted 4.
+And that’s a really useful behaviour for
+our case.
+Because this value that doesn’t contain
+any null-bytes behaves like a very small subtraction.
+So when we skim over the sourcecode again,
+we can now make a plan.
+First of all we again have to overflow the
+size of our chunk with a bigger value than
+80.
+So let’s do the 100 like last video.
+But then we could also not care about the
+first consolidation attempt of the previous
+block.
+This ways we don’t have to setup another
+fake chunk.
+So we make sure that the last bit of the block
+we are going to free is set to 1.
+So it’s still in use.
+But we could do the consolidate forward part.
+There we take the next chunk and check from
+it’s next chunk the prev in use bit, and
+if that is not set, we attempt to unlink,
+consolidate that block.
+This means we need two fake blocks, one that
+contains the forward and backwards pointer
+we want to use to overwrite the GoT with an
+address from the heap.
+And the second chunk has to have a size with
+the lowest bit set to 0.
+BUT we can’t use small size values.
+But if you look in the code how size is used,
+it’s just used as an offset which is added
+to an address.
+The code doesn’t check that it’s a ridiculous
+huge chunk.
+It just adds that value.
+And here is where the trick comes into play.
+We could use fffffffc as the size of the chunk,
+which results in a -4.
+Now think what will happen.
+It will take the size of that chunk, adds
+it to the current address to find the next
+chunk, which fools free into thinking the
+next chunk is at -4 from here.
+Now it will read the size of that chunk, which
+we could also set to fffffffc, which doesn’t
+have the last bit set and concludes, yep,
+the block before was not in use, let’s unlink
+it.
+And booom!
+It’s very beautiful and clever.
+And doesn’t contain any null bytes.
+So let’s see if we can fill that heap in
+a way that we can do that with strcpys.
+So strcpy stops at a null-byte.
+This means we have to use one of them to overflow
+the size of the chunk we want to free with
+100, 0x64.
+Ehh.. obviously we want to prev in use bit
+set, so we need to overflow it with 0x65.
+This works because we don’t want to write
+more than that, it ends in a null byte and
+keeps the size clean.
+The other strcpy could be used to fill up
+the 100 byte until the weird conjoined fake
+chunks with ffffc, and afterwards the two
+addresses we want to write.
+Now like in the previous video we will set
+the one address to the global offset table,
+so that we overwrite puts, and the other one
+will be pointing into the first heap.
+This means we will redirect code execution
+to this heap address and we can use the first
+strcpy to place some shellcode here.
+Keep in mind that the unlink will also write
+some data from the global offset table to
+this heap area, so we have to either keep
+the shellcode short, or jump over the smashed
+data and continue shellcode afterwards.
+But we just want to call winner.
+So let’s construct the exploit.
+You could do it in one line, but let me break
+it up to makeit easier to follow.
+In each of these windows we will construct
+one parameter, one string for each strcpy.
+So maybe let’s first take care of the strcpy
+of the middle chunk, because that should be
+the one to overwrite the chunk size with 101
+of the 3rd chunk.
+I use echo for that and I counted the amount
+of characters necessary to hit the size of
+the chunk, where we then write 101, 0x65.
+I redirect the output into a file B, and then
+we can use it with backticks and cat as a
+parameter in gdb.
+We can then run it and investigate the heap.
+Looks perfect, the size of the third chunk
+is now 0x65.
+Next let’s take care of the third chunk,
+which is after the overflow, so it’s 100
+byte big.
+So we want to write like 100 characters to
+fill the chunk and then eventually we arrive
+at the next chunk, where we want to write
+the fffffc’s for the trick from earlier,
+followed by the global offset table address
+and the heap address.
+Here I get the table address for puts and
+subtract -12 from it.
+Because the heap address will be written at
++12.
+And then comes the last strcpy, the first
+chunk, where we want to include our shellcode
+to call winner.
+I quickly googled for an online assembler
+to create the shellcode.
+We want to call an absolute address, to do
+this we have to go via a register.
+So we could move the address of winner into
+eax and then call eax.
+We can simply copy the string representation
+of this shellcode and write it into the A
+file.
+Cool.
+Now that we have all thre parameters we can
+rerun the program.
+So Let’s have a look at the heap.
+It looks nice.
+Let’s execute the free and single step into
+the puts call.
+Oh.
+great we follow into the heap, but somehow
+our shellcode is wrong.
+You can see that it’s complete garbage.
+Instead of our shellcode we have some addresses
+here.
+Oouh!
+Of course, we perform multiple frees, not
+just the one.
+So we obviously write metadata over these
+values.
+But we can simply fix that by pointing to
+a different area of the heap.
+How about here at 14.
+Now we change the address and prepend some
+characters to our shellcode. and try it again.
+We run it, single step into puts and arrive
+at winner.
+hehe.
+Let’s try it without GDB!
+It worked.
+Gosh I love this!

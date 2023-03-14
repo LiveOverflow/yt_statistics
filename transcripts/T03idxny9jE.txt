@@ -1,0 +1,305 @@
+In this episode we will have a look at the
+first level of protostar from exploit-exercises.com.
+If you have questions about the setup, you
+can watch the previous video.
+Generally I advise you to stop the video right
+here, and work on it by yourself first.
+Maybe give it a day and see how much you can
+figure out.
+And after that, watch my explanation.
+But if you feel completely lost, then just
+follow me.
+This here should give you enough information
+to solve the next level on your own.
+So let’s first have a look at the challenge
+description.
+This level introduces the concept that memory
+can be accessed outside of its allocated region,
+how the stack variables are laid out, and
+that modifying outside of the allocated memory
+can modify program execution.
+And this level is located at /opt/protostar/bin/stack0
+Ok.
+Next we will have a look at the source code
+which is provided below.
+Let’s start with a first quick overview.
+This is clearly a program written in C. It
+reads some input with gets(), then checks
+the modified variable and prints either a
+success or fail message.
+So obviously the goal of this level is to
+make the program print the success string.
+Note, this level is not about executing arbitrary
+code to gain root privileges.
+First we have to understand a couple of basics.
+A real full root exploit will come in later
+levels.
+So for now, let’s focus on this smaller
+goal.
+We can also execute the stack0 program.
+And we can see that it seems to wait for some
+input, and then prints “Try again?”.
+Ok so let’s have a more detailed look at
+the code.
+There are two local variables.
+An integer number modified, and a char array
+buffer with space for 64 characters.
+An array of chars in C is basically just a
+string.
+Then modified will be set to 0.
+And apparently never changed changed.
+Next is the gets function with our 64 character
+long char buffer.
+Let’s have a look at the gets man page.
+So gets is used to read a string from the
+input.
+When we scroll down we can also find a Bugs
+section, which is telling us, to never use
+gets()!
+This cannot be more clear that this is the
+vulnerability in this program.
+As an explanation it says, that it’s impossible
+to tell how many characters gets will read.
+It has been used to break computer security.
+And after the gets call, modified is compared
+to 0.
+If it is not 0, we have won.
+But how can modified ever become non zero?
+It’s set to 0 and never changed.
+btw.
+the volatile is a way to tell the compiler,
+that it should not optimize the usage of this
+variable.
+Because at first glance it looks like modified
+will always be 0 and thus it might simply
+remove the unnecessary if-case.
+But with volatile we can force the compiler
+to keep it as it is.
+I think we have a good understanding of this
+program now in C. Let’s open it with gdb
+and start debugging.
+First let’s set a breakpoint in main with
+break *main.
+Then type run or short r to start the program
+from the beginning.
+Now it stopped at the start of main.
+With disassemble you can disassemble the current
+function.
+But also set the disassembly-flavor to intel,
+because I like it more.
+Let’s try to understand fully what is happening
+here.
+I ignored those parts in my reverse-engineering
+introduction, but here we need to fully understand
+how the stack works.
+So let’s start with the first instruction
+‘push ebp’.
+A quick flashback to my CPU introduction video.
+I mentioned that the stack is just a memory
+area at the bottom.
+When we look at the mapped memory with ‘info
+proc mappings’, we can see that the stack
+goes from bffeb000 to c0000.
+And because the stack grows from the bottom,
+it starts at the highest address.
+c0000 doesnt belong to it anymore, so basically
+the stack starts at c0000-8.
+which is bfffff8.
+So push EBP.
+EBP is a register which is used as the base
+pointer.
+And it contains an address pointing somwhere
+into the stack.
+esp right now is actually bffff7bc.
+And at that position is this b7something value.
+Ok so whatever the meaning of this address
+is, it seems to be important, because it get’s
+pushed on the stack.
+Which is like saving the value.
+And at the end of the main function you find
+a leave.
+And the intel instruction reference tells
+us that leave is just basically a mov esp,
+ebp and pop ebp.
+As you can see the start and end of a function
+is symmetrical.
+At the start we push ebp and mov esp into
+ebp.
+And when the function is done, we do the reverse.
+Don’t worry, I will illustrate this nicely
+in a moment.
+Just one more little thing.
+After those two instructions we mask esp,
+which basically just sets the last 4 bits
+to 0, to keep it nicely aligned.
+Not that important.
+And then we subtract hex 60 from it.
+So ESP, the stack pointer now points to a
+bit lower address than ebp.
+And the next instruction moves a 0 at the
+memory location at offset hex 5c from the
+stack pointer.
+And that seems to perfectly match our modified
+variable that gets set to 0.
+At first it’s a lot to take in.
+But let’s do it again but this time with
+an animation.
+So here on the left you can see the assembler
+code.
+And on the right I will illustrate the stack.
+with the 3 important registers, the instruction
+pointer EIP, the stack pointer ESP and the
+base pointer EBP.
+So first it starts somewhere else with a ‘call
+main’.
+Call will push the theoretically next instruction
+pointer onto the stack.
+And then jump to our main function.
+As you can see, when the address of the next
+instruction was pushed, the stack pointer
+got incremented and the address placed there.
+So now comes our push EBP.
+I will illustrate with some arrows that this
+value is a stack address, which points to
+another location on the stack.
+Now we overwrite EBP with the value from ESP.
+mov ebp, esp.
+Then we subtract hex 0x60 from esp.
+Look at the stack now.
+This area between esp and ebp is called a
+stack frame.
+This is now a small area of memory, that we
+can use for local variables and calculations
+inside the main function.
+And do you notice where EBP is pointing to?
+It’s pointing to the OLD ebp.
+So this area here is basically the stack frame
+of the previous function, which called main.
+And we know that we move 0 into esp+0x5c.
+Which we think is the modified variable.
+And that’s true.
+The local variables all have their space in
+this stack frame.
+And it’s so big, because it had to make
+space for at least 64 characters and the modified
+integer.
+At the end of this function we will now perform
+a leave.
+Which moves EBP into ESP.
+Effectively destroying the previous stack
+frame.
+Then we pop EBP, which restores the previous
+stack frame.
+Isn’t that amazing?
+But WAIT!
+it gets cooler.
+How do we now know where to return to from
+main?
+Well if you remember, call pushed the address
+of the instruction after the call.
+So the next value on the stack is where we
+want to return to.
+And the ret instruction is basically just
+popping this address into the instruction
+pointer.
+And thus jumping back where we came from.
+Computers.
+ha! aren’t they mindblowing.
+So much smart stuff in there.
+Now let’s continue with the assembler code.
+After a value on the stack got set to 0, we
+prepare the eax register with an address from
+the stack at offset 0x1c.
+LEA (load effective address) is similar to
+a move, but instead of moving the content
+of an register offset into a register, it
+moves the address of an register offset into
+a register.
+And this address then get’s placed at the
+top of the stack.
+This is called calling convention.
+The programs and functions have to agree how
+to pass function parameters in assembler.
+In this case the parameters are placed on
+the stack.
+And the gets function takes one parameter,
+which points to a character buffer.
+and the character buffer is on the stack,
+thus we have to pass it the address where
+the character buffer starts.
+Afterwards we read the value we previously
+set to 0, and with test we can check if it
+is 0 or not.
+And branch off to print one of the messages.
+So let’s remove the breakpoint form main
+with ‘del’ delete and set a breakpoint
+before and after the gets.
+Before we restart, I want to show you a cool
+trick.
+We will define a hook, that will execute some
+gdb commands when we stop at a breakpoint.
+To do this type
+define hook-stop
+then info registers to show the registers
+and x/24wx $esp.
+and x/2i $eip
+and finish with end.
+This will now print the registers, the stack
+and the next two instructions every time when
+we hit a breakpoint.
+Now restart the program.
+Boom.
+first breakpoint.
+Now continue and enter a couple of capital
+A’s.
+Do you see those hex 41s.
+those are all the As you have entered.
+Now let’s see the content of the address
+we check if it’s 0.
+Simply examine $esp + hex 5c.
+Still 0.
+But it shows us where it is located on the
+stack. and when we look at our stack, we see
+that our As are still a little bit too far
+away.
+So let’s count how much we need.
+4 characters here.
+Then 4 times 4 that’s 16 for a row.
+And we have 3 full rows.
+And with the next full row we can apparently
+write into those zeroes.
+So run again.
+Enter that many characters.
+I like to use recognizable patterns.
+So I can clearly see which letter which row
+is.
+looks promising.
+So a single step forward, and it will load
+the modified variable from the stack into
+eax.
+And indeed.
+Those are the characters that we entered.
+Let’s try this without gdb.
+We can use echo and our previous string and
+pipe it into the stack0 program.
+Cool!
+it worked.
+Before we end, let me show you how we can
+make the input a bit more convenient thanks
+to python.
+With python -c we can specify a command that
+should be executed.
+Then we can use print and pythons cool string
+syntax which allows us to repeat this character
+multiple times.
+With this knowledge you should be able to
+solve stack1 and stack2.
+It’s pretty much the same task, just with
+some different ways of input and a different
+vulnerable function.
+But if you invest some time, you can absolutely
+solve it.
+And I will not make a video about those.
+Next video will be about stack3.
+This is when things start to get juicy.
+See you next time!

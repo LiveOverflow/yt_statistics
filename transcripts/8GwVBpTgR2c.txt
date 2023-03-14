@@ -1,0 +1,178 @@
+In the last video we had our first example
+of cross site scripting due to a shitty php
+app. But at the end we fixed our php code,
+by escaping the user supplied string.
+But I got this code from this tutorial website
+- and that one is still vulnerable. So let’s
+play around with that one. The code here is
+loaded in an iframe below. An iframe is like
+another webpage embedded in this main webpage.
+With right click we can investigate this iframe
+and for example display it’s source code.
+Now we also know the direct URL to this example.
+So last time we tried to put a script tag
+with alert into the name field. But when we
+do that there will be no alert popup box and
+we get an error in the Javascript console,
+showing us that the Chrome XSS Auditor prevented
+the execution of it.
+The XSS Auditor is special to chrome. Not
+every browser has such a protection. For example
+Firefox does not have an equivalent and will
+happily execute the alert.
+But we want to dig deeper. We want to not
+give up because of something like this.
+So let’s try to bypass the XSS Auditor of
+chrome. In this case we do not only have one
+GET parameter that reflects input. Infact
+there is this second one the age parameter.
+And once there are multiple inputs, the XSS
+Auditor is basically broken.
+So what we can try is, to split up our XSS
+payload. The first parameter name will open
+the script tag and start the alert but end
+at the quote. Now we expect a string. And
+For the age we start with a quote, close the
+alert function parentheses and finally close
+the script tag.
+And when we submit this, we get an alert box
+displaying us “br, you are”. Let’s see
+what happened. When we look at the html source,
+we can see that we simply wrapped the text
+between the two outputs into a string, and
+use it as a parameter for alert. And this
+is already enough to confuse the XSS auditor.
+As soon as you have multiple injection points
+you can try to get really creative to fool
+the Auditor. Let’s try to push this one
+step further and replace this first alert
+with something silent, so we can put an alert
+with our content afterwards. One way is to
+still wrap the text in quotes, but instead
+of using it as a parameter we assign it to
+a variable a. And afterwards we can still
+write our javascript code and do the alert
+with something we want.
+Okay. Neat.
+In the last video I briefly mentioned that
+there are different context for XSS and each
+might come with it’s own challenges or tricks.
+So I made here a simple test php page where
+you can play around with some XSS attempts.
+So there is the normal HTML context, where
+it simply echos into the page. But then also
+two test cases where the echo is inside of
+an attribute, one with quotes around, the
+other doesn’t have quotes.
+And then a script context, where the echo
+is inside of script tags.
+At the end I have a small little XSS auditor
+trick which is quite fun.
+Anyhow. So. We basically covered the first
+injection already with the last video. So
+let’s directly move on to the Attribute
+context. The first one is handled with parameter
+b.
+Let’s open this page in the source view,
+so we can see the resulting html, which makes
+it easier to work with. The parameter b is
+currently XSS, which we can see got placed
+inside of the source attribute of this image.
+Theoretically we could now set b to an image
+URL, and we would get an image displayed.
+But can we also execute javascript here? Well
+what we can try to do is to inject a quote,
+which would end this attribute, then we could
+inject a tag closing greater than sign and
+then include a script tag. That looks good,
+that could work, but unfortunately the XSS
+Auditor caught this attempt as well. So this
+doesn’t work on chrome, but generally it
+would be an XSS. For example in Firefox. Also
+the red highlighting makes it super cool to
+see if our attempts injected valid javascript.
+So that’s cool.
+Would this still work with htmlspecialchars
+which we used to fix the code in last video?
+We can test that with the parameter bb. Nope.
+Doesn’t work. The double quote and the greater
+than sign get encoded, so this looks safe.
+But there is a third test. What about the
+single quotes?
+Didn’t work. No. wait. The single quote
+did not get encoded? Maybe we can still turn
+this into an XSS. We just can’t use the
+greater than sign. Luckily image tags have
+an event handler that fires if an image couldn’t
+get loaded. This means we can inject an onerror
+attribute that calls alert. And yeah, that
+worked. Chrome recognized the attempt of executing
+javascript. Awesome. So htmlspecialchars does
+not protect you in every case. For example
+in the attribute context with single quotes
+it’s note nough. The php manual documents
+this, it says you have to specifically set
+the `ENT_QUOTES` flag, otherwise single quotes
+are untouched. Another lessons learned in
+- read the frckn documentation!
+Let’s move on to the next one. This one
+is easy. Like the previous example we are
+in the attribute context, and now we even
+don’t have to take care of quotes. So even
+if single quotes are escaped, you just simply
+don’t use any quotes in the attributes.
+So the injection with onerror works great
+with and without htmlspecialchars.
+Now the last example is the script tag context.
+This looks even more simple. Just write alert(1)
+and it should get executed. Looks good, but
+the XSS auditor did not catch this one. If
+we try this in normal view we trigger the
+xss. And this obviously also works despite
+htmlspecialchars.
+So those examples showed you that using htmlspecialchars
+is not enough everytime. There are many places
+where things can go wrong. So be careful.
+And BE AWARE in what context you output user
+supplied strings.
+But now whats up with those tricks down here.
+The first Trick is just an example how somebody
+might try to prevent xss. It replaces all
+occurences of script. This means you cannot
+inject a a script tag. There are two possibilities,
+first one is simply not use a script tag.
+For example use the image payload we used
+above. An image tag with onerror attribute
+to fire an alert. Though the issue is that
+the XSS Auditor catches that. But there is
+a way around it. We can use the lame attempt
+of XSS prevention by replacing script, to
+our advantage.
+We can randomly place script inside of our
+image tag payload. And the occurrences of
+script will be removed. And now the URL parameter
+does not resemble anything that is found on
+this page. Thus Chrome cannot guess that this
+parameter is responsible for this image tag
+here. So this bypassed the XSS Auditor.
+The second trick here is fun. So first we
+have to understand this Javscript code. First
+a variable ASD is initialized and set. And
+then this script checks if ASD exists. If
+the variable ASD does not exist you would
+execute the alert.
+But how could you redirect code execution
+of this javascript so that it would execute
+this alert? I give you a second to think about
+this….
+Okay. here is the solution. We abuse the XSS
+auditor, who would have thought. We use a
+fake parameter with the first script as value.
+Now Chrome thinks that this parameter is responsible
+for this script tag, and it will disable it.
+Prevent it’s execution. Thus ASD never got
+initialized and we successfully redirected
+code execution to trigger the alert.
+Without the source view we can see the alert
+popping up.
+Amazing. That’s so cool.

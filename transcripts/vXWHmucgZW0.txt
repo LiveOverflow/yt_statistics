@@ -1,0 +1,252 @@
+We have already had many episodes where we
+read assembler code and reverse engineered
+how a program works.
+And we even have written our first exploit
+by using a buffer overflow vulnerability in
+a program written in C.
+In this episode I want to show you how you
+can learn how to read assembler produced by
+C code yourself.
+The idea is simple.
+Just write some C code with different C language
+features, and then look at the assembler code
+that is produced by compiling it.
+This is often part of normal research.
+For example listen to what Ian Beer from google
+project zero says during a talk about his
+research on Inter Process Calls on OSX.
+One approach to reversing, or to understanding
+how this kind of thing works would be to sit
+in IDA and just reverse the serialization
+and deserialization code, and slowly build
+up a picture of how it works.
+But another kind of quite nice way to do it,
+is just, write a test program to send little
+messages and then find the right place using
+lldb to break and just start dumping hex.
+So, because he had to understand a fairly
+complex data structure, he simply wrote a
+test program to analyse it, instead of reversing
+a full application.
+Or there was was a talk and paper from blackhat
+USA in 2007 about how to reverse C++ programs,
+by looking at C++ concepts and how they look
+like in assembler.
+So now I have created three different C code
+testcases and you can find them in my github
+repository, or just write it yourself.
+One is about variables and datatypes.
+One is about function calls.
+And one is about control flow stuff like loops
+and ifs.
+So let’s start with the variables.c.
+First thing I want to point out are those
+triple Xs.
+Those triple Xs are defined as an assembler
+NOP instruction.
+The reason for that is, later when we look
+into the disassembly, we can find those NOPs
+which are separating our tests, and that is
+pretty neat.
+So this makes it easier to see which line
+of C Code is responsible for which lines in
+assembler.
+I will not go over every single test, this
+is something you could do yourself.
+Simply pause the video at certain points or
+clone the repository.
+Anyway.
+Let’s get started.
+First of all you can see here a couple of
+simple numbers.
+First we define a couple of numbers.
+Unsigned and signed, integers and floating
+numbers.
+And different sizes with uint32 or uint64.
+The latter is important, because normal Integers
+might have a different size depending on 32bit
+or 64bit, so it can lead to bugs.
+So better use datatypes you are guaranteed
+to get a certain size.
+If you want to learn more about how to program
+C properly, there is a great blog entry called
+“How to C in 2015”.
+After that we create an array with 32bit unsigned
+integers, and we access one element of this
+array.
+Then we look at a single character.
+And then also a string.
+And maybe you know that a star * means “pointer”
+in C. So we define a variable that is pointing
+to a string.
+I have added a Makefile, so you can simply
+type `make` into the terminal to compile all
+files.
+Or make clean to remove the binaries.
+This will create a 32bit and a 64bit version
+of the variables program.
+But as you can see, I get an error trying
+to compile a 32bit version with -m32 in this
+64bit machine.
+So I have to install the 32bit libraries first,
+to be able to build the code.
+After installing those, the build works fine.
+A Makefile is just a little script that defines
+how a project has to be compiled.
+So let’s open the code, 32bit and 64bit
+version next to each other in gdb and disassemble
+main.
+And also open the code.
+Ok now let’s look at the first integer examples
+with negative values and signed and unsigned
+values.
+First of all, all those local variables are
+stored somewhere on the stack, you can see
+that because they are referenced relative
+to the base-pointer.
+Then you notice that the assembler code doesn’t
+know negative numbers.
+They are fff something.
+If you are interested how negative numbers
+are displayed, watch my 10th episode about
+numbers.
+And also there is no difference between variables
+that are signed or unsigned.
+But there is one difference between the 32bit
+and the 64bit code.
+Because we defined one number to be 64bit
+long, but on 32bit the registers are only
+32bit.
+So if you want to write full 64bit, you have
+to write two times.
+The floating point numbers are also interesting.
+Because they got stored somewhere else in
+the program.
+And that value is then moved into the local
+variable.
+The array is also interesting.
+We created an array with 10 values but only
+set the first 5 values to a default value.
+As you can see those values are stored on
+the stack.
+And then it is moved from that location on
+the stack to the real array location.
+Instead of writing it directly to the array
+it does it this way.
+No idea why.
+And you can see down here when we reference
+the 3rd entry.
+So you can see that this is the real location
+of the array on the stack.
+Next come the strings.
+You can see that a character is just a byte.
+It doesn’t matter if we have an unsigned
+int with 8bit or a char.
+It’s the same.
+And strings are also referenced over an address.
+So the local variable is not an array of charactes.
+the local variable contains an address pointing
+to a string.
+Now let’s have a look at the control_flows.
+Open it in radare.
+Analyse all, seek to main function and enter
+Visual mode.
+First we set a variable to zero.
+And then comes the if.
+This is done by loading this local variable
+in a register and comparing to hex ff.
+And then jump if it was less or equal.
+So you can see which branch it may take.
+Then comes a while loop.
+We load the local variable again in a register,
+compare it to a value, and either jump inside
+the block or leave.
+And inside the block we load this value again,
+increment it and write it back.
+Now compare it to the foor loop.
+It’s basically the same!
+We start by setting the variable to 0.
+Then we compare if the loop condition is still
+true.
+And inside the loop block, we can see our
+NOP.
+And at the end of the block we increment the
+variable by 1.
+Exactly the same like the while loop.
+So you can see that a for and a while loop
+in C are basically the same.
+Next let’s have a look at how functions
+are called.
+Again open both the 32bit and 64bit version.
+First thing you notice that the 64bit version
+moves a 0 in eax.
+No idea why.
+Otherwise the function call looks the same.
+Except look at the addresses.
+If you have no ASLR, then 64bit code is generally
+at hex 40 something.
+While 32bit code is at hex 80 something.
+Knowing stuff like that is helpful, because
+if you see an address with 40 something, you
+know immediately that it’s pointing into
+your code.
+So the next function returns a value and we
+save it in a variable.
+And you can see that in both cases, the value
+is taken from the eax register.
+Ok, so apparently return values are handled
+via eax.
+Now function 3 is interesting, because we
+pass a parameter to it.
+In 32bit you can see that the value is loaded
+from somewhere and then stored on top of the
+stack.
+And then the function is called.
+But on 64bit we see that the value is loaded
+into the edi register.
+This is our first big difference.
+Functions in 64bit seem to be called with
+parameters in registers, while in 32bit the
+parameters are stored on the stack.
+Next function uses 2 parameters.
+And again, you can see how 32bit just places
+the value on the stack.
+First parameter on top of the stack, the second
+a bit further down.
+But in 64bit you can see that it uses esi
+and edi for that.
+Now we get curious.
+What does 64bit do when we have so many parameters,
+that we cannot keep them all in registers?
+First of all 32bit code again.
+You can see how the parameters are stored
+on the stack.
+And the first parameter is on top of the stack,
+and the last value moved.
+That’s what we would expect.
+In 64bit we can see that the first couple
+of parameters are stored in registers edi,
+esi, edx, and so forth.
+But from the 7th parameter on, they get stored
+on the stack as well.
+Awesome!
+Now you can identify all kind of different
+assembler patterns.
+You don’t need a decompiler all the time.
+You can do this all in your head.
+And when you reverse more and more programs,
+those patterns become more easy to recognize,
+and you will not feel overwhelmed again with
+the mass of weird instructions.
+You will be able to scan over a function and
+say: “ah here is a local variable.
+Then calls this other function with this variable
+as parameter.
+And the return value is used in a loop”.
+And you can use the same method to understand
+how different disassemblers like hopper, radare,
+gdb display code.
+Or for example how different the at&t assembler
+syntax is from the intel syntax.
+I hope you have a lot of fun next time reversing
+a program.

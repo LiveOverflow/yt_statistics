@@ -1,0 +1,437 @@
+thanks to the feedback to my hexamer
+videos while specifically the binary
+exploitation videos where I showed you
+several pitfalls that can happen during
+you know the basics of exploit
+development I got a very interesting
+suggestion about a case that I also ran
+into and it's so frustrating and
+confusing when you start out so in this
+video I want to showcase another weird
+issue you might be running into
+hopefully with this video you can
+prevent this from happening
+[Music]
+so here's a vulnerable source code
+example this time I even developed it
+myself and then just rip it off exploit
+education so it's a very simple above
+overflow challenge the only reason why
+I'm able to provide this test source
+code is because I was able to reuse some
+of the parts from another project that
+I'm working on I have actually this
+startup idea called SAP it's a C
+application firewall it's basically a
+web application firewall just for C
+programs in this case you get a small
+sneak peek into what it's able to do so
+as you can see there's a local variable
+of a fixed size and then there's this
+dangerous gets function that just reads
+input and doesn't care how long it is
+and this is where my smart idea comes in
+now you pass this potentially malicious
+input to the C application firewall
+function in this function then goes over
+this input and there's performing a
+series of checks that are based on my
+year-long experience and exploitation so
+for example if somebody tries to enter a
+lot of a's trying to trigger above
+overflow this sap will detect it we
+don't have a release schedule just yet
+we are actually right now in the process
+of raising venture capital so if you
+have a lot of money to invest and you
+look for an awesome cool project where
+you just can't put your money into and
+you will not get anything in return
+check out my patreon anyway enough
+promotion we don't really care about the
+code anyway this is how the binary is
+compiled those tech protections for
+those that can raise the stack is
+executable and we just April P ie so the
+binary is not affected by a SLR so this
+is just a very basic buffer overflow
+challenge so when we now run the program
+and we try to create a buffer overflow
+by entering a lot of a's like you have
+seen it in the movies then my staff will
+block it but this firewall has a bug if
+somebody is not using a's i don't know
+why anybody would do that but if
+somebody's not using a's then you can
+get a sec fault but if somebody uses X
+it's a very experienced attacker and
+this is currently bypassing my C
+application firewall and this also leads
+to a segmentation fault so let's have a
+look at that in gdb just some settings
+to make gdb usable
+then we run it and enter our payload
+okay
+segmentation fault this looks good right
+this can already be confusing if you
+just started out so if you follow my
+binary exploitation playlist and you
+have played around with it yourself you
+might be used to an output that looks
+like this program received segmentation
+fault cannot access memory at address
+five four five four five four and then
+you get this other line here with the
+hex five four five four five four in
+question mark question mark and in these
+episodes I'm basically telling you that
+you should use recognizable characters
+as your input so then you can easily
+identify them when you see the memory
+and now they're 5 4 5 4 5 4 is obviously
+the ASCII character T and so you know
+you have overflown here the return point
+on the stack with T's so you immediately
+know this is above overflow but this
+output here is different it doesn't show
+you anything that looks like the X's
+that we entered and it looks like the
+crash happened inside of the self-test
+function
+it happened inside of the program it it
+didn't jump to a fail address of X's X
+but there's something else going on and
+that's why it can be a bit confusing to
+a beginner but there's something else
+going on and it can be confusing at
+first but it will make sense in a moment
+so a segmentation fault always means
+that a certain piece of code tried to
+access memory and couldn't do that it
+couldn't access memory this means a
+segfault must have been triggered by the
+current instruction in some way so every
+time when you see a segfault you want to
+look at the current instruction where
+it's seg faltered and when we examine
+one instruction at our IP or one
+extraction at that address you will see
+it crash at the read at the return so
+what does the return instruction do how
+can a return crash with a segfault so
+the return instruction always takes a
+value from the top of the stack and then
+sets our IP to it so it basically jumps
+to the address that boss on top of the
+stack right now could it maybe not
+access the stack
+well you could check if you can read RSP
+right now and yeah RSP is readable so it
+can't be that it couldn't pop the value
+but look at the value it tried to pop
+and set our IP to five eight five eight
+five
+eight five eight so yes red tried to pop
+this value from the stack read that
+value from the stack and set our ap to
+it and basically jumped there and
+unfortunately it caused a sec fault
+already there it couldn't set our IP to
+this address in these other old-school
+cases here the red instruction
+successfully changed our IP and then the
+CPU tried to execute whatever is an rfp
+and then it crashed that's why the
+output is different but this means your
+buffer overflow worked you over wrote
+the return pointer on the stack
+successfully and if you place there an
+address that is smaller there's like a
+valid address way it could theoretically
+jump to then you will also see that it
+actually will jump there it's just this
+huge value that's five eight five eight
+five eight that causes the seg fault so
+when you get a sec fault it's either you
+already try to execute an invalid
+address that you try to execute for
+example in this case here you try to
+execute that for a four five four five
+four that doesn't exist but if there is
+code then the assemble instruction must
+have caused a sec fault trying to access
+memory that force not right and in that
+case you need to look at the registers
+that are involved in that particular
+assembler instruction in this case
+return looks at the stack pointer and
+looks takes a value from the stack and
+then sets RFP and so you need to
+investigate this so in this case we
+investigated here the stack but the SEC
+fault could also happen if you for
+example over wrote a pointer or you
+reach out of an array very very far away
+in such a case you would probably see a
+move instruction that caused a sec fault
+and when you looked at the registers and
+think about where it tried to access
+memory then you can see oh yeah that is
+invalid memory like here that register
+points into bad memory that caused a sec
+phone
+so always debug always carefully analyze
+the current situation you are in the
+current context and you can do this with
+examining the memory and the registers
+but let me quickly develop an expert for
+this we can overwrite the stack pointer
+and the stack is executable so standard
+shellcode on the stack
+so here's the shitty exploit code for
+this challenge that I've written that
+includes the issue I don't want to go
+into the details of this exploit now
+because tomorrow's video will be about
+developing that exploit for now I want
+to focus on the stage where you have an
+expert and you think it should work but
+you run into that issue that I want to
+show you now as I have shown you in
+previous hexamer episodes about
+debugging your shellcode
+I have prepended my shellcode with a CC
+SiC trap breakpoint
+watch the video if you haven't seen it
+yet so if this exploit successfully
+jumps through the star of the shellcode
+and is executing that the exploit should
+work right then it starts executing the
+shellcode so I started the script but
+now it's waiting for my user input it
+actually gives me time now to attach to
+the gdb process
+so let's attach so we are attached and
+we can continue and now let's actually
+trigger the exploit so we should have
+triggered the exploit so let's see what
+happens
+we got the received sick trip this
+should have worked we executed the CC
+now let's look at the code that is
+supposed to be executed next so let's
+compare this to the shellcode and check
+if it's correct we have to push for the
+to pop our ax increment aah CQ oh push
+our DX move that here into our di and
+that's actually a string it's basically
+been SH this looks perfect right so
+let's execute it
+segmentation fault in 3 F here in 3 F
+how can a pop seg fault
+pop simply just looks up the value that
+is currently on the stack and puts it in
+RSI in this case that is not accessing
+weird memory and this is the pitfall so
+let's bring 12 instructions from where
+earlier our IP started what the heck
+this code looks completely different
+earlier it was a pop RSI is now an ad
+and he is referencing memory you can see
+our di is like a crazy number so that's
+invalid memory that costs a segfault so
+what happened here this is one of those
+issues I remember having run into myself
+and this was so frustrating this issue
+must have like cost me 10 hours or or
+more until I figured out what hap
+and the evil thing is that this might
+have actually worked if you use maybe a
+different shellcode it's a very very
+nasty back until you understand what
+happens so let's do this again we start
+the exploit we attach gdb continue and
+we trigger it okay so here's our
+shellcode and we know looks perfectly
+fine but the push instruction effects
+the stack the push instruction pushes
+values on top of the stick and then
+updates the stack pointer so where's our
+stack pointer right now our stack
+pointer right now is here at a f40 this
+is awfully close to our shellcode it's
+just right after here so let's execute
+the push let's look at the stack again
+the state code updated the 42 was pushed
+on top of the stack and we are even
+closer to our shellcode now we are at
+our 8 just right after our sis call but
+we are still fine if we look at our
+shellcode here this still looks perfect
+the next instruction is even a pop which
+will mean it will pop a value from the
+stack again and it will move the stack
+pointer again further away from our
+shell courses are fine but here we have
+three pushes that follow you might be
+able to guess what will happen next so
+let me quickly continue executing until
+we reach the second push here so we are
+about to execute this push let's have a
+quick look at our shellcode our shell
+could look still good where is the stack
+pointer at our stack pointer is just
+right after the cisco just two bytes
+away 3 6 3 8 and now let's execute this
+push let's look at the stack we pushed
+our di or di was this value moved into
+it this is basically the bin SH string
+and this string was pushed on the stack
+and look whether it is now that is it
+3-0 that's right here inside of our
+short code so let's look at the
+disassembly of our shellcode now in
+valid instructions this push has
+corrupted the shellcode so during the
+execution of the shellcode it corrupted
+itself and that's where you ran into a
+segfault and this can be very
+frustrating just when you started out
+and you consider that something like
+this can
+happen there's a great example of an
+issue where you have so many influences
+and things that happen all at the same
+time that you need to keep in your head
+you have to stack pointer that points
+into some memory your shellcode is right
+there as well our ap actually points to
+the stack as well and it's executing
+this data there like it's a lot of stuff
+that you need to keep in your head and
+only then you will be able to figure out
+what happens this can be very
+frustrating so in this very old episode
+that I mentioned earlier the binary
+exploitation episode II I actually got a
+comment recently by Sean oil and he ran
+exactly into that issue implemented the
+exploit on the buffer and got stuck for
+longer than I'd like to admit make sure
+that your expert instructions don't
+start overwriting themselves through
+stack push instructions shortening the
+knob slide and adding more padding after
+the expert instruction fixed things I
+now understand why life overflow chose
+to transfer the stack in the opposite
+direction that made things considerably
+easier long nob slide no worries about
+the shellcode self-destruction and
+generally less space restrictions for
+the exploit confession time I didn't do
+this deliberately that was not the
+reason why the test at least not
+consciously as I mentioned I did run
+into these issues myself and there could
+be some kind of evolution going on you
+know I knew which approaches kind of
+like worked for me so I kept doing the
+approaches that worked maybe I've just
+seen a good tutorial that was doing it
+this way already and I just did it
+exactly that way or maybe I noticed that
+this is what works and so I kept just
+doing that but I really appreciate this
+comment and especially this analysis
+comparing my approach to his approach
+both about that both work but there's
+this like small caveat that has such a
+big impact so he also basically had to
+set up he plays the shell code stuff
+before overriding our IP this means
+there's limited space in here
+now here we had like 256 bytes until we
+overwrite our IP so there's plenty of
+space but maybe your buffer is smaller
+maybe just 64 bytes 32 bytes 8 bytes and
+then obviously you don't really have a
+lot of space for shellcode before you
+over
+right the return pointer you can fix
+this code here by moving the shellcode
+further away from our IP in this
+direction so for example you could
+either trade the padding and the
+shellcode and then obviously you need to
+also adjust our IP so that it points no
+all the way at the start here or you
+could do like a combination you could do
+an op slide first here and then this
+padding gets a bit smaller again but
+again you must be careful that the
+shellcode doesn't get too close to where
+our IPs and the reason why I say where
+our IP is because this is also where the
+stack pointer is our IP was popped from
+the stack so this is right now where the
+stack pointer is pointing to this is the
+location of the stack pointer so you can
+just be careful to move further away if
+your shellcode doesn't really use push
+instruction then this is also less of a
+concern but the alternative technique
+that's also the technique that I used
+when I developed this exploit for the
+first time which you can see in the
+video tomorrow who plays the padding
+then our IP and then your shellcode you
+could even add an op slide in here as
+well just to move that thing away from
+the stack and here I remove the
+calculation to make the previous one
+work now this points right at the start
+of the nav slide and now we could like
+point this also a bit further in like 10
+10 bytes into the knob slide and now it
+should work
+it didn't oh we have to see see let's
+replace this you see with a knob now it
+works now we have our root shell oh my
+gosh thank you brain for figuring this
+out immediately so these were the two
+pitfalls that I had for you today be
+analytical when you receive a
+segmentation fault and analyze what
+exactly sec faltered and this is also
+how you can recognize a buffer overflow
+that might have not looked immediately
+like a buffer overflow to you and the
+second issue is the corruption of
+shellcode on the stack because obviously
+the stack is used for various different
+kinds of operations and if you have your
+shellcode there it might get overwritten
+or modified obviously there are multiple
+ways how a program can write stuff into
+memory and so you might have other ways
+that can corrupt things we have for
+example simple move instructions that
+just happen to point right in to where
+your shellcode is so that could also
+corrupt you
+and of course this also does not only
+affect shellcode but could also affect a
+rope chain if something is corrupting
+that rope chain are you exploit fails as
+well it's all I got and tomorrow you get
+the exploit walk through how to develop
+this exploit in this case if you want to
+already try it yourself to find the code
+and how to compile it in the description
+I'm getting sick and I'm not done yet
+with my 24 videos for hex ember so wish
+me luck
+[Music]
+you
+[Music]

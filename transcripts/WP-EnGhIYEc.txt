@@ -1,0 +1,218 @@
+In this video I want to specifically talk
+about the interesting backdoor technique that
+was used in the Acoraida Monica smart contract,
+which was a CTF challenge from the Real World
+CTF finals.
+I have already created two videos where I
+go over my attempts at solving the challenge
+and then eventually walk through the solution.
+However I did not properly explain how the
+contract was actually backdoored, partially
+because I didn’t fully understand it.
+At some point I thought the bytecode was actually
+modified and the solidity code was just fake.
+But I asked the challenge creator again and
+he said that he didn’t modify the bytecode
+at all.
+So I was talking with Jazzy from perfect blue
+about the challenge, and more specifically
+that backdoor and eventually we figured out
+how it works.
+So as you know the constructor of the Acoraida
+Monica contract had this inline assembly where
+it takes the current program counter value,
+adds this constant byte on it and then jumps
+there.
+So it will leave the constructor here and
+jump away.
+In the videos we already looked at that code
+where it jumps to and saw that it stores a
+value in storage, but we ignored those values
+pushed on the stack and the return.
+Let me quickly show you how a contract is
+deployed on the ethereum blockchain.
+Here is a simple test.
+The constructor just takes a number and sets
+this variable and we have a test function.
+Let’s enter some recognizable characters
+numbers, those are hex values for AAAABBBBCCCC.
+Then deploy it.
+Now we can click on Debug and use the remix
+debugger to check out what the ethereum vm
+executes to deploy this contract.
+I’m quickly stepping through looking for
+where we perform this assignment.
+Ah here is the SStore.
+Storage store.
+So this takes the first value of the stack
+as a key, and the second value of the stack
+is the value.
+If we pay attention to the storage down here,
+and we execute the sstore, we can see that
+the two stack items are consumed and now we
+have one key value pair in storage.
+And storage persists in the contract, so now
+this is set.
+But let’s start over again and instead look
+at how our parameter comes to the stack in
+the first place.
+Keep an eye on the memory and wait for our
+parameter to appear.
+There it is!
+If we look at the instruction that put this
+value into memory, we see that was a codecopy.
+Codecopy copies data from the code into memory.
+In the ethereum VM the code is seperate from
+memory.
+And on the stack you can see that it copies
+0x20, so 32bytes from code at offset 0x15e
+to memory at offset 0x80.
+Our code is the calldata down here which is
+the input in the ethereum transaction.
+And this is our code, here is where the ethereum
+VM started executing and you can see that
+the solidity compiler placed our parameter
+for the constructor at the end.
+And this callcopy will copy now the parameters
+into memory, so that the following code can
+then take it and put it onto the stack and
+eventually commit it to storage.
+Now that the constructor is done it will push
+some more values on the stack, perform another
+codecopy, and if you observe the memory you
+see that it now copied what looks like code
+into memory at offset 0x0.
+But not all the code, if you look carefully
+it’s from here.
+The code before is actually what we are executing
+right now and it performs all this codecopy,
+the constructor code and now it deploys the
+actual contract code.
+And it does this by simply loading the actual
+contract code into memory and then doing a
+return.
+This return instruction wants two values on
+the stack.
+A memory offset and size.
+This will tell the ethereum blockchain, my
+contract code starts at 0 and is 0x12a long.
+Now this code from memory becomes our actual
+real contract code.
+Let’s summarize how a contract creation
+from solidity compiled contracts works.
+We have a big chunk of code that contains
+deployment and constructor code, and the real
+constract code.
+Then we execute that first code, which will
+first load parameters into memory, then execute
+the constructor code, which for example in
+our case set the storage for that number variable,
+then we load the actual contract code in memory,
+which will then be deployed as the contract
+once we return with the value defining that
+memory range.
+So if we really understand this, we can also
+now abuse this to inject malicious backdoored
+code into a carefully prepared contract.
+So here is a small example contract that is
+supposed to be good.
+It has a test function that returns the string
+“good” and has a constructor like the
+original Acoraida Monica one.
+So here I just jump to a hardcoded address
+somewhere in code.
+But our goal is to actually deploy this evil
+contract.
+So let’s first compile the evil contract
+and get the code of it.
+To do that we simply deploy it and then use
+debug again to step through the contract creation
+until we reach the RETURN instruction, beacuse
+this is where we can then get the evil contract
+code.
+I have to clean it up a bit to get a proper
+hex string of the byte code but that goes
+quick.
+Here we go.
+But before we can inject the code into the
+good contract, let’s see how that byte parameter
+behaves in general.
+Let’s again use a recognizable hex number
+and pass it in as the good contracts constructor
+parameter.
+If we try to deploy that then it will fail.
+That was expected.
+If we debug this and just quickly step through
+the trace we see that it reaches this push
+0x6b and the jum - exactly our constructor
+code.
+And of course that will jump right now into
+something bad.
+So the ethereum VM just failed.
+But more important for us right now is, that
+if we backtrack a little bit the execution
+trace, we can find the first codecopy, which
+copied the byte parameter into memory.
+So here it is our parameter in the code.
+If we count the bytes beforehand we can find
+the offset where our parameter starts and
+maybe you guessed it already, the 0x6b is
+this offset.
+So jumping to 0x6b will jump right at the
+start of our parameter.
+So here we can write now our arbitrary code.
+So all we have to do is to make sure we have
+a JUMPDEST at the start of our parameter,
+so we can jump here, and then we have to prepare
+the stack, so that the RETURN instruction
+deploys this evil code instead.
+So the size of our evil code is 0x12a.
+And we can see that our parameter starts at
+0xc0 in memory.
+But of course at the start we will have this
+code snippet we are writing right now, so
+we need to specify the offset right behind
+us where the evil contract code starts.
+So counting that would be c7, because we also
+need the return instruction.
+Cool. and then return is f3.
+Let’s try it, let’s put it all into a
+nice byte string and try to deoploy the good
+contract with this parameter.
+And it succeeded.
+We deoployed something.
+Let’s have a look at the debug.
+Here is the first codecopy, so this copies
+our parameter.
+And as you can see at c0 our small snippet
+starts and at c7 is then the actual evil contract
+code.
+Let’s continue and try to find the constructor
+jump.
+Push 06xb.
+JUMP!
+Boom we ladn at our Jumpdest.
+Now we push the code size, 0x12a. and push
+where the code in memory starts 0xc7.
+So it deploys code from 0xc7 that is 0x12a
+bytes long.
+So this should have deoployed our evil contract
+code instead!.
+Let’s try it.
+Let’s try to call the test function on the
+supposedly good contract.
+Transaction succesfull, let’s look at the
+output.
+And here it is.
+This call to test returned EVIL!
+Even though we deployed a good contract that
+should return “good”.
+So crazy.
+It sounds really simple if you explain it
+like that, but dang, until we figured that
+out, that took so many hours.
+Anyway.
+If that was intriguing to you I can really
+recommend the two videos I made about the
+whole acoraida monica challenge because there
+are a lot more crazy things going on.

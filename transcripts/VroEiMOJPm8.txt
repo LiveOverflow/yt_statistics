@@ -1,0 +1,317 @@
+I have written a small C program.
+It’s supposed to be a simple license check.
+So you can execute it and you can supply a
+key as argument and it will be checked.
+Our goal is to crack this program so we don’t
+have to use a valid license key.
+I have made this program available through
+a github repository.
+You can download it from github.com/liveoverflow/liveoverflow_youtube
+or you can install ‘git’ with ‘sudo
+apt-get install git’ and get the whole repository
+with ‘git clone’ and the address you can
+see on github.
+We will probably talk more about what git
+is later.
+For now it’s enough to know, that this is
+a way how developers can program together
+on a project.
+And I use it to share some stuff.
+To have a look at the binary assembler code,
+we can use a program called gdb.
+The GNU Debugger.
+So type ‘gdb’ and the path to the binary.
+So every C program has a main function, remember?
+So let’s type in ‘disassemble main’
+which will display all assembler instructions
+from the main function.
+But urgh, do you see how ugly that looks?
+That’s the horrible at&t syntax.
+So type in ‘set disassembly-flavor intel’.
+Remember that you can use tab completion here
+as well.
+Now ‘disassemble main’ again, and now
+it’s much more readable.
+Ok.
+So.
+It looks complicated.
+But you can ignore most of it.
+First of all get a high-level view of it.
+It doesn’t make sense to start going through
+this instruction by instruction.
+This main function obviously calls other functions.
+So just draw a mental picture of the rough
+control flow.
+I will actually print out this assembler code
+and use a pen.
+That’s how I did it in the beginning and
+still do it when I encounter more complex
+code.
+And remember to just ignore most of the stuff,
+concentrate on the actual flow.
+So at the start it arrives at a compare with
+the number 2.
+And afterwards a ‘jump not equal’.
+So something is checked if it is 2.
+If that is the case, we proceed to a ‘printf’.
+Which we know is a function to display text.
+Then comes a ‘strcmp’, if you don’t
+know that function, read the man page of it.
+‘man 3 strcmp’ - so this compares two
+strings and returns 0 if both strings were
+the same.
+After that call we see another ‘jump not
+equal’ so if the zero flag is not set, there
+will be a ‘puts’ call.
+Use the man page to figure out what it does,
+but it just prints text like printf.
+So if the original compare with the number
+2 was not true, then it would jump to this
+address 0x400623, which is at offset main+102.
+So in that case it prints some other text
+with ‘puts’ and exits.
+I always add the addresses, or at least part
+of the address, from important locations,
+so I know where I am.
+This will help you later when we step through
+the program.
+Now we have one branch missing.
+If this compare was incorrect, this branch
+would jump to offset main+90.
+Which also just prints text.
+Some jumps are still missing, but you can
+add them to get a nice control-flow graph.
+Now let’s actually execute this and step
+through it.
+You can then draw which path through the graph
+you have taken on your paper.
+To do do this we first set a breakpoint at
+the start of main with ‘break *main’.
+Breakpoint is set, now use ‘run’ to start
+the program.
+Starting program and we hit the breakpoint
+1 at this address.
+A breakpoint is a point where execution stops.
+Now look at the registers with ‘info registers’.
+Here you can see that RIP, the instruction
+pointer, points to the first address in main.
+Now use ‘si’ to step one instruction.
+Now we are at a new address in main.
+‘info registers’ and you see the changed
+instruction pointer.
+So now just step through it all and follow
+the addresses in your control graph.
+But use ‘ni’ instead of ‘si’, because
+‘si’ would step into function calls.
+But we only want to step through this main
+function and not follow stuff like ‘puts’.
+Ok did you notice when we jumped?
+The jump was at 5d0, and then the next instruction
+was at 623.
+So we followed the jump, which means whatever
+was compared to 2, was not 2.
+And then the program printed the Usage information
+after 628, which was the last ‘puts’ call.
+So we can write down, that this ‘puts’
+prints the ‘Usage’ information.
+Now it’s pretty clear, that we didn’t
+pass a key to this program.
+Which means the check was looking at the arguments
+if we supplied a license key.
+So let’s run the program again, but this
+time with a random license key.
+Yes we want to start the program again.
+Now do the same.
+‘ni’, ‘ni’.
+Now we are at 5d0 again, will we jump this
+time?
+No!
+cool!
+So the next branch we expect is at 609.
+Let’s ‘ni’ and see what happens.
+AH!
+Another print text.
+So that ‘printf’ is the info that a license
+key will be checked.
+‘ni’.
+Now comes the branch.
+Ok we arrived at 609, let’s see where we
+are afterwards.
+At 617.
+So we did jump, which means that the strcmp
+failed.
+And when we continue with ‘ni’ we see
+that it’s wrong.
+Ok.
+Let’s set a breakpoint just before the last
+compare and run the program again.
+Remember that you can easily copy&paste values
+in the terminal by simply marking something
+and pressing your mousewheel.
+Now ‘run’ again.
+Breakpoint 1.
+Now ‘continue’.
+This will run the program normally again,
+until we hit the next breakpoint.
+Now stopped before we execute the ‘test
+eax, eax’.
+EAX just refers to the first 32bit of the
+64bit RAX register.
+So it’s value is hex 0xE.
+Let’s set this to 0, which would indicate
+that the ‘strcmp’ was correct and returned
+a 0.
+‘set $eax=0’. ‘info registers’ and
+you can see that it’s now 0.
+Now use ‘ni’ again to step and follow
+your control path.
+‘Access Granted!’
+YAY!
+We circumvented the license check!
+It think that’s pretty cool!
+And you can always write your own little C
+program trying to make it more secure, and
+then crack it yourself again.
+You will notice that it’s impossible to
+make a program uncrackable.
+Those kind of challenges are called ‘crackme’.
+People create small programs that have to
+be cracked.
+Or more often you have to create a valid keygen.
+If you think something like this is fun, checkout
+http://crackmes.de/.
+Creating control graphs like we just did is
+pretty useful.
+That’s why there are some programs that
+do that for us.
+Here are three different examples of this
+specific control graph.
+First is HopperApp, second is IDAPro and the
+last one is from radare2.
+See you hopefully next time when we use some
+different tools to explore this licence check
+binary a bit more.
+Let’s figure out together the basic concepts
+of a CPU.
+Computers have different memory to store stuff
+- so first we need something to store the
+machine code in.
+Let’s take a spreadsheet and imagine that
+this is memory.
+You can store values in it and each memory
+cell has an address, which is the number on
+the left.
+And I will use the 2nd column to write some
+comments in there.
+As you can see there are some hexadecimal
+numbers stored in this memory.
+And at first it looks very random, but that
+is our machine code and soon you will understand
+this.
+So the first thing the CPU needs to have is
+something to keep track where in memory the
+CPU currently is.
+Which means we shoud add a little storage
+for our CPU and call it the “Instruction
+Pointer”.
+This little storage area will contain the
+address of memory the CPU is looking at the
+moment.
+So obviously our program starts from the top,
+so the address will be 1.
+Now let’s start the CPU, it looks at address
+1 and reads 48, AA, 14.
+But what do those numbers mean?
+The CPU knows that 48 means it has to MOVE
+data around.
+The AA means the destination of that move.
+and the 14 is the source.
+So in address 14 we can see the number 42.
+And the destination is another small storage
+unit inside the CPU.
+So the CPU will move the 42 into it’s small
+storage area called AA.
+So this instruction is done, and the CPU increases
+the Instruction pointer by one.
+And we start over.
+The CPU reads the current value at the address
+of it’s instruction pointer.
+So it reads 48 again which means move, and
+this time it’s moving the content of address
+15 into the small storage BB.
+Notice how I use brackets around the 15.
+This indicates that 15 is an address, and
+we actually reference the content of 15, which
+is 66.
+And not the number 15 itself.
+Instruction done, increase the Instruction
+pointer.
+The next address contains 83, AA and BB.
+The CPU knows that 83 means COMPARE.
+And it compares the values in AA and BB.
+Now it has to somehow remember the result
+of this compare.
+So let’s add another small storage that
+stores this result.
+We call it Zero Flag.
+You know what an intelligent way is to compare
+two numbers?
+If you subtract them from each other and their
+result is 0, they were the same.
+If the result is not zero, they were different.
+So this is what the CPU does.
+66-42 is 24, so that’s not 0.
+So we set the zero flag to false.
+Instruction done, next one is at address 4.
+The CPU reads a 75 and 07.
+75 Stands for JUMP If not equal.
+And 07 is the address where to jump to.
+So the CPU checks the state of the Zero Flag.
+And The Zero flag is set to FALSE, so the
+previous compare was not equal.
+Which means it jumps to the destination 07.
+A jump is easy.
+The CPU just sets its Instruction Pointer
+to 07.
+Ok so the next instruction is at address 7.
+And it reads E8 and 17.
+E8 In this case stands for print a text.
+And the text can be found at address 17.
+But 17 doesn’t contain text?
+Well, for a computer everything is numbers.
+Like those instructions the CPU executes,
+they are just numbers.
+So text is made out of numbers too.
+Remember how I brushed over ASCII values in
+a previous video?
+Now it’s the time to pull up the ascii man
+page again.
+So type ‘man ascii’ In the terminal.
+Now try to find hex 4E and 4F.
+Haa.. ok.
+So they stand for ‘N’ and ‘O’.
+Which means the computer will print ‘NO’.
+So looks like this code simply compares two
+numbers.
+I will not go over the case when those two
+numbers are the same, but you should try it
+yourself.
+That’s crazy, huh?
+CPU simply reads the memory sequentially and
+does whatever it reads.
+And programmers can build crazy complex stuff
+with that.
+Now let me change the text a little bit so
+it reflects more the reality of how we write
+assembler.
+Basically just abbreviation of it.
+Also don’t get confused with the order of
+parameters.
+simply think of it like a variable assignment
+in programming.
+This was a very simple example, but the real
+world is not much different.
+People just came up with a lot more instructions
+that might be interesting and wrote complex
+code to solve hard problems.
+But at their core they are simple like that.

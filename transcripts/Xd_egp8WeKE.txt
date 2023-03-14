@@ -1,0 +1,276 @@
+I really wanted to implement a proper fly-hack
+for Pwn Adventure 3.
+After failing around when doing this on Linux,
+I thought I could need some help when doing
+this on Windows.
+So I contacted Guided Hacking, who makes awesome
+easy to follow game-hacking videos, and asked
+for some help.
+I asked him if he can figure out how to make
+a fly-hack and then explain it to me, and
+then we have a YouTuber collab.
+He said yes and followed up with a basic plan.
+The best way to do a fly hack is to overwrite
+your current position values, like you do.
+But you get the next position variable (for
+flying forward), using trigonometry.
+You do what’s called a translation moving
+a 3d coordinate in a specific direction.
+You can do this with matrix multiplication
+using the world view projection matrix, but
+it’s easier just to do simple trigonometry
+cosine, sine, arctang etc.
+I already have code written for this that
+I can share.
+I actually wrote this code because Stephen
+Chapman asked a question on Stack Overflow
+and I knew the answer.
+So I felt like a boss.
+Stephen Chapman is another awesome youtuber
+with some game hacking videos.
+So that’s why that is funny.
+So here is the code.
+You can see here a function MoveInCameraDirection
+and then it does some trigonometry.
+If you are still in school, you should really
+pay attention to trigonometry and especially
+matrix stuff.
+If you are interested in game hacking or game
+development, you need that foundation.
+Anyway.
+A few hours later Guided Hacking got back
+to me with a Visual Studio project and some
+code.
+But he added that “something is not right.
+Here it is in it’s broken state if you want
+to take a look.
+Of course I want to take a look!
+So what is it that Guided Hacking sent me?
+In the folder you can find a .sln file, so
+that’s a “solution” file (a project
+file) for Visual Studio.
+Let’s open it up and have a look.
+Let’s start with the dllmain.cpp.
+This defines the entry point for the DLL application
+Based on this here.
+“How to hack any game - First Internal Hack
+DLL Tutorial”.
+And here is a good description of what this
+is all about:
+Internal hacks are created by injecting a
+dynamic link library or DLL into the game
+process.
+when you do this you have direct access to
+the process's memory which means fast performance
+and simplicity.
+Normally a DLL is used to export functions
+and to be used like a lib, accessing the functions
+from the lib when necessary.
+But in our case, we're just going to use them
+to get our code to run in a target process.
+Injected DLL's can be made more sneaky by
+using different injection methods such as
+Manual Mapping.
+So yeah.
+This Visual Studio project is just creating
+a .dll
+And when the dll is injected into the target
+process, the DLL main entry point will be
+executed.
+The system calls the entry-point function
+for a DLL when it is loaded or unloaded using
+the LoadLibrary and FreeLibrary function.
+And upon the DLL_PROCESS_ATTACH case, we create
+a new Thread so that it can run in parallel
+in the background.
+The HackThread.
+And this HackThread then does the magic.
+Remember, you have to imagine that this code
+is now running in the PwnAdventure game process.
+And so here you can see that it uses GetModuleHandle
+to get a handle to the GameLogic.dll module,
+which basically returns the address where
+it is loaded.
+And you can see it being used here in the
+function “FindDMA” (direct memory access)
+addres.
+And here we have the start address, followed
+by a pointer path list.
+Pointer paths.
+They are just everywhere.
+We can also peek into that FindDMAAddy function
+to see how it works.
+It’s very simple.
+Ptr is the starting address and is assigned
+to the variable address.
+offsets is a vector, or list of the offsets.
+And here we have a loop that loops over those
+offsets.
+So addr, and at this address we have a value
+that is another address.
+So we dereference that now, which means we
+follow that address.
+So addr is now the new address.
+Then we add the offset to that address.
+This should now point to a new location that
+stores another pointer (or address).
+So in the next loop we dereference that and
+follow that address.
+So now addr is that new address, we add the
+offset and we get the new location.
+And we do that for all offsets, and then return
+the final address.
+If we then cast the pointer we found to for
+example a 3d vector, then we have now a position
+variable pointing into that memory.
+That’s how we can then read or write those
+values.
+So apparently Guided hacking found some position
+and angle vectors at these locations in memory.
+Around this code you can also see GetAsyncKeyState,
+which checks if you press a certain key.
+This is used to enable or disable the fly
+hack, here the numpad key.
+And also numpad 5 is apparently used to move
+into camera direction, so this should fly
+around.
+And with the END key, it should break, then
+of course return, thus exit the thread.
+By the way there is also a call to “AllocConsole”,
+which is another wondows API function that
+will create a new console for the calling
+process.
+And then with std::cout, you can write text
+out to the console.
+I actually didn’t know that it’s that
+simple to create a console for a process.
+Cool.
+Alright.
+Now Guided Hacking already said that it doesn’t
+work.
+But this is already very helpful, because
+we can build upon that.
+We can use it as a template.
+In the last video I showed you how I found
+the camera position and view direction.
+This means we could now use those pointer
+paths!
+So let’s create a new DLL project.
+Visual C++, Windows Desktop, Dynamic-Link
+Library (DLL).
+And we call it pwn3hax.
+If we look into the source files, we can see
+that Visual Studio already created the dllmain.cpp
+file with the DLLMain entry point function.
+As you can see, looks pretty similar to the
+example code by Guided Hacking.
+So let’s just copy and paste that code.
+Visual Stdio already warns us about types
+like FILE that they can’t be find.
+For that we need to include stdio - standard
+in and out.
+Looks already better.
+But of course the mem namespace and this vector
+3 is also still unkown.
+Let’s add the include of the mem header
+and then we have to add a new file, header,
+mem.h
+Copy and paste that code.
+And then we also need the mem.cpp file.
+Copy that too.
+Wow!!
+We are incredible fast programmers.
+Copy&paste!
+But don’t tell anybody this secret of programming.
+*shhhh* Let them all think you need to remember
+everything!
+So the mem.cpp by Guided Hacking defines three
+functions.
+Patch, Nop and FindDMAddy.
+The last function we already looked at.
+Path and NOP are very similar.
+They both use the VirtualProtect Windows API
+function to change the permissions of this
+memory area to be writeable.
+You have to do this in case it;s non-writable
+memory like the assembly code.
+But after that you can simply use memcpy,
+or memset to that address and overwrite it.
+Patch will of course copy the bytes you want
+to patch.
+And memset writes assembly NOP instructions,
+which is a hex 0x90.
+Cool!
+This will be useful.
+And let’s also add the geometry files geom.h,
+which gives us this 3-d vector vec3 and the
+geom.cpp file, which contains some trigonometry
+functions.
+After we include the mem.h in the dllmain,
+we can also try to compile it.
+STRG+SHIFT B.
+And we built it.
+We have pwn3hax.dll.
+Let me quickly modify a bit the code.
+Because my keyboard doesn’t have a numpad.
+The key that should toggle the fly hack enable
+or disable I set to Left Control key.
+And the flying around I set to the right mouse
+key.
+We know this doesn’t work yet, so let’s
+remove some of the code here, only keep the
+position, and then add a debug output with
+cout, to print the position.
+Let’s try it out.
+Compile the .dll, there we go.
+Now we just need to figure out how to inject
+the DLL.
+Because I don’t want to go into detail right
+now how DLL injection works, we are just using
+a tool.
+Actually Cheat Engine can also inject a dll.
+It’s here in the tools menu.
+But I’m going to use Guided Hacking’s
+Injector tool.
+It has a lot of features.
+I guess at least.
+I have no clue.
+I’m just gonna try to load a dll.
+So here we specify the process we want to
+inject to, and here we select the dll file.
+The built dll is in the Debug folder.
+Pwn3hax.dll.
+After that we can hot Inject.
+And that seems to have worked, because we
+get the console with the debug output.
+Now we are in game.
+If we press the left control key, we should
+be able to toggle between the fly hack on
+and off.
+That works.
+Now that it’s on, let’s try to press the
+right mouse key and see what happens.
+Oh… game crashed…
+I guess this doesn’t work at all.
+So let’s quickly take the pointer path we
+have identified with Cheat Engine and replace
+it here.
+By the way, pay attention to the correct pointer.
+Because we cast this memory to a 3d vector,
+we need the pointer to the first x coordinate.
+And it turned out I labeled them wrong, and
+when I tested it I read garbage values.
+So the first coordinate is at offset hex 0x90.
+So let’s build it again, and inject it into
+the game.
+Enable the fly hack.
+Press right mouse button, and there we see
+output!!!!
+We can now move around and observe the player’s
+position.
+Or more precidely, the camera’s position.
+If we jump we also only see the z value change.
+Awesome!
+We can build upon that.
+Thanks Guided Hacking for making this so easy
+for me!

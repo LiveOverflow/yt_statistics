@@ -1,0 +1,280 @@
+HELLOOOOOOOOOOOOOOOOOO. Ugh… Welcome back. 
+In this episode I want to build a few more
+things. I want this spawn area too look very 
+nice. And I really like this hole behind me
+and I wanted to make something with it. So let’s 
+start off this video with a quick build sequence.
+
+Alright… there we go, a nice bridge, walkway 
+around the edge, a small pond and a fountain.
+As well as a road up to the market area.
+Also ImALolNoob is here again and while I was
+decorating a bit I suddenly started to hear music. 
+Hopefully this doesn’t get the video claimed. But
+damn… jamming. Let’s go. Aha. aha.
+Uh. uh. Uh.
+Ok. enough. Stop it.
+While I decorate the base a 
+bit and collect some materials,
+I wanted to talk about Code review ws. Dynamic 
+testing. So when you as a hacker try to find
+vulnerabilities you can try to do it blindly, just 
+test the application, or maybe you have access to
+the source code and you read code instead. And 
+so the question might be, which one is better?
+I love code reviews, and generally I think it’s a 
+waste of money and resources when you don't have
+access to them. It’s one major reason why I don’t 
+like to do bug bounty because most targets are
+closed source. But code review is not always the 
+silver bullet. I admit sometimes dynamic testing
+is a lot easier, because maybe the code is just 
+awful or there is just tooo much of it. Using
+the application and looking for functionality to 
+then specifically test might be a lot more useful.
+So for me in my day to day job doing this 
+professionally, I constantly flow between
+dynamic testing and code review and do whatever 
+I feel like is the right choice at the moment.
+That;s why I think it’s so important for hackers 
+to learn coding, or at least learn to read code,
+because if you lack this tool, you might be 
+left with very inefficient dynamic testing.
+Now I wanted to briefly come back to 
+something I did in a previous episode.
+Remember I did dynamic testing to figure out 
+how far away creepers get scared by cats?
+Well let’s see if we can find this in 
+the code as well. In net, minecraft,
+entity, mob , CreeperEntity, 
+we can find the creeper class.
+It’s very interesting to read the code here, 
+but we are mostly interesting in the AI of the
+mob. I’m looking at this code for the first time 
+but it seems the code is very self explanatory.
+These goals seem to describe the goal 
+of the mob, the behavior. The AI.
+So for example with priority 1 the player is the 
+active target. So the creeper attacks us. But
+there is also a visibility check for the player. 
+Only if the creeper sees us, it will target us.
+And see this, with a slightly lower 
+priority of 3, the creeper will flee.
+It will flee from cats and ocelots. And 
+the distance this happens at? 6 blocks.
+this is a really cool example for 
+code review vs. dynamic testing.
+Testing for the distance a creeper will flee from 
+a cat, is easy in minecraft. You have to create a
+small test setup, but then it’s easy to test. And 
+that takes maybe around the same time it takes
+me to open up intellij, pulling up the code and 
+finding the right class to read this value here.
+However, we never talked about finding out what 
+a creeper is scared about in the first place.
+Is a creeper even scared of anything?
+Well maybe you would stumble over this behavior
+while playing. Maybe you observe this 
+in the wild. But if you didn’t it would
+be quite a lot of effort to figure out 
+what kind of other entity, mob or item,
+makes a creeper scared. Looking at the code here, 
+this is super simple. Scared of cats and ocelots.
+But let me show you an example where I 
+think dynamic testing is a lot more useful.
+We know mobs can die when falling down 
+a large distance. But what’s the limit,
+how far can they fall before they die? Maybe we 
+want to know that so we can build a farm where
+we damage them just enough for a single punch.
+Well this is of course answered in the code,
+somewhere, but it’s probably calculated. Over 
+time the falling speed is building up. So
+that influences how much damage 
+they take. And the next question,
+how much health does a creeper have anyway?
+Here is a handleFallDamage function. It takes
+the fall distance, damage multiplier and damage 
+source. It calls the computeFallDamage in the
+super class. Here it calls computeFallDamage.
+Which is falldsitance -3, minus a status effect
+times the damageMultiplier. This means we have to 
+figure out where handleFallDamage is even called.
+What is the damageMultiplier? And how 
+much health does the creeper have?
+You see it gets a bit convoluted. Why not 
+just go in a creative world, and test it.
+Build a small platform. 
+And let creepers fall down.
+It’s a bit of a process too, but you will 
+definitely find the answer. After some trial
+and error, the height is 24 blocks. Now they 
+got max damage and die with a single punch.
+As you can see, to figure this out, the 
+best strategy seems to be dynamic testing,
+just because I know I will easily get the answer 
+this way. No need to struggle through the code.
+Cool, now we saw an example for both cases.
+I hope this shows you how important it is
+to choose the right strategy for 
+whatever you want to figure out.
+Now let’s use our code review skills a bit more. 
+In Hermitcraft Season 9 episode 2 by docm77,
+he revealed a prank. Let me 
+show a clip from his video:
+“So I actually pranked the whole server. So yeah 
+what happens if you put a turtle egg. In any
+minecraft world. Exactly at 0/0/0. Any zombie 
+int he world. Not only around the player here
+standing. Globally. So any zombie, loaded by any 
+other hermit will start tracking towards this egg.
+Globally. O here we go. Look at the zombies. 
+Look at the congo line back there. Zombie
+tracking aint not working anymore. Count ry roads 
+take me home. To the palace. I belong. Zero zero.
+Hahaha. Come on fight the water. Go to zero zero. 
+Nice. it’s working. Here is another one. Yeah you
+wanna go to 0/0, lets see how far you can make 
+it. There is another one trying to get there.”
+That is so weird, turtle egg in 0/0/0 and 
+zombies from everywhere start walking there.
+But WHY? And how could you figure something out 
+like this? Well… I’m 99.9% confident that this was
+not found accidentally in-game. Who would 
+come up with testing that. But if you read
+the code around mob AI, it could be obvious.
+Check this out. Here is the zombie entity
+class and it has an AI goal to destroy any egg. 
+Specifically the Turtle_Egg block. This inherits
+from the StepAndDestroyBlockGoal. So this 
+seems to be generally AI code to take a step,
+so walk towards and destroy a target 
+block. And here is that class.
+In the tick method it always takes the mob 
+position but only does something, if the mob
+reaches the target block. Which means the 
+AI to walk to the egg is somewhere else.
+Probably in the other class it 
+inherits from. MoveToTargetPosGoal.
+In that tick function, if we found a target,
+and this tick goal is executed, 
+we would startMovingTowards that.
+So how do we even get a 
+target block to walk towards?
+Where is targetPosition set? Well, 
+look here at the findTargetPos().
+Here it takes the current mob position 
+and searches all blocks in an area around,
+with some nested for loops. if a particular 
+position Is in walking range AND at this position
+we have the target block we want, an egg, then 
+we remember this position as the targetPosition.
+But clearly, an egg at 0/0/0 would not 
+be in range for a mob very far away.
+So this loop is probably not interesting for us.
+So where else is the targetPosition set? And look
+at that. In the constructor the target 
+position is set to the Origin block.
+“The block position which x, y, and z values are 
+all zero”. Sounds suspicious, right? I think we
+are on the right track. Obviously this is just 
+meant as a temporary value. But this means, the
+AI goal is always initialized to 0/0/0 by default.
+Let’s go back down to the StepAndDestroyBlockGoal
+class. Here is the function that determines 
+if this AI goal can start to be executed.
+And here we can see, if the zombie has an 
+available target, this AI goal can be started.
+When do we have an available target? If we 
+have a target position set, which we have,
+it’s never null, it’s initialized with the 
+origin. And then it checks this position with
+isTargetPos. This function takes the corresponding 
+chunk of the world to check the target block,
+and if the block is the target block, so if 
+it is a turtle egg, this will return true.
+So if a turtle egg happens to be at 0/0/0, then 
+this check will always be true. The zombie has
+an available target. In the goal selector class, 
+this is the class decides which goals to execute,
+so basically decide the AI behavior of the 
+zombie, here it will now be able to call start
+on the egg destory goal. Which makes the 
+zombie moveToward the egg on every tick.
+So yeah. If you read minecraft code for 
+fun. Because maybe you want to optimize a
+zombie farm and you want to understand 
+the zombie AI, you could stumble over
+this bug. Maybe you notice the targetPos can 
+never be null, so this makes behavior weird.
+And now understanding this code we can also check 
+if this applies to other mobs. Is there any other
+mob with a StepAndDestroyBlockGoal? turns out, 
+no. The Zombie is the only one that uses it.
+But there is also the more 
+general class MoveToTargetPosGoal,
+that one is used by a few other AI goal classes. 
+while this class is kinda the root of the bug,
+it’s initializing the target position to the 
+origin, this canStart method is safe. it only
+returns true if findTargetPos is true, and that 
+searches blocks nearby. So this AI generally
+doesn’t trigger if the target block is not 
+in range. The zombie bug only happens because
+StepAndDestroyBlockGoal overwrites the canStart 
+method and changes that behavior. So let’s see if
+other AI classes overwrite the canStart method 
+as well, and maybe they have a similar bug.
+CatSitOnBlockGoal looks safe. It does 
+call into the super class canStart
+method. And same for GoToBedAndSleepGoal.
+Fox eating berries goal, also calls the super
+class. Rabbit eating carrots as well. The strider 
+going back to lava. Also calls super.canStart.
+Yeah. all of them call the parent class 
+canStart which will check with findTargetPos
+if the target block is within range.
+Looks like the bug only affects zombies.
+By the way, the server starts to see a bit 
+more activity. I tried to afk sometimes to
+be able to record in case people join. And 
+yeah, I was able to capture a few players
+spawning in my trap. They only can get out 
+of here if they have a fly hack though.
+And turns out, of course they do.
+To record the spawn area I was also
+laying a bit further away behind a tree, 
+and of course players also found me there.
+But where is everybody? I was really hoping 
+people would start expanding my base,
+build their own house or whatever up here. But 
+nothin. I’m still alone. Maybe they don’t play
+on here and just join, or they go on their 
+own adventure, which is of course also cool.
+Maybe in the future I could try 
+to find their bases. I have access
+to the server so we could try to 
+find where they are at some point.
+Anyway… I wanted to build another 
+farm as well. Maybe a small bee farm.
+Candles and honey blocks would be cool. And I 
+build it below the market, but it kinda looked
+like shit. So I decided to try to make like a 
+flowery greenhouse kinda thing? With lots of
+glass. So I I had to gather some more sand and 
+smelt it. And then I just tried to build one.
+By the way this was not planned in creative 
+before, this is me actually trying to make
+something in survival. But I don’t know. It looked 
+kinda bad. Don’t know. I also expanded the bee
+farm with a few more hives that I collected. By 
+the way the barrels on top are used to feed the
+farm with sheers and bottles. I thought it could 
+look nice once we expand the market up here,
+it looks very organic. Anyway. After the first 
+iteration i decided to change a few things. Remove
+the fence posts and replace it with stripped wood 
+logs and added a bit more of a supporting ceiling.
+Cool.
+Bee farm done.
+See you next episode.

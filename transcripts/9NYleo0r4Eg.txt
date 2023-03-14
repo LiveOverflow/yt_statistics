@@ -1,0 +1,80 @@
+I have already made a video a long time ago,
+which is part of the binary exploitation course
+where I talked a little bit about signed and
+unsigned integers.
+And I just wanted to give a little bit more
+context for the video where we abused an integer
+overflow to kill Magmarok in Pwn Adventure
+3.
+So let’s say you debug some application
+and there is a 32 register and you see 0x44434241.
+What does it mean.
+As you know hex values are super cool to represent
+binary values, because 4 bit correspond to
+one hex digit, so there is a really nice 4:1
+match which makes it super clear.
+Anyway, if the binary value is just converted
+to decimal it’s 1.1 billion.
+But you could also say, no I want to interpret
+this byte by byte as ascii text, for example
+if opened in notepad.
+Then it would be the etxt “ABCD”.
+So there is interpretation going on, for the
+CPU it’s just bits, but based on the context
+where this value is used in, it could have
+different meanings.
+And that’s the same way with negative numbers.
+As you may know, a negative 1, -1 would be
+in 0xFFFFFFFF, or all bits set to 1.
+Which might feel weird but it has an awesome
+property.
+Actually we abuse here an integer overflow
+in a useful way.
+You see if we would like to calculate 3 - 1
+or rewritten as 3 + (-1), then we could calculate
+0x00000003 + 0xFFFFFFFF.
+And you would think that doesn’t make sense,
+because in decimal that would be a super huge
+value, so the result would be even larger,
+but because we are confined to 32bit in this
+example, the result would require 33bit.
+And thus we lose the first bit.
+The result kind of wraps around and we end
+up with 0x00000002.
+So we did indeed calculate 3 - 1.
+And that’s the awesome property of it.
+And because a binary number can be interpreted
+in this signed or unsigned way, especially
+for things like comparisons, the CPU has to
+have a way to understand this context.
+And this is why we have instructions that
+specifically are used if the data is signed
+or unsigned.
+And if you just search for “signed” in
+the official Intel Architecture manual, you
+see loads of instructions that have signed
+and unsigned versions.
+And of course this can lead to security issue
+when such an overflow was not intended, for
+example when we want to add 3 billion + 3
+billion, then it doesn’t fit in 32 bit and
+overflow.
+If we continue to use the result for anything
+important, then that’s really bad.
+So that’s why it’s so important to be
+very careful when mixing signed and unsigned
+values.
+But also that numbers don’t grow too big
+or too small and they overflow.
+And in the Magmarok video you can see how
+there are two issues related to that.
+First there is a larger number subtracted
+from a smaller number, causing an overflow,
+which should be now a negative number, but
+it’s compared with a unsigned comparison,
+so suddenly that number was interpreted to
+be super large.
+And the other issue allowed repeatedly to
+add values to a signed integer, until it grew
+so large, that it suddenly wrapper around
+and became negative.

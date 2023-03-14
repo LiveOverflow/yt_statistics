@@ -1,0 +1,220 @@
+Hey I'm on my way to nullcon and this is my
+first time vlogging in a long time.
+I feel super awkward.
+I mean I felt awkward the last few times I
+have vlogged, I haven't done this a lot on
+this channel.
+So that's why I went into this park, which
+is very close by to the conference.
+I thought about vlogging in the city first
+on my way.
+But no.
+couldn't do it.
+But here nobody is around; there is like this
+one guy with his dog in the background, who
+I feel weird about, but otherwise I'm alone.
+so yeah.
+You are not here to listen to my awkwardness,
+I'm on my way to the conference.
+So let's head there.
+Hey everyone.
+welcome to nullcon berlin.
+This is our first edition and we have something
+really cool, for everybody to go green.
+If you use public transport: train, bus, bicycle,
+or walking to the venue.
+Or into the country.
+We will give you something really cool.
+Actually that just reminds me I did come with
+public transport.
+Yes you will get one!
+I will have to show my ticket?
+[yes]
+So I'm really happy to meet liveoverflow,
+because I learned so much from him.
+And I want to say hi to all his italian fans.
+[italian blah blah].
+When I asked you to talk about it, I didn't
+mean you to complement me.
+I mean I learned so much from you, because
+I just started with your videos and then I
+started playing CTFs.
+So yeah that's all.
+I'm here with smaury.
+And smaury has a cardgame he wants to show
+us.
+Yeah this is a cardgame we made at shielder,
+which is my company, and this card game is
+based on this traditional italian which is
+called "briscola".
+And basically in briscola you can play with
+buddies.
+And it's kind of the typical game usually
+you play with your parents or friends like
+during christmas time.
+And we created this deck which is "hacker
+powered", so you can find some references
+about hacking culture.
+For example this here is about injection.
+So you can see this horse jumping around a
+firewall.
+Yeah we chose to publish it and to start selling
+it to donate all the profits to "Informatici
+Senza Frontiere", which is "Informatics without
+borders".
+It's like "[doctors] without borders".
+But for informatics in italy.
+They try to fight against the digital divide.
+Mainly about the pandemic.
+But not just about the pandemic.
+I mean they are out there, I don't know, the
+last 10 years.
+They are a non-profit, so they are not making
+any profits out of this thing.
+And we are donating all the gross profit to
+them.
+So that's it.
+So thank you very much.
+As you heard it's a card game and the profits
+go to a good cause.
+So yeah, check it out.
+Of course I will also link it below.
+BitK.
+Hey.
+This is the famous minecraft YouTuber?
+I saw you being on a panel about bugbounties
+today, right?
+was there anything us bugbounty people to
+know.
+I mean, he just has a lot of complaining to
+do [oh shit].
+yes.
+so.
+You can plug your channel.
+What's up guys.
+If you wanna follow bugbounty content on youtube
+go checkout hacksplained.
+And do it now.
+And subscribe.
+and like.
+Are you hacksplained?
+[yes]
+ahhhhhhh!
+Now you.
+Okay okay.
+If you wanna watch hacking content on YouTube
+be sure to subscribe to pink draconian.
+And well, enjoy the videos.
+Can you point the camera on me, so there is
+footage of me.
+Okay.
+Is it recording?
+okay.
+yeah it's recording.
+But I also don't know what to do.
+I make some shots.
+Let's stop.
+He is good at dancing.
+Like, it's his actual hobby.
+You wanna plug your channel?
+Plug my channel again?
+I'm PinkDraconian follow me.
+subscribe.
+watch my videos.
+[blah blah]
+[blah]
+[more blah]
+[blah]
+okay.
+second day.
+let's go.
+When I did that, I was thinking: "yeah, I'm
+nobody in my docker, and I want to read some data"
+and the challenge is about that.
+and this is getting interesting.
+So let's try to find a way to steal the password
+without being able to modify anything on docker.
+Ok so I'm hear with yaman.
+And he also played the CTF a little bit, and
+he just gives us a quick walkthrough of one
+of the challenges.
+So in this task we are basically given a .c
+file.
+So basically the way I started to solve this
+challenge was like, I quickly skimmed through
+the source code.
+I looked at if maybe something stood out.
+It's a crypto problem.
+Most of the times you have to go out of the
+protocol to have it exploitable.
+So the first thing I saw was like.
+It was basically doing a RSA signature, something
+like that.
+and it had the exponent of 3.
+which is like never a good idea because opens
+so much attacks like coppersmith, and whatever.
+Okay, well.
+He explained the solution to me.
+But it turned out it was a bit too long and
+too complicated for a quick conference video.
+so I link the writeup and the link to the
+challenge below.
+so check it out if you are interested.
+long story short, you can create a signature
+with a nullbyte in it and the string compare
+then fails to properly compare the resulting
+signature.
+And it does a str compare, which is like vulnerable
+to many reasons.
+Like if you have a null-byte.
+When we run this, we see that we first.
+This is the challenge we have to sign.
+it's in hex.
+this is the perfect cube, that includes the
+challenge sentence.
+the challenge words.
+that is a perfect cube.
+yeah we just sent it.
+and we get the flag.
+well done!
+how is it going?
+it's going great.
+yeah.
+yeah.
+Just thank a lot of people and especially
+null and nullcon.
+I basically got my first security meetup at
+nullcon.
+Community meetups.
+And one of the first ones was nullcon.
+So all of this came because nullcon was there.
+So thank you!
+So we had multiple sub-events at the conference.
+we had I think three CTFs, four CTFs!
+One HackIM, one winja, one was by the Google
+guys, as well as the [sorry didn't understand].
+So please, for the winner of the 2020 nullcon
+berlin on-site CTF.
+please join us, team mango!
+With 10.5 solves.
+Anyways.
+You probably noticed one price is still missing.
+that you might have seen before.
+As you have seen here, some have played in
+a team.
+Some people have played alone.
+So we thought what's the best way of giving
+this, to be honest, best price of all.
+The lightsaber goes to, drumrull....... oh.
+place number one, team mango as well.
+When I was talking to mario.
+When I decided let's do nullcon berlin, he
+did mention, that when we spoke around, there
+was an emotional feeling within the berlin
+community, that they would like to have nullcon
+in europe.
+So thank you so much everybody.
+see you in goa.
+I forgot.
+Now is the time to give me feedback.
+Thank you.

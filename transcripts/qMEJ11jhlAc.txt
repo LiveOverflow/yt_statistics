@@ -1,0 +1,134 @@
+hey welcome to another video where I
+just ramble a little bit about the state
+of the channel and where I give some
+background information and just
+generally what's going on the channel is
+doing pretty well
+I got currently about 4500 subscribers
+and it grows with about 150 new
+subscribers weekly and I'm at roughly
+120,000 views and I get roughly 5000
+weekly more views which is pretty
+awesome and that's mostly thanks to
+people sharing it because otherwise it
+wouldn't be discovered also the feedback
+has been very amazing so far I get a lot
+of positive comments they are very
+encouraging I really love reading the
+notifications that I get them and they
+are huge motivational boost for spending
+so much time on something that doesn't
+provide me any income also a lot of
+people write me in private right knee
+emails or right knee reddit messages and
+ask me questions and I really try hard
+to answer all of those so again if you
+are stuck with a certain problem if you
+have some issues or you just want to
+have an opinion about something just
+write me I really love to to respond to
+these kind of messages in a couple of
+weeks or days the risk you are hardwood
+embedded hardware CTF challenge will be
+starting which I'm really looking
+forward to for a long time now you can
+still register until 1st of November on
+their website by solving a very easy
+binary reversing challenge sent them the
+key and the flag and then possibly if
+they have still units left you will be
+able to participate in the CTF and then
+they will send you a little arduino nano
+board with how i understand its
+preloaded with a bootloader that has I
+think individual cryptographic keys on
+them and then as far as I understand if
+I understand the chart correctly they
+will send out all challenges that you
+can then that are encrypted with your
+key and they are put on the Nano and
+then you can interact with the board and
+try to solve these different challenges
+but anyway in any way I'm really looking
+forward to this my hardware resources
+that I have for analysis and stuff
+not that much like I have a soldering
+iron I have some Arduino boards and I
+have a logic analyzer and a multimeter
+but that's about it I'm still really
+thinking about buying a chip Whisperer
+because there will definitely some
+side-channel attacks happening I've know
+what search analytics are I know the
+theory about it I've never done it
+myself directly and I know that the chip
+whisperer system is used also at my
+university by some teams so I think that
+would be a cool platform also I don't
+have a proper oscilloscope which would
+probably also be very helpful in
+identifying signals and all this kind of
+stuff so I contacted keysight and regal
+and asked them if they would be up for a
+little bit of sponsoring they'd give me
+an oscilloscope I show it in the videos
+I use it in the videos but so far I
+didn't get any response so let's see
+what this is going either wise it will
+probably just buy one because I really
+want one anyway so before I started my
+youtube channel I was looking for other
+proper hacking channels on YouTube and
+obviously you find the big ones like
+heck 5 and you find a lot of crap videos
+that how to hack Instagram and they are
+just super bad but since I have this
+live overflow account and I only
+subscribe to other neat channels that I
+discover suddenly YouTube algorithm
+recommends more and more of these really
+good channels and so I start to discover
+so many cool new YouTube channels that
+are actually doing very awesome work and
+they are technical and they are not the
+kind of hacking videos that you
+usually find so let me recommend two of
+them to you that I recently discovered
+one is mica Elizabeth Scott she does
+amazing videos they are well edited they
+are super entertaining and they contain
+so much knowledge it's a blast to watch
+it and you learn so much from it she
+mainly covers harder reversing analyzing
+hardware and all these kind of topics
+and I just get so much from it and it's
+such an enjoyment and they are so high
+quality so you should check it out she's
+definitely deserved more subscribers and
+all she has a patreon go and support her
+because it's just pretty cool
+another cool channel that I have to
+scout because he made a video about my
+old CTF that I did he solved the
+challenges and records himself with it
+and it's set for on the cyberspace camp
+channel and he just recently put out a
+series of short videos talking about
+different anti debugging techniques for
+Windows and those are pretty cool so
+it's just pretty short concise videos
+talking about all those different
+techniques you can do and he knows a lot
+and he has other CTF recordings so that
+is also just a very solid channel with a
+lot of information there and I'm just
+happy that I discovered the channel like
+this and also definitely serves more
+people watching it so that's it for now
+things are going great I have a great
+time I'm very stressed out a lot of
+things are going on right now but I'm
+having a great time and I hope you're
+having too so hopefully see you in the
+next video
+you

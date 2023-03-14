@@ -1,0 +1,331 @@
+Eat sleap pwn repeat.
+The mantra we all live by, the name of the
+collective that organized the 33C3 CTF and
+the name of a, in my opinion, very creative
+challenge.
+It’s an easy challenge, but I think it’s
+simplicity and theme just is an amazing combination.
+I don’t know, it’s something I can totally
+geek out about.
+But let’s have a look at it and I hope you
+understand what I mean.
+ESPR, short for Eat sleep pwn repeat is a
+150 points pwnable.
+Instead of providing us a binary we have to
+exploit, we get a big picture of a t-shirt
+and the server IP and port to connect to it.
+So we are basically blind.
+We have to develop a remote exploit without
+having the binary.
+I saw the assembly on the t-shirt but I kinda
+didn’t trust it to be that simple.
+But when we connect to the service and interact
+with it, it quickly becomes clear what it
+does.
+It waits for input.
+If you enter something it will wait for a
+second and then print again what you entered.
+And that in a loop.
+Exactly what the t-shirt showed.
+The eat square calls gets to read input,
+The sleep block calls sleep for 1 second,
+The pwn block calls printf, which is a hint
+that we can use that to exploit this program,
+And then we have a repeat block, that simply
+jumps back to eat.
+Isn’t this cool.
+They realized that their team name can be
+expressed in a simple exploitable CTF challenge.
+I have some stickers from them here, and you
+can see, that they like to play with those
+four squares and the words eat sleep pwn repeat.
+And now this.
+It’s just awesome on so many levels.
+I mentioned that I distrusted the t-shirt
+print at first, but it was clear that it’s
+a format string vulnerability.
+Because I haven’t looked at the assembly
+yet I used %p to print a stack value as a
+pointer, which will quickly reveal if it’s
+a 32 or 64bit binary.
+And as we can see the addresses are typical
+7f 64bit addresses, we have a 64bit system.
+If I had looked at the assembly I would have
+noticed the R registers like RSP, which means
+64bit.
+Anyway.
+If we enter some input with known characters
+like AAAA and the use %p to leak values from
+the stack, we can quickly find the offset
+of the stack to our input.
+So the As are the 6th value on the stack.
+This becomes important for when we start to
+leak or write values to an address we place
+on the stack.
+If you are new to format string exploits,
+go checkout my format string video in the
+binary hacking course because I will not explain
+this here.
+Now let’s start writing some code.
+First we create a socket and connect to the
+remote server and create a function read_until,
+which will read 1 byte from the socket until
+it finds the message we expect.
+The first thing I want to build is a memory
+leak.
+I don’t know yet where I want to write what.
+And I probably want to know the libc version
+as well.
+To do all this, I need a read arbitrary memory
+primitive, which we can build with printf.
+I will create a function called dump.
+That function will construct a format string
+that will read some memory, but first a bit
+of debugging.
+The format string starts with the address
+we want to read from.
+Earlier in our test this were the AAAA.
+Then in pipes, just to easily recognize the
+leaked values, we can then use format % 6
+dollar, which means it refers to the 6th value
+on the stack, and then we can use p, to print
+as a pointer, or s, to interpret as a string,
+I keep it variable for debugging.
+I also add a unique string, EOF_espr, which
+will be printed and I can use it to read until
+that string.
+And the stuff before the string contains the
+memory leak.
+Quick test with some normal values if we place
+them at the correct offset on the stack and
+are able to print them with %p.
+Ok, that works, and if we would replace the
+%p with %s, then this address would be interpreted
+as the location of a string, and we would
+get some raw binary string returned.
+Or in the case of this invalid address would
+cause a crash.
+But what address do we want to leak?
+My first hope was that the binary might not
+use ASLR which means it will be loaded at
+a default base address.
+I don’t remember exactly which address,
+but simply opening another 64bit binary we
+can quickly figure that out.
+But when we try to dump memory from this address
+it doesn’t work.
+And it dawned on me, that the address contains
+null bytes, and obviously printf will stop
+at a null byte.
+This means we have to move the address at
+the back of the string.
+Because gets will read a nullbyte and place
+it on the stack, just printf would stop printing
+there.
+But now the stack offset would be variable
+depending on the crap we have before, but
+we can solve that by always having a fixed
+length of the crap before.
+We can simply use ljust, to add padding to
+a fixed size.
+Doing it this way, we can sucessfully leak
+memory from this address.
+A little but of trial and error to adjust
+the offsets and padding length, so we hit
+the address correctly.
+Seems correct now, we kan print the address
+4000 from the stack, so now we can change
+%p to %s, to interpret this value as an address
+location of a string.
+And our leak prints ELF.
+This is perfect, because if you look at the
+first bytes of a binary, it starts with ELF.
+So this means the leak works, the binary is
+laoded at the default address, now we just
+need to figure out the next step of the plan.
+We somehow need to find the global offset
+table.
+Because there we have addresses to libc which
+we can leak to calculate offsets to for example
+system.
+And also we need that location to overwrite
+an entry and redirect code execution.
+I actually didn’t realize that that location
+is also fixed without aslr.
+So I could have just used another binary again
+to look up that address.
+But what I did was I wrote code to leak the
+whole binary.
+Basically I created a loop and start at the
+known base address 40-something and then I
+leak the bytes of that address, append a nullbyte
+to the leak, because every string ends with
+a nullbyte, if there were no nullbyte, printf
+would have printed more, until it hits a nullbyte.
+And then I move the address forward based
+on the length of what I leaked.
+And all those raw binary values are then written
+into a file dump.raw.
+I also added a debug output to see the leaked
+bytes.
+But when I run it I quickly noticed that it
+read the ELF header twice, which is wrong,
+but looking closely I noticed that the address
+contained a hex a, which is a newline and
+stops gets.
+Which gets replaces with a nullbyte and teh
+address because 400000 again.
+So i add a simpel check that if a newline
+is in the address I attempt to leak, I simply
+ignore it, which will write a 0byte at its
+place and move the address one further.
+This means that if there was actually an important
+value, I would not get it.
+So the resulting binary might be slightly
+corrupted, but overall it should hopefully
+give enough information.
+Had to fix a small issue in the code, because
+I was overwriting the dump file with every
+leak instead of appending, but then it worked.
+With watch we can look at the hexdump of teh
+file every 2 seconds and see it slowly grow.
+Cool.
+Now let’s lean back, grab a Club Mate and
+chill.
+After a while I decided to check if I can
+open the dump with a disassembler, and it
+worked.
+So this is start, and the first argument of
+start is the main function.
+So we can define this to be code.
+And here we have our eat, sleep, pwn, repeat.
+Awesome.
+It even recognized the symbols from the global
+offset table and so we now know the address
+of those functions.
+With a little bit of code we can now leak
+those addresses.
+It’s boring coding.
+So fast forward skip that.
+Basically we just have to convert the raw
+byte string to a proper number and add soem
+debug output.
+When we leak these addresses mutliple times
+we see that they change, which is normal in
+a system with ASLR, but the past bytes dont.
+This is because binaries are always loaded
+fairly alligned, which means the base address
+will have a couple of zeroes at the end.
+So these lower numbers here are also the offset
+inside of libc.
+This means if we had a lot of libcs, like
+a libc database, we could look for all libcs,
+where gets is at this particular offset and
+thus finding the libc used here.
+Alternatively we could use our dump primitive
+to slowly dump the system libc.
+Luckily, one member of eat sleep pwn repeat,
+niklasb, has such a libc database, or to be
+more precise, some code that can do the searching
+for us.
+So we clone the repository and execute get,
+which will download a lot of common libcs
+and extract the symbols and offsets.
+On OSX you have to tweak it a bit to get it
+to run.
+You need the binutils and also rename some
+tools.
+But then it works.
+Then we can use find to find with the symbol
+names and offsets to identify the libc that
+shares those values.
+And so now we found the libc.
+We can open that libc in a disassembler and
+find the real offset of those functions.
+With the real offset we can now calculate
+the libc base address from the leaked addresses.
+And knowing the offset to system, we can calculate
+the address of the system function.
+Now two things are left.
+First, we have to think about which GOT entry
+we want to overwrite with the address of system,
+and second how do we do that.
+Our code is really small, so there is not
+much choice, but printf is definetly the best
+candidate.
+Because systems expects a string as an argument
+to execute, and there is only one function
+here that also takes one string to do something.
+That is printf.
+So if printf were to be replaced with system,
+we would read an input string, the program
+would sleep for 1 second, then call system
+on that string and repeat.
+We would get a nice shell.
+So now we know what value we want to write
+to what address.
+But how do we do that.
+The GOT entry for printf already contains
+a libc address.
+So a lot of bytes are already correct, we
+just have to overwrite these lower ones here
+with the correct offset.
+Just a note, be careful which leaked address
+you use to calculate offsets, because some
+functions are weird.
+And are implemented in some weird place.
+And I don’t really know why it happens,
+but printf is an example bad address.
+You can see that the libc base I calculate
+iswrong, we expect some zeroes here.
+So gets in this case is more stable.
+Now we make our format string exploit plan.
+We want to overwrite printf, so we can start
+our string by printing the current printf
+GOT address and at the end we print it againj
+to verify we have overwritten it.
+In between we overwrite byte by byte with
+%n, or to be more precise %hhn, which will
+only write 1 byte.
+Each byte write will do 2 formats.
+The first one just prints a variable length
+value, which we can use to write the correct
+value with %n.
+Remember taht %n will write the number of
+characters printed to an address.
+So we want for example %x to print some unimportant
+value but use the width modifier to tell printf
+how much padding we want.
+Using this number we can play with how many
+characters should be printed.
+And at the end we place our addresses where
+we want to write the 1 byte to.
+So at printf GOT, and at offset +1, +2…
+and we will see how much we need.
+Okay so this is now a tedious part.
+It requires some trial and error, but we always
+print the current GOT aentry at the end, thus
+we can verify what we have overwritten.
+In this case the value to write is actually
+dynamic, depending on the leaked libc address.
+Which means we have to use the calculated
+system address and increase the length accordingly.
+Again, just trial and error a bit with adding
+and subtracting offsets.
+In the end I get the math right and I write
+the correct value to the Global offset table.
+And once we get the corerct value, we can
+then add the telnetlib interact snippet and
+then run the exploit.
+The exploitn will leak now libc addresses,
+create a formnat string dynamically to overwrite
+the GOT entry for printf with the address
+of system and then hand over input/output
+to the telnetlib and now everytime printf
+is executed on the server, it will actually
+execute system.
+So we can simply type system commands and
+get back the result.
+And here is the flag: first t-shirt challenge?
+I don’t know!
+But I want that t-shirt.

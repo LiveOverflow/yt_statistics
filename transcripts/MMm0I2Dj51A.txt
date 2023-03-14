@@ -1,0 +1,228 @@
+You should now be familiar with the stack
+level 0 from protostar and especially our
+quick look at what happens when you compile
+this code on a modern system.
+Specifically with the stack cookies.
+In this video I wanna develop a working exploit
+for it.
+And believe me there are a few mountains we
+have to overcome.
+Let’s get everybody quickly on track.
+We have a simple buffer overflow vulnerability.
+Originally the goal was to overflow into another
+variable to change the outcome of an if case.
+But this is not possible anymore because the
+buffer is now placed after the variable - not
+before.
+So to execute the if-case we want, we could
+maybe overflow the return pointer on the stack
+and simply redirect the code execution there.
+But an issue that we face is the stack cookie
+which contains three random bytes that are
+checked before the function returns.
+So in order to overflow the return pointer
+we would have to guess the cookie.
+This means we have to write an exploit which
+executes the target over and over again, millions
+of times always guessing a stack cookie, and
+eventually we should get lucky.
+But before we write that code, let’s first
+develop the exploit as if we know the cookie
+value.
+This input really must be correct in order
+to work once we guess the correct cookie value.
+So we have to debug this heavily.
+Let’s start by opening the binary in gdb
+with the peda extension which makes it look
+nicer and let’s just enter a loooot of characters
+in order to observe what happens.
+Oops stack smashing detected.
+We obviously want to ignore that.
+So let’s set a breakpoint just before it
+would continue to __stack_chk_fail.
+And then set eip to where it would have jumped
+to if the cookie was correct.
+With a simple commands directive we can automate
+this everytime this breakpoint is hit.
+Then continue.
+Segmentation fault, that’s what we would
+expect.
+Awesome.
+Oh…
+Segmentation fault at the return?
+Not segfault because we redirected code execution
+to faulty memory?
+Look at the stack register.
+ESP points to invalid memory, so when the
+return isntruction wants to look up the return
+pointer on the stack it tries to follow where
+esp points to, and that is obviously accessing
+invalid memory.
+Damn… how did we overwrite and modify the
+stack pointer?
+Let’s look again in the disassembly.
+Down here just before the return.
+So a value referenced by the base pointer,
+so a value on the stack is moved into ecx.
+And then ecx -4 is calculated and that becomes
+the new stack pointer.
+And when we look at the beginning of this
+function, we can see that the stack pointer
+-4 is stored in ecx and pushed on to the stack.
+So the stack pointer is also saved on the
+stack.
+I think that’s another mitigation attempt,
+because before we are able to control the
+return pointer, we first have to control the
+stack pointer.
+At first this doesn’t seem to be an issue,
+because this just means we have to write a
+valid stack pointer and point it into the
+buffer we control, and then the return will
+take the return pointer we control in the
+buffer esp points to and we win.
+But the issue is this modern system also has
+now ASLR.
+We can see that if we re-enable aslr in the
+debugger and run it a few times.
+Observe the esp value.
+It’s always different.
+I admit it’s not fully random, but it’s
+more bytes we would have to guess.
+And to hit the cookie AND a valid stack address
+is starting to look bad.
+Let’s say we would know the base memory
+of the stack, would that help us?
+There is even more here.
+Let’s rerun the program again, and this
+time let’s see where esp points to and compare
+it to where the stack actually starts in memory.
+And when you do this a few times you can quickly
+see, that esp varies quite a lot from where
+the stack really starts.
+In fact there is a huge gap with a random
+size of just zeros between the start of the
+stack we use in the code where esp points
+to, and the environment variables that are
+at the actual beginning of the stack memory
+area.
+I think this is another way to randomize values,
+because ASLR would only randomize the upper
+parts of an address and this way also the
+lower bytes become unpredictable.
+The game of exploitation has clearly changed.
+There are more hurdles.
+So does this mean now it’s game over?
+It’s not exploitable anymore?
+We can’t do it with a single input overflow?
+Well.
+there is a way.
+But we have to get creative.
+It’s not that easy anymore.
+Ok so we know there is a cookie on the stack
+and we believe it’s bruteforceable.
+So let’s assume we found the correct cookie,
+how do we go from there.
+We know that a valid stack pointer is stored
+after the cookie, right?
+The value of esp was saved at the beginning
+and restored here at the end again.
+which means we can abuse that.
+we don’t have to overwrite the whole pointer.
+What if we just corrupt the first byte, so
+the lowest part of the address.
+Which means that the stack pointer stays valid
+but suddenly points into a slightly different
+stack memory.
+And maybe we can make it slightly point into
+the buffer we control, which is just a bit
+lower than the stored esp value here.
+So then we restore this slightly off value,
+return can now follow the address as it points
+into valid stack memory and take the address
+there to return into.
+And if it points into our buffer now, we can
+control where we wanna return to, and we could
+return into the if-case that prints our goal.
+We can achieve that by writing enough data
+to the buffer so that we fill up just short
+off the stored stack pointer, and because
+strings end with a zero byte in C, a null
+will be written to the lowest part of the
+stored esp value, thus make it a bit smaller,
+and when we are lucky it points into our buffer.
+Let’s figure out the length.
+So when we run it with the long input, we
+see that esp got overwritten with SSSS.
+One byte is 4 lower than the others, thus
+became an O, which was cauysed by the ecx-4.
+So this means we want to stop right before
+that.
+And when we run it now, we see that esp ends
+now in fc.
+So it worked, because we predicted the lowest
+part on the stack is overwritten with 0 and
+because of ecx-4, so 0 - 4 we end up with
+fc.
+But as you can see, we didn’t get lucky,
+esp points to not our buffer.
+But let’s rerun it a few times and do the
+same and at some point we will get lucky and
+now esp points to our buffer.
+And when we now return we actually return
+into 4d4d4d4d, which is MMMM.
+It worked.
+Actually the randomization of the zero padding
+on the stack makes this work, because at some
+point the lowest randomized value of the address
+will be just right, so that the 0 is the right
+amount of change so esp points into our buffer.
+But you also see it’s not 100% reliable.
+We have to guess the cookie correct and then
+hope that the esp randomization is also nice
+to us.
+But that’s fairly common so I hope that
+it’s common enough to still make it feasible.
+So now all that we have to do is, put it together.
+Let’s write a quick python script.
+We import struct to convert the address to
+4 byte strings.
+Little lambda helper function for that.
+And then we simply make our exploit string
+fill the buffer with mostly the address we
+want to return to.
+We hope we can make esp point into this area.
+And then comes the Cookie value, which we
+later have to write some bruteforce logic
+for.
+Afterwards then comes 4 more bytes, and that’s
+it.
+Then we print it.
+Looks good.
+You see the raw bytes are output with hexdump.
+Write it to a file.
+Let’s set a breakpoint at the cookie check
+to make sure the cookie is in the right place.
+And then we can use the file as input in gdb.
+First breakpoint was the cookie check.
+And we can see we overwrite the cookie with
+COOK.
+Now when I press continue the other breakpoint
+from before will hit and skip tghe cookie
+check and we reach the return.
+Oh and look at that.
+We got lucky with esp and esp actually points
+into our buffer.
+When we now continue we return into the if-case
+that prints the modified string.
+And there it is.
+Amazing!
+So the exploit theoretically works.
+All that is left, is the cookie bruteforcing.
+Unfortunately that deserves it’s own episode
+again.
+It’s just programming, but doing it you
+can learn a lot about linux and I don’t
+wanna squeeze it in here.
+Again, try to do that part yourself.
+You could really learn alot.

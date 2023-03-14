@@ -1,0 +1,153 @@
+last video was quite the dry code 
+reading, and we are not done yet.
+But we are almost through, please bear with 
+me. This video is going to be a bit shorter.
+Last video we looked at the sudo source code, 
+as well as used gdb to investigate what this
+slightly confusing pointer copy loop does. Let’s 
+try to quickly summarize again. First we allocate
+a buffer up here, the user_args buffer. The 
+size for this buffer is calculated by looping
+over the provided command-line arguments, 
+getting their string length, +1 to account
+for the terminating nullbyte, and adding them 
+all up. Our buffer is now large enough to hold
+all command line arguments. But the problem then 
+happens next when we loop over the arguments again
+and copy them into this new buffer. We copy from 
+the from pointer into the to pointer. So we copy
+from an address into another address. BUT we also 
+check for backslashes, and in that case we skip
+one byte. Maybe you know that backslashes are 
+often used to escape special strings. For example
+if you have a string in python, and you want 
+your string to contain double quotes as well,
+you need to escape that double quote, otherwise 
+python thinks this is the end of the string.
+And this loop is the reverse of it. It 
+takes a string with escaped characters,
+and unescapes them by removing them. And 
+this is done by simply ignoring the backslash
+by incrementing the pointer, and then we copy the 
+byte after the backslash. But if thsi backslash
+was now at the end of a string, right before the 
+null-byte, we copy the terminating nullbyte and
+increment the from buffer further. Now we walked 
+over the null-byte into data coming after it.
+And suddenly the string length calculation 
+from earlier doesn’t match anymore,
+and we can copy more bytes than there is space in 
+the user_args buffer. So now we understood that,
+and the remaining two questions are, how do 
+we get here, what conditions have to be met,
+and why does it want to unescape strings here. 
+What’s the purpose? So let’s explore that next.
+
+There is still a curious reason, why this 
+only happens with sudoedit -s. And not any
+other random argument. Why specifically with 
+-s and why with sudoedit and not plain sudo.
+Well, there are more conditions that need to be 
+met, in order to reach this code. And we can see
+that in this mode check. We only enter this 
+unescape loop, if the sudo_mode is MODE_SHELL
+or MODE_LOGIN_SHELL.And a bit further up we see, 
+that also we need to have MODE_RUN, MODE_EDIT or
+MODE_CHECK set. So let’s search for what sets 
+these conditions. If we search for any occurrence
+where MODE_SHELL is set, we can find in the file 
+parse_args.c, the big switch case statement for
+command line arguments. And -s will set 
+MODE_SHELL... on flag. And MODE_LOGIN_SHELL is set
+by -i. Now it sets it on flag, not quite the sudo 
+mode, but if you scroll ALL THE WAY to the return,
+you can see that it returns: mode ORed with flags. 
+And in sudo.c the main function, we can see that
+the return value of parse_args is then the mode. 
+So yes, setting the flags ultimately means we
+set the sudo_mode. Anyway let’s just see what 
+happens with those flags after the switch case.
+When we look further, Here for example it checks 
+if MODE_LOGIN_SHELL and MODE_SHELL is set,
+in that case you get an error that 
+you may not use -i and -s together.
+Anyway, let’s look for more MODE_SHELL usage 
+and we can find this very curious loop with the
+comment “for shell mode, we need to rewrite argv”. 
+And a quick peek into that loop we see that it
+escapes characters by adding a backslash when this 
+if condition is true. So this seems to escape the
+arguments, while the later code here unescapes 
+them. And the conditions for this are almost
+the same. It will escape them if MODE_RUN and 
+MODE_SHELL is set, and it will also unescape them
+when MODE_RUN is set as well as MODE_SHELL. But it 
+will also unescape them in a few other conditions.
+So either we do not set MODE_SHELL, or 
+we ensure that we don’t set MODE_RUN!
+Okay, so let’s explore option one. 
+We do not set MODE_SHELL with -s,
+but we set MODE_LOGIN_SHELL with -i. BUT! 
+Actually in this if, where it ensures
+not MODE_SHELL and MODE_LOGIN_SHELL are not 
+simultaneously set, if MODE_LOGIN_SHELL is set,
+it will actually set MODE_SHELL right at the 
+end. So we can’t avoid setting MODE_SHELL.
+It will always be set by either -s or -i. 
+So the only difference that remains now,
+is MODE_RUN. If we can somehow not set MODE_RUN, 
+but set MODE_EDIT or MODE_CHECK, it should work.
+So how do we set MODE_EDIT? Well right 
+here near the start of parse_args,
+if we execute as sudoedit, 
+then the mode MODE_EDIT is set!
+But on second look, doesn’t this check look 
+weird? “check to see if we were invoked as
+"sudoedit"? Why not just strcmp sudoedit?
+Well! THIS explains our minimal testcase
+that we found through fuzzing. The check here 
+first does a strlenght on the progranme..
+So for example sudoedit, or in our testcase 
+0edit. If it is longer than 4 it will strcmp
+the progname + the length -4. So it will check 
+the last 4 letters of the progname! And so as
+long as the prograname is at least 4 characters 
+and ends with edit, it will enter this mode.
+So this explains why we don’t need it to be 
+called sudoedit. 0edit, blahedit or pwnedit works.
+Isn’t that an amazing pun? PWNED it, or PWN 
+EDIT?! Qualys really dropped the ball on their
+marketing here. They should have called this 
+vulnerability pwnedit. On twitter I reached out
+to the prestigious 0daymarketing institute, and 
+suggested a name change. Let’s see what happens.
+Anyway. Now we understand why it works with 
+sudoedit. So there is only one last question left,
+why does it not work with sudo -s. Is there a 
+way to set MODE_EDIT or MODE_CHECK with sudo?
+So first option to set MODE_EDIT with sudo, 
+would be with -e. But here it also overwrites
+the valid_flags to MODE_NONINTERACTIVE, 
+which is very restrictive with the allowed
+flags and doesn’t contain MODE_SHELL or 
+MODE_LOGIN_SHELL. So we can’t use -e.
+But there is one other way it could 
+work, could we set MODE_CHECK?
+Here. So if mode is MODE_LIST, we set mode = 
+MODE_CHECK! So how can we set MODE_LIST?! With
+-l! But this also sets the valid_flags again. This 
+time to MODE_NONINTERACTIVE and MODE_LONG_LIST.
+But those do not contain the needed 
+MODE_SHELL or MODE_LOGIN_SHELL.
+Okay, this was a lot of reading code, not the 
+most entertaining video I guess. But at least
+now we understand how this vulnerability is 
+triggered. Some code expected arguments to
+be escaped with backslashes, which kinda 
+made sense, because they did get escaped,
+though there was this special condition when using 
+sudoedit, which skipped the original escaping,
+but lead to the later unescaping. And this 
+mismatch lead to a heap buffer overflow.
+Next video I promise will get more interesting, 
+because we can start working on the exploit.

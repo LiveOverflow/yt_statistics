@@ -1,0 +1,176 @@
+A package arrived from the netherlands.
+This can only mean one thing.
+It’s the board for the embedded hardware
+CTF by riscure.
+So let’s see what’s in there.
+We got a couple of stickers, very nice and
+an anti-static bag with the arduino board.
+Let’s remove the staple and see inside.
+So we got a couple of connectors that we can
+solder to the board, and the board itself.
+As you can see the board has a mini USB connector,
+a reset button, 4 LEDs, and several connectors.
+We should solder these connectors to the board
+in order to be able to more easily attach
+cables if needed.
+And we can stick it onto a breadboard.
+To solder the board I use a 3rd hand that
+holds the board for me.
+I apply some soldering flux, which helps,
+and then I simply apply some solder.
+So now we got the long row.
+Please don’t judge my solder job, I know
+it is a bit crooked.
+I don’t do this a lot.
+And then we turn the board around and connect
+the other 6 pins to stick out the other direction.
+Once we are done, we can place the arduino
+board on a convenient breadboard, which is
+great to attach other wires and so forth.
+But turns out I suck at soldering, and it’s
+so croocked, that I can’t really get the
+board in, so I use a paper towel to cushion
+the pressure a bit and apply some force to
+get it in there.
+Then I do some sanity checks, to make sure
+I didn’t accidentally connect ground with
+another pin that shouldn't be ground.
+If you hear it beeping, that means these pins
+are directly connected.
+But these ones are all fine.
+Now let’s have a closer look at the board.
+We can remove the sticker from the microcontroller
+to reveal the exact model number.
+And we start collecting information about
+the board that might be important later.
+For example knowing the exact chip identifier,
+we can look up the data sheet and learn more
+about the ahrdware.
+So here we got an Atmel MEGA, or ATmega, 328P.
+I mean this is not really surprising, we already
+know that the embedded system is an arduino
+nano from the CTF description, but it’s
+good to know.
+We also might understand now, that this is
+actually not an official arduino board from
+the arduino company, but an arduino compatible
+board based on the open arduino design.
+So, now let’s get really started.
+Let’s put the stickers that came with the
+board onto our laptop to make this legit.
+Now we are allowed to connect the board with
+a mini USB cable to our laptop.
+The green power LED is turned on, and the
+red LED is blinking slowly, indicating that
+it’s working.
+Now we can log into the CTF websites.
+Before we can start with the challenges we
+have to personalize the board.
+So the board is preloaded with a custom bootloader,
+which is capable of decrypting the challenge
+binaries and flash them onto the board.
+To tell the bootloader the personal secret
+key, we have to flash this personaliztion
+binary.
+At least that is what I think it does.
+I think this binary might be encrypted with
+a master key that is known to all bootloaders,
+or simply obfuscated, and it will then place
+our real personal key somewhere into the board.
+Maybe it overwrites parts of the bootloader
+data or gets burned into it another way.
+I don’t know.
+To load this binary onto the board we have
+to run a program called avrdude, which is
+a program that allows to flash code onto microcontrollers.
+Riscure already tells us how to do this, we
+have to run avrdude, tell it that it’s an
+arduino board, the processor type, atmega328p
+- which we already know - then the connected
+serial USB device, the baud rate for the serial
+connection, some other flags and at the end
+the flash command, to flash the setup.hex,
+that is the personalization binary.
+I think the easiest way to get a working avrdude
+setup, is to simply download the arduino IDE,
+which is used normally to write and program
+arduino boards.
+It contains an avrdude binary and config already.
+Ok, now that we have installed arduino, we
+can look for the binary in the application
+package, and there it is.
+Now we need to find the device to communicate
+with it.
+We can save the current list of devices in
+/dev, and then connect the board, do it again,
+and diff these two, too find which is the
+correct connected USB serial device.
+But it doesn’t show up.
+This means, that I don’t have a compatible
+driver that can communicate with this usb
+serial chip.
+What we can do is check the device manager
+and have a look at all conencted USB devices,
+and we will find a USB2.0 Serial device, that
+is what we want to talk to, and it has here
+a product and vendor ID.
+Each USB device has that, and when you plug
+a device in, your system will check if it
+has a driver that can communicate with this
+aprticular device.
+In our case it can’t find a working driver.
+But we can use these now to search online,
+for a driver that supports this product.
+We find other people having the same issue
+and we get a link to this chinese vendor site
+with a driver download.
+So the trick to not get compromised from a
+shady chinese driver that you are going to
+install with very high priviledges, which
+you download over an insecure HTTP connection
+is, to just do it very very fast, so your
+brain can’t tell you to not do it.
+Click fast.
+Faster.
+Click.
+gogo.
+And maybe you have to disable even more security
+mechanisms to load this shady driver.
+Once you did that, and you feel dirty, you
+can check again the devices under /dev, before
+and after you plugin the board.
+And there it is.
+A tty and cu usb serial device.
+Now you can also start the arduino IDE, and
+it will show you an available board on this
+port.
+I added an alias for the avrdude binary, because
+it’s in such an obscure long path.
+Also you probably need to specify a config
+file, which is also somewhere in the arduino
+directory, so I added that one as well, with
+-C.
+Now you can flash the personalization binary.
+Cool!
+And next we can flash our first challenge.
+I’d suggest to go with secure filesystem,
+it’s the first one I had a look at and you
+can use it to learn how to communicate with
+the board properly.
+Because that is already is a first challenge.
+I’m sure most of you will run into the issue
+to not be able to send something.
+But you can figure it out.
+Your board is not broken.
+You should also join the IRC channel #rhme
+on freenode.
+There is a lot of hardware reversing talk
+going on, and I’m sure after the competition
+is over in february, a lot of writeups and
+explanations will be happening there.
+Ok good luck to all participants.
+I hope we all will learn more.
+Thanks to riscure and specifically the people
+who worked hard to create this CTF.
+I’m really looking forward to this and I
+hope I will solve at least some challenges.

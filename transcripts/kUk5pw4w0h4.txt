@@ -1,0 +1,146 @@
+In this video we make another excursion into
+reversing C programs. To be specific, we will
+talk about the Global Offset Table (short
+GOT) and the Process Linkage Table (short
+PLT).
+Let’s start by creating a very simple C
+program that just calls a couple of libc functions.
+So I just write two printfs and an exit. These
+two functions are clearly external functions,
+I haven’t defined them myself. And they
+come from libc. When I compile this binary
+with gcc libc will be dynamically linked to
+this binary. Which means that libc is not
+included in the program. With `ldd` we can
+see the dynamic libraries referenced from
+this binary and it shows that it wants libc,
+and it also displays the path on my system
+where my libc binary is. This is great because
+then the program can be much smaller, and
+libc can receive updates without having to
+recompile my binnary.
+But this also means, that the addresses in
+libc might be different for each version.
+So how can I compile a binary to assembler,
+when I have to know the exact address so I
+can create a call instruction? Well this is
+where the PLT and GOT comes into play.
+Let’s open this binary in hopper disassembler
+and let’s have a look at the main function.
+So first thing we notice is, where the hell
+are our printfs()? Why are there puts() calls?
+Well the disassembler saw that we specified
+a constant string, nota dynamic format string,
+thus decided to replace the printf with puts.
+But anyway, we have here our three function
+calls and hopper decided to prefix the name
+of the call location with a j, probably for
+jump. Not sure.
+So if we follow this call, we noticed that
+we don’t end up in libc puts. We are still
+in our binary. Also how would we, because
+libc is not included in this binary. We landed
+in the plt section. The process linkage table.
+And the call to this here is immediatly followed
+up with a jump to an address stored at a nother
+location. And this location got the name puts
+@ GOT. So let’s go there.
+Now we are in a segment called got. The global
+offset table. And the jump will jump to whatever
+address is stored here. And at the moment
+the address that is stored here is referencing
+an external symbol. So…
+So what are they doing here?
+During compilation we don’t know the address
+of puts, or exit. So we just create a function
+trampoline. We call a location we know where
+it is, the PLT section. Which contains a jump
+with the jump location referenced from this
+list (or table if you want). So all we have
+to do, to be able to use external functions
+from a library, is somehow write the real
+address of the libc function in this table.
+And this is what is happening when we execute
+the binary. As you know by now, an ELF binary
+is not just plain assembler code. Before our
+codes get executed, the complicated ELF format
+is parsed and based on that the process is
+set up by the kernel. And during that time
+references like that might get resolved.
+So let’s debug this binary. Let’s use
+hopper this time. First we set a breakpoint
+in main by clicking the red column in the
+right row. Then we open the debugger interface
+with teh buttom on the top right. So let’s
+step forward until we follow the call to puts().
+As expected we arrive in the PLT section and
+are just about to jump to the address referenced
+in the global offset table. Let’s step further
+and let’s see what happens. Oh… nope.
+We don’t go to puts in libc. Somehow we
+ended up right after the jump and push a value
+now on the stack.
+As you can see every PLT entry, also for our
+exit() function, we have this push of a number
+and then a jump to this address up here. And
+when we follow this jump we end up in a function
+called _dl_runtime_resolve.
+We can use the proc file system to have a
+look at the memory maps of this process and
+we can see that the address from _dl_runtime_resolve
+belongs to this ld.so binary. The man page
+for `ld.so` tells us that this is the dynamic
+linker/loader. So this library helps us to
+set upt the external references to libc.
+This function does magic. No idea what it
+does in detail, but it will find the address
+of the puts() function in libc and updates
+the GOT table and also executes puts.
+Now the second time we want to execute puts(),
+the GOT got updated and when we jump to the
+address stored in the global offset table
+we end up in puts() from libc.
+This Global offset table is very very useful
+when writing exploits, because there are a
+couple of things you can do with it.
+First instance, we have an arbitrary write.
+We can write a value, we want, anywhere in
+memory. So you can simply overwrite the address
+in the global offset table for a certain function.
+And the next time this function is called,
+the code will be redirected to whatever you
+entered in the global offset table.
+Let’s say you have a memory leak, for example
+through a format string exploit like from
+the previous video. And the binary doesn’t
+use ASLR. Well, the system itself can still
+have ASLR enabled thus the location of libc
+will always be random. But the address of
+the global offset table in your binary is
+always fixed. So when you can read from an
+address you control, you can read an entry
+of the global offset table, which is an address
+in libc. Which you can then use to calculate
+the offsets to other locations of libc. Which
+is useful if you have to find rop gadgets
+or you want to do a return-to-libc.
+And even if your binary uses ASLR, if you
+are able to leak an address of your binary
+to defeat its address randomization, you can
+then calculate the offset to the global offset
+table and then leak an address of libc that
+way.
+Sometimes you even have a buffer overflow
+or an arbitrary write in a function, but the
+function itself never returns, because it
+calls exit(), or loops forever, thus overwriting
+the return pointer on the stack doesn’t
+help to redirect code execution. That’s
+exactly the challenge in format level 4 of
+exploit-exercises.com. We cannot overwrite
+the return address on the stack, so we have
+to rely on a different technique to gain control
+over the program execution.
+See you next time when we use a format string
+vulnerability to overwrite an entry on the
+global offset table to redirect code execution.

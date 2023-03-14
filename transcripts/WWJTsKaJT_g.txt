@@ -1,0 +1,91 @@
+Something funny happened to me.
+I wanna tell you a story how I got a free
+Burger when I ordered food.
+And use it to explain what injection vulnerabilities
+are.
+So last night I was super lazy, didn’t wanna
+cook so I ordered food.
+I ordered food there before so certain fields
+like the address were already filled out.
+But also the comment field was still filled
+out.
+And on the previous order, in the comment
+field I requested a different sauce for one
+of the Burgers.
+I didn’t realize that and just continued
+and paid online.
+A little bit later the delivery guy shows
+up and told me that he changed the sauce for
+the Country Burger as I had requested.
+Country burger?
+I didn’t order one?
+He said: yeah, you did.
+Look here on the receipt.
+And I look at it and I realized what happened
+the comment I wrote was printed just above
+the other items that I actually ordered, I
+used capital letters to emphasize my request
+and I didn’t notice that it just made it
+look like it is one of the ordered items.
+And so he actually thought I ordered a Country
+Burger and the comment after it was just my
+modification request.
+I mean looking at it now everybody would say
+it’s pretty clear that it’s not an Item
+I order.
+There is no price on it and it’s not bold.
+But this is a fast food restaurant and those
+guys have a lot to do, it has to go fast and
+maybe comments are also not a common thing.
+I can totally see how it happened.
+I offered to pay for the Burger, but he said
+it’s fine.
+So that’s how I got a free Burger through
+an unintended Burger Injection or unintended
+social engineering attack.
+So what does this teach us about injection
+vulnerabilities in software.
+You see, programs are just acting on instructions
+that they have been given.
+Like a guy in a restaurant has instructions
+he gets from the order that gets printed out.
+And in this case data, or this comment, was
+mixed together with business critical information.
+And whoever created and printed out this order
+didn’t make it clear to the entity that
+processes this data, that this is just a comment,
+not an order instruction.
+The bill could have been structured differently
+so that it is very clear.
+And this is always what happens with injection
+vulnerabilities.
+Let’s take SQL injections.
+A programmer writing code that builds an SQL
+query and doesn’t make it clear that this
+user data is just a string, by wrapping it
+in quotes and making sure that no quotes can
+appear in the data by escaping them, then
+whatever processes the query can be fooled.
+Or cross site scripting.
+The programmer writes user data into a surrounding
+HTML document without explicitly marking this
+data to just be plaintext without special
+characters.
+Thus somebody can inject HTML tags like script
+tags and perform a XSS attack.
+And obviously there are many many cases in
+security where the underlying security issue
+is an injection.
+Yes SQL injections and XSS have a very different
+impact and are very different, but only at
+the surface.
+The underlying principle is exactly the same.
+So whenever you place data into some other
+structure that gets then handed to another
+entity for further procesing, may this be
+a webserver, a database server, a browser
+or a fast food employee, you have to make
+sure your data is clearly marked as what it
+is.
+Just data.
+Not an instruction meant for that entity.

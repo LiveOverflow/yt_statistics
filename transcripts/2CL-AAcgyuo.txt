@@ -1,0 +1,242 @@
+The last few videos were already getting really
+difficult to follow and required a lot of
+concentration and patience to understand them.
+So I’m happy that we can now move on to
+the networking challenges from exploit-exercises
+protostar, which will be a lot easier because
+we have to establish some basics first.
+Let’s have quick look at networking level
+0.
+The description says you have to convert strings
+to little endian integers.
+And this level is very easy, but to fully
+understand what’s going on, the code is
+not quite enough.
+I show you why.
+So main calls a function background_process
+and passes it a name and the user and group
+ID it will run with.
+But this function is not a common libc function.
+You can also check /etc/passwd for the user
+id 999 and you will notice there is no such
+user.
+This might seem weird but just don’t think
+so abstractly about computers.
+What does it mean to have a user on a linux
+system?
+In the end, a user is just an ID, a number
+in memory, and for example an owner of a file
+just means that this file has this number
+as owner set.
+Now if the user is listed here in the /etc/passwd
+file, linux will be so nice and display the
+name instead of the number, but under the
+hood it is still just an integer.
+So even though there is no name assigned to
+that ID, you are still free to use it.
+Anyway, back to the code.
+The other functions such as serve_forever
+and set_io are also not known functions.
+And when you look at the includes, you will
+notice that it references a common.c file.
+So the author of this challenge implemented
+a lot of the code in a different file and
+we don’t know what it does.
+But one function is here, and that is the
+run() function.
+You can see that it is called at the end of
+main().
+Run generated a random number, tells us that
+you should send that number as little endian.
+Then performs a read from a filedescriptor,
+in this case from standard input, interprets
+this input as a number and compares if it’s
+the same as the random number before.
+So just a simple test.
+As I said earlier, we could solve the challenge
+without knowing these unknown functionsbelow
+, because just reading the comments and function
+names tells us everything we need to know,
+but as you know, we are not satisfied on this
+channel when we ignore underlying concepts.
+We want to understand computers better.
+And these functions implement two interesting
+concepts that are mentioned here, one is running
+the process as a daemon, and the other one
+is about networking and sockets.
+So how can we figure out what it does?
+Well we know already everything we need, to
+be able to reverse engineer this.
+So let’s start by exploring the behaviour
+of the program before digging deeper.
+When you try to run the program, nothing happens.
+But when you look at the running processes
+you can see that net0 is already running.
+So let’s quickly switch to the root user
+so we cann kill that process and start it
+ourselves.
+The default root password for this VM is “godmode”.
+Now we can kill net0 and we can verify that
+it is not running anymore.
+So, let’s execute it again.
+Nothing happens?
+But if we check the processes we can see that
+it’s running again.
+So what happened?
+Let’s kill it again and start it with strace.
+So it finishes with an exit but what happens
+before?
+It seems to open a net0.pid file with write
+permissions.
+Then it changes the user and group id to 999
+with set effective uid and gid.
+So this means the process drops it’s root
+permissions, which is uid 1 down to user with
+id 999.
+After that it calls clone().
+The manpages says that clone creates a new
+process similar to fork.
+So this will spawn a new process as a clone,
+a copy, of itself.
+And the return value is the process ID of
+this new process, which is equal to the value
+written into the .pid file.
+So that file just helps you keeping track
+of the new process you created.
+And after that the parent process exits and
+leaves the child process orphaned.
+This is literally referred to as an orphaned
+process and because we did this intentionally
+we also refer to this now as a daemon.
+It’s now a background process.
+So what we can do is, we can run strace with
+the -f flag, to follow child processes created
+instead of staying in the parent process.
+When we do that, we see that after the clone
+we attached to the new process and in the
+background the old process exits.
+Then we change directory and open up /dev/null,
+which is another special pseudo file that
+acts like a blackhole.
+And then we dup the stdinput, stdoutput and
+stderror of this process, which basically
+means we bend all these standard streams to
+point into the blackhole.
+Basically we just throw away anything.
+And then we write the child’s process id
+to the .pid file from earlier which had filedescriptor
+number 3.
+Now the fun part starts, a new socket is created.
+A socket is used for network communications
+and you can choose what kind of socket you
+want with those flags and settings.
+But most importantly is then the call to bind,
+which attempts to bind this process here to
+the port 2999.
+Which means that if the operating system receives
+a packet that want’s to establish a connection
+with this process, it will do so and then
+forward the packet with data inside to the
+process.
+But!, this function call fails because the
+address and port is already in use by another
+process.
+Which makes sense because we called net0 already
+way earlier.
+So let’s kill the process again and retry
+this.
+OKAY!
+This looks great.
+Now we listen on the port we opened and are
+waiting for a packet to arrive with the accept
+syscall.
+So let’s open a second terminal and use
+netstat to find this listening process.
+And here it is.
+On port 2999 the process net0 is listening.
+Cool.
+Now let’s use netcat to establish a TCP
+connection with this port.
+This will cause the accept call to return,
+because a new connection got established.
+And immediatly after accept you see another
+call to clone, which creates another process
+to now handle this server-client connection.
+This way another user can also establish a
+connection and doesn’t have to wait until
+you are done, because you have now your own
+dedicated process.
+Also accept returned a new filedescriptor
+that references this socket.
+So like with regular files you can now perform
+read and write with this filedescriptor, like
+you would with any other file.
+The kernel underneath makes sure to send the
+data you write as a TCP packet to the client.
+And when it receives data it will make sure
+that you can read it from this socket.
+So now it will change the std input, output
+and error streams from /dev/null to this new
+filedescriptor.
+And the program can then just read from stdinput
+and will read the data you sent it.
+And that is what the run function does.
+If you compare run with the last two syscalls
+we first have a write to stdout which came
+from this printf here, and then an fread from
+stdin and this is where we are right now.
+When we now type a line into netcat, netcat
+will send a packet with this text through
+the network to the program, the server.
+And on the server side you can see that it
+read the string you sent to it, and then it
+performed the write telling you that it is
+the wrong number.
+That’s the failed printf in run().
+So let’s summarize what the hidden code
+is doing.
+It first deamonizes by cloning itself and
+killing the parent, to become an orphan.
+Then it starts listening on port 2999 for
+TCP connections.
+Once a connection is established, and we will
+have a detailed look at the TCP protocol some
+other time, it will create another clone of
+the process to handle this established connection.
+While the parent is ready again to accept
+another connection in parallel.
+The child process that handles the connection
+is now basically just calling run().
+So in simple terms you can say, the program
+runs as a background process that executes
+run() for every client that connects to it.
+Awesome!
+We understood that.
+Now let’s solve the challenge.
+First of all we need to get the string representation
+of that number.
+We can use python for that, specifically the
+struct package - which we already used before.
+So with struct.pack we can convert a number
+to the byte string representation.
+But as you can see, the resulting string doesn’t
+use characters we can type with the keyboard.
+We can print these byte values with echo and
+-e, but simply piping this into nc doesn’t
+work, because the number is randomized.
+But we can use a simple trick.
+We can use echo -e, but inside of the quotes
+we use backticks to execute cat with a minus,
+which simply redirects anything we type to
+the output again, and the output is then placed
+in the quotes of echo.
+So when we now pipe that into netcat, we see
+the number and cat is waiting for input, we
+use python to convert the number and then
+we simply paste the escape string back into
+the other terminal, hit enter and then use
+CTRL+D, to indicate we are done with input,
+which closes cat and echo will send the string
+to netcat.
+And that works, we get the sucess “thank
+you sir/madam message”.

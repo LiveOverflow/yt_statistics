@@ -1,0 +1,367 @@
+Last video was pretty boring reversing. And
+I also told you that I gave up and looked
+at a write-up, which told us the the main
+component in the key verification check is
+RSA encryption or decryption. I was really
+surprised because I was not able to find out
+that it’s RSA. But now that I know it’s
+RSA I don’t just wanna write the keygen,
+I want to understand how RSA is implemented
+in assembler here, so that I learn and in
+the future I will then be able to recognize
+RSA again. So let’s head right in.
+We have encountered RSA on this channel before,
+and I recommend to watch that one as well
+to learn a bit more about it. But let’s
+have a quick look on wikipedia page again.
+RSA has a public and private key. And at the
+heart of the RSA encryption or decryption
+is a modulo exponentiation. To encryp you
+take the message, which you converted to a
+number and raise it to the power of the public
+key modulo the public exponent n, and to decrypto
+you raise the encrypted message to the power
+of the private key d modulo n. So what we
+are basically looking for in assembly is simply
+an algorithm that implements exponentiation
+with modulo. Modular exponentiation is a type
+of exponentiation performed over a modulus.
+The big problem with this simple math is,
+that our CPU only has 64bit registers and
+not really instructions for exponentiation
+or modulo. So these have to be implemented
+by an algorithm. Not only exponentiation has
+to be implemented by an algorithm, but we
+are dealing with large numbers that don’t
+fit into 64bit, so you can’t simply add
+two numbers that are much larger with a simple
+instruction.
+And apparently all of that is what is implemented
+here.
+So the approach that I took to understand
+the assembler code was to meet in the middle.
+This image shows a function call tree from
+here. Here is our function we enter. And these
+leaves were the super simple functions without
+any outgoing ones. So they can be understood
+in isolation. During my own failed analysis
+I actually reversed these very simple functions
+but I couldn’t see the wider context of
+it. What they are used for. So I will show
+you what the simple components do, and then
+we research basic modular exponentiation algorithms
+and see if we somehow get the wider picture.
+So here is the function that is supposedly
+implementing RSA. Let’s follow the references
+of unknown functions until we reach one of
+the simple ones.
+Okay, this is a simple loop and has no other
+outgoing functions.
+So here we have a clear for-loop again. Initilise
+i with 0, increment down here and the cindition
+is comparing i to the value coming from a
+parameter. So that parameter is clearly length.
+And inside the loop we then see that i is
+used as an offset into some buffer, in fact
+it’s used to load a byte from two different
+buffers, so we can take that as buffer1 and
+buffer2. And these were also our parameters.
+So we take that byte and then we add it. Together.
+Then we load some other byte which was initially
+set to 0, but down here we can also see it
+set again, so let’s call it a temporary
+value for now. That value is moved around
+a bit but then in the end added onto the previous
+add result. Then we find another temporary
+value. It’s always written here and used
+here. So we write that add result of those
+bytes and that one temporary value into it,
+but load it again, shift it right by 8, and
+move that result into the first temp value.
+So if our add result was larger than 1 byte,
+so if there is something left after the shift
+right, that is what is stored in that first
+temp value. Then we load the add result again,
+only take one byte from it, so these are the
+lower 8 bits then and move that into the offset
+of the first buffer.
+That is a very clear add implementation for
+large integers. Integers that span as many
+bytes as you want. Was this to fast, do you
+not understand how this is implementing an
+addition over large integers? Let’s do it
+again while at the same time we do some elementary
+school math.
+Let’s say you want to calculate 151 + 272.
+How do you do that in elementary school? You
+write it like this and then you go digit by
+digit.
+So 2 + 1 is 3. Boom. 7 + 5 is 12, so that
+is more than a digit, so you know what you
+have to do? You have to cut it off there,
+take the one as a carry, remember it for the
+next round and just keep the 2. Then comes
+the last digit, 1+2 is 3, but we also have
+a carry of 1, so we add 1 and the result is
+4. 423.
+Now quick recap of the assembler code, we
+load one byte from each number, it’s like
+digit, we add it together, we check if we
+have a carry that we have to add as well!!!
+Right? So that’s the carry. Then we do the
+shift right of 8 bits, which would now get
+anything that doesn’t fit into the byte,
+into the digit. We cut off this byte, and
+remember this cut off part in the carry for
+next round.
+And we only write down the byte that we just
+cut off in the first buffer as a result. Makes
+sense right? Super simple.
+So we can change the type and name of this
+function. The first two parameters are the
+two numbers A and B, the last parameter is
+the length of the buffers that holds A and
+B and the function is simply called add.
+Now when we back out we find another unknown
+function, but that one does a bit more, though
+it has also a reference to another simple
+function.
+This one looks super similar. And we can very
+quickly assign the same variable names as
+before. This is i, the length, the carry and
+so forth.
+And instead of a simple add, we see an add
+and a subtract here. Could this be simply
+a subtract function? But why then the add?
+So let’s see. The subtract is done on r10
+- edi.
+R10 is loaded from rcx + an offset. The offset
+is i and rcx is the first buffer. Ok.
+So a byte from the first buffer is taken and
+subtracted by edi. Edi is coming from this
+add.
+Edi here is the byte from the second buffer.
+And r11 is from r8, r8 is from di, di is from
+sil and sil is the carry.
+So we do byte1 - (byte2 + carry). That’s
+exactly like elementary school math again.
+If we have a carry we add the carry basically
+to the second value we subtract and subtract
+it from the first.
+So yeah, this is simply sub. We can also change
+the type here, A - B, and the length of the
+buffers. Cool.
+So we understood these functions. Like I mentioned
+at the beginning, I figured that out on my
+own before I knew it was RSA, and so now you
+are on the same level. Next I want to research
+how RSA or better to say modular exponentiation
+could be implemented.
+Actually from a hardware security lecture
+at university, which I also mentioned in a
+video where I introduce hardware side-channel
+attacks, I already introduced such an algorithm.
+Exponentiation by squaring. Let’s checkout
+wikipedia.
+exponentiating by squaring is a general method
+for fast computation of large positive integer
+powers of a number.
+And here it shows how it’s done. If you
+have x to the powe of n, you perform this
+recursive algortihm here.
+If the exponent n is even you just square
+your base x, ad if your exponent n is odd
+you also square the base but also multiply
+the base to it as well. And then that result
+is the new base, the new x and you update
+the power. This is defining a recursive algorithm
+but it can also be written as a easier iterative
+loop. Especially when you work with bits.
+Because in binary the number is even when
+it ends with a 0 and odd when it ends with
+a 1. And division by two in binary is basically
+just removing the last digit.
+Right? So in binary you just go through each
+bit, on a 0 you simply square and on a 1 you
+perform a square and multiply.
+This means the pseudocode of it looks like
+this.
+For each bit of the exponent we perform the
+suaring, but if the bit was 1 we do an additional
+multiply.
+So if we look again at our function, we should
+maybe find that. Let’s first define the
+parameters of this function. If we assume
+this is RSA then the first parameter here,
+which we called radom_buf at first is in fact
+the RSA modulus n.
+And is the public exponent e. So we can also
+name the parameters of this function now.
+Modulo n, the length of n, e, the length of
+e, the empty buffer which will probably be
+our result and the user input data, that is
+our cipher message we will decrypt.
+Let’s go into the function and also name
+the local variable based on the parameter
+names.
+Xor esi, esi will zero out esi, so this memset
+will zero out the result buffer. Then we have
+a memcpy and it copies the data, our user
+input, into a new buffer that was allocated
+on the stack here. You see how it subtracts
+from the current rsp value, so it makes space
+on the stack.
+Then we have a for loop. Init i = 0, and the
+loop condition depends on the length of the
+exponent buffer. So the length is loaded,
+shift left by 3, that is equivalent to a *8
+and then we compare it to i. Because e is
+1 0 1, thus the e length 3, this loop go from
+0 to 3*8 - 24.
+Then inside the loop we have seen this kind
+of pattern before in the base32 encode algorithm.
+Here we load i, and divide it by 8. So that
+will be 0, 1 and 2, which will be used to
+load a byte from the e buffer. So for example
+this will be 0 for the first 8 iterations
+of the loop. And then here i is masked with
+0x7, so that is the modulo 8. And then a bit
+is shifted by this value.
+So this produces the same pattern like in
+that other video. So here we go over each
+bit of the public exponent. And if the bit
+is set we execute this part, if it’s not
+set we skip it.
+Does this remind you of something? Look at
+the pseudo code again. Here it says we go
+over each bit of the exponent and then we
+execute the multiply if the bit is set and
+square everytime.
+That is the same loop pattern here, or is
+it? It’s the same function. It’s not different.
+Like one is square and one multiply. And don’t
+call me stupid now. It took me a bit to remember
+but eventually I figured it out. when you
+square x, you can also write x * x. So there
+you have a multiplication.
+So this function should be multiplication
+including modulus. It does take the modulo
+n as a parameter, and the outer function here
+doesn’t appear to do the modulo.
+Let’s look into that function and start
+again by naming the local variables based
+on the parameters we passed to it.
+We know that these two buffers hold the data
+that is being multiplied, so that’s A and
+B and this unkown buffer will probably hold
+the result.
+Then we have another for loop. And the same
+pattern of multiplying the condition length
+by 8, and here the divide by 8 and shift by
+up to 8. So this is again checking single
+bit,s and the buffer it is checking is, B.
+So this loops over the bits of B.
+If the bit is set it will call this add, and
+otherwise always this add here.
+Mmhmh… that is kind of similar to the modular
+exponentiation. There we looped over bits
+and multiplied to achieve the exponentiation.
+And here we loop over bits and add numbers
+to achieve, hopefully multiplication.
+So how can you multiply by adding?
+Well let’s see what is being added?
+Ok we know the result, but what is var_38.
+It was used up here in the memcpy so it holds
+a copy of the number A.
+So in every loop we do A + A, so we double
+it. And if a bit in B is set, we add this
+A to the result.
+If you don’t see why this also implements
+multiplicatio, we have to go back to elementary
+math. Let’s multiply two numbers. 123 * 102.
+So we first do 1 * 3, 2, 1
+Then 0, then two times 3, is 6, eh 4, and
+2.
+Then we have to add these up. 12546. Ok so
+here is an adding step involved. ANd that
+is actually the same that is happening here.
+Let’s do an example with binary numbers
+then it becomes clear. Let me also kinda do
+it in reverse order, so we start with the
+first bit, not the front.
+We find the first bit which is set, so we
+note down, 0 1 0 1, then we have a 0 we note
+down, and then another 0101.
+Now if we compare this to our loop, we would
+have in the first step added the current A
+to the result. So that’s this line. Then
+we would double it, and in binary, doubling
+the number is just shifting it by 1 to the
+left. So we add a 0 at the end. See where
+this is going?
+Then in the next loop we look at the third
+bit, where we now add the doubled value. And
+the doubled a value in this case is now 10100.
+I hope I made it clear. So this clearly implements
+multiplication. However what is the other
+function? It takes the intermediate result
+and the modulus. So I guess that one implements
+the modulus.
+Let’s name again the local variables and
+have a look at the obvious for loop. Though
+this time the for loop is initialised with
+the length and counting down to 0.
+And in the loop we see that a byte from A
+and the modulus is loaded and compared. Quick
+reminder, the modulus was the buffer with
+the random looking data.
+So it goes over each byte from the front comparing
+the current value to the modulo. If the value
+byte is smaller than modulo byte then that
+means the whole value number is smaller and
+then we just leave the function.
+If the byte was larger, then our value is
+larger which means the modulo has to be applied
+and it does that here with a subtraction.
+It’s subtracting the modulus from the current
+value. But if the bytes were the same we keep
+looping until we find a larger or smaller
+byte. So essentially this is just a check
+if the value is larger or equal than the modulus,
+and if that is the case we subtract it. That
+means if our value was more than twice the
+modulus, then this wouldn’t quite work,
+but that will never be the case. Because this
+is done in a loop constantly with only additions
+before, so immediately when the add makes
+the value larger, it will cut it back down.
+Amazing. Now we covered all functions and
+we finally were able to see that yeah, this
+implements RSA.
+I have never looked so closely at algorithms
+that implement exponentiation, modulo or multiplication
+with larger integers in assembler, so maybe
+I would have solved it if I had known that
+before. But as you know, it’s all about
+learning and studying new things and so even
+the fact that I surrendered and looked up
+a write up doesn’t matter. I’m suuuper
+happy that I was able to fully understand
+it now. And I’m sure I will recognize RSA
+in assembler next time. This is what CTFs
+are for.
+So indeed, we have RSA decryption here. Our
+DLC unlock code, at least the first 12 bytes,
+is encrypted text, and then we compare the
+decrypted data to the buffer that was created
+before. The buffer that was combining the
+xored last 4 bytes of the unlock code with
+the PWNADV3 string.
+Now all that is missing is to use everything
+we learned about the key verification and
+create a keygen.
+But this video is getting pretty long so I
+will create a short additional video just
+implementing the keygen, and I will release
+that in a few days. So you have the chance
+to implement your own keygen now.

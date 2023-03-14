@@ -1,0 +1,334 @@
+I was walking around the financial district,
+when I stumbled upon this strange device.
+Does anybody know what it is?
+It does not have any recognisable logos or
+marks, only the letters "V1" written on one
+side and a USB connector on the other.
+Here is a photo.
+It probably is some kind of memory, but it
+has an unusual design.
+I will check it when I arrive at home.
+I finally arrived at home.
+I connected the USB device to my computer,
+but it looks that it is permanently locked.
+Now I am curious about the device and its
+content.
+Would I be able to unlock it using Fault Injection?
+Hey guys, this was a reenactment of the story
+in the description the Fiesta challenge from
+the riscure embedded hardware CTF.
+I’m really excited about this one.
+So check it out.
+The device is permanently locked, we can imagine
+that the code could look something like this:
+A loop with a condition that will always be
+true, so an endless loop.
+And it just prints “Lock”, which sucks,
+because we want to get to the code after the
+loop, where it prints the secret.
+“Clearly there is no way to reach that code.
+Ever.”
+- that’s what a software developer would
+say.
+But bear with me.
+We will perform a hardware attack and glitch
+our way out of this loop.
+I’m so excited about this challenge it was
+my favorite thing to experience and the perfect
+end to the riscure embedded hardware CTF for
+me.
+Get ready to get your mind blown.
+
+I have some theoretical knowledge about hardware
+attacks from university and also watched some
+conference talks about it.
+Which is just theoretical knowledge, but least
+I had somewhat of a plan.
+So the challenge is a fault injection challenge,
+which means you kinda screw with the hardware
+so that it does something wrong.
+And there are several ways how you can perform
+a fault attack.
+For example you know from movies how an EMP
+can crash electronics, so trigger a small
+electromagnetic pulse to the chip and it might
+do something weird.
+Or the chip runs from a clock at a certain
+speed and weird things happen once you let
+it run faster than intended or a lot slower.
+But what I will do is a power glitch.
+Which means I want to cut the power supply
+for a really short amount of time, so that
+the device does not reset, but it does something
+weird.
+And so to do this I need to build something.
+I choose to do it with an FPGA developer board
+that I have still laying around.
+An FPGA is for now just like any other electronics
+board, something that you can program to do
+whatever you want.
+In my case I want to use the switches to control
+the length of the power drop and a button
+as a trigger.
+And I want to use a single wire as an output
+of the FPGA to control an electronic switch
+that turns on or off the power supply - so
+a transistor.
+So let’s focus on the first part, programming
+the FPGA so that it does what we want.
+If you are a software developer then you might
+find the code that you write for FPGAs very
+weird.
+At least for me it took quite a while until
+it clicked for me.
+Because you are not writing sequential programs,
+but you are actually just writing a definition,
+a description of a digital circuit.
+The same description languages are basically
+used in designing real chips like CPUs.
+And so what you are looking at here is a very
+very simple chip that I have designed.
+This is just a first test to get into writing
+verilog code again but let me try to explain.
+Like I said I’m describing the behaviour
+of the chip here.
+And at the beginning I’m saying, this chip
+has a few inputs for example a switch a button
+and the clock.
+So the FPGA board also has a clock signal.
+Which is just 0,1,0,1,0,1,0,1…
+And I define some outputs: two LEDs and a
+regular output pin on the board.
+Then I define some internal registers, so
+a small memory cell that remembers some values.
+I already defined a 32bit counter register,
+but ignore that for now.
+And a glitch_register, which will be the output
+for the glitch so 1 power is on, or 0, power
+is off.
+Now I connect these internal registers with
+an actual output of the chip.
+Imagine really wires going from the glitch
+register to the output.
+So the LED as well as the pin output are directly
+connected to the register value.
+And I also connect the button input to the
+other led output, so obviously when the button
+is pressed, the LED will turn on.
+You see, really just describing how the chip
+is wired up.
+Then I set some initial values, these values
+are set when the device powers on.
+So the counter for now is set to start at
+0, but the glitch power output is 1, so turned
+on at the start.
+And then comes a block that just describes
+what happens in each clock-cycle.
+Everytime when the clock signal has a positive
+edge, so a rising edge, it will do the following.
+It will take the value in the glitch register
+and invert it.
+And you know the glitch register is directly
+connected to this output pin, so that pin
+will just wiggle 1,0,1,0,1,0 with each clock
+cycle.
+THen you just compile the hardware definition
+and program the FPGA.
+And by programming the FPGA I don’t mean
+it writes some kind of sequential assembler
+code to some memory.
+This is not a processor.
+You can build a processor with it, so it’s
+kind of a layer deeper.
+But it basically contains a lot of digital
+building blocks which will be connected together
+in a way, that it does what you described.
+So yeah it’s a lot of magic.
+But it’s quite fascinating how it works,
+so you should look that up.
+And then we can look at the oscilloscope and
+see that it works.
+You see that the output pin here constantly
+goes 0,1,0,1,0,1.
+Cool huh?
+Now I just have to write a bit more verilog
+code to get the behaviour that I want.
+So for example I want to use the switches
+of the board to set how long the power should
+be turned off, so I have to include them in
+another definition file.
+Developing this hardware stuff is really frustrating
+at the beginning, but I learned it on my own
+a few years ago, because I heard that FPGAs
+are awesome, I think it was just the time
+when bitcoin people started to implement mining
+on FPGAs.
+The verilog code is still very short, because
+it’s not a really complicated circuit.
+But let’s see.
+So first of all, everything here happens when
+the FPGA sees a rising edge of the clock.
+And then the stuff in here doesn’t happen
+sequentially it just defines what happens
+when the rising edge is seen.
+It’s all simultaneously, it’s connected
+wires in a digit circuit not a program.
+So if the current state was idle, which it
+is when the device it turns on, it checks
+if the button is pressed.
+If the button is pressed the state will be
+set to glitch.
+So with the next clock cycle now the FPGA
+is in the glitch state where it will output
+a 0, to indicate the power will be turned
+off and start incrementing the counter.
+So with every clock cycle it will now keep
+incrementing this counter.
+At some clock cycle in the future the counter
+will have the exact binary value of the switches.
+So with the switches you can obviously set
+a binary value with 0s and 1s.
+So if that is reached the state will be changed
+to holdoff.
+By that I mean I don’t want to accidentally
+glitch multiple times after eachother, because
+a glitch is super short, and when I don’t
+release the trigger button fast enough, it
+could glitch again.
+So holdoff will output a 1 again, so that
+the power is turned back on, but also use
+a counter to wait for a while.
+And when enough clock cycles happened it will
+go back into the idle state where we wait
+for the button press again to perform another
+glitch.
+So now we can have a look at that with the
+oscilloscope, you can see that the power is
+high, and when we press the trigger button,
+the power will drop to 0 for a very short
+amount of time.
+You can see here the scale of the oscilloscope
+in the nano seconds.
+And with the switches we can set a counter
+value to indicate how long a glitch should
+be.
+Oh this looks really good.
+I think we are ready to go.
+So now we just have to wire up our target
+so we control the power.
+This is actually a bit tricky, because the
+board gets the power through the USB cable,
+which also carries the serial communication
+so we can interact with the board.
+But let’s go step by step, first of all
+let’s take care of the power.
+The FPGA board does not run with 5V, so we
+have to use a small circuit to convert the
+3.3V to 5V, which we already did for the power
+side channel analysis a few videos ago.
+So I just reuse the unidirectional level converter.
+Looks complicated but does nothing else than
+being able to switch 5V with a 3V signal.
+And we can hook now that 5V up to the VCC,
+the power in of the board.
+You see you don’t have to go through the
+USB cable, you can just directly connect to
+the power supply.
+Now we just need to somehow be able to interact
+with the board via serial.
+As you know those arduino boards have an extra
+chip on there, a USB to UART so serial converter.
+Which is great, because we already have the
+USB drivers for that installed on my laptop.
+Now I just take an arduino UNO that I have
+and remove the atmega microchip.
+So basically now only the USB to UART chip
+is left and I can directly connect the RX
+and TX to the target board.
+When I now establish a serial connection with
+this arduino UNO board, what I actually do
+is, I talk directly to the serial of the challenge
+board.
+And here is the complete setup.
+We have the FPGA which performs a power glitch
+which can configured with the switches.
+And pressing the button will actually do it.
+The 3V glitch output of the FPGA is converted
+to 5V via the unidirectional level converter
+and then is connected to the VCC, the power
+in of the target board.
+So when the glitch output of the FPGA drops,
+the power supply to the challenge board is
+cut for a short moment.
+And to interact with the board via serial,
+we have hooked up the USB to serial converter
+chip from another Arduino.
+Awesome.
+Now all we got to do is to connect to the
+serial so we can observe the “LOCKED”
+message, and then play around with the length
+of the glitch.
+You can also see that the power doesn’t
+completely drop like it did before without
+a target.
+I think maybe it has something to do with
+the capacitors on the target board that reslease
+charge when the power drops.
+But it actually is not too bad, so the power
+doesn’t completly cut out, but just drops
+a little bit under the recommended voltage
+threshold.
+I think that’s better for a glitch.
+So when you play with it sometimes you glitch
+the board so hard, that it resets.
+Which is not what we want.
+And sometimes it even loses the program you
+flashed on it.
+You can see here that after the glitch it
+started blinking red, which means the program
+was lost and the bootloader waits for it to
+be flashed.
+No idea why it happens but you can see, that
+glitches are somewhat dangerous and you could
+theoretially brick the board if you glitch
+a critical code path in the bootloader.
+But when you get the timing right, so the
+right moment where you want to glitch and
+the voltage drop has the right length, then
+magically the loop is broken and the flag
+pops out.
+How crazy is that!
+Solved!
+Let’s quickly recap.
+The board had an endless loop that will never
+stop, and the flag is printed after the loop.
+So theoretically you could never reach that
+part.
+It’s dead code.
+But we know, that microchips can behave weird
+and miscalculate stuff, for example when the
+power is below the minimum voltage for a short
+amount of time.
+Usually the chip is not operational with those
+voltage levels, but because we just do it
+for a very very short amount of time, it won’t
+just stop working, but it just might miscalculate
+some loop condition, or maybe skip instructions
+entirely.
+We don’t really know.
+I also assume that riscure made it very easy,
+so that you don’t have to actually glitch
+one exact compare instruction, but they maybe
+made a lot of calculations and if only ONE
+fails it will break out, so that we have a
+lot of chances to actually glitch something
+important.
+But nevertheless I think this is just amazing.
+I always felt like these kind of fault injections
+are very theoretical and unrealistic, but
+having done a simple one myself and not even
+a professional, that was amazing.
+I hope you can appreciate how crazy that is
+too.
+I just wish the side channel power analysis
+challenge would have been on the same level.

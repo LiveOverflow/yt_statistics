@@ -1,0 +1,166 @@
+This is a nearly true story.
+The events happened about eleven years ago
+at Tymshare, a company which provided commercial
+timesharing services.
+This story is an excerpt from a famous 1988
+computer science paper.
+At the end of the story we will understand
+why the browser is a very.
+A very confused deputy.
+But let’s continue with the story.
+Our operating system was much like Unix in
+its protection structures....
+A compiler was installed in a directory called
+SYSX.
+A user would use the compiler by saying “RUN
+/SYSX/FORT”, and could provide the name
+of a file to receive some optional debugging
+output...
+We had instrumented the compiler to collect
+statistics about language feature usage.
+The statistics file was called /SYSX/STAT,
+a name which was assembled into the compiler...
+To enable the compiler to write the /SYSX/STAT
+file, we added the compiler /SYSX/FORT to
+the user group.
+The operating system allowed a program with
+those permissions to write files in its home
+directory, SYSX in our case.
+The billing information file /SYSX/BILL was
+also stored in SYSX.
+Some user came to know the name /SYSX/BILL
+and supplied it to the compiler as the name
+of the file to receive the debugging information.
+The compiler passed the name to the operating
+system in a request to open that file for
+output.
+The operating system, observing that the compiler
+had user permissions, let the compiler write
+debugging information over /SYSX/BILL.
+The billing information was lost.
+Who is to blame?
+What can we change to rectify the problem?
+Will that cause other problems?
+How can we foresee such problems?
+The fundamental problem is that the compiler
+runs with authority stemming from two sources.
+(That’s why the compiler is a confused deputy.)
+The invoker yields his authority to the compiler
+when he says “RUN /SYSX/FORT”.
+The other authority of the compiler stems
+from its user group permission.
+The compiler serves two masters and carries
+some authority from each to perform its respective
+duties.
+It has no way to keep them apart…
+When it produces statistics it intends to
+use the authority granted by its user group
+permission
+When it produces its debugging output it intends
+to use authority from its invoker.
+The compiler had no way of expressing these
+intents!
+The confused deputy.
+Norman Hardy, 1988
+Wikipedia summarises this as:
+A confused deputy is a computer program that
+is innocently fooled by some other party into
+misusing its authority.
+It is a specific type of privilege escalation.
+Authority might sounds weird at first.
+But authority simply means it was given the
+permissions and the ability to perform a certain
+action.
+And it might have unintended side effects,
+because there are multiple authorities involved.
+And this is what we see on the internet.
+The confused deputy here is the browser.
+The browser was given authority to handle
+the sensitive user authenticated session of
+a website.
+But sometimes a third party is invoking the
+browser to perform something unintended.
+For example cross site scripting.
+A browser simply executes javascript.
+A browser doesn’t know if a script is malicious
+or good.
+Like the compiler in the story didn’t know
+if the file name passed to it is good or evil.
+But because the browser has the authority
+of performing authenticated requests, somebody
+controlling this javascript can fool the browser
+to do something bad.
+It’s not the attacker who performs the request.
+The browser is executing the attack, not intentionally.
+But that’s why we call the browser confused.
+Same thing with Cross site request forgery.
+A browser will simply parse html and fetch
+every image embedded on that site.
+It doesn’t know if a certain image source
+is actually a URL that has bad side effects
+like deleting a user’s account.
+But again, the attacker tricked the browser
+into executing a privileged action.
+And the weird thing is, neither executing
+javascript, nor handling authenticated sessions
+is a security vulnerability.
+This is not a bug in the browser.
+This is how the browser is supposed to behave.
+Hell, even injecting javascript into a site
+is by itself not a vulnerability of a web
+application.
+You don’t get code exeuction on the server
+with that.
+You don’t get access to private user data
+directly from the server.
+ONLY because the browser has a special authority
+and we trick the browser into doing it for
+us, it suddenly evolves into a security issue.
+And I believe that this is a good way of thinking
+when approaching and researching a new piece
+of software.
+Don’t always look for this single shot vulnerability.
+This one buffer overflow to rule it all.
+Think about what kind legitimate authority
+a software has.
+What are the permissions and privileges it
+has, that you don’t have.
+And once you identified such a system, ask
+yourself, can you outsmart it.
+Can you use this system to do something else?
+Like we indirectly use the browser to do actions?
+As wikipedia says, this is a special kind
+of privilege escalation.
+You don’t have the privilege to access the
+private facebook messages of another user,
+but if you get javascript into the facebook
+page, then suddenly you can confuse the browser
+and indirectly derive this privilege.
+Now another confused deputy on the internet
+is the webserver, or the application running
+on it.
+There is a cool vulnerability, that is kind
+of related to Cross site request forgery,
+just instead of making the browser performing
+a request, we make the server execute a request.
+This is then called server side request forgery
+- SSRF.
+There is a legitimate use-case why a server
+would want to be able to perform requests
+when a user asks for it, but this can have
+devastating results.
+But SSRF will be a topic for another video.
+Something I haven’t mentioned yet is, that
+the confused deputy story is actually about
+introducing a reason for a different permission
+model, called “capabilities”, because
+it shows flaws in our traditional permission
+model.
+But we won’t go into that now.
+I just think the concept of a confused deputy
+is important to know and provides a good abstract
+classification of security issues.
+What do you think?
+Is this an important way of thinking?
+See you next time.
+And I hope you don’t get confused.

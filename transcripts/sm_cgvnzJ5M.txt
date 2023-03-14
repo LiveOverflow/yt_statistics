@@ -1,0 +1,117 @@
+Hey, some of you asked how I make my videos.
+So I want to take you along the process of
+creating one of my episodes.
+I know that some parts could be more efficient
+if I would know better tools.
+So while I obviously would like to show you
+how I create videos, I’m also looking forward
+to get some tips and tricks how to do things
+differently.
+And maybe become more efficient or create
+more beautiful videos.
+The video creation process can be divided
+in 3 big steps.
+Write the script.
+Record screen footage, fix mistakes in the
+script, and then record the audio.
+And finally, as last step, edit the whole
+video and draw all the graphics.
+Ok.
+First step is researching and writing the
+script.
+Usually I start by opening up a google docs
+and start writing.
+And then I get into a research, try it, write
+it - loop.
+In this case I make the second episode about
+the dlmalloc heap unlink exploit.
+Which is heavily based on phrack issue number
+57 article “once upon a free()” and “vudo
+malloc tricks”.
+In the last video we developed our own exploit
+for unlink which won’t work because of null-bytes,
+so I thought as a narrative for this video,
+it would be cool to just explore what the
+researchers back then discovered and expose
+my audience to the true heroes from hacking
+history.
+So I reread what they were writing back then
+and try to think about how I could present
+it in a video.
+The key lesson from this video will be about
+setting the size of the heap chunk to a value
+that doesn’t contain 0-bytes, which seems
+huge at first, but you can abuse the fact
+how negative numbers work.
+While writing the script I always read it
+out loud to see how it flows, and then make
+changes to it.
+At this point I may also fire up the exploit-exercises
+protostar VM and try it out.
+Just to make sure I get it right.
+Usually I will catch some mistakes in my script
+now and modify it.
+Once I’m confident I got everything working,
+I make notes of the commands I’m going to
+use and put them on a second monitor.
+For this particular video this first part
+of researching, writing the script and trying
+it out, took me roughly 3 hours.
+Next step is recording the exploit development.
+To record my screen I use OBS and a lower
+framerate.
+Because high framerates are not really necessary
+and it makes the files smaller, so easier
+to work with and store.
+For this particular video there will be quite
+a big chunk just explaining stuff with figures.
+So the practical part that I have to record
+is not too long.
+And with my notes and the script it should
+be done quickly.
+If I make mistakes during recording I either
+decide to incorporate them into the script,
+because I like to have them as a learning
+opportunity.
+Or I have to redo the segment.
+During recording I realized that I should
+change some of the text, so I refine the script
+again.
+Now I open up my little template that has
+the intro and outro in it and record the audio
+of the script.
+This whole part of recording the video screen
+footage and the audio, with refining the script
+took in this case maybe 1h.
+The practical part was not too long.
+Next up is editing the stuff with all the
+graphics.
+That’s the most tedious part.
+After my first couple of videos I really wanted
+to add more visuals.
+An arrow or a box around something important
+goes a long way in my opinion.
+You find some older videos of mine where I
+tried to do this with editing directly in
+Sony Vegas.
+But that was super slow and looked crap.
+I have not that much experience with video
+editing, so the only thing I knew I could
+do easily would be to get a graphics tablet
+and draw them by hand.
+The process is simple, I can take a screenshot
+of the current scene in vegas, paste it into
+photoshop, draw the overlay on a new layer,
+save only that layer and put it onto the video
+timeline.
+This is what I do with any graphic.
+It’s fairly quick and I kinda like the resulting
+art style.
+After the editing, which in this case took
+like 4 hours, I render the video and upload
+it.
+So creating this one episode took about 8
+hours.
+Sprinkle some procrastination in there, and
+I will be busy a whole day.
+See you next time, for another technical video

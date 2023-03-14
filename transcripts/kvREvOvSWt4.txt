@@ -1,0 +1,484 @@
+I have made two videos covering the log4j
+vulnerability (or logForge vulnerability - everybody
+was telling me I pronounced it wrong).
+Anyway.
+That vulnerability was supposedly fixed in
+version 2.15.0.
+But if you followed the news at the time closely,
+you know that on the 14th of December, so
+only 4 days after the original vulnerability
+disclosure and the fix in version 2.15.0,
+a new CVE was assigned CVE-2021-45046.
+And we got a new fix, version 2.16.0.
+Now this second CVE is not as bad as the original
+log4shell vulnerability.
+But I think it’s very interesting, and we
+can learn a lot more about secure software
+design again.
+It’s going to be worth it, I promise.
+
+Chapter 1: The new CVE
+Here is an earlier version of the CVE description
+for the new log4j CVE:
+It was found that the fix to address [log4shell]
+was incomplete in certain non-default configurations.
+This could allows attackers with control over
+Thread Context Map input data when the logging
+configuration uses a non-default Pattern Layout
+with either a Context Lookup or a Thread Context
+Map pattern to craft malicious input data
+using a JNDI Lookup pattern resulting in a
+denial of service attack.
+WHAT THE F’ WAS THIS SENTENCE????
+I have to admit, when I read this at the time
+it was released, my brain blanked.
+I did not understand this at all, and it sounded
+so weird that I was wondering if this is just
+another bullshit CVE.
+And it was just a denial of service attack
+anyway, right?
+I’m not that excited about DOS issues.
+But reading reactions on twitter, it became
+clear it was pretty legit.
+And Pwntester for example wrote on the 16th
+of december, that he managed to bypass the
+allowedldapHost checks in 2.15, which means
+there is again a remote code execution issue
+in this version.
+However on the following day I read the tweet
+from Kevin.
+Gossi The Dog.
+Log4j hype check: the new CVE:
+- only applies in certain *non-default* configurations
+- remote code execution has been demonstrated
+on *macOS* - not reproducible in other test
+environments
+- no exploitation seen in wild
+And not many orgs will be hosting webapps
+on MacOS anyway.
+That confused me more.
+Only on macOS?
+What the heck could be responsible for it
+to only work on mac.
+That is super weird.
+Again I didn’t understand a thing.
+there was a new fix 2.16.
+And organisations gonna patch.
+So I didn’t really care.
+Until I Anthony Weems wrote me this DM:
+Hey!
+I worked on the "localhost" bypass to CVE-2021-45046.
+If you end up covering this in pt. 2 of your
+Log4j series, I'd be happy to share info about
+discovery, root cause, etc.
+“My name is anthony weems.
+I’m a security principal engineer at Praetorian
+- a cyber security company.
+And following the disclosure of the initial
+log4j vulnerability, me and my team spent
+most of our time focused on research and development
+of scanning and detection tools for this vulnerability.”
+Cool!
+So that collaboration request made me interested
+and I realized that this CVE is actually pretty
+interesting.
+Impact is not that bad.
+But educationally speaking, it’s really
+good.
+We can learn a lot from it.
+Chapter 2: disable lookups.
+Let’s start by looking at the fixes for
+log4shell.
+Here in the release details for version 2.15.0
+it says:
+“The message lookups feature was disabled
+by default [...but] Lookups in configuration
+still work.”.
+And.
+“A whitelisting mechanism was introduced
+for JNDI connections, allowing only localhost
+by default.”
+And this wouldn’t be the liveoverflow channel,
+if we wouldn’t look deeper into those fixes.
+So let’s look at the two important log4j
+commits that implemented them.
+Here is the first one.
+“Log4j2 no longer formats lookups in messages
+by default”.
+As mentioned in my original log4j video, this
+is a great plan.
+It’s always best to put fancy features behind
+opt-in configurations.
+Instead of the other way around.
+So previously you could DISABLE lookups in
+messages, for example by specifying the %m{nolookups}.
+But now it’s the other way around.
+Now you have to explicitly write %m{lookups}
+to enable lookups.
+Also, remember from my second log4j video?
+The original config to disable the lookups
+wasn’t working properly either.
+we figured out that the if-case in this format()
+method was not properly checking for the nolookups
+setting in all cases.
+So when a developer was using logger.format
+instead, it would still perform the lookups.
+And this has all been fixed in this version
+2.15.
+You can see for example the format method
+has been simplified a lot.
+But turns out there are still other cases
+where lookups could be performed.
+For example lookups in the pattern layout
+configuration still work.
+And that is fine.
+Having lookups here, cannot be controlled
+by an attacker, so that is totally fine.
+But turns out, there is another case where
+lookups are still processed.
+And this is what this CVE was originally about.
+Chapter 3: Vulnerable log4j configurations
+This CVE said something about input to thread
+context map, and I had no clue what that meant.
+So here is Anthony explaining the original
+CVE to us.
+This vulnerability applies when an attacker
+controls context map data.
+And when there is a non-default pattern layout
+with context lokups or thread context map
+patterns.
+These are specific log4j terminology and we
+can actually go to the log4j doc to understand
+a little bit more about what they mean.
+[...] They allow applications to store data
+in threadContext maps.
+And then retrieve these values in the logging
+configuration.
+The example they give talks about an application
+that stores a login ID in some thread context
+and then retrieves it when processing logs.
+And you can see here, this pattern layout
+logs the context loginId of that user.
+So in the case of this vulnerability.
+If loginID were attacker controlled, this
+would be an example of a vulnerable configuration.
+And that is a good example.
+A web server might want set the current userID,
+or loginID in the thread context, to include
+it in the log layout.
+This way they can identify log messages generated
+from certain users.
+And it turns out, if we get attacker controlled
+data in there, we can still perform lookups.
+Now the new version also restricts LDAP to
+only allows localhost URIs, so we cannot perform
+a remote code execution attack anymore.
+We cannot use our own malicious ldap server.
+But using ldap://localhost will be very slow.
+Because the ldap connection timeouts.
+So for each log message it tries to contact
+this non-existing localhost ldap server.
+And that’s how we get the denial of service
+issue.
+And now we also understand what it means that
+it only applies in certain configurations.
+User input has to be passed into such a context.
+As you can see, this denial of service doesn’t
+seem super critical.
+Chapter 4: The RCE
+The news spread quickly.
+Turns out it could still be turned into a
+remote code execution.
+for that, let’s have a look at the second
+fix that was implemented to mitigate log4shell.
+A whitelisting mechanism was introduced for
+JNDI connections, allowing only localhost
+by default.”
+And here is the commit for it.
+Restrict LDAP access via JNDI.
+When we look at the code changes, we can see
+here that the JNDI lookup function was extended
+with additional checks.
+If the URI doesn’t start with ldap:// it
+will error and say “Log4j JNDI does not
+allow that protocol.”
+Or when the URI host is not in the allowedHosts
+list, so it’s not localhost, we get “Attempt
+to access ldap server not in allowed list.”
+And on first sight this code looks good, right?
+We take the jndi string coming in, parse the
+URI and check the host name.
+How could this be bypassed?
+Anthony Weems will walk us through.
+Finally if all of these checks succeed, they
+pass the original name into the java lookup
+function.
+Which ultimately is responsible for doing
+the JNDI lookup.
+Now if we look at this function at a high
+level, there is some things sorta interesting
+that we can observe.
+So we see that name is the attacker controlled
+input.
+In this try block they parse name into this
+URI.
+Validate the URI, but then use name down here
+at the bottom.
+And this is sort of a dangerous code pattern.
+Because the thing they validated is URI.
+Not name.
+And presumably the JNDI lookups need to parse
+name.
+If the JNDi lookup parser is different from
+the Java.net.URI parser.
+There might be some sort of issue that lets
+us bypass this validation.
+That’s what I set out to find is “how
+does the JNDI lookup parse name and determine
+where to send those LDAP connections”.
+This is an important secure coding lesson.
+The JNDI URI passed in as a string has multiple
+components.
+And we are interested in the scheme/protocol
+and the host.
+But Uniform Resource Identifiers (URIs) can
+have a lot more components.
+In 2018 I made a video called "HOW FRCKN'
+HARD IS IT TO UNDERSTAND A URL?!".
+Which talks about exactly the same issue.
+And In this case here the Java.net.URI parser
+needs to be able to parse a string into those
+components according to the standard.
+And this parser is used here to look at the
+protocol scheme and the hostname.
+But Anthony had an idea.
+What if the string passed to the JNDI lookup
+is parsed differently there, than how it was
+checked here with java.net.URI?
+This would be called a parser differential.
+Chapter 5:
+I have introduced parser differentials in
+a few videos before.
+Like the Google search XSS, the list0r CTF
+challenge or the super old binary exploitation
+episode 7.
+So does the ldap lookup parse the URL differently?
+Or does it internally also use java.net.URI?
+In order to answer that question.
+We have to jump into the java source code
+itself.
+So I cloned OpenJDK and began reviewing for
+the actual code path that actually leads to
+an ldap lookup.
+That lead me to this class LdapURLContext
+and specifically this function.
+And the function javadoc explains pretty well
+what it is doing.
+It takes a given url and resolves it to the
+actual hostname and port that it connects
+to.
+And so this is the thing responsible for doing
+the actual parsing of name.
+If we jump to this function we can see it
+is effectively taking in the name, which is
+now called URL and passing in to this ldapURL
+constructor.
+If we review that constructor we see they
+take URL and call this init function.
+Which is actually defined in the super class
+URI.
+now the init function of URI just calls parse.
+And the parse function takes the URI and parses
+it into host and port.
+Okay.
+As we can see, internally the ldap connection
+is NOT using java.net.URI to parse the URL.
+They have their own string parsing loop.
+And Antohony noticed that the code for the
+LDAP URL parsing is very short, compared to
+the actual java.net.URI parsing code.
+You would think that the LDAP url parsing
+doesn’t have to be as complex, but if these
+functions parse a string differently, this
+can be abused.
+There is a high chance for a parser differential.
+And here is how Antohony tried to find such
+a difference
+Chapter 6:.
+We are going to use differential fuzzing.
+Differential fuzzing is the process of taking
+one input and passing it to multiple different
+parsers.
+And comparing their parser results.
+It’s exactly the problem that we have in
+front of us.
+And we are going to use an existing coverage
+guided in-process fuzzer to do this job.
+So this fuzzer is called jazzer, it was the
+first time I used it, but it was relatively
+straight forward to pickup and running.
+They have a docker you can run.
+And they have plenty of documentation that
+describes how to create a fuzzing harness.
+So the basics of this fuzzing harness is a
+function called fuzzerTestOneInput, that takes
+a byte array and processes it.
+On any exception that’s thrown, the fuzzer
+will catch that and treat that as a crash.
+[...]
+This is the actual fuzzing harness that I
+developed when doing this research.
+And ultimately it’s the fuzzing harness
+that found the bypass for these localhost
+restrictions.
+So as you can see here, this function fuzzerTestOneInput
+takes a string and then tries to parse it
+with java.net.URI and with the jndi URI parsing
+class.
+And that’s followed by a few constraints.
+Some are just sanity checks, so for example
+an exception during parsing we want to ignore.
+Or if the host or protocol scheme is not set.
+These are all uninteresting.
+But further down there is a constraint that
+the java.net.URI parser has to see a host
+that says localhost.
+This would pass the check in the lookup function.
+The host is localhost.
+BUT the host seen by the LDAP URI parsing
+has to be different.
+In this case end in exploit.local.
+As you can see, if both URI parsers would
+do the same, these two if conditions could
+NEVER be passed.
+If it’s equal to localhost, it obviously
+could’t end in exploit.local.
+So if that is actually the case, there is
+a parser differential between those two parsers.
+And so after that, if we found such a diff,
+we throw an exception, to signal to the jazzer
+fuzzer, that this is a state we are interested
+in.
+Now we are at the final step.
+We are going to run our fuzzer and cross our
+fingers that it finds the vulnerability.
+So we don’t have to.
+We compile our fuzz harness.
+And run jazzer.
+So there we go.
+Our fuzzer found an input that passes all
+of the checks and hits that final exception,
+indicating we have got a bypass for these
+localhost restrictions.
+And there we have it.
+Apparently using a hash in the URI causes
+the parsers to see a different hostname.
+The LDAP parser includes the pound or hash
+sign in the hostname.
+And the more complex java.net.URI parser excludes
+it.
+This makes sense because the hash indicates
+the so called fragment of a URL.
+You probably seen it on several websites before.
+So proper URI parsing has to understand that.
+But the minimal LDAP URI parsing didn’t
+include it.
+So I mistakenly included it in the host name.
+Chapter 7:
+Now some of you might probably notice, that
+this looks like an invalid hostname, and it
+technically is - a hostname shouldn’t contain
+a hash sign.
+But when the system tries to establish a connection
+to that hostname, what happens?
+Turns out when Anthony tried it, it failed.
+UnknownHostException.
+So it doesn’t seem to be possible to connect
+to a hostname with this invalid character.
+So at this point I was confused.
+Because I thought that I had done the bypass
+correctly.
+And why wasn’t this actually working.
+[..] And It kinda makes sense, you know.
+This pound sign is an invalid character in
+domain names.
+So at this point I was a little disappointed
+but then a day or so later I was still thinking
+about this problem and actually I got to collaborate
+with another security researcher karan lyons.
+And he actually had arrived at the same bypass
+that I had and so we shared notes.
+And he was actually able to get these ldap
+connections to succeed.
+So what did karan do differently?
+When he did it, the connection worked.
+How was karan able to turn this into a full
+remote code execution?
+The two compared everything.
+Every java version, dependency and example
+codes.
+All was the same.
+But then they figured out what was different.
+Ultimately we reached a very interesting conclusion.
+Which is, he was using macOS and I was using
+debian.
+On my debian system, the debian DNS resolver
+was refusing to do these lookups.
+On his system, as long as the DNS server hosting
+this domain returned a result, macOS would
+be happy to resolve it.
+And that’s why this remote code execution
+in the new version 2.15 was only confirmed
+on macOS.
+The reason why it only worked on mac was due
+to a different DNS resolver used.
+Now kevin is right, that not many java websites
+are hosted on macOS systems, so that’s why
+you shouldn't panic.
+BUT after a bit of research testing on various
+different systems.
+Anthony actually found a system that is a
+lot more realistic.
+Chapter 8: Impact
+But we did test alpine as well.
+And alpine, when you run this, it does do
+the resolution.
+Which is really cool to see.
+Because I was most worried about the cases
+of someone running log4j application in some
+containerized environment.
+This verified that alpine had similar, you
+know, dangerous DNS resolution that allows
+these pound signs.
+Yes…
+And suddenly this issue got more critical
+again.
+Alpine is a very slim linux system used in
+containers a lot.
+So it’s very very likely that people run
+log4j in such a system.
+So if they have version 2.15, they would be
+vulnerable to the remote code execution.
+IF user input is passed into the thread context
+stuff we looked at first.
+As you can see, overall the issues in 2.15
+are not as bad as the original log4shell issue,
+but the severity still increased from the
+original only denial of service impact.
+Chapter 9: Conclusion.
+I think this example is interesting because
+here was a function trying to make security
+checks.
+But it was implemented in an insecure way.
+Parsing differentials are a huge source of
+vulnerabilities and they are really fun to
+find and test for.
+So keep that threat surface in mind when implementing
+checks like this.
+Thanks Anthony for reaching out and collaborating
+with me on this video.
+Thanks to you I finally understood what the
+new log4j CVE-2021-45046 meant.
+And I never used Jazzer before, so thank you!
+that’s going to be something I will use
+a lot more when facing java.

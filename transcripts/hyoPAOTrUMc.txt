@@ -1,0 +1,301 @@
+Anybody remember the riscure embedded hardware
+CTF a long time ago? Rhme2? I have a whole
+playlist covering various different challenges.
+Two of them cover reverse engineering a binary
+that would be running on the arduino board.
+Which means their architecture is AVR. And
+if you are not very familiar with reversing
+embedded devices or AVR I would recommend
+watching these videos before continuing here.
+This video will be about another reversing
+challenge, but explained by Zeta Two. I didn’t
+solve that challenge, but he was really excited
+of sharing this write-up with us. This video
+was planned for a long time and because I
+still don’t have a good process for working
+with other people I screwed up the first time
+we recorded this. So thank you for sitting
+down with me a second time.
+So I’m carl, or on the internet known as
+zeta two and I play a lot of CTFs.
+But before we fully head into the technical
+parts I want to highlight something. I know
+from the time when all of this stuff was new
+to me, that reverse engineering and reading
+all of this assembler code and figuring out
+what it does, seemed so impossible. How can
+anybody ever know and learn all of that. The
+truth is, we don’t know all of it. It’s
+a mix of knowledge, experience, gut feeling,
+research and guessing and assumptions. The
+over time all of these things get better,
+more refined and you are able to understand
+more and more complex systems. And so when
+you listened to carl I want you to pay attention
+to his language. Even when he is fairly certain
+with something, he uses language like “it
+looks like”, “it could be”, “maybe”,
+“if we assume”. And that makes sense because
+we are exploring an unknown target we have
+to start somewhere and piece together the
+puzzle. Early on you can make guesses like
+“this is blue, could be the sky in the top
+of the picture”, but maybe later you realize
+it was actually part of a blue car. And so
+I think a key takeaway here is how important
+it is to always make assumptions, try to picture
+the whole thing, but try to verify it somehow
+and be always ready to accept that an assumption
+was wrong. And that is probably the key to
+success.
+Anyway. Let’s head in.
+FridgeJit, reverse engineering 400 points.
+A senior technical manager of a fridge manufaturer
+demanded the ability t update the firmware.
+It turned out that the CPU that comes with
+the fridges does not allow self-upgrading
+the firmware, so the developers built a VM
+for the fridge software.
+A crafty customer has been able to reverse
+engineer the software and programmed the fridge
+with different software. His goal was to build
+a digital safe.
+Are you able to crack the password? We have
+been able to extract the full firmware image
+of a slightly different fridge and a memory
+dump of their fridge. We hope this is enough.
+And we get the challenge binary, which you
+could flash onto the board, which is basically
+the same as the firmware.bin and the memory.dmp.
+As you can see rhme2 had this neat map for
+the challenges. And here is FridgeJit.
+This was one in a series of challenges about
+reversing a virtual machine on the AVR.
+You can see that the path connects to more
+challenges. But let’s look at the first
+one.
+So carl will now retell how he reverse engineered
+and solved this challenge. And obviously it
+all starts with IDA.
+The first start is to load this into IDA.
+So I’m using my old IDA db, so I have already
+named stuff but we’ll go through how you
+can come up with these names and realize what
+is what - like the reversing process.
+So IDA is a reverse engineering tool that
+helps you puzzle together the pieces. It helps
+you by visualizing code flow and some other
+stuff and you are able to add names for functions
+and add comments. So These function names
+were not there at the start. Carl gave that
+name to those functions based on what they
+do. And so he will now walk us through some
+important functions and how you can figure
+that out. But some other names referenced,
+for example this memory location here called
+io_UCSR0A is how IDA can help you.
+One thing that's very convenient . That probably
+is the absolute first thing you should do
+when reversing some kind of embedded thing.
+And I did this at some point but took me a
+while, is to get the memory mapping of the
+device. So that you can name memory areas
+properly. So if you look at some datasheet
+of the processor there will be a list of what
+memory regions are mapped to what function,
+different registers have special meanings.
+What he describes here you can see in my AVR
+reversing video in a bit more detail. But
+essentially small CPUs like this atmega have
+to interact with other hardware. For example
+maybe it supports serial. And you know serial
+is this high/low/high/low protocol at a certain
+speed and you don’t have to program that
+yourself in assembler. The chip has this as
+a feature and al you have to do is to write
+in assembler which symbol you want to transmit.
+And a certain memory address is mapped to
+this hardware feature. So when you write a
+value to that address in assembler code, some
+part of the chip, in the hardware, will receive
+that value and then perform the proper low/high
+serial communication. That’s what mapped
+memory means. Very simple concept but very
+powerful. And additionally the memory in general,
+like the ROM or RAM are also mapped to certain
+memory ranges. And you want to know where
+is what in order to understand what is referenced
+by addresses in the assembler code. And you
+can find all of this information in the manual,
+the documentation of the chip used.
+And in IDA there is support for having configuration
+files where you can define the processor and
+you can tell it all the memory areas and what
+their names are. For the atmega328, which
+is the one used in the CTF, there isn’t
+one in IDA, but I actually found a forum post
+where somebody had created one like this and
+I just copied it into my IDA AVR config file.
+So this is a definition file for the atmega328
+where you have names for all the different
+registers.
+And the point of this is, when you load the
+binary into IDA you will have things named
+from the start. If we go here you will have
+some memory areas named in IDA, and this is
+very nice, because then you can look for interesting
+registers and look where they are used in
+the code and you can start working your way
+backwards from there.
+For example one very basic thing that we want
+to find out, is like how and where in the
+code does it communicate. Like send and receive
+data on the serial port.
+So If you look in the manual you will see
+that it uses this register to communicate
+on the serial port, you can see where this
+is used you will find a function. And this
+means that this is a function responsible
+for sending data on the serial port.
+Wait, how do you know that it’s sending
+data here exactly?
+It basically tells, “I’m going to send
+stuff” and then it loads data in this register
+and then it gets send away on the serial.
+So basically we are looking for a place where
+something is writing to this register. And
+also, conversely it receives data by reading
+this register. So if we look where this register
+is used we find exactly two places. So one
+place it writes data into the register, and
+one place it reads data from this register.
+So basically we look at this function. It
+first checks the status of this register.
+And basically what it’s doing here it’s
+checking that it’s clear to send data. That
+it’s not busy. It just loops here until
+it’s ready to send. And then it sends one
+byte.
+And the other way around, if we get the other
+function, we have here. It loop until it’s
+ready to receive and then it receives one
+byte. And returns that. So it felt very natural
+to name it io_receive and io_send.
+And we can then see where this is used. And
+it’s used in a number of places. For example
+this function. Which I have named print_text.
+So it is basically calling the io_send function
+in a loop.
+So what this function does is basically it
+takes a pointer to some data and then it loops
+over this data and sends one byte at a time.
+And in the same fashion we have the receiving
+end. There are functions using this to receive
+data. So that’s nice and we will check deeper
+on that track later I think. But for now we
+can just go back to like where the program
+starts. This is also a thing that you get
+from loading the config. You get the interrupt
+table, or what do you call it, so and the
+reset one is basically the entry point for
+the processor. So this is where everything
+starts running. Where the program starts.
+And this is basically like a standard thing
+where it copies some static data in some location
+and clears a memory region.
+So up until here, carl sounds like he knows
+exactly what he is doing. Like if he reads
+this stuff every day. And yes, this is clearly
+coming from experience how programs and chips
+work and being able to read the documentation,
+the manual of the chip and making sense of
+it. But of course he doesn’t know everything.
+It’s a puzzle, other parts of the picture
+take more effort and time until he realises
+it.
+In the beginning I thought this is important,
+but then I realized this is just a standard
+set up thing. It’s like the start function
+before the main function in a regular x86
+program.
+So he had an assumption at the beginning which
+much later turned out to be wrong.
+I mean I think I moved on but then I’ve
+revisited it later. And I realized that what
+it’s doing, It’s copying static data from
+the ROM into the RAM. So I think here maybe.
+Yeah. Basically the RAM is empty when you
+start and then the program loads basically
+global variables and constants and things
+like that. So it’s a loop copying data from
+the ROM into the RAM at a certain location.
+And then there is this part which is just
+zeroes out basically the rest of the RAM.
+So this is just setting up the whole ram region.
+And then you call a function. Which eventually
+ends up. So this is more like the main function
+where interesting things start to happen.
+So now that we know where the main function
+starts, Carl goes into the section here which
+uses the very obvious print_text function.
+It’s not far fetched to understand that
+the loading instructions before the call,
+load the data for the printing.
+I mean if you look down here a little bit
+and look at these addresses. So in the ROM
+we have some string constants embedded. Basically
+there are these strings related to laoding
+a program into the machine. And there is something
+here that looks like a debug menu. And something
+here that looks like a table of registers.
+So and here is FridgeJit Console. And so it
+looks like all of this is related to like
+debugging this thing.
+Remember that the challenge description said
+that the developers built a VM.
+So this is some kind of Virtual Machine built
+on top of AVR so we could then guess that
+there is some debugging feature in the virtual
+machine. Here you also have this interesting
+thing with AVR. that it’s basically an 8bit
+processor, but it has 16bit addressing, so
+you load some addresses you load them one
+byte at a time. So those are the two halves
+of an address. Which is pointing to this string.
+Before these were named, this region already
+looks interesting. Because it has this repeating
+pattern. Like load two bytes, call a function,
+load two bytes, call a function. You can guess
+that this is actually doing something that
+is interesting, it’s also the same function.
+Maybe it’s like setting up some data. Or
+encryption or decryption. I mean I didn’t
+know before. So first of all it loads into
+r24 and r25 registers. And you have this other
+peculiar thing with the AVR that you have
+these regular numbered registers and you have
+these meta registers X Y Z, which are 16bit
+registers that consists of a pair of registers.
+So basically if you look at this code you
+can see that it takes this address stored
+in the r24, r25 register, it loops over it
+and calls the io_send function. So you can
+name this function print_text. And then it’s
+very natural to see what this partis doing.
+It’s printing out a menu.
+So it says that we should provide a boot rom
+and then it prints out this prompt thing.
+So a natural guess is that the next thing
+that it’s going to do is, take input from
+the user. right?
+I think this is a good point to cut this episode.
+We have used the atmega manual and an IDA
+config to load the binary, identify important
+registers that are used for communication
+and traced the usage backwards, to functions
+that clearly read or print data with it. And
+then we also went the other way around and
+started at the real START of the processor
+and found the main function that is using
+the print_text function from earlier.
+So, see you next time.

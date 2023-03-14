@@ -1,0 +1,1793 @@
+you
+[Music]
+hello everybody I today we are gonna do
+something different it has nothing to do
+really with security
+so please just give me a notice if like
+the audio works great and then we can
+head right into the stream today so I'm
+here today with again well from a
+different channel that you probably know
+and together we have done game
+development challenge this channel just
+quite frequently and I really in the
+development and yeah so forces together
+to develop a challenge and today we want
+to go over the results and share with
+you the winners and have a look at the
+awesome games that were created so well
+I guess I'm both interested us like
+overflow is in security and the bottom
+but I always wanted to be a game
+developer but since I guess I cannot be
+again developer right now because you
+know security calls when I'm doing this
+these game competitions so that's
+basically this is I think about fifth
+one or which I've made in the series and
+it's actually getting better and better
+ok so if people were writing actual but
+I think I fixed it I think it was
+because I had the camera audio in as
+well as my microphone audio and at the
+same time is it now fixed sorry my voice
+is double yeah okay so it was my mistake
+yes alright it's gonna be else voice
+fine is that coming from work okay well
+so this is the first time we do like
+this dual screen setup so this is all
+pretty janky and hope we don't have too
+many issues beyond the snow okay so let
+me quickly introduce the game challenge
+what we like the rules and when did the
+start and all the stuff around it and
+you might already notice this weird Oh
+they around us here because it has
+something to do with the with the
+challenge so I'm this chat here for a
+second so at the end of December in 2018
+of course we announced the gonna also
+enter a game deaf challenge and so we
+joined forces together and to you know
+have people develop games as a challenge
+and we were giving certain constraints
+certain rules about what the games must
+entail constraints are always very
+interesting because constraints help to
+drive creativity we are given clear
+guidance to what technology should be
+used to develop these games and also
+certain you know game mechanics kind of
+constraints I guess as well on top of
+that and so lets us just quickly go over
+the constraints because understanding
+the constraints is important tool then
+later be able to kind of see and judge
+the games that were created based on
+those constraints so the game must be an
+unrealistic hacking simulator and the
+setting was kind of like that you have
+Space Marines exploring an abandoned
+Space Station and you are in a hacker
+that is helping out and add the help the
+squad to do whatever that was like the
+rough outline but you will see you know
+people were taking this quite literally
+other were more creative with that that
+is just you know kind of like a rough
+outline of everything that's I guess a
+lot of games might look quite similar
+because just of this this the story bit
+and then we were telling people that the
+technology they should use should be a
+client-side web technology that runs
+just like on a modern up-to-date Chrome
+and this means of course that people can
+develop games and HTML CSS JavaScript
+web assembly and all that stuff and so
+it was maybe you know we got a lot of
+messages from people in their weakness
+from their games that this was the first
+time that they did a JavaScript I
+haven't done JavaScript in a while or
+haven't done but game development at all
+so that's the perfect thing actually for
+have having challenges like this
+allow you to explore new technologies
+and playing around the game should be in
+1080p but there was a small twist to
+this game and this was this overlay that
+you were seeing at the beginning so you
+can see it here it's an overlay that
+gunwale commissioned and every game must
+use this so the idea was to create this
+illusion of having two screens in this
+game and game developers had to come up
+with plain game mechanics that make use
+of having these two different screens
+and so every game you will obviously
+will have this overlay as you will see
+and this created some you know
+interesting game mechanics yeah people
+didn't have a lot of time to develop
+those games the deadline was end of
+January and this blog post game went up
+at the end of December so basically
+there was only one month that you had
+time but luckily the size of the game
+was also limited so people couldn't go
+too crazy
+you only had 128 kilobytes that you
+could use for the game so the size limit
+of course also tells you already you
+don't need to go too crazy I guess yeah
+otherwise all the other things that are
+listed here are mostly how to submit the
+game and so there's not quite that
+important for our follow showcasing now
+but I guess nice to show you what is in
+for the winners now because we were
+joining forces we were able to up the
+reward money
+we both pitched in so the first place
+will get $250 and you can see it here it
+we have like we were able to have up to
+the sixth spot an award and then we also
+have a couple of honorary mentions that
+we thought okay they didn't quite make
+the top six but they were in a some way
+special still and deserve some
+additional reward and so we are giving
+out a couple of these as well in our
+plans now is that we go through the top
+six in Reverse we start with the top
+with a sixth place and then go up to the
+first place to see the winner and after
+we have crowned the winner we will then
+talk a little bit about the honorable
+mentions and showcase them as well maybe
+a good well do you want to say something
+about how the games were judged what
+decided who would get you know first
+spot so basically well the over will
+overall quality of the game was what we
+were looking for that's one thing and
+the other thing which turned out was
+super important was basically that we
+really liked the game was it fun to play
+super gameplay itself what was the main
+stuff we didn't look at the code quality
+at all so even if your code quality
+wasn't great that's fine I mean versus
+size limit so we obviously cannot use
+style guys because you will run out of
+space really really fast so that's kind
+of given and I guess be server the main
+criteria basically was it fun to play
+the overall feeling did it help like was
+not cool musical graphics and so on yeah
+so I guess one you you see there's not
+like a clear scoring chart how games
+have to be performed and I personally
+think that's also good in terms of
+creativity because if people see I need
+to fulfill these things to get certain
+points to win that you know takes away
+from the creative freedom and so we just
+mainly wanted to have fun games games
+are supposed to be fun and not fulfill
+certain checklists so that was basically
+very subjective for us of course but
+yeah I think what gonna will agree with
+me on when we actually sat together like
+we ranked the games on our own and then
+came together and I've talked about how
+we want to do finalize the ranking and
+we were actually surprisingly agreeing
+very closely with how we rank them so I
+think even if it's subjective I feel
+like there are certain substance to it
+just because both of us
+a lot of similar use on them yeah
+exactly and one thing to add is that the
+games were really good there were a lot
+of games submitted this round well a
+couple of morvin last time we had what
+25 games to go through right and
+basically it was super hard to judge
+them that's my opinion what do you think
+right yeah it's it also kind of hurts to
+rank them you know because you know that
+every one of them you know sat down and
+spend so much time on developing
+something maybe even learn something new
+in the process it was hard for them and
+they spent a lot of hours and now you've
+got a ranked and so that hurts but all
+of them really deserve the attention and
+and you have a look at them as well and
+if you look here in the description of
+the livestream as well as at the bottom
+of the of the livestream you see a URL
+that will go to this blog post and you
+will find there a link to all the game
+submissions the direct link for this is
+this year wait sir
+gee WGC 2018 win world of TV and when
+you go there you will find all the
+submissions you can download them and
+sorry and play them yourself and you
+totally should and the great thing of
+course you know it's JavaScript their
+source code available and you if if
+you're curious how a certain game was
+implemented or how it was done I
+encourage you to of course also look in
+the sources and you know learn from that
+as well and get inspired maybe as well
+do you have anything else to add or
+should we head into the 6 spot no I
+think I think we should get started yeah
+otherwise they will it will already take
+a while okay so mmm good we all see
+setup so we will run now from the sixth
+spot down to the first one and we are
+gonna play the the we're gonna play the
+footage of there was me playing certain
+games in in the background and yeah
+yeah okay so this was the six games that
+no wait this I need to get my notes open
+sorry sir
+okay so this game was created by oh here
+it starts we were just talking about the
+difficult names this game is from gamer
+nism and pig cow pig cow hybrid I guess
+oh right right three game gamer nism pig
+cow hybrid and ice death blade and the
+game is called in it player one and as
+you can see the setup here in this case
+how they were using the game screen
+setup that they had they were using the
+top right as kind of tell the story
+visually what is going on and on the
+left side you had like a console where
+you were giving instructions now this
+was actually between us to a little bit
+of a controversial ranking because oh no
+no controversial but I really liked this
+game a lot so I was arguing with well a
+little bit here so what I particularly
+liked a lot about this game was that it
+was kind of like a multiple choice path
+game you were the Space Marine and you
+were able to you can see it here they're
+always after each you know event or
+enemy your head you had different
+choices where you go next ABCD and I was
+actually why this game was so much so
+fun to me was that you know it made me
+write down the different choices unlike
+a piece of paper here you can like if it
+like focusing I was like writing down
+the different paths and thinking about
+what is like the most efficient one and
+this game had two stages so in the
+beginning you were going these down
+these different decisions so I guess I
+can pause it so here for example I can
+check the locations and it shows you
+that you can
+you know that there are three available
+rooms and you can either fight against
+an enemy or you can like explore certain
+to different rooms and so it was just
+fun to replay the game multiple times
+and go down those different paths and
+all of these rooms might give you
+certain hints that will help you in the
+second stage of the game now I did have
+a special situation marked here as well
+that I quickly skipped towards which was
+kind of a little bit the frustrating
+part the balancing was a little bit
+difficult that it was a bit random those
+attacks in terms of how much damage you
+do and how much damage the enemy does
+and so sometimes it could get quite
+frustrating that you were so at like the
+last and boss and you were just barely
+making it I just tried to find like yeah
+I hear so wait let me quickly remove
+sorry like this so this in the bottom
+right is my life reaction from when I
+was playing this game and this happened
+like after the acted dozens also play
+through again I was crushed by the last
+person and you see me then here going in
+the console and being sick of it and
+checking out the sources and and changed
+my lifes again to be able to complete
+this so this was a little bit of the
+criticism I guess from my side to this
+game but either way I had fun like with
+the different choices and then in the
+end I guess I can show you yeah so once
+you completed that part you were going
+in this other in the second part of the
+game where you had this timer and now
+you had to like a hacking part and you
+can see here that you are connecting to
+a certain IP and you had to specify
+certain port and all of these things
+were hints that you collected throughout
+the different story steps before and so
+that was like one event that gave you
+the the port 1 3 3 7 I guess I mistyped
+oh yeah I missed it
+I pee here and then there was like an
+annex or logic you could discover
+programs along your way that would help
+you yeah there was basically the the six
+game do you want to add something to
+that for everything you said right so
+the one thing to note here is that when
+you look at the older games right this
+game probably wasn't the best individual
+aspect neither was it an audio aspect I
+actually have noted that it's beeped at
+one time in the audio aspect but I also
+noted but it was surprisingly fun to
+play like even you know that the
+graphics aren't amazing maybe I would
+choose a different font maybe I would go
+a little harder on the art style you
+actually had 125 kilobytes you had a lot
+of space to put in art so but on the
+other hand if a game play it was fun it
+I fully agree with you so I think it's a
+war feel it's expresso congratulations
+basically to to the creator's yeah cool
+so yeah congratulations again game or
+has its names
+do you want to try to pronounce it okay
+so let me try gamer Nissim picked a
+hybrid and ice def great congratulations
+for making in it player 1 and scoring
+the sixth place and convinced we can be
+a challenge yeah awesome
+ok then let's move on to the fifth place
+yeah so this place as you can see at the
+top right there's like a console and in
+this case this game the big screen is
+like the main kind of game screen and at
+the bottom of that screen you see four
+Marines oh ok i'm not sure why i refresh
+this game this was the first playthrough
+of mine let's go for a bit ok so yes
+sound you hear a lot of explosions at
+least that inform moment but will mute
+it in a second
+yeah so as you can see you are
+controlling this character at the top
+and your Marines your friends or your
+squad are at the bottom and they are
+blocked at the door and you are you have
+to now go to these terminals and if you
+notice when you hit go there you can
+press E and now the the terminal on the
+top right updated and now you have to
+quickly solve this in this case you had
+to complete a calculation now this one's
+my first playthrough I was very
+distracted and you can see the
+explosions are slowly coming in I turn
+on the audio again really quick so this
+explosion just killed one of our team
+members and yeah so it was kind of like
+a tank game where like slowly the
+explosion was moving in and killing you
+and you lose so what you had to do is
+basically you had to quickly always run
+up to these terminals hack them so I'm
+here now doing this calculation I got
+the correct answer the door opened and
+now I need to move on to the next
+section of this game now there are a
+couple of things to say about first of
+all the controls were very janky they
+were kind of weird and awkward and
+difficult to control sometimes your guy
+was like drifting sometimes the
+direction stuff was weird it was like
+really awkward to control to be honest
+with you in my imagination at some point
+he I died touch the explosion in my
+imaginations it was kind of like okay
+you have Space Marine you are kind of in
+weird kind of gravity situation and so
+so that's kind of how I explain it but
+there were this but once you got the
+controls down you could kind of finally
+kind of learn your way around these kind
+of issues at some point this jumping
+part actually became really cool and for
+example I think in this section you see
+it so this is another terminal and this
+was then the
+packing here was playing hangman let me
+try to find okay so clearly he I didn't
+succeed let's see okay
+let's quickly watch this part here
+because this is another story that's the
+first okay
+so hang okay so here you can see kind of
+like a little bit of the okay so some
+example here you need to backtrack now a
+little bit and you need to chain these
+two jumps together but you have to go to
+the right and you can't jump to the
+right because there's like a ceiling and
+you get like blocked so actually there
+was quite a bit of skill with the
+jumping you had to like and it took me a
+while to figure it out so let me rewrite
+as well yeah but
+there were quite some chump tricks
+basically that you had to do to traverse
+and that was actually you know so I
+think was it here
+let's see if I find it quickly yeah so
+you had to like bounce there and then
+time it correctly to bounce then to the
+right and stuff so you can see this was
+quite a skilled thing and even though
+the controls are kind of janky it did
+work out it was challenging and once you
+got through that frustration part it was
+really fun
+the only suggestions I kind of had was
+that the that the explosions were coming
+in like as a straight wall and basically
+once it reaches your Marines it would
+kill us well because you often had to
+backtrack a little bit so it would have
+been kind of cooler if it was maybe like
+a diagonal where it could kill your
+Marines first but you still had the time
+to like backtrack a little bit and jump
+around yeah do you have anything to say
+about this game yeah basically
+I will be repeating this over and over
+today I agree with you with what you
+said the controls were broken at this
+game and the way but it took me actually
+awhile to figure out but I cannot hold
+that jump up key I have to let it go
+after pressing one so I can maneuver my
+my hero route right after that I
+actually admit I had to reverse engineer
+again quite a lot to learn how the
+hangman works because I tried to enter
+the whole phrases but it turned out did
+you you entered basically better than
+the whole phrases after that I really I
+got kind of like this vibe from out of
+this world game or another world as it's
+called and you were well this ver is
+like your hero going upstairs and when
+on the bottom of the screen you see some
+other folks also waiting for you to let
+them basically proceed to the next
+location I really like that and I also
+like looking from I guess perspective of
+what kind of games folks made right this
+was a quite unique game I think that it
+was the only one scrolling jumping
+platform game in there and forget other
+games we had and it was pretty well made
+at fat when it
+stupid graphics the graphic outside was
+pretty nice and I liked it but obviously
+some things to improve but that's always
+the case on campus you have only like on
+game competitions right as you have only
+a month to basically prepare everything
+and you're working usually on your own
+but still I think it's a pretty worthy
+fifth place I had a lot of fun playing
+with it after I finally if you go down
+with the controls so yeah yeah perfect
+all right congratulations oh yeah the
+author of this game is called Aaron um
+sorry and this game is called space
+without eggs and sauce so check it out
+you find it of course on this website
+that is like linked at the bottom in the
+description and you can play and try it
+yourself then let's move on to the
+fourth game and to the fourth place so
+this game is by Kevin Fitch and the game
+is called Conway has life you can
+already see the intro sequence is kind
+of playing you get a little bit of story
+you get kind of the vibe and you can
+like see here how your ship is
+approaching at the station Conway so let
+me skip maybe a bit forward yeah so you
+are now like heading into the station
+and then there were different puzzles
+you were traversing from yeah you see
+here like the animations there was like
+a story and everything so there was like
+a nice intro to the game let's see okay
+and then it started yeah mmm okay there
+were multiple doors that you had to go
+through and then the the first doors
+that were there were related to a
+Conway's Game of Life and so these were
+kind of like a little bit of challenges
+the well basically you get like a
+pattern and you need to get that pattern
+right the execution of the idea was good
+but the execution was a little bit
+unfortunate in terms of like the
+difficulty because in the first levels
+you were just like basically copying the
+patterns and then you realize it's like
+an alternating thing in oh wait okay I'm
+explaining this terribly let me try one
+so at the top left of this level you see
+like zero of five so this is a Kaname
+game of life field and you enter you
+know your population or whatever it's
+called your cells and then you run the
+game for five steps and the door only
+opens if the final state of the game
+after the five cycles or five generation
+steps has what is shown here in this
+phase of your screen and so now you need
+to figure out what is kind of like the
+starting generation that after five
+generations will have exactly that
+pattern and the first that was work was
+so confusing because the first levels
+were just like either alternating
+patterns or stationary patterns that
+wouldn't do anything you were just
+putting in the same stuff again and then
+later it was like an alternating pattern
+and you had to put in the one and then
+it ended in the other one and so the
+idea was great but unfortunately didn't
+like actually get to very difficult
+puzzles they were quite easy that the
+hardest one was I guess the odd was the
+glider level I guess this shows it the
+best let me pause here so on the error
+screen of that glider level I'd pause
+here in a second so it ran for 12
+generations and you can see here the
+access here the glider has to be after
+12 steps of life and I think I remember
+I think this was my first try ever and I
+just thought okay it's probably like in
+the corner you put the glider here it
+runs for 12 things and I got it
+so I would wish them there it was more
+of a play on that aspect but what this
+game made so exceptional was that this
+wasn't the only minigame this was just a
+start and after the Conway game of life
+dog challenges you
+had another minigame where you were
+controlling by the way it's like turning
+blue because I'm like double-clicking
+and accidentally highlighting like the
+browser screen or whatever you had this
+kind of like this tank game where you
+were shooting missiles and you had to
+hit the the ball at the end and you can
+see that the terrain is destructible and
+so there were multiple levels like this
+not particularly challenging just took
+time to adjust and stuff like this but
+it was like another mini game so yeah do
+you know where the name of that mini
+games come from like a gorilla bass
+career ladder bass yeah no clue
+Oh over there no I have no idea okay so
+actually when you installed Microsoft
+DOS back in the days right
+it came with a basic interpreter with
+cue basic interpreter and one of the
+programs was called Gorillapod pass and
+this minigame is basically almost the
+perfect implementation of that game oh
+that's beautiful
+okay that's a nice touch that just adds
+for me and on to it even more awesome
+yeah so you know another implemented
+minigame here that was fun
+yeah and then there was another minigame
+which was you know a regular what is it
+called I don't even know does this have
+a certain name is usually arkanoid okay
+yeah you know another minigame also you
+know not particularly hard or anything
+but another minigame that's implemented
+for to like hack the doors and get the
+doors open basically and help your squad
+to move through at the space station and
+then there was after that there was a
+third game and it is called Kirby space
+program and for me personally that was
+kind of like the main mind-blowing part
+you were going through all these
+different minigames and then this game
+appeared which is just like solar system
+kind of thing where different objects
+are in a gravity field of the gravity
+source in the middle they are just like
+going on there in their orbit and you
+have like a spaceship that is attracted
+to that gravity field then you are also
+in an orbit and you control this that
+how many days are executed and certain
+acceleration I guess and you could also
+aim further in or further out and your
+goal was it to basically collect or hit
+these different objects in in the orbit
+and you can see like how the gravity is
+like you know going out there I just
+collected one perfect and I thought this
+is great like this could have almost
+been like a game in itself just you know
+the visuals and how I was executed that
+just was like awesome
+now that's one funny story I also
+pointed out here a certain time hmm
+maybe I find it so I had to play it
+again and the reason for that was yeah I
+hear I have my frustration again so I
+was playing and I was kind of like
+trying to get these two badly and it's
+really difficult because you need to you
+know think about where the orbits will
+be at that moment and where your object
+will be from the
+gravity you know predicting a kind of
+lining up your object you can see like I
+was getting frustrated chasing these
+trying to collect these objects and then
+I got a bit too greedy and what happened
+then
+you see I'm already slinging around from
+the gravity and then I was just like
+slinging off and and now you see like
+crap
+my reaction here so I still saw like
+dots
+I knew that my ship was on the way was
+able to come back again so it came back
+it recovered but I was not able it was
+aiming so perfectly into the middle with
+its trajectory I guess and I try to get
+you know get it in a nice orbit again
+but it just gravity slingshot it
+a way and I was I was like oh no this
+did just happen and I try to you know
+get the the the speed of the simulation
+up again trying to see if it will
+recover at some point again and I was
+just like oh no and I had to play again
+but you know there was just I screwed up
+I did not predict the the gravity like
+well enough I guess and so I had to
+replay the game again and then I was a
+bit more careful with my with the
+traveling yeah what was your experience
+with this go to the next level because
+took me a while and I still didn't
+collect all of them so yeah yeah I
+played this for quite a long time and
+you can tell I got really frustrated at
+some point because of that but you know
+multiple different minigames implemented
+and having this one is felt like a gem
+at the end like a really nice just like
+unique you know like nobody implements
+such a gravity I mean it's physics was
+kind of like a I guess basic simulation
+kind of thing but using it as a game
+here trying to collect it was just a
+nice surprise it was unique and
+interesting and I had this fun
+experience myself with like this
+accidental gravity slingshot and I was I
+screwed up my myself yeah yeah this game
+like starts with a game of life right
+and I basically get food you know
+beginning starting levels and I felt
+like yeah this is quite cute actually
+right yeah game of fight that's a good
+idea for a mini game in the game where
+you're actually making an unrealistic
+hacking story or a game of like a
+classic right and then I like went to
+you know the glider level I beat it and
+I was swinging like okay bring the real
+stuff and other was kind of disappointed
+brother was the end of a game of five
+levels but then we moved to a gorilla
+which is like scourge tanks or worms
+like again basically so I was like okay
+well the person implemented the second
+game which is not really super trivial
+to make
+it's easy but it's not super shallow so
+I was like quite impressed and then I
+moved to work and I never I was like wow
+okay this is this is getting better and
+better and if you have Mike with a kirby
+space program you know basically like
+obviously related to the Kerbal space
+program I was like okay like this is
+like the icing on the cake this is just
+amazing so I really like it I think this
+is a more fee for place really well done
+I also liked vector animation basically
+done I already mentioned to divert and
+upperworld the game which also featured
+back to animation I I kinda get this
+vibe here as well so a really cool game
+I really enjoyed it
+Kevin bomb and has done a really good
+good work on this yeah awesome
+congratulations Kevin awesome okay then
+let's move to the top three and the
+place three so this was one of the games
+which has we kind of got like similar
+kind of games because of course we
+wanted an unrealistic hacking simulator
+so one of the obvious I guess things to
+do is like you know a console kind of
+interface you know terminal but this
+game did it executed it very very well
+so the setup was this way that you could
+like put a chat like an IRC chat it
+basically at the top right and that chat
+was your company you are the hacker you
+were communicating with the team that
+was exploring station and so you were
+having their the the as a form of
+communication and on the left you
+basically had your machine with like a
+terminal and yeah and then basically was
+kind of like a puzzle game an
+exploration game that was like story
+happening so you can tell you that here
+in the story you see here they are
+asking you are you there we decided to
+dock into the station and check if there
+are a live humans and then you had to
+respond with you know in the chat
+with ya and then the story was
+continuing and they asked for something
+they reached like I don't know were
+blocked by something or yet to like open
+the door or and then you needed to
+figure this out and here I'm just typing
+help and you can see like the different
+commands available and it teaches you a
+tool you get these objectives your
+objective is to set the autopilot
+autopilot to manual yeah and then you
+were just like playing the game now
+there were it's a nice story I don't
+want to actually spoil it like too much
+you should just experience you know
+games like this I don't necessarily have
+a lot of replayability because it's like
+the story and you play the story and
+then you that's like your experience so
+and and you know it's fun to try to
+figure out what you have to do and look
+around and explore these systems but
+yeah let me see if do you have anything
+particular like a step that stands out
+for you
+I guess like one thing to point out here
+is that the terminal was implemented
+really in an amazing way right if there
+are multiple submissions like almost
+half of our submissions had a terminal
+one way or the other
+that's a pre key of this idea when
+you're thinking about an unrealistic
+hacking simulator right we usually like
+as hackers like we like to use the
+turbine also a term also it's a given
+basically but you can give a terminal in
+like a lazy way and you can do it this
+way and I really liked the
+implementation of the terminal here so
+that's one thing if you ever think which
+can't be really hooked up in the game
+which we already mentioned is the chat
+now but Chad was I mean it's it was I
+think one of the three or four games
+which again implemented the chat but
+here the chat was like so immersive you
+could actually like think but these are
+like folks waiting for you and you
+actually have to reply as life overflow
+mentioned already and to them that was
+really well executed really well done
+also the hacking aspect of it I mean it
+was supposed to be an unrealistic
+hacking summarizer obviously so I I
+wouldn't expect any buffer overflows and
+and such but it was just fun to
+basically you know connect to all the
+various servers explore them then like
+interact with them so it was overall a
+really well executed game
+I basically marked what Victor in play
+for me was ten out of ten and my I guess
+I don't know what I would say one thing
+to offer to retsu who created this game
+basically add some more content add some
+music add some sound and put this on
+Steam because this game is amazing well
+that is an amazing compliment yeah yeah
+I also have a small kind of oh wait let
+me point out something first
+what I also like this that it was kind
+of like started to implement some
+windows it didn't use them too much but
+it did come in useful a little bit for
+example it implemented here a binary
+decoder and a network card which allows
+you to switch now now finding how are
+you where when I use this I guess here
+I'm using the binary decoder so certain
+files might have like binary inside and
+you could like use that to decode and
+there was a nice aspect because a lot of
+games implemented you know a
+command-line interface basically but
+this was like going a bit closer to
+simulate like an actual computer away
+maybe you have graphical tools available
+as well and one thing that kind of like
+was a little bit irritating with some
+other games they were for example
+implementing like Caesar cipher or rot13
+or something like this all you needed to
+decode something and that usually meant
+that you had to like Google and other
+side now maybe that was the game's
+intention that you could like go outside
+and out of the game and you know explore
+that and try to decode yourself but this
+game just like directly offered you a
+binary decode as like a program on this
+computer that you could use to do that
+which I really liked and then I have one
+small funny story here in this one as
+well I'm
+moving hours again to see the reactions
+so because it is so immersive for me it
+felt like an actual console at some
+point but there's one thing you
+shouldn't do and which I often do in
+console applications and that is the
+it's it's like very common that I press
+ctrl R to start searching for commands
+in your history and at some point I kind
+of was like tired to type something and
+I thought oh maybe I can do ctrl R to
+search for past commands and what
+happened is that you know ctrl R is like
+a hotkey in in the browser let's see I
+hope I got the time here correct yeah so
+here I press ctrl R try to search
+and and I reef I was pretty far in the
+game at this point basically and I just
+refreshed and the the tap and I had to
+restart here you can see the network
+card program and you know how I guess
+that is nice to see the start here yeah
+it's like like semi press ctrl W in a
+browser right you would expect just to
+remove one word but you actually close
+the tab understand your parents yeah but
+yeah it was a really fun great game and
+definitely deserves the third spot cool
+yeah so oh yeah sorry I forget then the
+author was red sue and the game was
+called hacks or mm Congrats okay so then
+let's move on to the second place this
+game is from lidar loss and this game is
+called space hacker 3000 so you can see
+it kind of starts off like with like an
+terminal interface but really nice
+graphics already like at the top right
+some nice just low pixel kind of graphic
+animations it looks really nice it kind
+of reminded me of Honor I forgot the
+name papers please kind of style like
+with the speaking or something yeah
+let's wait a moment until like this game
+is booting up and suddenly you know I
+thought it's not a terminal game
+suddenly it's booting like Windows and
+had these animations how the how the
+Marines they were just spawning in and
+you see the lifeline of them and you had
+suddenly this very beautiful game and
+there were actually some quite
+interesting game mechanics and so let's
+just talk about them so this is my first
+playthrough of the game I just like try
+to figure out how this game works and
+basically you always have these single
+stages so now we go to the next one so
+we find the door again and we can use
+the door control program here and we
+need to match
+pattern but this was for example the
+first time I realized oh wait the red
+dot was in a different area of the door
+and so now you had to in your mind you
+know wrote rotate this thing as well so
+now sandy yeah I was yeah and then
+suddenly I reached the first enemy now
+they are shooting and you have this time
+pressure to make sure that your Marines
+on a dime and I guess with the next
+another shows one turrets they are
+called turrets
+then the other enemy are drones so there
+are two drones and if you carefully look
+at them they have like a blue and red
+pattern on them now all three blue means
+you control the drone and that first
+wasn't sure what to do I try to like aim
+shooting one guy at the other but that
+didn't work so it took me a little bit
+to figure out how to beat them but I
+very quickly figure out they need to fly
+into each other too you know this right
+now that took so long that calf of the
+space marines died
+now these turrets have this blinking
+light on their antennae and it always
+restarts when it's black and it's just
+showing you a pattern that you have to
+enter you know with these colors and if
+you do it correctly then you basically
+like despawn or destroy or whatever
+teleport away the turret I don't know
+what happened and you see more doors and
+your goal is a 2 and then you collect
+always these like gems and coins and
+like gems at the top right you see the
+gem score and you call as I think it was
+to get like a hundred gems but let's
+wait here for a moment because this game
+just took it takes a little twist in a
+moment there was really another surprise
+what made this game so great oh look who
+appeared hey I see you are trying to
+hack my space station wait a minute
+defense protocol active all intruders
+must die and I was like confused okay
+wait Clippy okay what's happening
+and suddenly clip he started to get red
+eyes and she was lasers at my cursor
+connectionless amazing
+great yeah and so basically this
+introduced like another aspect of this
+game where you had like clip he like
+shooting lasers at your cursor and it's
+not like you get game over through that
+but it's annoying because you have to
+respawn when it happens and now in this
+case you only have a door so it isn't
+too bad but as soon as things are
+shooting at you now you have like this
+in in this time moment if you now get
+shot
+you lose obviously time where you're
+Marines still take damage and obviously
+you now hate to like click these
+patterns and then what do is this not
+only lasers this clip he plans like
+bombs around or mines around the screen
+now you need to like navigate with your
+mouse around and you need to be just
+careful with that and you know no it's
+just like a little bit of sound effects
+as well it's really worth mentioning but
+the game was really well balanced I mean
+it was hard especially when khalipa
+shows up and start like planting mines
+all around and shooting lasers left
+right and center right but it's still
+beatable it was like somebody actually
+took time for off or actually took time
+to make sure the game is on the level of
+being hard but still beautiful so I
+really appreciate that as well yeah you
+need to pay a lot of things attention
+you know you need to make sure you don't
+get hit back Clippy and now this is for
+example a stressful situation I was
+looking to the right because I saw that
+there are these spots shooting at me and
+I completely missed Clippy and Clippy
+attack Mac helped my cursor and I'd lose
+lost more time getting my Marines
+attacked and now I need to like control
+these and try to you know evade the
+mines at the same time now there's one
+more clip II animation yeah and was just
+running into a mine again you know they
+are even a turret and drones are
+shooting at me and I need to wait again
+and you can see I'm slowly like dying
+here
+only one marine left
+yeah so that's just c-clip he does his
+other thing in a moment shooting lasers
+again yeah it's just fast forward a
+little bit here oh yeah okay so at some
+point suddenly I was like doing another
+door suddenly Clippy transforms into
+this saw blade and it's just chasing you
+as well and there was another like what
+just happened yeah as you can tell great
+graphics very well balanced a lot of
+stuff you need to pay attention to using
+both screens there was information on
+one screen that you had to the useless
+information on the other screen there
+were threats on both screens you needed
+to deal with on the Marines needed to
+quickly dealt with that they don't get
+shot and at the same time you need to
+pay attention that your cursor doesn't
+get killed by Clippy it was like a fun
+thing to have like this old windows
+style computer interface for the hacking
+aspect basically yeah it was just that
+was a mind-blowing game for me great
+like really well done and like it was
+really close to being the first place we
+we had quite a long this quite a long
+discussion basically to how to sort out
+the first three games and but I mean
+this game is amazing in its own right so
+while all those amazing job well done
+yeah definitely and again you know with
+the link at the no I think oh I hate it
+with that link at the bottom of the
+screen you find the block and then you
+find the link to all the games as well
+as there and you can you definitely show
+the experience and play and try it
+yourself it's actually really fun okay
+that means we are moving on to the first
+place is there anything special I should
+introduce it with I just drop in the
+video and we start going
+I guess let's drop in my video okay
+there you go so this game is called
+Sigma 18 by Christoph yeah I'm not sure
+if you hear the audio the audio is
+playing right now so this is the start
+of the game II what is the status during
+landing we cannot use it to get out from
+here anymore
+we are at Sigma 18 Space Station there
+seems to be not a soul in the whole
+location
+okay so this was the start of the game
+right you're opening it up and this
+story between you the hacker and the
+commander of your space marine squad is
+kind of starting to unfold and this game
+is starting up with the map at the top
+right and they are speaking with each
+other and that was like an amazing
+creative use of the technologies that
+the browser offers like that was just
+really really clever and just needs to
+be pointed out in general that this was
+such a great idea it made this game
+really really immersive you really felt
+like there are two teams jetting over
+the radio there were certain sound
+effects you know for the radio exchange
+basically and they were using the
+text-to-speech API from Chrome so what
+you could use for accessibility reasons
+or you know this feature for
+text-to-speech was used here to
+implement this communication between the
+squat on the spaceship and ud hacker
+that was just that you know immediately
+really mind-blowing and you can see you
+know the animations like the flickering
+of the map as well that just adds a nice
+touch it is another like terminal
+hacking game which was which was you
+know a very common I guess trope but you
+saw the flicker again they're just like
+ads you know to the atmosphere of
+playing this game but you can also tell
+that the interface was done really
+nicely and you see like the the the
+green on black standard thing was just
+executed very well yeah what do you do
+you want to say something what yeah
+basically what I really loved about this
+game is the story it's basically like
+every space thriller where you well
+you're actually helping folks which are
+stuck on the space station and they're
+exploring it and it turns out that were
+like some well I'm not going to spoil
+too much but there are some enemies
+which are kinda hostile towards you
+there is black out on part of a space
+station and you need to deal with it in
+a smart way you have to control the
+power system you have to control some
+other stuff you have to basically ever
+us also animation when entering a room
+and like suddenly enemies just start
+shooting at you and you have to quickly
+help your Marines by closing the doors
+and then after some playing you have to
+figure out how to deal with enemies
+because they were like it was quite a
+lot of them so this game was really well
+executed
+that terminal was maybe not colorful
+like it was on the third place it's
+right but it was amazingly executed I
+really enjoyed the fake green on black
+classical combination here bucket but
+again really well executed the minimap
+on the right that was incredibly well
+done for animations easy simple but
+still added to the gameplay yeah even at
+the end like we're out show itself was
+this radar animation but was really cool
+so I enjoyed it quite a lot playing this
+game and again as like a little said
+like that text-to-speech and it was the
+first game I saw it in but still it was
+it was a really good choice to use it
+here it added to the immersion quite a
+lot so really well done and extra stuff
+it was like Sigma 18 is one of my my
+favorite game basically of this
+competition so well done work great yeah
+yeah I can only agree it was really fun
+exploring that a Space Station getting
+hearing the story about it and reading
+all the different things they will like
+and I said a lot of different aspects
+with the power those enemies some
+management the power management I play
+as well there were I tried to forget
+even with the shooting there was like
+another twist some some point later in
+the game as well
+I'm just fast-forwarding here so you can
+kind of like see visually the map kind
+of expanding but yet yeah it was very
+well done you can it became was quite
+long as I'm not so but this is another
+game like yeah just add some more
+content
+put it on Steam for a backhoe to write
+capital warrant it's totally worth
+playing yeah for sure yeah and yeah you
+know you said it kind of as an engine
+and build more kind of games like those
+it's great maybe also also the hacking
+parts like the the the challenges
+themself there was one in particular
+with like authentication where you and
+am i spoiling not too much but it was
+not just you know connected
+machine get this file or execute this
+program exploit there were like a little
+bit of thinking you were like using one
+tool to to defeat like the
+authentication of something else and it
+was all just like very good ideas a lot
+of different small ideas that just like
+added to overall really great fun
+experience and yeah
+you should also I play it it's called
+Sigma 18 by Christoph yum rush yeah so
+congratulations Congrats
+so you find the games on GE WGC 2018
+grandmother to you and you should play
+them and you'll find them all here
+however now these were our top six I
+guess maybe a quick recap I didn't
+prepare like a screen for that no okay
+like yeah on Play six is in it player
+one by gamer is impecca hybrid a nice
+death plate on place five is space
+without x by r NM on place for is convoy
+has life ccc by Karen Fitch on place 3
+we have hacks or 2000 by retsu on place
+to we have space hacker 3000 by Li loss
+and on the first spot we have Sigma 18
+by christophe cameras and of course
+check out all the games now these were
+their positions as you can just as a
+quick reminder we had certain awards for
+them as well and you know we will do
+with we will reach out to them of course
+now beyond the top 6 we have a couple of
+Honor
+honorary reward awards that we want to
+give our to certain games I didn't
+might make the top six but that we
+wanted to just like you know honor as
+well as you can sell we didn't like
+specify how many that would be that
+would just be you know if we felt like
+we wanted to really award something just
+for an exceptional another exceptional
+game we would just wanted to keep that
+open as a possibility and so we have
+four honorable mentions that we would
+want to go over next do you want to do
+you have anything to say about before we
+head there perfect perfect okay
+so honorable mention number one is
+called
+nulls space by now we have the weird
+names of junk attic or something like
+that yeah so what's to say about this
+game this is another skip a little bit
+into the game so you had another like
+console game like a console to the left
+and at the top right you also have game
+a map interface or like where the story
+is playing out in some way similar to
+the first place but you can tell you
+know the first place did execute it a
+little bit nicer but you know this game
+made some things very well and that's
+why we wanted to have it as an honorable
+mention as well do you want to say
+something about the graphics part so
+basically the graphic graphics part was
+a cool idea but it wasn't executed as
+well as the first place was right
+because in the first place I guess it
+was a little more readable and here I
+guess you can you can polish it a little
+bit more and this is what I was missing
+at this game the idea to have a vector
+animations well vector slash bitmap
+animations of the Marines moving and
+like interacting with the environment
+which was pretty cool but
+effort is so much more you could have
+done here but this isn't the only thing
+which actually separates it from the top
+games and our toys you ever think I
+wanted to point out was some minigames
+were really fun and we ever games were
+so fun but at least my impression i
+enjoyed by Sudoku and most of the
+world's typing I did but then like
+awesome in the game about adding two
+numbers together really fast and the
+numbers were in Trivial Oh
+there weren't hard iver but if you have
+these many numbers just crawling through
+screen doors but you have to actually
+get right and but was more I guess
+annoying I guess is the word when fun so
+yep like small stuff like this is
+basically what separated it yeah yeah
+for example here you see one of these on
+one of the typical most used mini games
+here where you had to quickly type in
+the words falling down and if you don't
+do it fast enough you get basically you
+know only you have basically health and
+with each one you're losing a bit and
+then you lose at some point and I don't
+know I I'm obviously not the fastest
+typer but I wouldn't say I'm the slowest
+one but I had basically no chance to
+finish these things like I was way too
+slow a small mistake and you are out of
+it and I failed basically almost all of
+them so that was really frustrating and
+so in the end I outside to resort to
+like now you can see one of the
+animations like up there right now so
+just to point that out here here
+switches to like another screen where
+they are walking in you know I think the
+font choice for example was not the best
+one I don't I know like small things
+that just visually could have been
+better but the animations and historian
+itself is great and so it has a had like
+a lot of nice things implemented and
+that I we felt like deserves an
+honorable mention yeah cool then let's
+move to the second honorable mention
+called grand hackster by
+Tio's magis cisna marches yeah yeah this
+is yeah you know one of fun polish names
+it was Moshe - yeah so this game is
+called grant excellently skip forward -
+okay so there were like I think two
+games where hacking was basically like
+kind of like over the top like done in
+the movies we just had to smash the
+keyboard and you the goal was just to
+like smash it like crazy I think here I
+was still like trying to figure out what
+am I supposed to do so I was just like
+hitting Ridley but further into the game
+so at the top right you see a labyrinth
+or maze where you control one block here
+and you are traversing through that maze
+and you can collect certain things and
+your goal is it to find a certain item
+and bring it back now what blocks you
+from doing that is that there are doors
+that you need to hack at that with the
+hacking this is where the smashing comes
+into play now you can see on this
+keyboard to the left that if you go back
+a moment you see that there are controls
+as well on the keyboard so you were
+controlling two things you were
+controlling the block or your squat or
+whatever that is traversing through the
+maze on the on the screen above but you
+were also controlling the the squares
+this three by three grid above the above
+the keyboard and so you were smashing on
+the keyboard and at the same time by
+pressing I think it was shift you were
+then able to go into the control mode
+where you could move these things and
+just created a kind of interesting
+minigame so I'm here now at a blocked
+door you can see the top of the map and
+they are now these three fields with
+lock icon and you can see that I like
+that you can move this green cursor
+around and basically you need to move
+the screen cursor to these
+Fields with the lock icon and in during
+that time you are just smashing the
+keyboard until all of the three ones
+turn green and if you we if you leave
+that slowly those grits turn red again
+over time so they need to have over a
+certain level of green that they stay
+green otherwise they become red again so
+here I'm smashing again it turns green
+and I move on to the next one smash
+again turns green
+but if you are too slow and it's like
+quite difficult or it took a bit to get
+like down the the controls until you are
+very fast with that yeah once you
+complete that you the door opens and you
+can traverse further to the maze one
+other twist was here that you can tell
+that in the keyboard certain characters
+are red and others are blue so if you
+are smashing certain Keys too often they
+kind of like overheat and break or
+something like this you can tell like
+that it like it's filling up these dots
+at the bottom right corner of the keys
+and if they fill up too much they break
+and this was an aspect of the game I
+realized later so you need to a bit
+strategize which keys you are smashing
+because if you smash them too much you
+destroy them and at some point you don't
+have like any keys left anymore so if I
+like fall board I get this stage of the
+game I only had a few buttons left and
+it was basically impossible to not break
+them at this point and I had to like
+carefully plan which button I'm smashing
+and not the graphics were great I think
+the mini game wasn't a fun idea like the
+Smashing and yeah so that's why it for
+me it deserved an honorable mention
+what was your experience with it I mean
+the graphics and the art style here is
+quite amazing if you could scroll back
+to the intro for example but was done
+procedurally without any like you know
+pre-rendered animation so that was quite
+amazing as well and what basically made
+me not put this game as one of the top
+games is that in the end I did
+have as much fun playing it I mean it's
+great visually it's like top-notch
+visually Tori but keyboard mashing girls
+like only so far right yeah you could
+obviously explore the labyrinth but and
+if you does a game about machine
+keyboard so this is basically the one
+differentiate or which basically puts
+this and honorable mentions and not on
+the one as one of the top games for me
+yeah yeah cool
+so that was grand pacster then let's
+move on to the third honorable mention
+low this one is called locust
+infestation by drug here and here I turn
+on the sound really quick again for a
+bit
+and I just let it play here for a moment
+just so you can get a feeling for it so
+the game was there wasn't it was more
+like it's a minigame it was like one
+aspect of a game and was fun to play was
+kind of like interesting at first and it
+was I think you know visually it was
+nice and it had some nice music and the
+game idea I think was kind of
+interesting so basically at the top
+right you see these two signals running
+one signal you had to match the red one
+and you control the green one and you
+control the amplitude the frequency and
+what's the other one offset or like I
+guess
+yeah offset or something like that and
+you had to match that exactly and the
+stuff basically the story was that there
+were doors that were blocking your squat
+that is fighting aliens in on the other
+screen and to be able to hack open the
+door you needed to like hack the radio
+connection of the door basically or
+something and so you needed to match
+that quickly so that your squad will not
+be killed by the aliens now we both had
+big issues with this game and there was
+just because of the controls that was a
+bit frustrating so you see these sliders
+below the signal view and with those who
+control the frequency and amplitude and
+stuff like this now I realized I can
+touch this with the mouse and control
+them but good well for example didn't
+realize that but the intended way to
+play this was that you use num keys and
+my keyboard doesn't have num keys
+I don't own a keyboard with num keys
+none he is like I have a couple of kills
+but none have a num key my laptops don't
+have num keys so I couldn't really play
+the game and what I then used is I used
+like a stream deck you know like what
+the stream was use where you can like
+crap I can't get a tire sorry where you
+can like control
+we can program certain keys and so I was
+programming a numpad on here so I could
+like play the game with that and good
+well how did you solve this issue yeah I
+have I have a key part basically in my
+keyboard I have a really large keyboard
+with basically a full keyboard pass some
+additional keys which I can program
+anyway but that didn't really solve ish
+I just couldn't play this game with the
+default keyboard setting with like you
+know the default control scheme I
+basically after trying like five times
+and failing miserably at the game
+because I was confusing vaccaei the key
+is basically I felt like it would be
+natural for me for these keys to like
+control this aspect like for example my
+face or the offset how it's actually
+caught in the game in this program play
+dude and so on but it just didn't work
+for me so it via Thai I went to the
+source code I changed the keyboard
+scheme to the control scheme to
+basically the one of my liking and after
+setting that like first time I played it
+I passed the game so I I'm not sure what
+they offer actually was thinking about
+when choosing the key by default key
+bindings but I would go a different way
+now I guess one thing to mention here
+you imagine part of a music the music
+right
+I believe this is one of the games which
+had music which is like a lot more than
+you can say about most of the games most
+of the games didn't come with any music
+there was a couple of like some nice
+ambient tunes but most of the games just
+didn't have any music at all now I
+wouldn't necessarily go in the same
+direction with music here because the
+music was kinda anti like the atmosphere
+of the music was basically totally
+different from you know exploring with
+Space Station the music more like went
+out to more into the classical piano
+tones but everything better than
+anything else in my opinion nonetheless
+really well-executed game and I totally
+see yeah it was just a unique it was
+different it was more relaxing kind of
+game I guess in that sense
+and yeah but that's why we wanted to
+leave it as an honorable mention as well
+and now we come to the last honorable
+mention in the last game that we will
+showcase today and this one is called
+space saver by Thomas Latos it was yeah
+as you can already tell there was a
+story going on there were like amazing
+graphic animations and it's just wait a
+moment until like the game kind of
+starts off I think it's good yeah so
+basically you're actually exploring a
+Space Station here you are controlling
+this yellow marine and you are walking
+around and you have your squat there
+with you and you are basically
+collecting these these reports there and
+there were yeah some small like
+minigames that you had to also solve
+throughout the the Space Station
+exploration yeah it basically had its
+own graphic style I guess I don't know
+how much we want to say about like the
+story or the details of the reports I
+think we can skip the spoilers yes yeah
+but you were particularly liking this
+one right do you want to say something
+about that
+yeah basically what I liked about is I
+liked the story and I liked that didn't
+end after the like first five minutes
+you could play a little longer than that
+there was a couple of rooms to explore a
+couple of minigames to basically well
+practice hacking quite quite easy simple
+minigames but still they were what
+actually tipped the balance for me and I
+know you liked it also was at the end of
+the game when you collected all the
+reports and he went back to your
+spaceship you could actually read the
+reports and that was really cool yeah so
+there was a nice story and and that is
+just you know it that that is gameplay
+that is that
+just to the game design that you
+collected all these reports and you
+didn't quite know what these reports are
+about and you you hear some about the
+story of the space station and then the
+game is over and then you after the game
+screen you just get a screen where you
+can just like go through the different
+reports and read them what was basically
+going on at the space station and that
+was just I know there was just such a an
+important game design decision that just
+made a big difference and overall yeah
+it's an exploration game and so that was
+quite fun basically also chatting that
+we are kind of missing the threat here
+you know Oh like most of the other games
+have an element fat you you either were
+playing against the time because the
+space station was supposed to like just
+explode in a second right or there were
+some hostile audience drones or robots
+or whatever after you but here you just
+like oh fully let's play a space station
+yeah just let's walk around like a walk
+in the park basically I was kind of
+missing the aspect like a few aspects
+here in this game yeah cool okay so that
+that was it for the different games we
+were obviously uh I guess can well also
+will contact the winners and the
+honorable mentions for their rewards
+over we will do that take care of that
+over the upcoming days or weeks or
+whatever yeah I would like to mention
+again you should make sure to play these
+games as well and I encourage you to
+check out the source code of them as
+well look at how they were implemented
+if you're curious how could somebody
+implement such a game in the browser a
+lot of them you know have nice source
+code provided with them as well so you
+know use them to learn a little bit and
+enjoy the games as well do you have
+anything else you want to say talk walk
+no I guess it's like every sign under
+what you just said like to play also the
+game which we didn't feature because we
+showed on it hang ten games bro 25 games
+total and the games were actually pretty
+cool all of them do you have any funny
+stories about playing cover games
+actually have one which I wanted to show
+is that for one game I the game didn't
+work as intended in all honesty so I
+actually spent like 25 minutes the
+bagging for game and finding that the
+bags and fixing them so I can test it
+and it was actually the even the back if
+the games was quite fun in that case I
+don't know if you have like if you've
+done anything still dirty wonderful
+games yeah there was a one game there
+was also another kind of like terminal
+hacking game but it also had like an
+interesting twist that it had like
+multiple monitors that you of terminals
+that you had to control and you had to
+solve like each single monitor and there
+was a bug where when there was like
+there were easy terminals and how the
+terminals to basically shut down and you
+could basically just solve an easy one
+and then it initiated the shutdown
+sequence as a timer and what you could
+do while the time is running you switch
+to one of the hard terminals and when
+the timer ran out it shut down that hard
+terminal instead so that was just like
+kind of like a game breaking back to
+make everything easy but that was
+clearly you know replaced like the game
+state of the terminal running right now
+and the timer hitting the shutdown of
+the current like game thing that was
+running right now just like a small
+little bug
+I guess yeah we're getting the glitches
+to close then yeah yeah most of the
+games you can play in the browser I
+guess maybe some require maybe more
+different kind of setup to play you I'm
+not sure
+so actually you should be able to play
+all the games which are featured on the
+website which is all of them from a
+Chrome browser it was basically a
+requirement for the offer super games to
+make the game playable on the Chrome
+browser by newest Chrome on us Windows
+10 they basically wanted to limit it to
+one platform just you know to make it
+easy and since we like I use Chrome so
+that's why we decided for it an over ism
+and so that's one thing the other think
+if you want to run them on your own
+computer you might need to start and
+keeping server for some of them the
+easiest way is to just install Python
+and run Python - em simple HTTP server
+and thus if you you have an HTTP server
+running so yeah but apart from that
+that's actually it they ever again
+should work yeah cool yeah I only can
+mention again you know this was a
+collaboration again well it's convulse
+game development challenge he has done
+several of these in the past and I
+believe is continuing to do so in the
+future once in a while I was really
+happy that he allowed me to join for
+this one and participate and judge all
+these games so if you are also so if you
+want to participate in such a game
+challenge in the future yourself as well
+and want to use this as an opportunity
+to you know learn some new technologies
+and just participate in like you know
+small community of game developers make
+sure to follow him on YouTube as well as
+I guess Twitter is a good way to end his
+blog to get announced to get the
+announcements for a new development game
+deaf challenges and beyond that he
+obviously is making great live streams
+about various IT security topics in
+English this is English Channel but also
+on polish on his polish channel these
+are quite excellent as well and you
+should obviously also subscribe to him
+yeah from my sight oh so thank you life
+overflow for helping me I was actually
+really happy when I life overflow came
+to me and said hey I want to help you
+because I was super happy to dump just
+fat most of other like staff which is
+the hardest judging the games on him to
+basically be able to discuss it I it's
+always a struggle to you know you get 25
+amazing games and you have to stack rank
+them so having another person to like
+discuss this and help with also other
+powers of organizing the competition but
+was amazing so thank you very much like
+overflow and obviously as I would like
+to thank every participant and everyone
+who tried to make the game even if they
+didn't
+in the end because yeah it's like it's
+pretty fun and it's a great learning
+opportunity I think and most other games
+which you sent in were quite amazing we
+had a lot of fantastic so thank you and
+I guess the next competition will be
+around summer sounds good yeah also for
+me thank you so much I did I really
+enjoyed every single game it was a blast
+to play them and the most painful part
+was trying to rank them and you know
+having to exclude showcasing certain
+certain games it was really a lot of
+work I really try to give every game you
+know the the time it deserves that meant
+for some games playing them for hours
+because they were that hard of
+frustrating or just that long you know
+but yeah I enjoyed every single one of
+them and I appreciate that you put the
+time in developing them and sending them
+in I guess yeah maybe also I feel sorry
+for that one team that kind of had a
+little bit of internal struggle I felt
+kind of bad for them having put so much
+time into this and then was another
+agreement if you are there listening I'm
+so happy that you hopefully you can
+still besides those issues draw some
+positive from it that you had fun
+developing itself and sorry that you
+couldn't hand it in in the end yeah yeah
+cool so yeah that's it I will close the
+screen down if there's nothing else to
+talk about and otherwise you know stay
+tuned for I guess the summer for the
+next game deaf challenge and until then
+maybe go through the games you saw so
+here yeah thanks so much see you another
+time and thanks for hanging out with us
+bye thank you

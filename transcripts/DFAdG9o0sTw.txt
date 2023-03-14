@@ -1,0 +1,380 @@
+Recently I had to do a security review of a 
+VS Code extension and language server. But
+I know nothing about VS Code Extension 
+security. what is the attack surface?
+What could go wrong? But I need to know 
+this, to properly review the code, right?
+So the question is, how can I do my 
+work, if I don’t know this stuff.
+Well, the answer is, first, I obviously 
+need some general experience on how
+computers and software work, and how that 
+stuff can break, but then I also need specific
+knowledge about the topic. So how do I learn 
+about it? Well I can start by looking around
+what others have published on the topic. And 
+you can find a few resources out there about
+security of VSCode extensions, like a blog 
+post by vasco franco of trailofbits or an
+article by rail and kirill. But when you 
+want to become a security professional,
+you cannot always rely on existing material. Even 
+in this case you only have a handful of resources.
+And think about this, how did those authors 
+come up with their articles in the first place?
+Well the answer to that is, security 
+research. These articles are basically
+the result of research. So 
+in order to do good work,
+I have to do security research on VS Code 
+Extensions myself. And in this video I want
+to take you along on one particular research area 
+that I investigated with VSCode Language Servers.
+So what is a language server? Luckily there is
+this great guide from the official 
+vscode documentation explaining it:
+Language Server is a special kind 
+of Visual Studio Code extension
+that powers the editing experience for many 
+programming languages. With Language Servers,
+you can implement autocomplete, 
+error-checking (called internally
+diagnostics), jump-to-definition, 
+and many other language features.
+And here is generally how the architecture 
+looks like. Let’s say you want to add HTML
+or PHP language features. Like checking 
+for syntax errors or auto completion,
+then you create a VSCode extension to do 
+that. And part of this extension is the
+actual VS code extension itself, the Language 
+Client. It’s your code running within VSCode
+as an extension. But then your extension 
+executes another process, another program,
+which is the respective language server, and they 
+communicate using the language server protocol.
+By the way, if you find the term server and 
+protocol confusing, it just happens so I made
+videos about these terms recently. So check out 
+those videos and then it hopefully makes sense.
+This article also refers to a language server 
+sample code, which is a minimal example of how
+to implement that. For security research it’s 
+always important to have examples to look at.
+Essentially we are looking here at a library or 
+framework - the VSCode extension API and the way
+how language servers are implemented. So you 
+need to know how the library is actually used.
+For example from the guide we just learned 
+that the extension executes the language
+server process. So this library somehow 
+provides code execution, right? But that
+doesn’t mean the library has a remote code 
+execution vulnerability. It now depends on
+HOW exactly the language server process is 
+started and how developers use the library,
+whether it’s easy to make a mistake that 
+leads to RCE, or it’s unlikely to do so.
+So that’s why it’s important 
+to have realistic example code.
+And here it is. The lsp-sample. From the 
+README we can learn how to set it up,
+I don’t need to go into details here, 
+you can follow those steps yourself.
+Now let’s have a brief look over the structure of 
+this code. Here we have a server, so that’s the
+language server, and we have the client, that 
+is the actual VSCode extension. This extension
+code is very minimal. On activate, that’s like 
+the main entry point for the VSCode extension,
+it will create a serverModule path, configure 
+the serverOptions, configure some clientOptions,
+passes it to the languageClient and starts it.
+So this is apparently how executing the server
+process works. Here we specify the 
+path to the server program and I guess
+client.start() will then launch the process.
+So regarding our previous question about
+remote code execution, is this an issue for 
+this library? Theoretically you could write
+some weird code where you assemble the server 
+path dynamically based on attacker controlled
+data and that could lead to arbitrary code 
+execution, but it’s incredibly unlikely. The
+extension and server go hand in hand, and I can 
+guarantee that, even without actually checking,
+in every case the path is gonna be hardcoded.
+So that’s uninteresting and useless for us.
+WRONG! YOU WRONG! This is not uninteresting. 
+We just did security research. We identified
+a potential security issue - based on our 
+prior experience we understood that if
+this path is attacker controlled it would 
+lead to an issue. And remember our job as
+a professional is to do a security review 
+of some other VSCode extension and language
+server. Albeit it being unlikely to be an issue, 
+we can still go and check that in other projects.
+So all in all, we did good work here, we did what 
+was asked from us, even though it led to nothing.
+Anyway, let’s move on.
+There is actually another
+thing I really wanted to look at. But before we 
+get to that, let’s look at this example code in
+action. What does it do? The README tells us 
+how to compile and run and debug this project,
+so let’s go ahead. It will launch a new 
+VSCode instance with our vscode extension,
+the client, and it will execute the server.
+We can now create a new document and enter
+some example text. And look at the 
+squiggly lines appearing. The uppercase
+ANY is flagged. ANY is all uppercase. And 
+this is the result of the language server.
+The language server has a bit more code, but 
+most important is that it reacts on changing
+content. So when the content of an open document 
+changes it will execute validateTextDocument,
+and there is a regex where it looks 
+for uppercase words length 2 and more.
+It then loops over all matched words and creates 
+so called Diagnostics. It creates a warning saying
+that the word is all uppercase. And then it uses 
+the connection between the client and server to
+send back the diagnostics about this file, 
+which the vscode client receives and turns
+it into this warning here. ANY is all uppercase.
+So you just saw the vscode extension and language
+server in action. The client setups an 
+external process, a server, and asks it
+to analyze the opened code. And the server then 
+can send back information, like warnings about
+the code. It’s just a toy example, flagging 
+uppercase words, but you can see what it does.
+So what’s next? There is actually one area that 
+I find incredibly important to investigate.
+And that is “Communication”. That is 
+the important word. Whenever you have
+multiple components, especially server and 
+client, that communicate with each other.
+As a security researcher you should 
+ask yourself a few questions.
+First question is, how is the communication done? 
+Is it something like an HTTP API, websockets,
+is it raw TCP sockets, UDP? Does it use pipes 
+and IPC features (inter-process communication)
+offered by the operating system. Like pipes in 
+windows, or mach ports in mac. there are tons
+of ways how communication could be implemented. 
+And it’s important to figure out what it uses.
+And then this leads to the second 
+question. Can an attacker mess with that?
+So we are basically trying to 
+identify the attack surface.
+Generally we only need to review code 
+that can be reached by an attacker,
+but without knowing what we can 
+reach, we don’t know what to review.
+So discovery of the threat surface is a 
+very important part of security research.
+That’s why we have to do that now. And in the 
+client code we can actually see here a reference
+to TransportKind.ipc. Inter-process communication. 
+But what other types of TransportKinds exist?
+I guess it’s time to look into the code of 
+the vscode-languageserver library itself.
+We can easily find the github repository for 
+the npm module, which includes the client,
+server, protocol types and JSONRPC (the underlying 
+message protocol). If you have a github account
+you can hit dot on your keyboard and drop into 
+an in-browser vscode to now explore the sources.
+In the search I always like to exclude test. 
+Tests are great place to see how developers
+intend certain functions to be used, but 
+oftentimes I don’t want to get distracted by it,
+I will seek it out when I specifically want to.
+This leaves us with the main.ts file containing a
+lot of if-checks for different TransportKinds. 
+And we can also find the enum defining the
+different methods. We have stdin/out, ipc, 
+pipe and socket. mhhh. I guess there is no
+HTTP api. Which means attacks from browsers 
+with HTTP requests are not possible, right?
+Well each transport kind may or may not have 
+different risks whether an attacker can even reach
+those endpoints or not. Especially IPC and pipes 
+usually are only interesting for local attackers
+that already have code running on the machine. 
+So we think more about privilege escalation. But
+regular TCP sockets are still very interesting. 
+Maybe they are listening on all interfaces,
+meaning that an external attacker on the same 
+network could talk to the TCP server. But also
+web browsers speak TCP. Well web browsers speak 
+HTTP, but HTTP is built ontop of TCP. And if you
+have played CTFs before with SSRF challenges, 
+or for example you have watched my GitLab CTF
+walkthrough, you know that you can sometimes use 
+HTTP or other protocol requests, and target other
+TCP based protocols and mess with that. So in 
+my brain I start to wonder, what can I do here?
+So first we need to get a better test 
+setup. Which means I want to change the
+sample code from using TransportKind.ipc, 
+to TransportKind.socket. Looking around at
+other examples implementing this we have 
+to specify the transportKind and a port.
+And now when we launch our extension, we don’t 
+notice anything different, however using netstat
+we can see that two different processes have 
+established a TCP connection on that port.
+And using wireshark listening on the loopback 
+localhost interface, filter for the port,
+we can even observe the communication between 
+the vscode extension and the language server.
+So restarting vscode again to trigger the 
+whole message flow, and then we can find
+it in wireshark and with follow TCP we 
+can look at the complete TCP exchange.
+And so here you can actually see 
+the JSONRPC protocol in action.
+So when in the server code we write 
+connection.sendDiagnostics passing
+over the uppercase warnings, the library 
+actually sends out this JSONRPC message. It
+seems to start with a content-length, followed 
+by JSON data. And this contains a method name,
+textDocument/publishDiagnostics, followed by 
+additional data. Like start and end line along
+the warning message, “is all uppercase”.
+As you can see, this is just json data,
+sent over TCP between the vscode extension client 
+and server. And fun fact, if you look at the
+sending direction, the vscode extension client 
+actually opened the TCP port, and the language
+server connected to it. So while this component 
+is called a language server and this the client,
+if you look at the TCP layer, this started 
+a TCP server and this is actually the TCP
+client. I thought that’s interesting if you 
+watched my “what is a server” video. Anyway.
+My research question, my security 
+research question is now. Can we
+send malicious JSON RPC messages from a 
+browser? Send fake diagnostics to VSCode?
+On first sight, this does not seem so, because 
+these are clearly not HTTP requests, right?
+Also when you use netstat to look for TCP 
+ports, the port is actually not listening.
+It’s established. Meaning the server stopped 
+listening after a client connected. This is
+actually a really good design, there 
+is no reason to support multiple TCP
+clients in this case. Once the language server 
+connected, you don’t need to listen for more.
+But I did write a quick python script to test 
+whether we can race this. So Basically the
+script tries to connect to the TCP server and 
+send fake JSON RPC data. And when we relaunch
+the extension we maybe connect before 
+the server can connect, and then YEAH,
+we sent malicious data. But you have to get very 
+lucky, and in practice you only have one chance,
+when VSCode is launched. So this really minimizes 
+the threat surface a lot. Which is good.
+But still, theoretically you 
+can definitely win the race
+and connect to the port before 
+the real language server does so.
+So we can finally tackle the big 
+question. Can we send malicious
+requests from a browser, from a malicious website?
+To answer this, I had to look into the jsonrpc
+implementation. Specifically the message parsing. 
+I knew it was looking for the content-length,
+so this is a good starting point. Looking for this 
+in the code it lead to here. A function onData,
+and it calls here headers.get(‘content-lnegth’). 
+looks like, even though no other headers exist
+here, in principle it supports other headers.
+And this is great news. Remember, this is
+how a typical POST request in a browser 
+looks like. You have a bunch of headers,
+including content-length and the body. This part 
+looks like JSON RPC. But does it accept this other
+garbage? I tested this with the python script and 
+a notification test. Prepending some fake headers,
+and it works. Which means this whole 
+part is valid JSON RPC. Incredible.
+But we have a problem. Because the 
+first line of HTTP, the request line,
+is not a header. And if you would send this, 
+this would fail. This is not valid JSONRPC.
+But do you have an idea? This requires 
+creativity in hacking. Well.. How is a
+header defined? Probably key, colon, value. 
+So… I mean… why not add a colon here.
+And this works. By sending a POST request to 
+a path containing a colon, it turns this first
+line into what looks like a fake header. Key 
+and value. And the jsonrpc code accepts this.
+Does this mean we can actually attack 
+vscode extensions from the browser?
+Well… long story short… no….
+Turns out before you can send a malicious JSONRPC 
+message, you need to respond to the initialize
+message. Responding with your capabilities. Which 
+means you need to send 2 JSON RPC messages after
+another. In the same TCP exchange. I actually 
+first thought it would work. I thought the browser
+maybe uses HTTP pipelining under the hood. So two 
+HTTP requests are appended and sent along the same
+TCP session. BUT turns out. HTTP Pipelining 
+in browsers is not really a thing anymore.
+“The option to enable pipelining 
+has been removed from Chrome”.
+So you can send the JSON RPC response, 
+but you get no chance to send an actual
+malicious JSONRPC message.
+Which means in the end… This
+idea of attacking vscode language server 
+extensions from the browser does not work.
+This is failed research. 
+Sorry for wasting your time?
+Well, with this video I wanted to show you 
+how research can look like. And many times
+research will be fruitless. This is the essence 
+of the scientific process. And it’s okay to fail.
+For me it’s definitely not a waste of time. I 
+think in the end I still learned a lot about
+VSCode extensions and along the way you 
+probably discover other attack ideas as
+well that you can then test for. So to me 
+this is a very important part of my job
+doing code reviews. and hopefully I was able 
+to give you a glimpse into this kind of work.
+Also I did a lot of this research on stream 
+recently. So if you are wondering how long
+this research actually took, well you can 
+watch it in real-time on my second channel
+LiveUnderflow. it took us around 3-4h to do 
+this. So If you are interested in more of
+the technical details or follow along, 
+and try out some other ideas you have,
+check it out. And tell me in case 
+you find anything interesting.
+Speaking of work. Have you ever tried 
+doing code review using a shitty font?
+I would not recommend it. But if you hate 
+yourself and want to try it checkout my
+handwritten font. it definitely makes 
+code reviews worse. So check it out on
+shop.liveoverflow.com. This is like 
+digital merch. You can support this
+channel with a one-time purchase. And 
+get something somewhat useful out of it.
+Besides that I also appreciate Patreons and 
+YouTube Memberships. Thanks to everybody who
+bought the font or is a member. 
+I really appreciate it. Thanks.

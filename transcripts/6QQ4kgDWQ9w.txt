@@ -1,0 +1,148 @@
+in the previous videos of this series we have
+setup everything.
+We flashed the challenge “Secure Filesystem”
+on to the board and figured out how to interact
+with it over a serial connection.
+We also learned about using pyserial to speak
+with the embedded device via a python script.
+This means we are ready to solve some challenges
+So when you connect the board with this challenge
+loaded on it, you can see the following output
+on the serial console.
+It shows a list of files.
+And our goal is probably to read the passwd
+file.
+But let’s first read the challenge description.
+Secure File System - We don't remember why,
+but we wanted a file system on an AVR328p
+(that’s the microcontroller on the arduino
+board).
+After the system was completed we discovered
+that it lacked basic security.
+A couple of beers later we came up with what
+we think is a revolutionary way to do file
+system permissions.
+It is now your task to fill in our shoes and
+test its security.
+The filesystem allows you to request the contents
+of one or more available files by using the
+following
+Format:
+A token, followed by a hash and then at least
+one filename, followed by multiple optional
+filenames colon separated.
+And there are multiple example requests to
+read different files.
+For example this one here would return the
+content of cat.txt and finances.csv.
+We already successfully did that in the previous
+video.
+So, while I’m pretty certain what the solution
+will be, let’s have a look at the other
+examples and approach it with an open mind.
+Because maybe it’s not what I think it is.
+The first thing we should notice is, that
+the tokens look pretty random.
+Especially when you compare different tokens
+that all request cat.txt, but in combination
+with another file, it will completly change.
+This means it’s unlikely that data is encoded
+in there.
+Or that it follows a predictable pattern that
+we could analyze statistically.
+It’s very likely that it is a hash.
+Like a password hash.
+Easy to compute and verify, but really hard
+to reverse.
+From the length i suspect it to be a sha1
+hash.
+I didn’t record this, but at this moment
+we could check if the filename, or the combination
+of multiple filenames are simply hashed and
+that becomes the token, but it turns out it’s
+not.
+And at this point I wanted to try out what
+I suspected to be the solution.
+Because if you see a token, that presumably
+protects or authenticates some data, it might
+be some kind of MAC, Message authentication
+code.
+A mac, or how it’s here called, a token,
+can be used to prevent somebody else from
+changing data.
+And we don’t know how to generate a valid
+token to request the passwd file.
+But, a message authentication code can be
+implemented in a weak way, and then you can
+mess with it.
+And I actually introduced this weakness in
+a previous CTF video.
+So let me play
+that clip.
+
+In that video it was about an md5 hash, but
+sha1 has the same issue.
+If we assume that the embedded device has
+a secret key, which is prepended to the requested
+filenames, and then a hash calculated around
+it, we should be able to attack this with
+a length extension attack.
+So let’s start to write our attack script
+and use hashpump, the tool that I introduced
+in the other video already to do that.
+We import pyserial, setup the serial connection
+with the USB to serial device.
+Then we can attempt to read from it, write
+one of the example tokens which should allow
+us to read cat.txt.
+And then read again to get that content.
+But when we run it, it doesn’t work.
+We read nothing.
+I assume that we read data too fast and the
+board is just too slow with sending.
+So I write a little helper function called
+read_until, which always reads data from the
+serial connection, until the read data contains
+the string we expect.
+So now we can read until the prompt appears.
+When we now test it, it will take a second
+until the board sends us something, but we
+are eventually able to read the content.
+Then I install hashpump and the python module,
+hashpumpy.
+THis allows easy access to the hashpump utility
+from a python script.
+One problem with this is, that a hash length
+extension attack has to know how long the
+secret key is.
+And we don’t know that.
+But we can simply write a for loop, that just
+tries out all different lengths.
+And then we simply call the hashpump function.
+We give it the hash we have, the data we know,
+the data we want to append, in this case we
+want to append the passwd file with colons.
+Also we don’t know what is in pepper, so
+we get that file as well.
+At at last we need the key length.
+Hashpump will return the updated hash and
+the new message which contains the padding
+and so forth.
+We can also print the tested key lentgh with
+that data so we can later see how long the
+secret key was.
+Then we send the new calculated updated token,
+with the hash symbol, and the colon seperated
+file request via serial to the board.
+Then we should read until the next prompt
+after each attempt, so we know the board is
+ready to get our next request.
+Now we let it run and watch.
+And UH!
+There it looked like we got something.
+Let’s scroll back up.
+Yeah and there it is.
+The flag.
+Let’s submit the flag and collect our first
+100 points.
+Awesome.

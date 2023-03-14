@@ -1,0 +1,401 @@
+TECH SUPPORT was a web challenge from the
+Google CTF 2020.
+In the end 90 teams solved it.
+I was part of solving this for our team ALLES!
+But it was definitely a team effort.
+So let’s have a look.
+Try chatting with tech support about getting
+a flag.
+And here is the URL.
+So let’s quickly get an overview of the
+application.
+I also already have burp setup to see what
+the app is doing.
+Let’s first register an account.
+Myusername.
+Mypassword.
+Register.
+Okay.
+We see the POST request also here.
+Now login.
+Myusername and mypassword.
+Cool.
+Then we find here an address field.
+So let’s try a simple xss.
+Img onerror.
+Submit.
+And we have here a XSS.
+Cool.
+Then we have this Chat Now functionality,
+where we can chat with tech support.
+Let’s try another XSS payload here, but
+we also need to get passed this captcha.
+This is also typical for CTF challenges with
+a bot.
+Because on the server they have a bot that
+has to open the browser so you can attack
+it with XSS.
+And this is very resource intensive and you
+don’t want people to DoS that.
+So with a captcha you make sure only very
+few requests are allowed.
+Bu WHAT THE HECK IS GOING ON.
+I can’t get past this captcha.
+Let me speed this up.
+This was rediciolous.
+See how long I keep trying.
+What the heck.
+Is this maybe the actual challenge?
+Get past recaptcha?
+Oh maaaan.
+Well.. eventually it worked.
+And then I could submit the test xss.
+Which triggered.
+Cool!
+So looks like we have easy XSS here as well.
+Oh!
+And do you notice the flag menu up here?
+So this is apparently where the flag is.
+“Only the chat user's account has flag”.
+So we need to XSS the chat support and use
+the XSS to read the flag.
+There is one last thing I want to explore
+before we try the XSS.
+We also have a signed cookie.
+Which is base64 and we can decode it.
+This contains a CSRF token, our username,
+the address for the XSS and the flag.
+We can’t change the cookie by hand, because
+it’s protected by a signature and we don’t
+know how to generate a valid signature, but
+it also wouldn’t help us.
+The flag is clearly stored in the cookie of
+the chat support.
+Anyway.
+The XSS seems simple, right?
+Let’s try it.
+I use the developer tools to help me craft
+a XSS payload.
+Basically write the javascript code I want
+the XSS to do.
+So first I want a fetch call to GET the /flag
+page.
+Then I have the response object and I want
+to access the text response.
+And then with the text response I can do another
+fetch request to a request bin where I can
+receive the leak.
+I simply base64 encode the flag page and send
+it.
+And you can see here in the request bin that
+the base64 encoded flag arrived.
+This looks a bit crazy, but with a js beautifier
+it looks a bit nicer.
+But we want it compact for the xss.
+So let’s try it.
+I also like to convert the payload to base64
+and then the XSS decodes and evals it.
+Because then I can avoid some issues with
+the encoding or escaping of special characters.
+Let’s submit the XSS in the support reason,
+but we get this error in the console.
+Failed to load resource.
+The server responded with a status of 404.
+Not found.
+But WHY?!
+We tested the fetch and leak before, and it
+worked.
+This actually took me ages, to realize.
+look at the domain!!!!!
+It’s typeselfsub DASH support.
+Not just typeselfsub.
+It turns out the chat is being executed on
+a different domain.
+The XSS fires not on the main page.
+If you look at the support page, you can see
+the chat is an iframe.
+And inside the iframe we can find our XSS.
+In the devtools console we can also switch
+the context of the execution.
+From top to the chat domain.
+Now the javascript we type in here is executed
+in the context of the embedded chat.
+And when we try our fetch payload again, we
+get the same 404 error.
+So maybe we could use the full URL, but then
+we get a CORS error.
+Because we cannot fetch the content of a page
+from a different domain.
+It’s just a subdomain, but still a different
+domain.
+If we use the mode: no-cors option, the request
+works, but it only works because the browser
+does not send cookies with.
+Which means then we don’t get the flag because
+we are not authenticated.
+So this is a problem.
+All of this will not work.
+And this is where the actual challenge starts.
+So.
+We have a XSS on the chat domain.
+But we need to get the flag from the main
+domain.
+Mh!
+We actually have a XSS on the main domain,
+it was here in the profile, but it’s a self-xss.
+It only affects our current user.
+But this already gives me enough building
+blocks to plan the attack.
+There is a well-known trick how to turn a
+self-xss into a serious xss issue.
+So this might be useful for bug bounty folks
+too, who find a self-xss and need to turn
+it into something usable.
+Let me visualize what the XSS payload could
+do.
+Here I have the chat domain and we can imagine
+we can do XSS stuff on here.
+So our XSS payload could first load the /flag
+into an iframe.
+Just to visualize I also change the flag here
+by hand.
+So the chat bot would now have loaded the
+flag.
+Then we could somehow force login the victim
+into our account, which means there is a XSS
+on the main domain in the profile.
+If we have done that we can load a second
+iframe with our profile /me, that then executes
+the apparent self-xss.
+And this javascript is now running on the
+main domain.
+Theoretically the /flag is now gone, because
+we are logged into OUR account now, but because
+we loaded it previously into the other iframe,
+we can now use the self-xss to go into the
+old iframe and extract the flag.
+Let me show you.
+Here I use the console and I make sure the
+execution context is the /me profile iframe.
+In there we could simply traverse the DOM.
+From this iframe we go into the parent.
+We have there access to all the frames.
+We know the first frame is our /flag loaded
+iframe, we go in there and we can access the
+document bodies text.
+Reading the flag.
+Note!
+This is only possible because both iframes
+are from the same domain.
+You can see this if you try to access the
+document body from the parent.
+Which is the chat domain.
+Here we would get a `DOMException: Blocked
+a frame with this origin from accessing a
+cross-origin frame.`.
+So accessing the page content in this iframe
+from this iframe only works because they are
+on the same domain.
+That’s the trick for self-xss.
+If you paid attention you might also wonder
+why we do that, and not just steal the cookie.
+Because the cookie contained the flag, right?
+Well.
+The problem is the session cookie is HTTP
+only.
+Which means you cannot access it from javascript.
+You cannot steal it.
+But as you can see, we can still steal sensitive
+data without access to the cookie.
+And it wouldn’t work with the self-xss stuff
+anyway.
+There is now only one puzzle piece left to
+pull off this attack.
+And this is somehow to login the victim into
+our account for the self xss.
+Actually there could be multiple options for
+this.
+Maybe there is a login CSRF to login the victim
+into our account.
+Or there is a CSRF on updating the profile
+address, so we wouldn’t even have to relog
+the victim.
+These were also options some others in the
+team attempted to do.
+But at the time I also played around with
+the session cookie a lot and I followed a
+different strategy to get the victim logged
+into my account.
+You see.
+When you set a cookie you can specify the
+domain and path where it applies to.
+And when we are on the chat subdomain we are
+allowed to set the cookie for the parent domain
+with a dot in the front.
+This actually sets a cookie that also applies
+to all other subdomains under this parent.
+Here is an example setting the cookie.
+Key, value.
+While being on the chat domain, but for the
+domain with the dot in the front.
+Check this out.
+If we go to the main domain, and look at the
+cookies, we can see the key value cookie showing
+up!
+It’s set on a different domain, but it still
+applies to this site.
+If we look at the GET request that loaded
+this site, we can see that the browser happily
+attaches this cookie to the request and sends
+it along.
+This means, we might be able to simply set
+the two session cookies, to the cookie of
+our account.
+Let’s try this.
+So this is our account with an alert.
+Let’s remember this cookie.
+And then we logout and create a new random
+account.
+Doesn’t matter.
+And make sure we login.
+As you can see this is now a new different
+account without a XSS.
+Now let’s go back to our Chat domain and
+set the cookie like we set the test cookie
+before.
+First we set the session and then also the
+session signature of our old account.
+If we now go to our main page and refresh,
+we don’t immediately see anything.
+But you can see the cookies are now both set.
+And if we look at the raw request in burp,
+we see that the browser sent ALL cookies.
+Old and new ones.
+Now look at this.
+If we logout this user, we still remain logged
+in.
+It shows the profile and flag menu point.
+And when we now go to profile, the XSS is
+executed.
+The logout invalidated the real session cookies,
+and now our injected ones take over.
+We are logged in as the old user.
+Cool!
+Now we just have to put everything together
+and we should get the flag.
+Let me show you my solution.
+This is the XSS payload we enter into the
+chat reason.
+It’s an image that triggers this onerror
+execution.
+And it evals whatever is encoded here.
+So let me decode it, and beautify the javascript
+and look at it closer.
+First some headers are prepared but ignore
+that for now.
+This function l() I’m defining is a logger
+function that helps to debug the payload.
+It simply takes a parameter m, a message and
+then it executes a fetch() to a URL that we
+control.
+And it appends that m. so whenever we call
+l() with a message, we receive that.
+This helps to verify which steps were executed
+in what order.
+It’s just debugging.
+And what follows is a list of setTimeouts
+that execute at different times, to give each
+step a bit of time to load.
+The first one to execute is load_flag, which
+simply creates the iframe that loads the flag.
+A short moment later we set the two cookies
+to our account.
+Ignore this for now.
+Then we logout the user, by simply loading
+an image with the logout URL.
+Followed by loading the profile with the self-xss
+in another iframe.
+For the whole picture it’s also important
+to look at the code of the self-xss.
+Which we know is encoded in the session.
+So let’s look at it.
+As you can see I actually put the XSS into
+the username.
+Not the address.
+No particular reason.
+When I was working on this I just noticed
+the username also has XSS on the profile.
+if it’s in address or username makes no
+difference.
+More importantly.
+The self-xss simply loads another javascript
+file.
+So that’s just for convenience.
+If we do it like this, we don’t always have
+to change the session, if we want to change
+the payload. we can just write whatever code
+we want into that script.
+And yeah.
+That just fetches the flag from the other
+iframe and sends it to us.
+Cool.
+Only Problem was, it didn’t work.
+It worked locally, when we tested it.
+But not when submitting it to the bot.
+But we also knew that there was an update
+by the organizers: “Note: We have received
+multiple reports of exploits not working remotely,
+but we triple checked and concluded that the
+bot is working properly.”
+So we knew there was some other kind of issue
+going on with our exploit.
+And I probably would have failed the challenge
+here, because I think I would have never realized
+this.
+But Managarmr from our team noticed something.
+The cache-control header is set to “private”.
+And according to the mozilla developer docs
+“A private browser cache may store the response
+in this case.”
+And we thought that maybe when we tried to
+load the self-xss on /me, we got the cached
+response with the profile of the original
+user.
+So no self-xss.
+And I didn’t know how to deal with that,
+but Managarmr thought of a trick using fetch,
+where you add cache control headers where
+you specify “no-cache”.
+This request should then load the new logged
+in user’s profile and then when we embed
+it with iframe later, it should work.
+And when I added this, it did work!
+Here I’m looking at the leaked requests
+from the XSS.
+We get the base64 encoded leaked string.
+I decode it.
+And there is the flag!
+CTF{self-xss?
+That isn’t a problem right}
+We submit it!
+Flag captured.
+We were the 39th team to solve it.
+Cool.
+But now that I look at my code again I notice
+that this cache buster fetch request was completely
+f'd up.
+Look at this.
+I apparently did a copy&paste fail.
+I’m fetching <iframe src, blah…
+This of course DOES NOT fetch the /me profile.
+So was this useless?
+maybe the issue wasn’t even a cache issue.
+In another writeup by 0xParrot I also can
+find no words about caching.
+And it’s basically the same exploit.
+Maybe it was just a timing issues.
+Not enough time to load between those timeouts.
+Or whatever.
+So no clue.
+But in the end, still solved it.
+Who cares.

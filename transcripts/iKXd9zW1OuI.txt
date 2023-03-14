@@ -1,0 +1,245 @@
+Hacking has many different definitions and
+meanings, so many in fact that I can’t even
+think of another word with this issue.
+And I’m certainly not fighting against these
+established definitions, because you will
+always lose against the evolution of languages.
+It’s ok for me that hacking in the public
+eye is negative, and I can accept that people
+participating in programming events call themselves
+hackers, and I also see why social engineering
+can be considered hacking.
+And I also know that these perceptions might
+change over time.
+I get all that, and that’s fine.
+Human communication is ambiguous.
+And obviously I have my own definition as
+well, on what I consider the “correct”
+way of hacking, but as I said I won’t disregard
+the other opinions - so let’s actually not
+discuss this highly emotional word, and just
+talk about why many of you watch my videos,
+and that is
+understanding computers so well, that we can
+make them do stuff that was not intended.
+It seems the Rubber Ducky is a big trend right
+now, at least on reddit and youtube.
+And I want to use that thing as a scapegoat
+to make a point.
+But before I get into my argument, let me
+quickly make something clear.
+The Rubber Ducky is a product sold by hak5,
+and my criticism is not aimed at them advertising
+their product on their show.
+I have nothing but respect for them, creating
+a solid product and building a successful
+company.
+I’d love to meet them, have a beer and collaborate
+on a video.
+My criticism is about something else.
+So here is my rubber ducky tutorial.
+Rubber ducky is the name for a USB device,
+that identifies itself as a keyboard.
+And you can configure or program it so that
+it automatically types whatever you want.
+For example you can use that to open a terminal
+and type in commands to create a backdoor,
+or download and install a rootkit.
+Done.
+That’s the whole tutorial.
+There is nothing else to say about this.
+I mean, when I heard that for the first time,
+my reaction was…
+hah!
+That is actually a pretty clever hack.
+This idea never came to my mind.
+Neato.
+But that’s it.
+It’s not sophisticated or interesting to
+me beyond that.
+Nonetheless you find an endless stream of
+videos, blogs and tutorials about this.
+The obvious reason for that is, that it’s
+sooo simple that anybody can understand this.
+And actually it’s a cool way to introduce
+kids to the concept of hacking or IT security,
+like we give children KOSMOS crystal growing
+kits for christmas to get them excited and
+interested in science.
+But what real scientists do at a university
+is obviously completely different.
+Of course the rubber ducky can be used by
+a professional penetration tester when going
+onsite and trying to get a foothold into the
+organization, by trying to slip that into
+a computer.
+But a big part of this job, and part of being
+a typical criminal often referred to as hacker
+from the general public, is not that technical.
+You know, tricking people into clicking on
+emails or acting like cleaning personnel to
+enter a server room is impressive, and not
+that easy, and I’m certainly super bad at
+social engineering and acting.
+But is that really following the spirit of
+figuring out the magic of computers?
+How they work?
+How you exploit them?
+Not for me.
+You see, there are two ways you can approaching
+learning about security.
+And most of these rubber ducky tutorials are
+result based.
+Mh.
+I’m not that eloquent, so there is probably
+a better word for what I try to express.
+What I mean with “result based” is, these
+tutorials are about,
+how to extract cleartext passwords with a
+rubber ducky
+how to bruteforce an android lockscreen with
+a rubber ducky
+how to start a reverse shell with a rubber
+ducky, …
+But what do all these things have in common?
+They all rely on typing something on the keyboard.
+So if you come from the other side, if you
+learned the underlying concepts and principles
+and you have a general understanding of the
+operating system, programming, digital circuits,
+protocols, and so forth
+then it’s clear that all this is possible.
+Specific tutorials for these things are not
+helpful.
+And when you come from this other side, you
+get much more benefit from it.
+For example when you find a remote command
+injection vulnerability, you now understand
+what kind of commands you could use to get
+a reverse shell and you don’t need another
+tutorial on how to get a reverse shell from
+a command injection.
+And here is the predicament.
+Using a rubber ducky turns normal commands
+into a hacking attack.
+So if you want to learn hacking, and you search
+for tutorials you will obviously only find
+these “result based” explanations.
+If you want to learn it properly, the underlying
+concepts, are hidden in standard literature
+and computer science courses that don’t
+have the word “hacking” in it.
+That’s why I strongly believe a good sysadmin
+or programmer has good chances becoming a
+good hacker once they change their mindset
+from building to breaking.
+And somebody who learns using all the Kali
+tools will have great results during penetration
+tests, and will have a successful career,
+but it’s a lot harder for them to combine
+the fragmented information they got from the
+different tools to the general underlying
+understanding.
+Now that’s an ideal.
+I’m not innocent when it comes to that.
+I will also use tools that I don’t really
+understand, just because it gets the job done.
+But that doesn’t necessarily make me a script
+kiddy.
+If you use the rubber ducky, and it makes
+you look into how to program your own USB
+HID device.
+You learn about arduinos and you program a
+microcontroller.
+You learn about the USB protocol and how to
+advertise yourself as a keyboard.
+Then you are not a script kiddy.
+But if you just use it to go around and drop
+different payloads, you are not a hacker in
+my eye.
+But the criticism I had for hacking tutorials
+from earlier, also applies to many of my videos.
+I could argue that teaching you about buffer
+overflows or format string exploits is the
+real deal and teaching you the principles.
+But that might not be the case.
+I wish I knew what Halvar Flake really said
+during one of his presentations, unfortunately
+there is no recording available, but what
+it says here on the slides hits deep.
+Halvar argues that “we fail at teaching
+exploitation properly, and instead teach a
+“bag of tricks”.
+That’s kinda what i meant with “result
+based” learning earlier.
+The broken exploitation curricullum looks
+like this.
+We learn about stack smashing.
+We learn about a specific heap implementation
+and how to exploit it.
+We learn about SQL injections.
+We learn about ASLR and other mitigations.
+We learn about XSS.
+And many more overly special cases.
+We have a problem, that we are disjoint, disparate,
+and terrible at transmitting principles.
+Too many people “miss the forest for the
+trees as a result”
+When you learn how to write a heap exploit,
+and you become a exploit practitioner, you
+will probably develop the intuitions that
+is needed.
+You basically learn the actual underlying
+concepts, from the fragmented information
+you have collected over time.
+But there is no incentive to formalize or
+disseminate the mental models.
+And we also not really have them at this point.
+I guess that is the main reason why we still
+teach them that way.
+But there is progress in that field.
+We started to formalize these concepts and
+developed the theory of weird machines and
+language theoretic security but we don’t
+have a full understanding yet.
+I met Halvar Flake once, he doesn’t know
+me, but I told him that his research was a
+revelation for me.
+Basically I understand know that we should
+approach exploitation also from the other
+side.
+He said, and I’m heavily paraphrasing here,
+I hope I don’t misrepresent what he really
+said, that he talked to many people over the
+years, who have written real crazy exploits
+in widespread software, and they have developed
+this formal intuition of what exploitation
+or hacking really is.
+For example, here is a guy who fuzzes browsers
+and has a lot of high value bugs to his name,
+reacting to the slidedeck from which I have
+shown you a few pages.
+Simply *wow* @halvarflake makes explaining
+the seemingly random processes in my head
+when I write exploits look simple.
+For a script kiddy, different rubber ducky
+payloads may look crazy and like complicated
+hacking, but if you understand the underlying
+concepts, they are nothing special.
+So if we can also understand the principles
+of exploitation, all these memory corruption
+tutorials may seem trivial.
+I hope I can get there.
+I hope we can together develop this intuition.
+But I also hope smarter people than me who
+do research in this field can formalize it
+for all of us.
+That would be easier.
+Long story short, if you own a rubber ducky,
+use it as a motivation to go deeper.
+Don’t be a script kiddy.
+Thanks for listening to my 2 cents about hacking.
+I’d really love to talk about this more,
+so feel free to express your views here as
+a youtube comment or on reddit.
+See you soon.

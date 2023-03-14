@@ -1,0 +1,402 @@
+For this video it’s really important that
+you understood the previous video, where we
+looked at the exploit and figured out how
+to leak addresses of a javascript object.
+And you should have a basic understanding
+of how a javascript object looks like in memory
+with inlined properties and the butterfly.
+Because in this video we will use the same
+bug from last time, but turn it into a memory
+corruption.
+[ad] This series on browser exploitation is
+supported by SSD Secure disclosure.
+Checkout the description for more information
+[/ad]
+You probably wonder, how can we turn this
+address leak now into something that allows
+us to compromise the javascript engine.
+Well, it’s not as easy as a simple buffer
+overflow where you get directly control over
+the instruction pointer.
+The bug we abused in addrof(), gives us some
+capabilities, but now we have to slowly turn
+them into more.
+So let’s have a look at fakeobj().
+Saelo describes a different bug in his phrack
+paper “attacking javascript engines”,
+but also introduces a addrof() and fakeobj()
+primitive.
+What addrof() does we already know, but let’s
+see what he says about fakeobj().
+The fakeobj primitive works essentially the
+other way around.
+Here we inject native doubles into an array
+of JSValues, allowing us to create JSObject
+pointer
+Remember this graphic explaining how JSValues
+are stored?
+32bit Integers were stored with this format
+where the highest bytes where 0xffff, and
+doubles were in this range.
+And that’s also how we found them in memory.
+However when you add a javascript object into
+an array, then you store a pointer, so the
+address, to that object.
+So if addrof() uses this bug to read a pointer
+to an object as a double.
+Could we also reverse that, so that a double
+is interpreted as a pointer to an object?
+That’s exactly what we want to do now.
+Let’s copy addrof and change the name to
+fakeobj.
+Our value we pass in, would now be a double,
+that we want to become the fake pointer.
+So now remember the issue.
+The bug was that that this jitted code here
+will keep treating the array as an ArrayWithDoubles,
+even though the lastIndex.toString function
+assigned an object to it, which turns the
+array into an ArrayWithContiguous and stores
+the pointer to our object in the array.
+So we abuse that now.
+In here instead of reading, returning, the
+first value as a double, we write our target
+double into the array.
+we should rename the function now to AddrSetter().
+And in the evil lastIndex.toString function,
+we now assign an object to the array.
+And instead of returning the double representation
+that came from the jitted AddrGetter function
+vefore, we actually want to return the real
+first element from the array.
+So it’s pretty clear what will happen now.
+We have an ArrayWithDoubles.
+Then we jit code that writes a double of our
+choice into the first element of that array.
+Nothing special here, it was a double before
+as well.
+Then we prepare this toString function and
+call AddrSetter again.
+This will execute the regex, which will call
+toString and which will assign this object
+to the first element of the array.
+Now the JavaScriptEngine will turn the ArrayWithDoubles
+into an ArrayWithContiguous and places a pointer
+to this new, unnamed, object into the array.
+But after that, our jitted code continues
+and still thinks we have an ArrayWithDoubles,
+and thus it will write the double of our choice
+into the first element.
+Overwriting the pointer that was set, when
+here the object was assigned.
+It’s kind of like a type confusion.
+At the end we return the first element of
+the array.
+Like I said the toString function that assigned
+the object turned this array into an ArrayWithContigous,
+but we overwrote the first element with our
+double.
+And if that double was chosen, to look like
+a pointer, javascript will think the first
+element in the array is pointing to a JavaScript
+object.
+Let’s try this out.
+Let’s try to craft an object with this.
+I will use lldb again for jsc, and to run,
+I pass in our test.js with the addrof() and
+fakeobj() function, but also use the option
+-i to also get an interactive javascript prompt.
+So.
+how do we do this…
+To keep it simple I decided to create a test
+object with a single property x, and that
+x is a simple integer.
+Let’s look at it in memory.
+We describe(test), get the address of the
+object, CTRL+C. And print 4 64bit hex values
+from that address.
+So the first 32bit were some flags, the next
+32bit were the StructureID.
+Together they are the JSCellHeader.
+Then we have the butterfly which is null,
+followed by the inlined property x, which
+we set to a 32bit integer 1.
+And now let’s try to fake such an object.
+And this is super clever!
+Of course I didn’t come up with this, I
+got this again from saelo’s paper.
+We can abuse the fact that the first few properties
+on an object are inlined into the object itself,
+and not placed into the butterfly.
+Let me show you.
+Here I create a an object that I will call
+fake, because it will help us to craft a fake
+object.
+And just for a start let me create three properties,
+a, b and c.
+Now we describe it, get the address and look
+at it in memory with lldb.
+So here again we have the flags, the structureID,
+the butterfly, and the integer properties
+inlined.
+So the address of fake points here.
+Now think about our fakeobj function.
+It will write a double into an array and possibly
+interpret it as a pointer to an object.
+So we could for example use addrof to get
+address of fake, and when we plug it into
+the fakeobj function, we would get back the
+fake object.
+Quick test.
+And that works, it looks like we got an object
+back, and it has the same properties, a,b,c.
+But here comes the trick… we can fully control
+the double that is interpreted as a pointer…
+So what would happen if we add a tiny bit
+to that double value which is the address
+of fake.
+Just add a litte bit so that the pointer is
+now shifting forward, and pointing here.
+If we then use the fakeobj() function, it
+would think that this is a JSObject… that
+makes sense right?
+However this does not look like an object.
+This here would have to be the special flags,
+this would have to be a structureID,
+this would be the butterfly
+and this would be the inlined properties.
+But we control these property values with
+this object fake.
+so we could try to craft a valid object now.
+let’s try to do that.
+First the flags with the structureId.
+As you know the structure ID defines what
+kind of properties exist on an object.
+So if we want to fake the test object with
+the .x property from earlier, we need to use
+exactly the structureID from that test object.
+Here is again our memory of test, which we
+can use as a blueprint that we want to copy.
+This is what we basically want to copy as
+properties on the fake object.
+So how do we get the structure ID of our test
+object during execution of the exploit, without
+using describe(), because we don’t have
+that function in the browser.
+Well we know already that you create a new
+structure, and get a new structure ID, everytime
+you add a different property on an object.
+We can abuse that to easily guess a valid
+structure id.
+We basically create a lot of test objects
+with the x property, but also an arbitrary
+other property, to force new new stuctueIDs
+that all have that x property.
+We basically spray test objects.
+If we execute that loop, and look with describe
+at the last test object that was created,
+we see that it has the x property, and it
+ahs this arbitrary other property, but most
+importantly it has a huge StructureID.
+So if we randomly pick a structure ID of like
+0x1000, we should be very certain, that we
+get one of those test objects.
+I mean theoretically this could also fail
+and it could so happen that the structureID
+we chose was not our target test object, but
+we can really increase the probability with
+just spraying many objects.
+Okay…
+So basically we want to craft this 64bit value.
+We want to keep the same flags as the blueprint
+test object, but also use a high StructuerID.
+I use python again, to do the conversion stuff,
+and get the double representation.
+So this double should be now a valid JSCellHeader
+for our fake object.
+So we assign it to the .a property, but when
+we check and compare the memory, we notice
+that somehow there is a 1 that should be there.
+Turns out that the NaN encoding for JSValues
+actually says The scheme we have implemented
+encodes double precision values by performing
+a 64-bit integer addition of the value 2^48.
+That’s hex 0x10000000.
+So if javascriptcore will add that to our
+value, we have to subtract that value first.
+So here we get the new double.
+Assigning that and checking memory, now it
+looks correct!
+Next we have the butterfly, and we need it
+to be zero.
+But how can we do that?
+If we want to create this property .c down
+here, we need to create a property /b here
+as well, and we can’t write a zero.
+Integer zero would still have the ffff, and
+even a Null would actually be a 0x2… well…
+for now let’s create a property, but we
+come back to it in a second.
+The third property on our fake object would
+become the first property on our fake test
+object, so the .x property.
+And this we can just set to something cool.
+How about 1337.
+Okay… let’s have a look at it in memory.
+examine memory… there we go.
+This looks promising.
+Our fake JSCell header looks really good.
+And this is our faked x property.
+Only problem is the butterfly.
+That ideally should be zero.
+But this turns out to be super easy.
+We can just delete the property b on our fakeObject,
+and when we look at memory again, we can see
+that it’s now null.
+Now let’s place that all into our test.js
+script.
+We have the loop to spray structureIDs of
+our test object.
+Then we create the fake Object that we target.
+We set the properties so that they look like
+a fake test object.
+And then we use addrof to get the double representation
+of the address from fakeObject.
+Let’s look at the memory again.
+So this double is this actual address.
+Which means we want to now get a double that
+is just shifting this address a bit forward.
+16bytes in fact.
+So we can use python again to convert this
+shifted address to the double representation,
+and here we go.
+Now we copy it and try to use the fakeobj()
+function.
+Hax = to fakeobj of this double.
+Apparently that returned an object.
+So let’s see if this object has a property
+x.
+It does!
+It’s 1337.
+Let’s describe it.
+Look at the address.
+JavaScriptCore thinks now that hax is an object
+here, but those are actually the properties
+of our fake Object.
+Crazy right?
+This means when we change the c propety, so
+the third property of our fakeObject into
+for example a string “LiveOverflow”, then
+this of course also means our hax object now
+reads a string from it’s x property.
+Maybe this seems now a bit useless to you?
+But imagine the power you have now.
+You can craft arbitrary JavaScript objects
+and you control their internal class properties,
+down to the memory level.
+For example this allows you to craft a Javascript
+array and control the butterfly pointer.
+You could point that pointer anywhere and
+act as if there was a butterfly.
+Okay.
+But it’s still not code execution.
+But the question you should ask yourself now
+is, what object could we fake that increases
+our capabilities.
+Something that gives us even more power.
+And that process of thinking about faking
+different kinds of objects, and experimenting
+with this, this is exploitation research or
+generally security research.
+This would be your next step now, if you were
+a researcher doing this for the first time.
+However we are noobs, so we still have not
+reached those state-of-the-art exploitation
+levels, and of course many researchers have
+already done that and documented it.
+So we can look again into linus’s exploit
+and see what he does with this.
+First he sprays Float64Array in the same way
+we sprayed our test object, so that structure
+ID 0x5000 will be a Float64Array with very
+high probability.
+Then he also sprays a few WebAssembly Memory
+objects.
+Prepares some webassembly code and here he
+prepares a fake JSCellHeader.
+He is using here the int64.js library from
+saelo, which we ignore for now, it will just
+create here a fake JSCellvalue, like we did
+with python.
+let’s focus on what we do recognize.
+And that is for example here.
+Here he creates a new object that he calls
+WasmBuffer, and the fist property is the fake
+JSCell header.
+Like the first property .a of our fake object
+was set to our fake jscell header.
+Looking at how he constructed that, we can
+see that it is using the StructureId hex 0x5000,
+so it looks like he wants to create a fake
+Float64Array.
+The second property would be the butterfly,
+and then some other properties.
+Later he deletes the butterfly again because
+he also wants here to have zeroes.
+Which seems weird for an array, because usually
+arrays use the butterfly, but he does another
+trick.
+Then we see our first addrof.
+So here he gets the address of wasmBuffer
+as a double.
+Then he uses the int64.js library again, which
+does all this double to integer conversion
+and stuff, basically what we did with python.
+And so he takes that address which was a double,
+creates a 64bit integer from it, and then
+adds 16.
+So he is shifting that pointer a bit forward.
+the same way we did that with our fakeObject.
+This is now the address of the faked Float64Array.
+After that you see that he uses the library
+code again to turn that address back into
+a double, and then passes the double to the
+fakeobj() function.
+So now he should get a fake Float64Array.
+But… here is the other trick.
+Remember the few WebAssembly.Memory objects
+he sprayed?
+Well… actually he is not at all interested
+in a Float64Array.
+He wants a WebAssembly.Memory object.
+This while loop checks if the fakeWasmBuffer
+is still NOT a WebAssembly.Memory object.
+How does this make sense when he deliberately
+chose a structureID to get a Float64Array?
+Well, he abuses the fact now, that the two
+objects overlap.
+the fakeWasmBuffer overlaps with the original
+wasmBuffer jsCellHeader.
+And like we modified the .c property of the
+fake Object, which affected the .x property
+of the fake test object hax, here he keeps
+incrementing the JSCellHeader of the wasmBuffer,
+which affects the real structureID of the
+fakeWasmBuffer.
+And so in each iteration he checks now, if
+the fakeWasmBuffer has turned into WebAssembly.Memory
+object.
+He is basically bruteforcing structureIds
+in a safe way until he gets gets a WebAssembly.Memory
+object.
+And that’s why he sprayed first the floats,
+and then afterwards just a couple of WebAssembly.Memory.
+Spraying the floats is much faster, to get
+a lot of structureIDs.
+So he can be sure to get such a fake object.
+And the WebAssembly.Memory structureIDs follow
+after that.
+Of course, this still doesn’t explain how
+we get to arbitrary code execution, but we
+slowly get there.
+We understood another crucial part.

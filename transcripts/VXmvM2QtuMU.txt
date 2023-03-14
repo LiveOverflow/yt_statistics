@@ -1,0 +1,402 @@
+What exactly is a Server?
+This term can actually mean different
+things based on the context, and with this 
+video I hope I can give you a complete overview.
+But is this not super simple? Well, I like to 
+make videos that I wish I had when I was younger.
+And when I was around 17-year old I taught 
+myself web development to make browsergames,
+and I used web servers all the time. But, 
+I have this super vivid memory of walking
+into a classroom contemplating about “what 
+is a server?”. I just couldn’t grasp it.
+Which means there are probably more like 
+me that ask the same question. So this
+video is dedicated to my 17-year old self and 
+anybody else who struggles with this question.
+
+When you want to know something, wikipedia is 
+always a good place to start. But when looking
+at the wikipedia overview page for “server”, 
+let's actually ignore the computing category.
+And instead we go down to “roles” where we 
+can find the “servers” as in “waiting staff”
+in a restaurant. Servers are those who work at 
+a restaurant, a diner, or a bar and sometimes in
+private homes, attending to customers by supplying 
+them with food and drink … as requested..
+And this is probably the best and only 
+definition you need to know for “server”.
+You REQUEST something from a server, and the 
+server gives you what you requested. Video over.
+Though, I know, this would not 
+have been enough for with 17.
+It still feels very abstract and I 
+need something a bit more tangible.
+So let’s start with something my 17 year-old did 
+know, and those are game servers. lots of the
+games we used to setup and play back then are not 
+as popular anymore, so let’s look at Minecraft.
+You can play Minecraft locally, 
+or you can play on a Server.
+Here for example is the download page for the 
+official minecraft server and it is actually
+a .jar file. So this is a program written 
+in the programming language java. And those
+instructions maybe look a bit complicated 
+and confusing, but when you execute it,
+it’s like any other program you execute. Look 
+here in the taskmanager of windows showing
+all the running processes and programs.
+So this minecraft server is a program like
+all the others. Discord, photoshop, 
+notepad. All of them just program.
+And this is the first lesson. Don’t get confused 
+by the word “server” and think that it’s anything
+special or magical. The term “Server” just 
+describes the “role” or the “purpose” of what
+the program does. But it’s just a program.
+Alright. But what makes
+this program a “server” now?
+It supplies you with the data you requested.
+On the surface you play a game, but 
+to make this game work, data is sent
+between your game client and the game server.
+And here is the other important term ”client”.
+I guess there is no server without a client. 
+So as a “client” or customer in a restaurant,
+if you want something, you ask the “server” for 
+it, and the server gives it to you. So in the case
+of a minecraft client and server, your game client 
+(which is by the way also just another program),
+it asks the server for example “ey, I want to 
+play here, I need some information. Can you
+please give me the world data”. And the server 
+sends you part of the world, and also tells you
+“by the way there is also a creeper behind you”.
+Now here the comparison to a restaurant staff
+falls a bit short, because in a client-server 
+setup you are not only asking the server
+for information, but it’s expected you also 
+supply information. For example your current
+position or if you want to punch a tree.
+But in the end “client” and “server”
+are just programs and these terms 
+just describe the “role” they have.
+Now in this example, the client and server 
+program are located on the same computer.
+Look both of them are here in the task 
+manager. So how do they communicate?
+Communication is an integral part for 
+the client and server relationship. And
+most of the time it’s some kind of networking.
+In the case of Minecraft, they communicate with
+raw TCP packets using their own special minecraft 
+protocol. We can use a tool like wireshark to
+look at all the network packets being sent and 
+received, and if we filter for the correct port,
+we can see here, even if it’s on the same 
+computer, they still use network packets with an
+IP and port. So whether the program is located on 
+the same computer, or located on another computer
+somewhere on the internet. It doesn’t matter, 
+server and client just exchange TCP packets.
+Now besides game servers, you maybe also heard of 
+webservers? And you can guess, they are probably
+just a program, as well? Exactly. Web servers are 
+also just programs running on some computer. In
+this example here, I have a computer running the 
+linux operating system, and if we look at the list
+of running processes, we can see here nginx. 
+Nginx is a program implementing “web server
+functionality”, meaning you can use a client like 
+a browser to REQUEST a document from this server,
+for example the index.html file. All of this 
+communication is also using TCP networking, or
+more specifically using the HTTP protocol to send 
+a request, and receive a response from the server.
+So to summarize, when we use the word 
+“server”, we might just talk about a program,
+that fulfills a certain purpose. As you have 
+seen with two examples, a web server and a
+minecraft server. This purpose is always to 
+give out information that a client requested.
+So the server can be seen as a program that is 
+like the “center” of information. And a client,
+or multiple clients can contact 
+the server to get that information.
+And so this obviously applies to 
+many more use-cases. For example,
+a database server is just a program offering a 
+database, which is just fancy data storage. An
+email server is just a software that 
+can send and receive emails for you,
+which you can connect to with an 
+email client. Pretty straight forward.
+Now besides “server” in the software context, 
+sometimes we use the word “server” in other
+situations. Actually, let me re-play 
+a sentence from the previous section:
+“In this example here, I have a computer running 
+the linux operating system, and if we look at the
+list of running processes, we can see here nginx.“
+Okay? actually, in the first version of the
+script, I wanted to say this:
+“In this example here, I have a
+linux server, and if we look at the list of 
+running processes, we can see here nginx.“.
+As you can see I changed the wording, 
+because, there I was talking about
+“server” in the context of software, 
+and it’s probably too confusing suddenly
+using the word server in a different context.
+So now let’s talk about this other use. Here,
+when I say “server” I simply mean a computer 
+system. It’s just a computer running the linux
+operating system. BUT there is a reason why I 
+don’t just say, “here is a linux system” versus,
+“here is a linux server”, and that is because 
+this is a rented machine on the internet. With
+services like amazon’s AWS, digitalocean, google 
+cloud or whatever service you use, you can rent
+computers. It is even billed hourly sometimes. 
+As you can see I can configure a computer I want,
+with whatever CPU, RAM and disk space. And then I 
+can just rent it. To access it I need some remote
+access tool, usually ssh, secure shell, which you 
+can use to remotely log into this other computer,
+and then use it like any other computer. Meaning, 
+you can run any program you like on there.
+But the reason why we usually don’t just 
+generically call it a computer and call it
+a server is, because they are mostly used to 
+run server software. Like a minecraft server.
+Does that make sense?
+Maybe another example would help.
+So this is a phone, and this is a 
+nintendo switch gaming console. Both
+are computers. Pretty powerful computers. And 
+yet we don’t call them computers but we call
+them phone and gaming console. We call them that 
+because that’s their primary purpose. The phone
+can also run arbitrary apps, and even games, but 
+the primary focus is phone services. Actually
+that also is not true anymore, right? Who uses 
+a smartphone as a telephone nowadays? Anyway.
+What about this computer? it’s a 
+computer, but you mainly play games on it,
+so the purpose is a gaming console 
+and that’s why we call it like that.
+So you get the point.
+I call my rented linux computer a “server”,
+because that’s the intended purpose. Even if I 
+run a program like ffmpeg to convert video file
+or something, this is not a server program, but 
+I would still call this computer a linux server,
+just how I would call this a phone, 
+because that’s the primary use-case.
+All of those explanations kinda make sense, but 
+I know when I was 17, it would still feel a bit
+abstract. People always said these “servers” 
+you can rent, they are just computers, but when
+I saw these datacenter pictures, they didn’t 
+look like my laptop. that really confused me!
+And to really understand it, it actually took 
+a few more years, because eventually I went to
+university and there for the first time I walked 
+into a datacenter and saw one of those servers
+for real. But more importantly, I had to open 
+one up and install some RAM and plugin a PCIe
+device. And that’s when it really clicked. 
+I cannot share this magical moment with you
+easily. But actually you have it much better. 
+I’m so jealous that YouTube didn’t really exist
+back then. Or I just didn’t know about these 
+kind of channels. Because nowadays, you just
+have channels like LinusTechTips, where you can 
+actually see how these datacenter computers,
+or servers, look like. How they are built. And you 
+can see they just have a motherboard, a CPU, RAM,
+maybe graphics card, power supply, they are just 
+like your damn regular computer. Just different
+form factors. And you could also buy them online. 
+I don’t know if I was just an idiot. But yeah,
+for me really seeing this made me understand. 
+“That's what a server in a datacenter looks
+like. It really is just a computer”. 
+And again, we just call them servers,
+because their main purpose is to run 
+some kind of server software on it.
+So you can see, the purpose “server” is really the 
+important part. If something acts like a server,
+we call it a server. And I know this is a 
+super beginner type video, but I owe it to
+my 17 year old me. But we can also try to get a 
+bit more technical now. Let’s go into a bit of
+programming. What exactly is server software? 
+I mentioned earlier that communication is an
+integral part for a server. Somehow a client 
+has to be able to talk to a server. How this
+communication is done could really be anything - 
+it could be basic networking like raw TCP packets.
+When you have programming in school, like 
+java programming, a very common exercise is
+to implement a server and client using sockets.
+I know sockets is another confusing term,
+but sockets, is just the name for a 
+functionality offered by the operating system,
+and it’s a function allowing you to listen 
+for connections or establishing connections
+to another server. So using those you can 
+implement a server, like a web server.
+Let me show you, here for example is a 
+simple web server implemented in python,
+so this is just a python program using the flask 
+module to create a webserver. As you can see,
+I don’t use sockets here myself, 
+because the library actually does
+this for me. I show it to you. So the 
+program is now listening on port 5000,
+and we can use a browser as a client to 
+connect to it. It works. We see the website.
+Now let’s use a tool called strace to look at all 
+the system calls, so operating system functions
+used by the python program, and here we can see it 
+uses sockets to listen for incoming connections.
+And this is important to understand. You have 
+the operating system feature called sockets,
+which you can use to listen for connections, and 
+on the other side you have the functionality you
+implement with that. So socket, is the technical 
+feature. And “Server” describes the purpose or
+behavior you actually implement with that.
+Which means, you could mae use of
+other technical features, and still 
+implement the behaviour of a “server”.
+But what could that be? Let me show 
+you an example. Here is the Mozilla
+VPN app. This is not an ad, don’t get a 
+VPN. I don’t even have an account here,
+it’s just a random VPN app I downloaded and 
+installed because I wanted to show you something.
+Every VPN software has multiple parts. You have 
+the UI and you might think clicking on a button
+just launches maybe openvpn to establish a VPN 
+connection. BUT configuring the networking on a
+system to establish a VPN usually requires root 
+permissions. And the app is not running as root.
+So most VPNs have an “unprivileged” process with 
+your fancy UI, and additionally they run a second
+process as root, to actually then launch the 
+vpn, configure the network, and so forth. In
+this case the mozillavpn daemon.
+So how do the interface and the
+root process communicate?
+Well… server and client. The
+mozilla daemon in this case is the server, 
+and the regular user process is the client.
+And they communicate using so called Unix 
+domain sockets. As a programmer it feels very
+similar to regular socket programming, you just 
+create a socket and send data back and forth,
+but there is no traditional networking. There 
+is actually a socket file. Everything in Linux
+is a file, it’s a meme. So this is not really 
+a file. It’s a unix domain socket. This enables
+inter-process communication. IPC. I know these 
+terms are even more confusing. But point being,
+this is not a regular TCP network connection. The 
+UI, being the client, uses this “file” or unix
+domain socket or inter process communication, as a 
+way to communicate to the server, the root daemon.
+So yes, this is actually a 
+server. And this is a client.
+The technology is unix domain sockets. The 
+purpose and role implemented is server and client.
+I hope now you understand, “server” just 
+describes a certain behavior. And that’s
+why it’s useful as a term when we talk 
+with eachother to convey that behavior.
+Alright. So far we looked at the term “server” 
+somewhat in isolation, so I want to bring it
+back into a bit wider context. Because there 
+are other terms that are synonyms or describe
+something very similar. And I believe looking 
+at some of these other terms can be important
+to better understand everything. And there 
+is one in particular I want to talk about.
+And that is, “master and slave”. It describes 
+a behavior where one component controls another
+component. For obvious reasons the term is 
+outdated, but the problem is lots of technology,
+and source code still uses those terms, so 
+it’s still important to know about. BUT in
+many places also alternative names are now 
+used. And they often can fit much better,
+like Controller and target, primary and secondary, 
+provider and consumer. In the end, all those terms
+are just used to describe a certain role and 
+behavior of a system to other people. And so
+whatever term is used, as you can see, it kinda 
+looks like a server and client as well, right?
+And the reason why I wanted to talk about this 
+setup, so this setup where one component controls
+the other component, is because, this can be 
+described as a server and client setup as well.
+But here is the interesting 
+question: What is the server here?
+it depends.
+By the definition I mentioned for a server, the 
+server is the component that acts upon request,
+and responds to what was requested. So in such 
+a setup all of these are probably servers.
+The controller here requests the targets to do 
+something. And they respond back “yes I did it”.
+However, oftentimes how this is actually 
+implemented is that the controller opens
+a socket and waits for clients to connect 
+to. Maybe it’s even a webserver. It could
+be that they even ask the controller “do you 
+have work for me”, so they send a request,
+and then the controller responds to that request. 
+So is now the controller the server afterall?
+So really both could be called server and client,
+it really depends what you want to convey, 
+what context and layer we are talking about.
+Do you want to call this the server and those the 
+clients because this one is listening on a port,
+maybe it’s a webserver, and the clients connect 
+to it asking for work and sending back the result,
+Or do you want to call this the client and those 
+the severs, because in the end the controller
+requests results and data from targets.
+Both is right, both is wrong. Maybe even
+the documentation calls this the client 
+and those servers because it makes sense,
+the controlling unit requests data from those 
+servers, but in the actual code you call this
+server and those clients, because those 
+clients connect to the listening server.
+It’s confusing, I know. But this is how 
+language works. The terms mean something,
+but depending on the context it could mean 
+something differently. In the end we just
+make up words that hopefully help to communicate 
+to others what we mean, and these meanings can
+also change over time. Technology gets more 
+complicated. It’s all fuzzy, so don’t geet
+too hung up on what is the perfect definition. 
+In the end we all just try to communicate some
+behaviour or role of a system and we hope it 
+helps other people to understand what it does.
+I hope this video about “what is a server” 
+was somewhat interesting. At least I think
+my 17-old self would have been happy about 
+this explanation. But let me know what you
+think about this format. Is this interesting to 
+do more often? Are there maybe other computer
+science terms that you find difficult to grasp? 
+Or maybe you are a teacher at a school and you
+know about concepts your students struggle 
+with? Or was this video a waste of time?
+Let me know in the comments below. Thanks.

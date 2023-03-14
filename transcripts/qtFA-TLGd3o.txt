@@ -1,0 +1,231 @@
+A while ago I made a video explaining my video
+making process.
+And since then I made several changes and
+improved it.
+So I wanted to give you an update on that,
+so it’s easier for you to start making CTF
+video writeups.
+I’m not saying that’s how you should do
+it, but I will tell you about my experience
+and why I do it this way.
+so if you consider making videos, I think
+I can give you some valuable information here.
+And then you can come up with your own process.
+So the process changes slightly depending
+on the topic, but in this case here I will
+cover a CTF video write-up.
+The CTF challenge is from the google ctf 2017,
+it was a hard challenge called a7 - gee cue
+elle.
+First of all I moved away from sony vegas
+to adobe premiere, because I was hoping it
+had better integration with photoshop to draw
+my overlays to improve my videos.
+Well that didn’t turn out to be true, but
+I still think the move was worth it.
+doing animations, like moving graphics and
+rotating them and so forth, directly in Premiere
+is much easier than in vegas, but drawing
+and making the graphics for it is still not
+integrated into each other well.
+And another downsite is that Adobe products
+cost quite a bit per month, but I really enjoy
+making those videos so it’s worth investing
+into my hobby.
+Okay.
+So I start with a template that has the intro
+animation as well as outro already in there
+and then I add the recordings I made with
+OBS during the CTF.
+Then I go over each video file and label it
+with the challenge it was about.
+So the first problem is, that CTF challenges
+take time and are often a mess.
+I don’t record 12h of my screen and then
+try to extract 10min of content from it, and
+even more important is, that the recording
+is not really optimised for a video writeup.
+I use a big resolution, sometimes multiple
+screens and multiple devices, it just is not
+great footage.
+I will get into that a little bit later when
+we come to editing.
+So usually I always record a little bit during
+the CTF when I have a feeling I made substantial
+progress.
+And this way I also don’t forget my steps.
+Then I open up a google doc for the script
+and start going through the footage and start
+writing.
+“A7 - gee cue elle was a hard misc challenge.”
+and so forth.
+While writing I already try to imagine how
+I would show that with a video.
+And I think about what errors I like to include
+and what I will leave out, what I would like
+to focus more on and what is unimportant.
+Trying to come up with a nice story.
+So some videos become more basic, others become
+more advanced.
+Usually I am for about 3 pages in google docs
+with arial font 11.
+That will create a 9-12minute video.
+So I continue writing the script.
+Check and verifying some stuff, try to find
+the parts in the recording and so forth.
+Now I’m already a page in and I basically
+just started with the challenge, so I start
+to wonder if I can’t cover it in 3 pages.
+In this case there is quite a bit of code
+we have to read and understand and that’s
+always a bit tricky for a video.
+When you do the challenge yourself you spend
+a lot of time reviewing the cdode and maybe
+comment everything, maybe you extract pieces
+and run them on their own, but for a video
+you have to keep it short and kinda point
+out only important parts.
+But that could mean the audience doesn’t
+understand the application at all.
+so that’s just something to keep in mind
+and is difficult to balance.
+After a while the first draft is done.
+Way over my 3 pages limit.
+Now I use a timer and read the script out
+loud again, fix some minor grammar and flow
+issues and check the length.
+Looks like this video is going to be a bit
+longer.
+Now I have to decide, make two parts and flesh
+these out more, or make one longer part.
+This one is hard because it’s right there
+at the border.
+So I decide to go with one video for now.
+I could always split it later.
+When i feel like the script is done, I go
+back to premiere and record my voice over.
+And FYI, up until here took me about 3 hours.
+Now I start to assemble the video and edit
+it.
+Like I mentioned earlier, the video recordings
+from during the CTF are often shitty.
+Tabbing around, having personal information
+in notifications visible, small fonts, crowded
+terminals etc.
+This means I usually reenact most stuff again.
+So for example here I want to record how I
+searched for OWASP A7 again.
+Some things to consider when recording footage.
+Try to match the aspect ratio of the video
+with your windows.
+A small trick to do that is to use some kind
+of image or the video preview to make a clean
+browser window in a perfect 16:9 aspect ratio
+Try to have the font big enough, that it could
+be read without fullscreen or high quality.
+There are a lot of mobile phone users out
+there.
+Typing is always slow.
+Speed those parts up.
+And have very determined mouse movements.
+Try to not include the spelling mistakes and
+corrections.
+Try to focus as much on what you want them
+to see, and minimize unecessary information
+If you are typing in a terminal, try to leave
+a border at the bottom or always clear the
+terminal so you write at the top, because
+when you pause in youtube the bar stays on
+and covers up what you typed.
+Super annoying.
+ANd like with any write-up, you have to clean
+up your code.
+That’s another big reason why using the
+footage from during the CTF is so bad.
+It’s always messy.
+At some point I’m done arranging and editing
+the video in Premiere.
+Because I had to reenact and rerecord so many
+things and look through footage it probably
+took me around 4 hours.
+But I’m not fully done yet.
+First I have to export the video in Premiere
+and then open it in Photoshop.
+Yep you heard me right.
+I open the video in photoshop, because photoshop
+can do video editing.
+And this is pretty cool to draw my overlays.
+So basically I go now through the video and
+create layers on which I can draw with my
+graphics tablet.
+And that’s super easy and chill and goes
+pretty fast.
+That’s basically my secret of doing my overlays.
+Unfortunately I can’t animate stuff here.
+So I can’t animate moving graphics or so.
+If I plan to do that, then I usually create
+the graphics first and import them to premiere.
+But that’s pretty tedious.
+I really would like a better process here,
+because animations would be really cool.
+Then I render the video in photoshop, which
+is buggy, because sometimes the audio in the
+beginning cuts out, which apparently happens
+when the disk can’t read the video source
+file fast enough and I have the footage on
+a huge hard drive, not an SSD.
+So what you can do is quickly play the video
+with vlc, because then it seems to be in memory
+or so and I never have a problem.
+Anyway.
+This part took me about an hour or so.
+So it’s pretty fast
+Next step is uploading…
+so going To youtube…..
+Oh…
+Gynvael is streaming right now.
+Better go watch this instead.
+After procrastinating, but also learnign awesome
+new stuff, I finally do the upload and create
+a thumbnail for it.
+Then some other small stuff has to be done,
+like adding the transcript for the subtitles
+and adding the endcard.
+If you pay attention to the upload date and
+look when I publicly released it, you can
+see that quite some time passed.
+I actually always have videos in the pipeline.
+When I made this video I had 6 unreleased
+videos which means I have a buffer for over
+a month.
+And that’s important to me, because I always
+have bursts of motivation and I go crazy a
+few days making videos and then I need a break
+again.
+And for example in the recent weeks I had
+ton of work and was travelling and couldn’t
+make any videos.
+So now I have only 2 videos left.
+That’s also the reason why I don’t really
+make up-to-date news videos often.
+Basically there was only the nintendo switch
+and dirtycow video I made.
+It feels really good to release a video consistanly
+every week but I don’t want to have anxiety
+and the pressure to create another video.
+I can go comfortably on vacation or just play
+a game without feeling guilty.
+Overall you can see it takes me about one
+full day to create a video, without the time
+it took me to solve challenge or research
+a topic.
+if I would care less in making the footage
+look good or not write a script and be good
+at just talking and improvising, I could be
+a lot faster.
+But that’s how I like to do it right now
+and, I’m curious how I change my process
+over the next year.
+My videos have changed a lot from when I started.
+Hope it helps, I wanna see more CTF video
+write-ups.

@@ -1,0 +1,306 @@
+When there is a secret key embedded in a chip
+and the hardware is doing cryptographic operations,
+it can leak a lot of information.
+For example because of variations on power
+consumption.
+In this video I wanna explain what power analysis
+is, as well as showing you how I prepared
+an arduino nano board to perform this attack.
+I’m sure you have heard about those stories
+where illegal marijuana farms are being busted
+because of unusual electricity usage.
+It’s not typical for any private home to
+suddenly use this crazy amount of electricity
+that a setup with dozens of heating lamps
+and air conditioning systems require.
+So the authorities are just abusing a power
+analysis side channel to find potential illegal
+marijuana farms.
+And that is basically what this is about.
+You can imagine that a piece of hardware,
+or to be more precise a chip, draws different
+amounts of power depending on what operations
+are being performed.
+So let’s do an example.
+Recently I made a video introducing RSA, which
+I’d recommend you to watch if you haven’t
+yet.
+But the important part here is that if you
+sign a message you basically encrypt a message
+with your private key that somebody with your
+public key can decrypt, thus verifying it
+came from you - the owner of the private key.
+And encryption works by exponentiation.
+You take the message to the power of the private
+key modulos n.
+And as a developer you now have to implement
+this math, luckily you have heard about a
+simple algorithm to perform this exponentiation.
+The square and multiply method.
+And this is how the pseudo code looks like:
+The important part here is, that you have
+a loop over each bit of the exponent.
+And for every bit of the exponent you square
+the intermediate value.
+But if the bit is a 1 you do an additional
+multiplication.
+So if I just give you a list of square and
+multiply operations like this here:
+Square, square, square, multiply, square,
+multiply
+You can recover the bits of exponent that
+lead to these operations and thus the secret
+key.
+So 0,0,1,1.
+Now you can imagine that a multiply operation
+will have a different power consumption footprint
+than squaring.
+Here is how such a power trace can look like.
+And you can again figure out the operations
+and thus the bits.
+Square, multiply, square, square, square multiply
+1,0,0,1
+Ok, theory is fine.
+But how the heck do you do this in reality.
+A processor can run really really fast, for
+example the arduino nano runs with 16 MHz.
+Also the difference in power consumption must
+be really really tiny.
+So you need something that can measure small
+variations very very fast.
+So a digital oscilloscope seems like an obvious
+choice.
+My RIGOL can capture data with up to 70Mhz,
+so that seems enough.
+BUT there is one issue… if you didn’t
+sleep in physics class you may realize now:
+“wait!
+Does an oscilloscope not measure voltage,
+and we want to measure current?
+The power consumption?
+That doesn’t work?”
+Well.
+Ohm’s law to the rescue.
+Ohm's law states that the current through
+a conductor between two points is directly
+proportional to the voltage across the two
+points.
+I guess easier to understand with this formula.
+Current is equal to voltage divided by resistance.
+Let’s solve this equation for voltage, because
+the oscilloscope can only measure voltage.
+Then we get voltage is equal to the current
+times resistance.
+So when we have a fixed resistor sitting somewhere
+in our circuit and we measure the voltage
+accross it, then we realize that the voltage
+we measure is directly dependent on the current.
+This means when the current changes, so the
+device under test draws more or less power,
+the voltage will change.
+It must change.
+Ohm’s law tells us that.
+Science, it works.. bitches.
+Ok.
+So using a resistor to meassure the voltage
+and thus indirectly the current is called
+a shunt resistor.
+Ohm’s law also tells us that the bigger
+the resistor value, the bigger voltage difference
+we will measure.
+But we can’t just use an arbitrary big resistor,
+because then the voltage drop across the resistor
+will be too big and it’s not enough to power
+the chip anymore.
+But like 50ohm or maybe even 100ohm could
+still work with the arduino.
+So now that we know how to measure current,
+where do we place the resistor.
+An easy solution would be to cut a USB cable
+and insert a resistor into the power line,
+but that wont work.
+First of all, we will measure everything that
+draws power, including the LEDs and the other
+USB to Uart chip on there.
+That’s too much noise.
+We want to be as close to the actual chip
+as possible.
+We want to insert a resistor directly into
+the power line to the chip.
+So we are going to lift the actual pin of
+the chip up, so we can insert a resistor in
+between the chip and the pcb.
+Oh man I was so nervous.
+First time doing this and.
+If I screw this up, the competition will be
+over for me.
+There is no replacement board.
+I looked up the data sheet to be 100.000%
+sure I desolder the correct pin.
+I even check with my multimeter to make sure
+the pins really match.
+And I mark it with a marker.
+I place it on a breadboard and use double
+sided tape to stick the breadboard to the
+workbench, so it doesn’t slide away.
+Then I take my soldering iron with a very
+pointy tip and another metal tool and try
+to push up the pin with it.
+Like a lever.
+The heat should make the solder liquid and
+I can bend it up.
+That actually worked better than I expected.
+So now that the pin is bent up, I want to
+insert this resistor.
+This is really difficult to solder, very awkward
+angle and it’s all so tiny.
+But with a bit of flux I actually successfully
+solder it to the pad and the pin.
+Moment of truth.
+Does the device still work?
+Plug it in.
+Green LED is on.
+AWESOME!
+Then I realize that connecting directly the
+measurement equipment might not work so well,
+because the resistor has really stiff legs
+and you could easily break off the pin or
+pad if you handle it carelessly.
+So I add two flexible wires on each side.
+Perfect.
+This looks like a good setup.
+You meassure voltage in a relative difference
+to eachother.
+So for example you can place one end to GND,
+basically 0 V and the other end to AFTER the
+resistor.
+Just for reference I also place one probe
+BEFORE the resistor.
+Theoretically we should see a voltage drop
+accross the resistor depending on how much
+current you draw.
+So when you overlay the two measurements you
+should see a slight difference.
+So that’s my first attempt.
+But when looking at the oscilloscope measurement,
+I just see noise.
+I would expect a lot more difference.
+I didn’t expect to find the crypto leaking
+part, but at least some variance in the consumption.
+But it’s all just noise and the differences
+sooo small.
+What’s going on?
+Is my resistor too small?
+Let’s try a different measurement setup.
+Like I said you measure voltage potential
+between two measurement points.
+So nobody is stopping you from putting the
+ground part of the probe before the resistor,
+and the probe itsel afterwards.
+This way you should meassure the voltage difference
+between these two points.
+You just have to be very very very careful
+with ground loops.
+If you plan to connect something that usually
+belongs to ground to something that is not
+ground, in thise case basically +5V it can
+be really dangerous.
+If you plan to do this, research “ground
+loops”.
+Luckily I read about this before so I knew
+I what I had to do.
+I had to make sure the device under test and
+the measurement device don’t share a common
+ground.
+If the arduino is connected via the laptop
+to the same power strip as my oscilloscope
+is conencted too, they share the same ground
+line.
+And when I then connected the oscilloscope
+ground to +5V I’d basically create a short
+circuit.
++5V flows directly into ground through the
+power strip.
+Boom.
+Something will die.
+Hopefully no your expensive equipment.
+But what you can do is run your laptop from
+battery.
+Now there is no ground connection anymore.
+So that’s what I did.
+And then I can connect the one single probe
+around the resistor.
+I also thought it would be good to make a
+comparison meassurement with the real 5V,
+just to see if there are any differences.
+Might help to validate if everything works.
+So I attach the second probe and.
+FUUUUUUUCK.
+What the fuck happened?
+What did I do?
+Magic smoked escaped from the device.
+I panicked so much that I also accidentally
+broke off the resistor and thus ripped off
+the pin and pad.
+This was probably game over for me.
+fuck.
+What went wrong?
+I was so careful.
+After closer inspection I realise that despite
+careful and slow planning I fucking soldered
+the wrong pin.
+I did not solder the resistor to the power
+input, I soldered it to a ground pin.
+So when I connected the other probe to +5V
+I created a short circuit between +5V and
+ground through the probes.
+FUUUUUUCK.
+That’s why I measured so much noise and
+rubbish.
+There was no real signal there.
+How stupid am I?
+Well…
+After the initial shock and assessing the
+situation I figured out that the chip has
+another ground pin.
+So I should be totally fine.
+I just have to replace the destroyed diode
+on the other side and then solder a resistor
+to the correct pin.
+Fuck me.
+But this time I learned from my mistake.
+I soldered female cable connectors to the
+pin instead, this way I’m able to switch
+out and try different resistors.
+Also to make sure not to rip off the cables,
+I put a drop of hot glue on it to keep it
+in place and remove any tension from the delicate
+pins.
+Unfortunately I don’t have a proper SMD
+diode at hand, so I have to solder this frankenstein
+to it, but that’s fine.
+It works.
+Another tip if possible, remove as many capacitors
+as you can.
+Capacitors are like small super fast bateries.
+They charge up, hold the charge and release
+it again if the voltage drops.
+This is great to smoothen out a noisy power
+supply, but we actually want to measure these
+differences.
+So I disconnect this capacitor by toombstoning
+it.
+I also experimented with disconnecting the
+others.
+It may make the board a bit more unstable,
+but should improve measurements.
+It turned out later that it was probably not
+necessary, but at the time I had some problems
+I will explain next episode, which I thought
+it would solve.
+But yeah, this setup looks much better now.
+I can exchange resistors and I have the correct
+pin now.
+So I should be all set to solve the first
+power analysis side channel challenge for
+the embedded hardware CTF easily.

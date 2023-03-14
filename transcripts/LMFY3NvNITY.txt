@@ -1,0 +1,331 @@
+I feel like I made every video I ever 
+wanted to make. In this bideo I want to
+tell you why I feel like that, and also tell 
+you about the over 300 videos I made so far.
+Back in the days I used to do weekly videos, but 
+I have stopped doing that for quite a while now.
+There are two main reasons for that. First, 
+YouTube is not my job, it doesn’t pay enough
+and thus having another job and other life 
+problems, YouTube just got too stressful to
+keep up the schedule. But a second reason is 
+also that over time I have less and less ideas
+what to make videos about. You see, there is only 
+so much content you can make before you explained
+everything you know and videos get repetitive. 
+And sometimes I feel like, “I made every video I
+ever wanted to make. I shared all my knowledge and 
+experience through my six years on youtube. If you
+watch all my videos, you basically know everything 
+I know”. Unfortunately YouTube is not a great
+place for browsing that backlog. Most of you have 
+not seen most of my videos even though I have over
+300. And I don’t want to sound too arrogant, but 
+I do believe that a large part of those videos are
+the best educational hacking content you can find 
+anywhere. I’m very proud of most of the videos I
+have made, and they are exactly what I wish I 
+had when I started studying computer science.
+They are not sorted and structured for easy 
+handholding learning, but I’m pretty confident
+that my videos generally go a lot deeper, cover 
+a much wider area and are more engaging through
+a bit of storytelling and better editing, than 
+most other resources out there. But as I said,
+the problem is, YOU have to take a bit of your 
+own responsibility to pick out the videos that
+help you learn something, rather than me 
+handholding you through linear education.
+Also generally people watch what is recommended 
+by the YT algorithm. And the more casual videos
+tend to be the more successful ones. So maybe you 
+MISSED all the nitty gritty technical detailed
+videos. Or you subscribed years after I made them 
+and you don’t even know what videos there are. As
+I have just “celebrated” 6 years on YouTube with 
+over 300 videos and over 600.000 subscribers,
+I thought I would give you a bit of an overview 
+of the topics you can actually find on my channel.
+And also give you some advice on how I would 
+approach my own channel, if I were you.
+
+So first of all, let me guide your 
+attention to the playlist tab on youtube.
+Here you can find all videos that are part of some 
+kind of series that might be of your interest.For
+example my more popular and longer series on 
+binary exploitation and memory corruptions.
+While it is based on a bit of an older 
+linux system from exploit.education,
+the basics are still super relevant. And if you 
+work through that, you are well equipped to forge
+your own path going forward with this topic. 
+There are a few more videos added to the list,
+including one that I always wanted to make, and 
+that is the weird return-oriented-programming
+tutorial. That was one of my oldest 
+video deams to reach, and I have done it.
+Anyway. what people don’t get is that, even though 
+you think binary exploitation is not your main
+interest, if you are interested in understanding 
+computers better, operating systems, or just want
+to learn assembly and reverse engineering, this 
+series can be a vehicle to learn all these topics.
+Then we have the hardware security research 
+playlist. It’s a smaller series but if you are
+interested in hacking embedded devices, IoT, 
+reverse engineering, the ARM architecture,
+electronics or just want to 
+learn more about assembly,
+I don’t know a better resource than this.
+The Pwn Adventure series is a game hacking series.
+And what I think makes this series special is 
+that I am not experienced in traditional game
+hacking. The game hacking scene is insane and uses 
+lots of crazy tools. But I was a novice and so I
+just approached the game with my own ideas. So I 
+think besides all the technical details I share,
+it also shows you that you can transfer knowledge 
+for example from the binary exploitation playlist,
+directly to hacking this game. In later episodes 
+we also then explore hacking the game on windows
+so you can learn where linux and 
+windows are similar or differ.
+Related to this I even developed my own 
+hackable game in Unity. It was part of
+the cyber security challenge Germany, a 
+CTF for students that I helped organize.
+Not only is this short series a quick introduction 
+into game dev, but it also talks about networking
+and multiplayer server development, and of 
+course also how unity games can be hacked.
+Another step up from the binary exploitation 
+videos is the Browser Exploitation playlist.
+This series gives you a peak into modern 
+state-of-the-art exploitation. But it
+doesn’t mean you first have to watch the other 
+series. You can just jump right in. Because
+even just as a javascript developer with 
+little to no lower-level coding experience,
+I think it is fascinating to see how Javascript, 
+in the case of webkit, works under the hood.
+But if you are more interested in web security, 
+then checkout the web hacking playlist.
+It is less structured, it has some really basic 
+introductory videos, but then it also includes a
+few self-contained videos. For example there are 
+several videos with really advanced XSS topics.
+So if you understood the basics of XSS and CSRF, 
+move on and look into those more crazy techniques
+that I showed - for example the XSS in google.com. 
+Or one of my favorite videos, a video about how to
+identify bullshit XSS tips on twitter, and 
+what really cool XSS research looks like.
+Related to that is also the AngularJS Security 
+Playlist. It is about older versions of angular.
+But for anybody interested in JavaScript and 
+modern javascript frameworks, I think this
+is a super interesting topic to learn about.
+Back in the web hacking playlist, I also added
+the JavaScript popunder videos in there. They 
+represent a typical video style for my channel,
+where the topic is a cool and engaging story, but 
+hidden inside, you get really technical tutorials,
+in this case on javascript, browser bugs, 
+analytical thinking and how to use the browser
+developer tools. I think they represent the 
+perfect tutorial style, because it doesn’t do the
+boring old school teaching, it teaches technical 
+details and tools, but with a fun engaging story.
+Anyway, of course there are also other 
+web topics, mostly from CTF challenges,
+so you can also find videos on stuff 
+such as server side request forgeries,
+other client-side attacks like 
+CSRF, or database injections.
+And this leads us to general CTF videos. Sure, 
+they are not well organized, and some of them
+are very hard challenges, some are easier, but it 
+doesn’t matter. I strongly believe, even if you
+watch them and you think you do not understand 
+every detail, you will learn about a very wide
+variety of topics, tools, terminologies and so 
+forth. And maybe in 2 years you read something
+about hash length extension, you remember 
+you heard a term before on a video from me,
+and then you can watch it again to 
+understand better what everything is about.
+Another example for a video writeup I like a 
+lot, is this firmware update challenge. Where
+the solution involved university level math 
+of linear algebra and finite fields. So not
+only you learn about crypto attacks, but also 
+about math, and all of that wrapped into a CTF
+challenge. I really believe this is perfect 
+content for computer science students and
+could serve as a great motivation for students who 
+struggle with “why the f’ do I need this math”.
+Again I don’t want to sound too arrogant 
+but inside these CTF writeup videos
+I think there is a treasure 
+trove of interesting topics.
+For example I made 3 videos about an ethereum 
+smart contract challenge. And I’m not sure if you
+know this, but I have done ethereum smart contract 
+audits professionally a few years ago. I stopped
+because the crypto industry is dogshit, but I 
+put everything I know about it into those videos.
+And so if you are interested in ethereum and 
+smart contracts, here you have a very deep
+walkthrough including learning about ethereum 
+VM internals. I don’t think there is a single
+other youtube video on this deep level out there. 
+Even blog articles about this topic are sparse.
+Besides this CTF playlist, there is also another 
+CTF playlist specifically from a hardware hacking
+CTF. rhme2. And this series contains a lot of 
+information about arduinos and generally embedded
+devices. So if you are interested in electronics, 
+IoT or generally hardware and lower level stuff,
+this is a great series. Even though I’m no 
+expert, this is stuff that goes beyond your
+general computer science education. For 
+example I’m explaining and showing fault
+injections and AES side-channel attacks, 
+which is not something you typically find
+on youtube or elsewhere. At least not for 
+free. This is super niche educational content.
+And now I can also announce a series I’m 
+starting soon. I will be covering the
+sudoedit vulnerability in a series going 
+from discovery, over analysing the bug to
+even developing the exploitat. This is going 
+to be very detailed, and I think this is very
+unique educational content. So keep an eye out 
+for that. Subscribe to make sure not to miss it.
+I also made a few videos about 
+mobile security, where we for
+example looked at the communication 
+between the SIM card and the phone.
+It’s probably not knowledge you can apply in 
+typical IT security work, but I think it’s
+important to get a sense for how the IT world 
+works. How our devices work. And that general
+broad understanding will lead you to do better 
+work in other areas. I strongly believe that.
+I also have a few more casual 
+videos, for example in the
+“my life in shirt stories” I use old t-shirts 
+to talk aout my career and life. So if you
+are interested in career advice or how 
+a career can look like, check that out.
+Unfortunately not all my videos fit well into 
+playlists. So there are still tons of videos that
+I think are very educational but 
+they are not easily discoverable.
+For example a video about what are file 
+formats, why we like to use hex numbers in IT,
+or reverse engineering the old 
+Pokemon Games. Yes it’s pokemon,
+and yes it’s games. But the techniques and 
+analytical approaches are the same as if it were
+other “more important” hacking. Therefore they 
+are another example of my teaching style, where
+we have a playful story, but hiding inside of it, 
+is very low-level technical educational content.
+So you see, I covered a lot. Hardware, Software, 
+Cryptography, low-level system and firmware
+hacking, highlevel code like python or 
+javascript, reverse engineering, exploitation,
+software development, … and more.
+However, as I said, YOU are a bit more
+responsible in creating your own path. These 
+videos do not fit well into a straight line.
+In my video the secret step-by-step guide to learn 
+hacking I explain, that it’s normal and good to
+jump around between topics. And you have to do 
+this with my videos too. I know that there are
+many videos you wont understand right away and 
+you think you shouldn’t watch them. But that is
+NOT a problem. They are NOT a waste of your time. 
+I’m convinced you do take SOMETHING away from it.
+Even if it’s just knowing that this topic or 
+terminology exists. You will start to develop
+an intuition for this stuff and when you see 
+related topics you will connect them. Over time
+your blurry picture of everything clears up and 
+then you can also revisit those videos later. It’s
+super important to know what you don’t know. So be 
+happy if you do not understand a video, because it
+means you get a chance to learn more and you have 
+a goal that you can work towards. And of course
+you can always pause a video and google a term 
+I used, or try something out yourself. Or just
+keep watching other videos and come back in a few 
+months to that video. I’m sure the second time you
+will understand more! My videos are generally not 
+hand holding, but they are guidance and you can
+use them as a reference point, or starting point, 
+to venture off and explore a topic on your own.
+Anyway. Maybe now you can understand why 
+sometimes I feel like I covered everything.
+And if you would explore my videos I feel like 
+you would really really learn a lot. I know
+I’m not an expert in any of these fields, 
+I don’t claim that I know everything. And
+I understand that some people might not like 
+my voice, prefer another presentation style,
+want a book or a linear path, and that is 
+totally fine. But I’m very proud of my videos.
+And I’m not humble about my videos. I believe 
+they are, as of today, one of the best
+educational hacking content that exists. Not just 
+youtube. Educational security content in general.
+And that makes me proud. It makes me proud that I 
+can look at my own work and think, I spent 6 years
+on this, and the result is exactly what I ever 
+wanted when I was a computer science student.
+Before I end this video, I’d like to redirect 
+you also to my website liveoverflow.com.
+I recently changed the design to maybe 
+improve the discoverability of my videos.
+I have this big goal to convert all 
+my videos into written articles.
+I know not everybody likes videos, but I 
+also generally think in a perfect world,
+there would be a text article, along every 
+video. So on here you can very easily search
+for topics you are interested in and find a 
+related video. For example let’s say you are
+interested in the reverse engineering tool Ghidra, 
+simply search for it, and you get a selection of
+videos where ghidra is used. I think that’s the 
+perfect tutorial to learn about ghidra, because
+the “boring tool usage” is wrapped 
+into a hopefully interesting story.
+Unfortunately not all my videos have articles yet. 
+And I don’t have the time to work through my whole
+backlog and create these writeups. A while ago I 
+used to pay PwnFunction, another YouTuber, to help
+me with that. But he is also busy working on his 
+own channel, making much better drawing visuals
+than me. So there was no progress in a long time. 
+But recently I started working with somebody I met
+through insiderphd. I’m basically re-investing 
+the patreon and youtube membership money, into
+paying somebody to go through my videos and create 
+articles. I think this is the perfect use of the
+money, so if you want to support my future videos 
+and contribute to the creation of these articles,
+checkout how you can support the project 
+LiveOverflow on liveoverflow.com/support
+Anyway. Hopefully this overview over my 
+channel helps you to discover all the
+topics you are interested in.
+And I hope you are the 16,
+20 or 24 year old version of me, 
+who was eager to learn more and
+couldn’t find deeply technical explanations 
+anywhere. But you found these videos here,
+and they open up the world of IT security and 
+hacking to you. That would mean the world to me.

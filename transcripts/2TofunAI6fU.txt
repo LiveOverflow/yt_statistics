@@ -1,0 +1,410 @@
+“Where should I start?
+Can you guide me?
+What resources can you recommend me?”
+I get this asked a lot.
+TLDR: I don’t know.
+I genuinely don’t know.
+Before I tell you my thoughts I have to mention
+that I’m young.
+I have very limited exposure to the industry,
+I have not had different jobs in this field.
+And so I really don’t know how to transition
+from another job into it.
+What certifications to get, how to balance
+a full time job and a family.
+Anything country specific.
+I really can’t help you with that because
+I have 0 experience.
+All I can look at is my life and tell you
+my thoughts about it.
+If you disagree with what I will say, or it
+doesn’t help you, then you need to ask somebody
+else.
+I don’t have the answer.
+But I think there are a lot of misconceptions
+about how to get into the security field.
+And I try to explain now why.
+Maybe you think there is some kind of shortcut.
+Or at least a very efficient path.
+You hope a professional or experienced person
+can easily tell you about a clear path to
+success.
+I certainly had exactly those thoughts several
+years ago.
+I got frustrated why nobody would write down
+a clear guide.
+I felt somewhat entitled that I have good
+experience already, I just need some guidance
+or mentoring.
+But the truth is: there is no efficient path
+Truth is: it just takes years of experience
+So if you think that somehow it would be easier
+with a study plan, it’s not.
+So forget it.
+I’m sure you know this interview question:
+“what advice would you give your younger
+self?”
+And for me, I don’t know.
+While certainly thinking differently at the
+time, in retrospect, I don’t think there
+was anything bad or inefficient about the
+path I took.
+Of course I could help my younger self understand
+certain concepts better and faster, and that’s
+what I try to do with the videos, the videos
+cover exactly what I would tell my past self,
+but I couldn’t lay out a path of do X, Y,
+Z.
+There is no secret step by step guide!
+It’s not a straight path, but a web of interconnected
+topics, layers and dependencies and you are
+free to walk and jump between stuff however
+you want.
+Truth is: anything you do.
+Any tutorial you follow.
+Any project you start and never finish.
+Any dead-end you head down.
+It’s not wasted.
+It’s all experience that is accumulating
+over time.
+If I learned anything about Hacking.
+What it means, what it is, then at least to
+me, it’s not really something I can get
+a hold on.
+It’s an abstract artistic and broad term
+for many different things.
+Truth is: Hacking is just learning IT stuff,
+but kinda in an artistic weird creative way.
+Maybe now you say, well tell us about your
+path then?
+Clearly it got me somewhere right, maybe that’s
+the ultimate guide.
+While there are a few things I can mention,
+my path is also full of just luck.
+Opportunities I have never planned for.
+So it’s also somewhat not applicable to
+anybody else.
+Nevertheless, here a few checkpoints that
+maybe give you some idea.
+As a kid I started with some HTML
+Then I got a book about Visual Basic Script.
+And I wanted to write an operating system
+in it.
+If you have ever written Visual Basic Script,
+it’s a bit like Javascript, so you know
+how ridiculous that idea was.
+But that didn’t hold me back, I asked this
+question in a forum and was called a dumb
+TROLL.
+I was really sad that day, because I was just
+a kid trying to learn something and I had
+no idea what it means to have an OS.
+Anyway, at some point I got into web programming
+with php.
+So I had to learn actual HTML, CSS, javascript,
+php and mysql.
+I started and abandoned several browsergames
+projects.
+Then I heard about sql injection and did a
+school project on it.
+Here, I wrote a test application and explained
+how injections work.
+I started to learn java and got into android
+app programming
+Did some C++ and a bit of game programming.
+Made a shitty monopoly clone.
+Then I did some Google Wave gadgets, does
+anybody remember that.
+I was just a dumb kid and my code was ugly
+but my poll gadget got some attention from
+professionals.
+That was cool.
+I learned more computer science fundamentals
+in university.
+Data structures and algorithms.
+Learned about linux because I started to use
+it at work
+Joined a hackerspace and learned about arduinos
+and soldering
+And then I guess the major turning point,
+I discovered my first CTF, the stripe ctf,
+got hooked on wargames and other challenge
+sites.
+And essentially here I am now.
+And now I’m a freelancer doing security
+code audits, pentesting, application security
+and that kind of stuff.
+And please don’t ask me how to get into
+freelancing.I have no clue how to do it.
+I met a guy, who knew a guy, who recommended
+me and here I am.
+So that was not planned at all.
+And looking at my history, imagine that these
+are just large checkpoints.
+It’s not on a straight path.
+It’s traversing through a jungle of different
+topics.
+it’s kind of like a fractal or the coastline
+paradox, if you zoom in you uncover even more
+complex lines.
+There is a lot of stuff I did not mentioned
+in this highlevel view.
+Like making RPG Maker games, where I was first
+exposed to if-else logic blocks.
+Or modding my calculator with a window and
+LEDs.
+one of my first exposures to electronics.
+If you ask me where to start, where should
+I point you to?
+Is the start the first HTML line wote as a
+young kid?
+Or is the start when I had already years of
+programming experience and discovered CTFs.
+I have no answer for you, you have to figure
+that out yourself.
+But one truth is, I didn’t discover any
+secrets.
+There is no anonymous secret hacker organization
+with forbidden knowledge.
+I simply apply the knowledge that I gained
+about computers over the years.
+You know, Programmers use the same knowledge
+but just think differently.
+they think: “how can I make it work”
+And a hacker thinks: “how should you implement
+it, so that it’s secure, and what could
+a lazy programmer do wrong?”
+Truth is: the more you understand how something
+is built, you can also think about how it
+could break
+So I’d say 95% of what I’m doing is just
+learning about how computers work.
+And by that I mean learning a ton of different
+programming languages, frameworks, concepts,
+and so forth.
+Over the years I gained a very good broad
+basic understanding from low level logic gates,
+over simple circuits, to PCBs and chips, microcontrollers,
+low-level programming, assembler, c, firmware,
+operating systems, higher level languages,
+language and programming concepts, data structures,
+file structures, 3D programming, networking,
+cryptography, servers, server administration,
+websites, frameworks, databases, web apps,
+mobile apps, math, machine learning, the list
+is endless.
+And you see, nothing on this list screams
+“hacking” or “security”.
+Because this knowledge is just the base requirement,
+the tool that I use to do my job as a “professional
+hacker”.
+Like I said, it’s not secret knowledge.
+It’s everything a programmer, sysadmin or
+whoever would learn, just applied a bit differently.
+So I’m thinking: “what could go wrong.
+How can files be exposed.
+How could I gain access without a password.
+How could I modify sth that shouldn’t be
+modifiable, how can I manipulate the output”
+and so forth.
+And maybe it’s surprising to you, but that’s
+not different from what a programmer or IT
+architect would do.
+They use the exact same technology just have
+different thinking patterns.
+Different problems they try to solve: So they
+think “how could I use these things to build
+a social network, how could I build a time-laps
+camera, how could I make a fun game”.
+Different problems, different goals, but based
+on the same knowledge.
+And the security focused stuff, like conference
+talks, CTF writeups, trainings, academic papers,
+blog posts, are essentially just sharing cool
+ideas how to apply this knowledge in a security
+focused way.
+And that is not different to a programmer
+sharing techniques on how to handle huge dataset
+efficiently, or how to implement a game AI.
+Don’t think of hacking as anything crazy
+or special.
+It is based on exactly the same thing just
+with a bit different angle.
+Breaking not building.
+So to summarise: hacking requires a lot of
+knowledge about computers.
+And I say generic computers, because it could
+literally mean anything IT related.
+And learning a wide variety of technologies
+and gaining experience and knowledge to draw
+from, just takes time.
+It takes years.
+So any game you develop, any minecraft redstone
+circuits you build, any boring sorting algorithm,
+any math class any mobile app you start and
+abandon, anything you do is knowledge you
+accumulate and eventually can use.
+So one general advice I give is, it takes
+a lot of time, so make sure you have fun!
+Enjoy learning about computers.
+Enjoy programming.
+Enjoy following tutorials.
+Enjoy learning a new language.
+Whatever it is that you have fun with, it
+will keep you motivated over the years.
+Don’t get me wrong.
+You don’t have to first program for years
+and then get into security.
+You can do it in parallel.
+When you write a android app, look into the
+official android security tips.
+Think about what could go wrong.
+What happens if you don’t follow it.
+Play around with that.
+Maybe at some point you want to build a web
+api to be used by the app, and suddenly you
+learn web development and server administration.
+Then you have to debug your connection, you
+look into web proxys and how that can be used
+to analyse and test stuff.
+This is essentially the process you will be
+doing for the next few years.
+And that’s what I do all the time.
+You know the thought of being able to hack
+an iphone, a gaming console or banking terminal
+is motivating, but good chance is that you
+are just very very far away from that.
+I’m at least not there yet.
+I failed with my nintendo switch hack attempt.
+I barely understood the surface.
+But that’s fine, I keep learning.
+And I have a ton of fun with learning basics
+and learning a new programming language and
+learning new technologies.
+And in a few years, in two more console generations,
+maybe I know enough to join one of those teams.
+I know you might still feel frustrated, where
+to start.
+But if you feel frustrated, then that’s
+probably because you picked a target way too
+large for you.
+If you don’t know the steps you need to
+take, it’s too far away to see how to get
+there.
+So try to break that goal up.
+For example if you want to get into bug bounties
+and you have no clue how to do that.
+Analyse it.
+Sit down and try to uncover the underlying
+topics.
+For example bug bounties are usually web security.
+Web security means hacking websites.
+Websites can be written in a ton of different
+languages.
+So start with one, learn php, learn what can
+go wrong with php.
+Learn about different php frameworks.
+Learn about different databases.
+And with “learn about” I mean, write your
+own test websites, use the frameworks, just
+play around with it and gain experience.
+When you get bored with php, look into python.
+Learn about python flask and django.
+What can go wrong with python websites?
+What can go wrong with ruby websites.
+Do you see how the typical ruby, python and
+php web security issues are super different,
+because they are different languages?
+Learn about javascript, learn about html and
+then try to understand what XSS means.
+You see how that single topic just immediately
+exploded in so many sub categories, and here
+you have a list of stuff you can spend years
+on.
+Ad it’s not a step by step path.
+It’s a collection of topics and you basically
+jump around between them, and slowly understand
+them deeper and better.
+Over the years I have revisited the security
+of php websites and I always learn a bit more.
+And you can even go so deep to look into the
+actual php C source code.
+So this is what you have to do.
+Break it up, try to understand the layers
+that build up whatever you want to do, and
+learn these layers.
+It’s a bit of research, but that’s part
+of it.
+And another thing I want to make clear, you
+won’t find these things when searching for
+“hacking tutorials”.
+That’s something I had to learn.
+Truth is: most resources hackers use are regular
+documentation and programming resources.
+Hacking tutorials, like what I show you in
+videos, is just showing you how to apply that
+stuff to security.
+You don’t need to rely on me or any other
+person to write it up for you, you can do
+it yourself.
+In many many videos I’m not referencing
+any secret hacking book, I just simply open
+the official avr assembler reference, or look
+into the php function documentation or look
+at the official linux manual pages.
+So let me summarize:
+No!
+There is no clear easy path to learn this
+stuff and I can’t help you.
+There is no secret book or website to learn
+it.
+The more you understand computers, the more
+ideas and understanding you have what can
+go wrong.
+Programming, abstract theory and so forth
+is important to understand computers
+And just have fun.
+If making games sounds fun, make games.
+It takes years to accumulate this knowledge,
+so make sure you enjoy the ride
+And one last thing I want to say.
+I make the videos in a way, I would have loved
+to watch them some years ago.
+Which means I already had experience with
+programming.
+So I guess my channel is not intended for
+complete programming beginners, but I still
+hope that what I just described helps you
+to get somehow started.
+And if you have some experience, just keep
+watching my videos and take them as inspiration
+to look deeper or into different topics.
+You absolutely don’t have to understand
+everything, but catching one thought, or seeing
+one tool I use can be all the difference.
+And I hope the videos at least give you a
+rough idea how stuff works and you can research
+it once you actually need it.
+If you want some more guidance you can also
+checkout my playlists.
+I have fairly long binary exploitation playlist,
+mostly based on exploit-exercises.com.
+But I also have some websecurity videos.
+Or just my CTF writeups.
+Like I said it’s not a clear path so just
+keep jumping between topics and just have
+fun.
+Look into stuff, get frustrated, and then
+look into other stuff.
+And otherwise, maybe look at overthewire,
+picoctf, ctftime.org, try out some bug bounties
+or just look at other programming youtube
+channels and learn about something new.
+Make sure to check the description for links
+to stuff I can recommend.
+Anyway.
+always try to learn something new.
+And trust me, if you just stay curious and
+keep looking into many different new things,
+in a few years, you will totally get there.
+Be patient.

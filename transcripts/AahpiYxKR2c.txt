@@ -1,0 +1,245 @@
+Last weeks video was about revisiting format
+level 0 from exploit-exercises/protostar on
+a modern ubuntu system.
+And we played around with it to see if we
+can figure out a way to exploit it, but in
+the end I wasn’t able to solve it.
+But lucky for me a user with the name wcbowling
+on reddit thought it was fun too and actually
+had a method to exploit it.
+So let’s have a look at it.
+So here is wcbowlings post:
+I love going back to old challenged like this
+:) Managed to get a fairly reliable exploit,
+normally under 500 iterations.
+And there is a highlevel description on how
+it works:
+Overwrite the GOT entry for __stack_chk_fail
+with an address so we jump there instead.
+The address can be passed in via argv, we
+cant use nulls but we can use blank strings
+instead.
+As the argv location is semi random, it takes
+around 500 iterations which is pretty reasonable
+for 64bit
+So obviously I didn’t manage to figure that
+out, which means I didn’t know something
+and here is a learning opportunity for me.
+So I’m not going to pretend I knew this.
+For whatever reason I never noticed that __stack_chk_fail
+is in the global offset table.
+And the reason for that might be, that I never
+encountered a challenge with these constraints?
+We have A) a format string exploit that generally
+allows us to write anything anywhere B)
+No libc function after the format string vuln
+that we could overwrite in the global offset
+table
+And C) where we also have a buffer overflow
+with a stack cookie.
+So I really like this challenge now, because
+the solution is so clever.
+So the function that is being called when
+the stack cookie got overwritten through a
+buffer overflow is also on the global offset
+table.
+Which means our goal is to redirect code execution
+to our winning message by overwrite the GOT
+entry for __stack_chk_fail.
+And then do a buffer overflow, to trigger
+that function.
+To write to that global offset table entry,
+we have to get the address somewhere onto
+the stack, so that we can use %n with the
+format string vulnerability.
+And the issue is that it contains nullbytes
+which we can’t pass in via the arguments.
+I think the arguments are string copied onto
+the stack?
+So we can’t enter arbitrary nullbytes.
+But wcbowling had a cool trick with empty
+strings as arguments.
+Because a string ends with a nullbyte, so
+an empty string is just null.
+I think I had a super early video to talk
+about the environment and arguments on the
+stack, but quick recap, you have the argv[]
+char pointer array, so it’s a list with
+addresses that point to the strings.
+And then you just have memory with all the
+strings.
+And so this way you can get the address with
+null-bytes on to the stack.
+Pretty clever, I never thought about this
+before.
+And now you basically just have to put everything
+together.
+Wcbowling uses pwnlib to implement the exploit,
+it’s a very useful python library, check
+it out.
+And so here the magic format string is built
+with a large offset into the stack that hopefully
+hits the addresses passed in via the arguments.
+And so there are two single byte writes.
+Why are only two bytes written?
+well the GOT already contains an address that
+is almost the target address, except the last
+two bytes.
+So you can just reuse most of it.
+Then this is being executed in a loop until
+the winning message is shown.
+The stack has some randomized offsets, thus
+you have to try it a few times.
+Here is the asciicinema recording by wcbowling.
+By the way, if you have a problem with a challenge
+and you write me an email, you could use that
+to record a screencast so I can actually see
+how you debug it and what the problem is.
+So while I understand now the basic idea,
+I still wanted to implement it myself.
+There are a few challenges that you have to
+solve like, what is good offset into the stack
+to hit the arguments, and the alignment of
+the address through the arguments.
+And while I was doing that and struggling
+with exactly those details, I had an epiphany.
+And I’m sooo grateful that wcbowling shared
+this exploit, because it pushed me into discovering
+this.
+So I actually found a 100% reliable exploit
+for this challenge, and you can’t believe
+how excited that makes me.
+Though I have to admit, that it might only
+work on my compiled binary, and for somebody
+else it might not work, you will see in a
+second why.
+So here it is.
+That’s all.
+And when we execute it, you can see it gets
+into an execution loop of the winning message.
+And while it looks like a simple format string
+vulnerability with the padding to increase
+the amount of printed characters, an address
+and a %n or %hn to write to an address, there
+are quite a few beautiful puzzle pieces here.
+So the basic idea came, when I was playing
+around with overwriting the GOT entry for
+__stack_check_fail.
+wcbowling had two writes and placed the address
+in the arguments, which made it so unreliable.
+I thought, maybe we get lucky if we place
+the address into our string, like I did in
+the last video.
+But there is one problem.
+The string that is printed is coming from
+the arguments, which has an unpredictable
+position.
+But the string is formatted with sprintf into
+a buffer, which will have a fixed relative
+position on our stack.
+So basically the format string will be evaluated,
+so first it handles the %d with the 1640 character
+padding and places it into the buffer.
+Then comes the raw bytes of the address, and
+places it.
+And then comes the format modifier to write
+to an address on the stack.
+So now the position of this address that was
+just written onto the buffer is at a fixed
+offset location and we always get it with
+214.
+Though the problem is, we can’t have an
+arbitrary amount of bytes padding.
+Because the address has to be 8byte alligned.
+So we can only increase or decrease the padding
+in 8 byte steps.
+Which affects the amounts of bytes we can
+write.
+With %n.
+It’s always in these 8 steps.
+So we don’t have an write anything condition,
+but we can write something close to the wiining
+address.
+Now there are two challenges.
+First, the stack is fairly small, and the
+format result is written into buffer on the
+stack, so if we use too much padding, to write
+a large number with %n, we run out of stack
+memory and get a segfault.
+But wcbowling’s trick has made me realize,
+that we can in fact increase the size of the
+stack by just using more arguments.
+It will add entries to the argv array and
+increase it.
+The second problem is, that the address is
+only written with 3 bytes, so if the location
+on the stack had other values in it, it won’t
+work.
+We need to write our address onto the stack
+where there was a zero, or generally a small
+number before.
+And here is also where the arguments help
+us again, because we can groom the stack,
+by adding or remove entries in the argv array,
+so that the stack is large enough, and we
+have a zero at the correct spot.
+I love it!
+So now we know how to groom the stack to write
+to the GOT entry, but we still have the issue
+that we are not sure what to write because
+of our multiples of 8 restrictions.
+I wrote a simple python function that generates
+me valid exploit arguments with different
+paddings and adjusts the amount of arguments
+and the write offset accordingly.
+And I started by looking around the printing
+of the winning message.
+So ideally we would like to write 0x670, that’s
+1648, but becuase of our alignment restrictions
+that doesn’t work.
+Anyway, I was then just trying them, to see
+if anything interesting would come from it.
+And luckily this one worked.
+Let me debug this with gdb, I set a breakpoint
+after the sprintf, before we check the stack
+cookie.
+Let’s look at the stack.
+So this is the %d padding with spaces, to
+print the amount of characters we want to
+write to.
+And then here at the end is the target address
+we want to write to.
+The GOT address.
+We can also look now what value has been written
+there.
+So we will jump to 0x40066b.
+Let’s look at the disassembly and see where
+that would be.
+66b.
+Mhmmh… wait!
+That is not a valid address, this is not right?
+It’s in between the compare and the jump-not-equal.
+Let’s use x to print 3 instructions, instead
+of the disassemble command.
+Do you see that.
+WTF there are now moves, and not a cmp?
+What the heck?
+Welcome to intel assembler and more advanced
+ROP.
+This kind of property was called the geometry
+of intel assembler, in the famous ROP paper,
+but never heard anybody using that term.
+Anyway, we jump in between the bytes of the
+intended instruction, and the CPU is dumb,
+it will just read those bytes and interpret
+them as assembler.
+And so in this case, the cmp and jne turned
+into two simple moves.
+Which means, now there is no check for deadbeef
+and we run into the printf to print the winning
+message.
+When we single step forward now, we get into
+the procedure linkage table for stack_check_fail,
+we jump to the GOT entry, which is our weird
+address into vuln, we execute the mov, and
+then we call puts to print the message.

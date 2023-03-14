@@ -1,0 +1,205 @@
+So since I started with the riscure embedded
+hardware CTF competition, I started to do
+a bit more hardware related videos and some
+of you struggled to understand the basics
+of electronics.
+And instead of making a basic tutorial video,
+I thought I do a collaboration with another
+channel - Electronic Idiot.
+So we built a simple prototype for a door
+lock, with a pin pad entry.
+We kept it simple with only four buttons.
+Three LEDs showing the status and a motor
+that would actually unlock the door.
+If you type in the wrong code, then the red
+LED will start flashing, and the more wrong
+tries you have, the longer it will do that.
+And when you enter the correct pin, the motor
+will start spinning, to unlock the door.
+If you are interested in how this prototype
+is built, and you don’t understand what
+all those components are for and generally
+want some introduction to electronics, follow
+now this link to Electronics Idiot’s video
+and come back later.
+It’s also linked in the description below.
+Now let’s get ready, and attack this lock.
+First of all, let’s make some assumptions.
+Let’s assume you don’t have access to
+the microcontroller and to the motor to unlock
+the door.
+Otherwise you could just directly cut the
+wires to the motor, hook them up to your own
+power supply and unlock the door.
+But obviously the pin pad and the LEDs have
+to be accessible.
+But not only that, also the power supply is
+exposed, because maybe the lock is running
+from a battery in a cheap safe and you need
+to be able to change that.
+Our goal is to unlock the door and the obvious
+attack would be to try every possible pin
+as fast as possible.
+But where do we start.
+We have these buttons that enter the pin.
+And obviously buttons also just modify the
+voltage on the input wire to the lock.
+The wire is always low, but when you press
+it, the wire is pulled to HIGH 5V.
+And the LEDs are just connected to those wires
+of the lock, which usually outputs a LOW,
+which is not enough to turn the LEDs on, but
+when the output is set to HIGH, the 5V, the
+LEDs will turn on.
+So you can just imagine that in these locations
+are either 0rs or 1s.
+For the buttons you decide which one it is
+by pressing the buttons, and for the LEDs
+the lock decides the state of 0 or 1.
+Now we want to interact with the lock.
+A very simple prototyping platform that everybody
+knows is arduino so let’s use that.
+First of all, we have those status LEDs, especially
+the blue one is interesting, because it tells
+us, that the pin pad is ready for input.
+Let’s take off the imaginatory front panel
+of our lock and hook up three cables to the
+LEDs.
+And remember the three I/O pin numbers we
+use on the arduino because we need it when
+we write the program.
+We know that the lock will output here a digital
+1 or 0, which is basically 5V or 0V depending
+on if the LEDs shall be turned on.
+So we can just read this value on the pins
+that are now connected to the Lock LEDs.
+We can take one of the example programs that
+read one input pin and send it to the computer
+via serial and just modify that.
+We define which pin numbers correspond to
+which LED, set those pins into Input mode
+and then we simply extend the program to read
+the current value from the wire and write
+it out to serial.
+This is happening in a loop many times per
+second.
+Now if we program our arduino board and open
+the serial console.
+We can see that the blue LED is turned on,
+we read a 1, because the lock is putting out
+5V on that wire.
+And the other two LEDs are off.
+And obviously when you type in a wrong pin
+and the red LED is blinking, you can see that
+easily as well.
+Now we need something to press the buttons
+for us.
+Again this is super simple with an arduino.
+We just hook up 4 cables to the buttons.
+The microcontroller of the lock reads the
+status of the buttons exactly how we just
+implemented the reading of the LEDs.
+This means we just output a digital 1, 5V
+from this pin via those cables to indicate
+pushing the button.
+And a digital 0 if we want to release the
+button again.
+It’s so simple.
+So then we write some code to enter every
+possible pin combination.
+We define which output pin corresponds to
+which button, and set their pinMode to OUTPUT
+and the we write a couple of nested for-loops.
+One loop per pin digit.
+To see that in action we can output which
+buttons we would press via serial.
+And you can see it quickly loops through all
+possible combinations.
+Now we simply have to write the code which
+presses the buttons in a sequence, like we
+would by hand.
+And that’s simple.
+But before we press the buttons we should
+make sure, that the pin pad is ready for input
+by checking the status of the blue ready LED.
+We can write a while loop, which waits for
+the LED to turn on.
+After that we know we can enter now the pin.
+To do that we just set the output pin to High,
+wait a short amount of time and put it back
+to low.
+That’s like pressing the button by hand.
+And then we do this for each digit.
+This code now types in all possible pins for
+us so we don’t have to do that.
+And that works already pretty well, but the
+issue is, that with each failed attempt the
+lock increases the timeout.
+After a couple of attempts the time is so
+long, that it starts to become unfeasible.
+This means we need some kind of vulnerability
+that allows us to make this bruteforce faster.
+While playing around with the lock trying
+to understand all of its behaviour, you might
+realize that when you reset the board, for
+example when you cut the power and reconnect
+it again, that the timeout resets.
+The memory of the number of failed attempts
+seems to be lost after the power is removed.
+And this is where we can attack.
+To simulate cutting the power, I connect another
+cable to the reset pin of the lock.
+And in the code, after we entered the pin,
+we check with a loop for the red failed LED.
+If that led turns on, we proceed to pull the
+rest to low and then back to high, which restarts
+the lock.
+Then we enter the next loop, wait for the
+blue LED which indicates the lock is ready
+and then we enter the next pin.
+And now we can bruteforce the pin very quickly.
+Just takes a minute or so, but then it finds
+the correct pin and the motor spins.
+Also because our code was waiting for the
+RED led, it will not continue to try more
+pins.
+This theoretical attack is not unrealistic.
+For example there was this iPhone lockscreen
+bruteforce, where you would cut the power
+aggressively after a failed attempt, before
+the failed attempts counter could be written
+to memory.
+This way you could bruteforce all pins, even
+though it should be locked after 10 failed
+attempts.
+And that’s kinda the fun stuff with hardware
+attacks.
+They really feel like cheating in some way,
+because as a software person, attacking the
+software implementation with hardware seems
+pretty unfair.
+But these kind of things are very powerful.
+The person who engineers a lock like this
+or some other kind of hardware really has
+to be aware of something like this.
+If you start thinking about possible hardware
+attacks, where somebody has physical access,
+it becomes really really hard.
+When we started to plan this prototype for
+this collab I realised that it’s not trivial
+to create a secure lock.
+Try it yourself, just think about how you
+would design a lock, and how elaborate it
+quickly becomes from a software standpoint
+to prevent attacks like we just did, but also
+from a hardware engineering standpoint.
+You have to be able to exchange the battery
+and enter a pin, but you must not be able
+to simply remove the plastic front panel and
+short the wire to spin the motor.
+If you are an engineer, software or hardware,
+I’m really happy that you watched this video.
+Because once you get into the mindset of always
+thinking about how stuff can be attacked,
+you will also create more secure products
+for the general population.

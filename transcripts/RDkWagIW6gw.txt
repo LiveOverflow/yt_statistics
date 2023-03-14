@@ -1,0 +1,347 @@
+This area is protected by worldguard. 
+Nobody should be able to enter. And yet,
+there are people in here… as always, lot’s 
+of hacking stuff is happening on this server,
+but before we talk about that, let me catch you 
+up on what has happened since the last episode.
+I’m here at my second favorite place - the item 
+sorter! It’s really complex and I didn’t quite
+understand how it works. But I finally figured 
+out where the design is from, it’s from Maizuma
+Games. I link the channel below. I have been binge 
+watching some of the design videos. Really cool
+stuff. But back to this Server. Hopefully you 
+remember, I had developed an anti-human plugin
+that checks if the coordinates of players are 
+specific strict values. This is supposed to
+prevent human players from joining and only allow 
+bot movements. If imprecise human movement is
+detected, the player is kicked. I thought it’s 
+foolproof, but turns out it’s not effective.
+First of all, you can see me, I’m moving 
+on the server. So I managed to bypass
+it. And of course so have many others. 
+The server is very active with players…
+And this causes some issues. Let’s head to my 
+favorite place on the server, the spawn area.
+Nothing there was built by me, that’s why it’s so 
+cool. on any other anarchy-like server, the spawn
+is always a complete wreck. And of course we are 
+getting more and more griefing attempts, BUT the
+community here is defending it hard. So let’s 
+do our part and help clean up some of the mess.
+Griefing on this server is actually a very 
+interesting topic. I don’t want to spend
+time on banning people for griefing, so eventually 
+it will happen. BUT usually on survival servers,
+you have an extreme power imbalance between 
+normal players and griefers. The griefers
+join with hacked clients, they can fly around, 
+speed hacks, super fast placing blocks. While the
+regular players are on foot, slow, and cannot even 
+attack them in the air. But on this server it’s
+different. Everybody has hacks. Cleaning up the 
+mess can be automated with bots and flying makes
+reaching the places easy. Look at this crazy bot 
+from EnderKill98 cleaning a lavacast. BUT there
+is even more. Bots at spawn actually have a built 
+in surveillance system that logs every valuable
+block getting griefed. Let me show you. So here 
+is the rainbow beacon and underneath the protected
+obsidian is the actual emerald pyramid. Now let’s 
+grief one of those emerald blocks. BOOM! Here the
+LiveUnderflow bot, which is not me, I don’t know 
+whos bot that is, it announced that LiveOverflow
+broke a block of emerald at the beacon. And look 
+at this. Immediately get called out “DONT EVEN
+THINK ABOUT IT!”. And these messages are relayed 
+to an unofficial discord server. So it doesn’t
+take long and they show up to check on what the 
+f’ I’m doing there. Ready to strike me down.
+Also there are a few known griefers 
+and here is an automated system warning
+everybody that they were sighted 
+near spawn. It’s crazy. I love it.
+As you can see,despite no plugins against 
+griefing, I think the accountability through
+logs and the power for the defender also using 
+hacks (or utility mods), made this spawn survive
+for this long. It’s very fascinating to observe.
+However the interval of griefers joining is
+slowly increasing, and I wonder how 
+long the spawn will be defended.
+But until then, I’m just here enjoying 
+the music at the concert hall. Which by
+the way is another cool project from 
+this server. EpicPlayerA10 improved
+the notebot and the code even got merged 
+into the meteor client. Love to see it.
+Now on a different topic. Several players 
+asked me about whether there is a way to get
+a Club Mate bottle in game. Unfortunately 
+there was not. So to be a good respected
+leader deserving of a statue, I had 
+to find a cool way to give players a
+bottle. And luckily I had an idea. This is 
+the story how I found a worldguard bypass.
+There will be spoilers now, so if you are a player 
+on the server and you want to learn something,
+try it yourself first. You can always 
+come back to the solution later.It’s a
+lot more fun to find the bypass 
+yourself. So. Anyway… let’s go.
+
+It all started with my anti-human plugin. In the 
+last episode I went over a bit of minecraft server
+code to show you how the plugin event system 
+works. In the anti-human plugin I register an
+onplayermove event which supposedly is called 
+every time a player moves. And in that code I
+check if the player has human or bot movement.
+But when I was reading over the event calling
+code, immediately I noticed something fishy.
+So this code is in the serverGamePacketListener.
+this is executed everytime a 
+player sends a movement packet.
+And here they create the PlayerMoveEvent object 
+and calls every plugin which registered to that
+event. But just a few lines above this 
+part there you can find this if-case.
+Prevent 40 event-calls for less 
+than a single pixel of movement >.>
+To implement this here, they calculate a delta 
+movement, basically the distance between the last
+known position and the new position in the packet.
+And then they only go into this if-case with the
+event trigger, if the delta is large enough.
+Immediately my alarm bells went off. can
+we maybe move without triggering 
+an event? Not enter this if case?
+I guess you already know the answer… but 
+before I tell you more about how it works,
+let me show you the challenge I built around it.
+At the coordinates 1337/1337 I created
+a floating island and a small ruin.
+The idea is that in this area, similar to the
+anti-human check, a plugin will check if a player 
+is inside this area using the onPlayerMoveEvent.
+If a player is detected there, they will be 
+teleported out to the floating island with a
+kick message showing you exactly what the check 
+is. So a very simple region protection plugin.
+Now, if a player really manages 
+to reach the chest in the ruin,
+and interact with it, they 
+will get awarded a ClubMate.
+I thought the challenge was fool-proof. 
+But it didn’t take long. And I had
+to learn that the hard way… developing 
+“protection” plugins is very difficult.
+First I had to watch, in shock, that 
+when players movs inside a minecart,
+the playerMoveEvent is not triggered. Instead the 
+onVehicleMove event is called. Okay. fine… you got
+me. I gotta extend that code.
+But that was not all.
+Turns out that when the vehicle is not 
+moving, and you just click on entering it,
+your player is basically teleported into the 
+minecart. Not triggering a onPlayerMove event.
+Only if you ride the minecart that is triggered. 
+So you can start teleporting from minecart to
+minecart. Now it’s not that simple because 
+moving your camera also triggers sending a
+player move packet… unfortunately every typical 
+cheat clients includes a feature to stop sending
+out any movement packets. So now the only 
+movement happening, are basically only the
+server teleports when clicking on a minecart.
+That’s bad… And this also lead to the next
+discovery, which is enderpearls. You can also 
+throw an enderpearl into the area, and it
+triggers the server to teleport you. If again 
+you block any other outgoing movement packets,
+you can use enderpearls to move around in the 
+area. Go to the chest and get a club mate.
+And that was still not all. I had an actual bug 
+in the code where I forgot to check the world
+when opening a chest at the correct location. I 
+checked that the region protection only applies
+to the overworld, but I forgot that with 
+the chest reward. So players figured out
+they can place chests on the nether roof 
+and started farming club mate bottles.
+Goddamit. WHY IS IT SO HARD TO IMPLEMENT 
+A BASIC REGION PROTECTION PLUGIN?!
+But at this point, too many players were able to 
+bypass my plugin without the intended solution,
+and lots of club mate bottles 
+were out there in the world.
+Kinda sucked to be honest, but that’s 
+also fair game on a server for hackers.
+However it was not all a bad 
+experience. Because Philip,
+as well as Gildfesh and Ada, two very well 
+known and experienced minecraft hackers,
+they solved it the intended way. So it’s 
+true. There is a way to move in minecraft,
+without triggering the move event on the server. 
+And the crazy thing? Gildfesh and Ada immediately
+knew how to solve it, because as it turns out, 
+the issue wasn’t new. But more on that later.
+So after this failed attempt of creating 
+a cool challenge, I decided to look around
+some more. Being able to not trigger the 
+event handler seems to be something that
+could be a big issue for many plugins. So I 
+started to look into some region protection
+plugins. The first one being WorldGuard. Maybe 
+they solve the other issues of ender pearls,
+carts and animals. But still have the player 
+move event issue. I open up the code and take
+a look how its implemented. And it’s right 
+there. They use the onPlayerMove event. Mh.
+So I setup a test world and installed 
+worldguard. Defined a region with a
+flag to prevent players from entering. You 
+can see. I cannot walk towards Herobrine.
+But let me show you my exploit. Do you 
+see this? I’m able to walk towards him…
+almost there… let’s try to kill him. But well… 
+that doesn’t work because of the disabled PVP in
+the area. But point being. I WALKED OVER THERE!
+How did I do it? I’m sure you noticed the
+flashing screen when executing the 
+bug and that has a good reason.
+So let’s go back to the code. For every 
+move packet, the server calculates here
+the distance between the old known position and 
+the new position in the packed. If it’s small,
+it doesn’t trigger the event.
+So it seems simple to just move
+very very very slowly. BUT actually that doesn’t 
+work. Because this lastPosition is only updated
+if the delta was large enough. Which means when 
+you slowly move lastPosition stays the same. And
+eventually you will have moved far enough for the 
+delta to become too large. Triggering the event.
+But immediately I thought… well… I can 
+just disconnect and reconnect again,
+right? Just walk a few tiny steps less 
+than delta, logout. Login. Everything
+will be reset again and I can walk 
+another tiny bit. This should work.
+And this was enough for me to think of 
+building the first challenge. There is
+definitely a legit way to walk tiny 
+bits without triggering the event.
+But after playing around with it a bit more, 
+another thought came to my head. If you send an
+invalid move packet, for example when you try 
+to move very far away, the server will reset
+your position with a teleport. This effectively 
+works like the relog. It will reset everything.
+And that’s why you see me flashing. I always 
+move a tiny bit, and then try to move very
+far away, triggering a teleport back to the 
+current position, and move forward again.
+So all that is left, you just have to write some
+code around this and then you 
+can move in a protected area.
+Crazy! So I decided the worldguard bypass 
+to become another challenge. I went onto the
+server and started building ruins near the spawn. 
+Inside of it is a club mate fountain. Which is a
+lava pool and the goal is to die in there. And 
+the area is obviously protected by worldguard.
+I thought this looks really cool, but people 
+started messing with it and flooded it over night,
+turning lava into obsidian, and I didn’t want 
+to turn on fluid protection in worldguard due
+to performance hits. So I moved the 
+ruins to almost build-height up in
+the sky as a floating island instead.
+But what do players get when they solve
+it? Because everybody got Club Mate bottles at 
+this point, I had to think of another reward.
+So I implemented a name prefix. If you bypass 
+worldguard and die in the club mate fountain,
+you get awarded the HACKER prefix. And you 
+can see many people on the server have it.t.
+It was very cool to see how they slowly the 
+players figured it out. Also my solution is
+pretty bad. It works, but It’s very slow. But 
+some others really started optimziing and getting
+every little piece out they can. Look how fast 
+Jerrylum is walking through the area. It’s crazy.
+And here is Philip, he was one of the 
+first people to solve the challenge as
+well. And it was also really fun to watch 
+him optimizing his bypass over time.
+Amazing.
+So is this a serious 0day worldguard 
+bypass? Well I already mentioned that
+the issue is not a 0day. Gildfesh 
+showed me this hackerforums thread.
+From 2016… Minecratf 1.9. Fly 
+bypass [Almost Any AntiCheat].
+And see what they write here:
+Basically you can move <0.0626,
+since it won't fire any events. Then you teleport 
+into a block or the void, to reset your position.
+Then move <0.0626 again. The whole process doesn't 
+fire ANY events, and you can move anyway you want.
+It’s exactly the issue I discovered 
+when reading over the plugin code.
+You can see, this issue is, or was known 
+in the minecraft cheating community since
+2016. So how come worldguard 
+is not patched against this?
+Or why has paper not patched it?
+I have a few thoughts about that.
+First, the impact for world guard is not 
+that bad. Areas are still protected from
+griefing and PVPs, it’s just an entering 
+bypass… That’s not too bad to be honest.
+But besides worldguard, of course it 
+might bypass some basic anticheat plugins,
+but also the flight is very slow. The 
+negative impact is probably not that high.
+But what about paper directly?
+Of course the whole delta calculation
+could be removed and an event triggered on 
+every move packet. They claim it has a negative
+performance impact, but this is definitely 
+something that could be checked. How often
+are these tiny movements even happening during 
+regular play. So maybe paper could put this behind
+a config variable whether to always trigger 
+the event or allow changing the delta amount.
+Another fix idea might be to make the server reset 
+teleports to go back to the lastPos, if they are
+set, instead of the current player coordinates.
+But in the end the server maintainers,
+who are a lot more experienced with the 
+code and know what else might break,
+they have to decide if they fix it, or not.
+And not fixing it, I think is totally fine.
+It’s probably not a serious issue if it has 
+existed already for over 6 years. But if the
+community decides to not patch it,I think it 
+must be very clearly documented that this is a
+potential issue. Plugin developers need to know 
+about these details so they can make sure they
+design their plugins around this. And so here I 
+did my part. Hope now more people know about it.
+Cool! We found a worldguard bypass. so this is the 
+end of my video. But the more I spend time with
+this project, the moret I realized there are so 
+many amazing projects happening on this server,
+and I want to give players a chance to showcase 
+what they have done. And in this episode I
+introduce you to DarkReaper. He started on the 
+wrong side. He joined the server and started
+griefing. BUT he really came around and tries 
+to be a very productive member of the community
+now. And I very much appreciate that. And that’s 
+why he will be the first showcase. Take it away.

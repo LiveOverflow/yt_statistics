@@ -1,0 +1,213 @@
+so today was the first day of the ctf
+in the morning john and i arrived there
+fairly early
+to play one of the challenges
+that challenge was special because
+everything got a time slot one single
+time slot
+for that day and so we had to come in
+[Music]
+early
+google why is everything so early
+today's the day of the ctf
+it's 7 30 and i need to be at 8
+at google because they have prepared
+like a challenge that john and me have
+to do
+like right in the beginning before the
+ctf starts
+uh you will see why in a moment but
+i need to very quickly shower and then
+head out so
+see you there just in time let's go
+good morning morning do you want to be
+on camera
+or not sure okay this is for the rico
+hello
+so do you think you should watch the
+video first or the
+picture uh let's go to the video first
+it's six minutes oh my gosh
+it's just this for six minutes there's
+no context
+i died all right
+we have a couple of minutes left before
+the ctf uh we also received this
+envelope
+every team gets such an envelope we
+don't really know what's inside and we
+wait with opening it up
+to like nine o'clock when the other
+teams also open it up
+so um we will see what's in there it's
+probably like
+the wi-fi password and things like that
+but maybe there's
+more to it there's definitely there's
+definitely something in it
+what is it wearing nothing
+so have fun good luck and
+never else ever be in your favor
+first one
+[Music]
+so the first actual challenge was just
+solved by red rocket
+unfortunately he was a remote player so
+they have no clue how it was solved
+but yeah congrats that was the big first
+blood i guess
+so the challenge that was just solved by
+red rocket is called stuffed
+it's in the misc category and the
+challenge description
+reads just click the link and the page
+displays the flag
+easy right but when you go onto
+this website it shows a plain like flag
+colon and then nothing happens and the
+site keeps loading
+and doesn't really do anything at some
+point it like crashes the the tab
+crashes but when you try to look at the
+request for example with burp you get a
+very
+different response it says not
+acceptable and the text reads that
+to avoid a repeat of last month's
+bandwidth bill we only support browsers
+that can understand
+broadly compression supported browsers
+include chrome firefox edge safari and
+opera
+of course we are using chrome but we are
+going through this proxy with this http
+request
+i wonder where the flag itself is hiding
+maybe you somehow just has to have to
+get to the
+actual like data stream but there's the
+ssl layer so maybe the
+the the stuff that comes out of the ssl
+layer at least was my thought that might
+be the compressed data and then you
+somehow have to decompress it
+so i try to use openssl to connect to
+this ssl server but
+it didn't seem to work i get ssl errors
+apparently like there's a handshake
+failure so
+now i'm not quite sure how to approach
+this also i got to talk to two teams
+that attempted the
+b challenge when they were coming out
+and both teams also
+didn't succeed so i'm quite happy about
+that because we failed
+so this is
+foreign
+thank you
+first one
+okay folks so all challenges are now
+released there will be no more
+challenges
+happy hacking and that's it
+good luck
+hey everyone so we have our first
+attempt for the gomeon challenge
+which is punable it's a browser
+exploitation challenge
+one team here by stephen king i think
+they have an expert so let's try it out
+all right all right let's try it okay
+that's it go back to work
+[Music]
+okay so there's a serious lack of cola
+to fulfill my addiction but now there
+were some
+so i stole two and i will put them in my
+bag
+for tomorrow morning because i need that
+stuff in the morning
+it's almost 8 pm which means that the
+ctf is almost over i think
+let's go into the ctf room and just have
+a last overview of
+how the ctf area looks like after the
+first day
+as you can see the ctf players are still
+concentrated as always
+by and yeah outside there are just some
+of the staff
+the organizers um still hanging out
+but yeah it's not much going on anymore
+except here again
+here look it's gadget overflow my
+favorite youtuber
+so the ctf players just left the
+scoreboard and challenges stay online
+but they will not be supported so if the
+challenges crash overnight or go down
+um they will not get any support but
+they still have the chance to solve them
+overnight
+so it will be kind of interesting in the
+next morning when this
+when the flag submission goes back
+online again and they can then submit
+all the flags
+uh maybe we see a lot of crazy
+animations tomorrow so i reviewed a
+couple of the
+recordings i've done i'm backing them up
+always from the sd card so to have it in
+two places
+and i noticed that a lot of the footage
+is blurry
+because i accidentally switched to auto
+to manual focus
+or for example when i talked to guinwell
+the autofocus was set to
+looking for eyes and for whatever reason
+it didn't really recognize our
+faces a lot and it focused on the eyes
+on the laptop
+from greenville and when he closed it
+that's when it started to focus back on
+our faces
+like things like this i kind of need to
+learn
+also for interviews i noticed that the
+white aperture to get like the nice
+blurry effect is not really good because
+as soon as like
+the people are at different distances
+like leaning forward or backward they
+start to get blurry too
+that's not a good fit so yeah sorry for
+the
+not so great footage um but you know
+i now i'm gaining experience how to do
+it better and
+in the end i still think it shows kind
+of like the spirit and
+ex and shares the experience with you at
+around 8pm
+the ctf was over for the day
+and i yeah and basically all the ctf
+players went back here to the hotel but
+i'm sure
+they will work throughout the night or
+through most of the night so i will now
+lay into bed with my laptop
+try a bit more some of the challenges
+there's one
+that i kind of like wanna understand a
+bit better so i
+will look more into that i'm i'm not
+even close
+in anything solving so does that and
+then i guess sleep soon
+so yeah talk to you tomorrow
+[Music]
+foreign
+you

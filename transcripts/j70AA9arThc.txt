@@ -1,0 +1,60 @@
+So as you know, each YouTube video has an
+ID in the URL.
+It identifies the video.
+It’s unique for each video and it’s determined
+randomly when you upload the video.
+So… how is it possible, that I know, that
+this video has the ID ?
+I hope you are intrigued now!
+
+Randomness is interesting, especially for
+computers because there is not necessarily
+anything random about them.
+We tend to think about them as being deterministic
+machines.
+So in terms of security, for example in cryptography
+it’s a huge challenge to get a good random
+source.
+If somebody could predict a random output,
+then that often breaks cryptography.
+Now the YouTube ID is not cryptographically
+important but it’s a nice proof of concept.
+So did I predict the ID?
+Actually no, I abused something else.
+So one day I noticed that the ID is actually
+known during your upload.
+You see it right there and you see it in your
+videos overview.
+So the files are not yet all uploaded, but
+you already know the ID it is assigned.
+And this allows us to perform a small switcheroo.
+I have basically taken a youtube upload code
+example that uses the google API to upload
+a video.
+And I modified the source code of that in
+order to switch out the file whenever I want.
+This means I can start out with the intro
+of this video, let that upload very very very
+slowly, and in the meantime I look up the
+ID it got assigned, and quickly record and
+edit this ID into a short clip.
+I render that, and I specifically use the
+mpg video container because it’s not a very
+complicated file format and it allows you
+to concatenate videos simply by concatenating
+the raw bytes of the file.
+You don’t need to run a special algorithm
+that merges the video files.
+This way I can just at some point tell the
+modified script to switch out the file and
+let it continue upload the new file that contains
+the known ID.
+Pretty neat, huh?
+I thought that’s a pretty cool trick.
+If you are interested in programming and it-security,
+I can really recommend you to subscribe and
+checkout some of my playlist.
+For example I think the Pwn Adventure 3 series,
+where we hack a game that was built to be
+hacked, is really fun.
+Bye bye.

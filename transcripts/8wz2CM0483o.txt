@@ -1,0 +1,300 @@
+We have played the game pwn adventure 3 a
+little bit, we have set up our own server,
+and we investigated the game from a higher
+level perspective which lead us to discover
+a libGameLogic binary.
+Which is a dynamic library loaded by the game
+and sounds important.
+So now we go another layer deeper, we get
+our hands dirty and open a disassembler.
+So which disassembler should we use?
+There is binary ninja, which is developed
+by the creators of this game.
+Unfortunately the DEMO version does not support
+64bit, so you have to have a regular license.
+But it costs just like as much as 3 video
+games, so it’s not too bad.
+Then recently IDA released a new freeware
+version with 64bit support, and that’s awesome
+and definitely something you should try, then
+there is also hopper and radare.
+I will mostly use binary ninja and IDA for
+this project now, but in general, as you know
+from my videos, I use them all.
+As I’m not doing professional work with
+reverse engineering, my experience on this
+topics is very limited.
+I just try to make things work.
+If you have tips and tricks and advice how
+to do things better, let me know, I most certainly
+would like to get better.
+So let’s open the libGameLogic in binary
+ninja and ida.
+It takes a few seconds to analyze and process
+the binary but very quickly we can see that
+it identifies a lot of interesting symbol
+names.
+You might have also noticed that there are
+some very weird function names.
+This is immediately telling me that this is
+a C++ program.
+These are so called mangled names and we can
+demangle them.
+This crypting string encodes a much more complex
+name including the types.
+If you carefully analyse it and play around
+with it you can figure some things out about
+the format.
+For example the number here is the length
+of the name, while the small c stands for
+char.
+Changing that into an i makes the argument
+an integer instead.
+And so this demangled representation is much
+more readable, and also unveils classes.
+So there exists a GameAPI class, which has
+a function with the name GetSpawnPoints and
+that function takes a constant character pointer,
+that’s basically a string.
+This information, these names, are included
+because they are exported symbols and the
+binary is not stripped.
+So it’s super awesome and easy for us to
+explore the functionalities and capabilities
+of the client.
+But before we go on with this I want to make
+two points.
+1.
+This game was part of a CTF that was running
+for maybe 2 days, so giving out the names
+of these functions is a huge speed boost.
+This makes it much easier for people to understand
+the game and allows them to focus on the actual
+challenges, rather than having to spend a
+lot of time on intensive reversing.
+Which leads me to my second point, yes it
+would be easy to make it more time consuming,
+and thus maybe harderr for “attackers”
+if the binary would be stripped.
+Because that is a significant time sink.
+But a group doing reverse engineering can
+recover all of this class information, obviously
+not the exact names, but they will understand
+everything as if they had the names, it just
+takes time.
+And by that I mean hundreds or maybe thousands
+of man hours.
+But it’s a one-time investment.
+Once a group has reverse engineered the internal
+class structures, then they essentially are
+at the point where we are now.
+So even it it might be a bit unrealistic that
+we have this debug information, it just safes
+us time.
+It doesn’t mean it were impossible otherwise.
+And to be honest, it might not be that unrealistic
+after all.
+For example a popular MMORPG had an open beta
+before their launch where they shipped a debug
+build of the game including all the information.
+And yes, for the release they stripped out
+all of the stuff, which made the game also
+run faster but at this point the “attackers”,
+I don’t wanna call them attackers, they
+don’t try to attack, they just research
+how the game works, had all the information
+they needed.
+Of course over the time the binary changed,
+and also classes changed a lot, new features
+were added or removed, but that is extremely
+valuable information that helps with future
+reversing.
+And even now when you get a crash in that
+game you often get an assert condition which
+reveals some internal code information.
+And these asserts are embedded in the game
+binary, so it’s super easy to map out what
+functions do based on that.
+So my point is, if you try this on another
+game, you might not have all these class names
+included, which doesn’t make it impossible,
+it just means you have to do a lot of work
+first.
+Anyway.
+This is not about doing anything to real games,
+we are just having fun with an intentionally
+vulnerable game hacking challenge.
+Let’s go back to the disassembler and keep
+looking around.
+There is sooo much to learn here.
+So many interesting classes and function.
+For example there is a SubmitDLCKey function.
+Remember the chest on the pirate ship?
+That wanted a DLC key?
+Let’s check the boat.
+Is that a chest as well?
+I don’t trust it!
+Oh.
+heh.
+DLC.
+I’m sure that is the function that is handling
+that.
+By the way, the orange color is how the game
+would call a function.
+It’s from the procedure linkage table.
+What that is I have touched on in the video
+linked here.
+You see it’s just a jump to an address contained
+in the global offset table.
+The actual implemented code is in the white
+colored version here.
+So here is the SubmitDLCKey function from
+the GameServerConnection class.
+And it seems to get a function pointer to
+sth and calls ServerConnection::ServerEnqueue,
+so sounds like it places this action into
+a queue to be then sent to the server.
+And yeah, the server enqueue function just
+acquires a lock, to prevent race conditions
+on the queue, and then pushes a new item into
+that queue.
+So somehwere is a consumer of that queue,
+and based on the class name ServerConnection,
+I’m sure it will build a packet to send
+to the server.
+You can easily spend a couple of hours just
+learning about different functions and objects
+and it’s really fun.
+You should try it yourself.
+I won’t tell you each discovery, but here
+for example we have a class for Magmarok,
+that was that boss monster in that cave which
+healed itself.
+And in the function GetDisplayName it references
+a fixed string as name.
+And that name lead me into a section with
+lots of other strings of the game.
+And there it says: “find all of the golden
+eggs”.
+Interesting.
+So there are golden eggs somewhere.
+Let’s compare a little bit how this looks
+like in IDA.
+So Ida also demangles these names.
+For example there is a ClientHandler that
+seems to be responsible for handling chat
+messages?
+We can also look at the exports specifically,
+sort by name, and get a nice list of all the
+stuff that exists.
+IDA also can detect these structures, so for
+example here it found an actor class.
+So ida says it’s a struct not a class, but
+classes are essentially just made out of structs.
+If you program C++ and C they might feel very
+different, especially with inheritance, and
+public/private visibilities and methods and
+attributes, but in the end, the underlying
+implementation is essentially just a struct,
+with some more information like a vtable pointer.
+And it found some attributes like id, target,
+health and more.
+It even found some cross references from some
+code.
+IDA also found some enums, for example ItemRarity
+and DamageTypes.
+So after just scrolling around and reading
+a lot of class names and functions I decided
+to look at this in gdb.
+So I launch the game, head into the game so
+that everything would be loaded.
+And then I attach gdb to it.
+In gdb we can also list all the running threads
+and we could even do info variables, to get
+all available variable names.
+Or info functions or info types.
+But this is a huge program so there is just
+ENDLESS amounts of data, which makes it super
+difficult to find useful stuff.
+But from the disassemblers we know a lot of
+interesting functions.
+For example there were functions related to
+Jumping.
+Like the GameServerConnection::Jump.
+And we can set a breakpoint there.
+When we now jump in game, the breakpoint is
+hit.
+And we also see the call stack.
+At least partially for the functions we know
+inside of libGameLogic.
+So the actual game client called Player::SetJumpState,
+which called then ClientWorld::Jump, which
+triggered a server connection regarding the
+jump.
+Probably informing the game server, that we
+pressed jump.
+Super cool huh?
+We can also use some other cool gdb features,
+such as ptype.
+Print type.
+So print the type of Player.
+And Player is a class that we know exists.
+And gdb prints the whole Player class.
+So we can see that the class Player inherits
+from Actor and IPlayer, which probably stands
+for InterfacePlayer?
+And the Player class itself has a playername,
+a team name and much much more.
+So now you can explore all these classes easily
+with gdb ptype.
+Here is the GameServerConnection class, which
+inherits from ServerConnection class.
+And in the ServerConnection class we can see
+the ServerEnqueue function again, which takes
+the function pointer we mentioned earlier.
+Pretty neat!?
+One other thing I discovered was in the data
+section of the binary.
+There is a global variable called GameWorld.
+Along with some other very interesting variables
+called g_items and g_eggs and so forth.
+We can then print that in gdb.
+Print GameWorld shows that this variable is
+a pointer to a World object.
+And if we dereference that pointer, we get
+the actual World object and gdb prints that.
+So we have here the World object.
+Which does included for example a list of
+players, but currently there is only one.
+Me.
+There is also a vptr to ClientWorld.
+That’s a vtable pointer.
+That’s what I briefly mentioned before.
+So i think this object here is in fact not
+a World object but a ClientWorld object.
+We can also access attributes of the World
+object.
+For example the players list.
+Or we can cast the World pointer to a ClientWorld
+pointer and dereference that.
+Which is basically the same, it’s of course
+similar to a World Object, but we also get
+a variable activePlayer.
+And that variable was only part of ClientWorld.
+So I guess that is us!
+And again we can print the class definition
+of this with ptype.
+And you see here, there is a private attribute
+called activePlayer.
+Which is from this type ActorRef.
+So I guess an Actor reference?But with the
+underlying type IPlayer?
+I don’t know why it’s programmed that
+way, but essentially it’s a reference to
+our player object.
+And you know what we can do?
+We can now extract all of these classes from
+gdb, and create a C++ header file called libgameLogic.h
+which we can then use for creating our first
+actual game hack.
+But that has to wait for next video.

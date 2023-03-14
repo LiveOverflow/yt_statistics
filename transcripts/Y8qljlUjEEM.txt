@@ -1,0 +1,190 @@
+We are currently analyzing the heap 
+layout of sudo. We do this because
+we try to find a suitable exploit 
+strategy for the heap overflow.
+Last video we wrote a gdb gef extension to trace 
+MALLOC and FREES, in order to learn more about
+the objects actually being allocated. And then 
+we integrated it into our fuzzer. Our fuzzer
+always runs until we find a crash, and then 
+we check the heap information with our plugin.
+Anyway, we have ran the script now for a 
+while and it’s time to look at our findings.
+Just to recap what the gdb extension does. And 
+what the resulting filenames from our fuzzer mean.
+The plugin traces each malloc and free and 
+uses the function backtrace to remember
+which function called the malloc. And then, 
+when we reach our heap overflow in set_cmd,
+we look at the allocations we remembered coming 
+right AFTER our buffer we can overflow. So the
+function names somewhat tell us what kind of 
+objects we can overflow. And the filename with
+the results is made up of these function names. 
+So the filenames tell us that we had a segfault,
+and the objects after our buffer 
+are related to these functions.
+And the First thing you might notice is that, 
+some object allocations were much more common than
+others. Either they appear more ihn the 
+list, or the filesize is bigger, and had
+more cases. Which might be something 
+we want to consider regarding how
+reliablke it is to get the heap layout we want.
+But let’s look a bit closer. A few of these
+functions I already know pretty well from 
+all the code I read. But there are a few
+that really caught my eye. For example 
+this one. dlopen and sudo_load_plugin?
+“The function dlopen() loads the dynamic library 
+file named by the null-terminated string filename”
+And why this sounds awesome is, that - 
+“shared objects may export functions using the
+__attribute__((constructor)). Constructor 
+functions are executed before dlopen() returns”
+So if we can control the path to dlopen, we would 
+have code execution. BUT be careful! don’t get too
+excited, this trace only tells us that the 
+buffer allocated after our overflowing buffer was
+allocated in this function. So this dlopen 
+probably happened BEFORE we had our overflow,
+and there are just some objects 
+left from it on the heap.
+You can confirm this when you click on 
+the file. In there you can see more of
+the objects that come after our buffer. And the 
+backtrace of the segfault. Comparing those two,
+the objects seem unrelated to the backtrace. 
+The backtrace of the crash shows that the
+crash was related to some nss, check_user, passwd 
+stuff. But the objects were about plugin loading.
+Which tells me that the objects right after 
+our buffer were not the interesting ones.
+There should be other buffers much further away, 
+that then lead to this crash. So this testcase,
+or rather the information about 
+the objects is not useful for us.
+By the way, besides the text log of the 
+identified buffers and backtrace, I also log
+every set of arguments and environment variables 
+in a .json file. This can be used to reproduce a
+particular crash. To do that I wrote a small 
+python script that takes such a json file,
+and you specify which testcase you want. Because 
+the .json file contains all the testcases.
+So could be the first, second or whatever. And 
+then the script calls gdb and runs sudoedit with
+those parameters. This is very helpful to quickly 
+get a debugging setup to investigate a testcase.
+So let’s look at a first crash, by letting the 
+code run. You can see it stops at the moment where
+we had our heap overflow in set_cmd. And then we 
+can continue and we run into the actual crash.
+And this is how I investigated some crashes 
+just to better understand what happens.
+For example in this case we crash in tsearch. 
+And looking at the callstack, it’s actually
+quite interesting. Here is a function called 
+nss_lookup_function. And Lookup_function sounds
+really interesting. I don’t know what kind of 
+function it looks up, but if we crash inside of
+this, then maybe we can influence what function is 
+getting looked up. And maybe we can do something
+with that! Really really interesting 
+crash. Definetly keep that one in mind.
+I spent some more time going through the different 
+crashes. But after a bit I noticed, maybe the data
+is not that useful. Right now I sorted them based 
+on what object came after the vulnerable buffer.
+I thought that that is interesting, but 
+looking at where it actually crashes
+it often has NOTHING to do with the objects coming 
+right after our buffer. Like I showed you earlier
+with the dlopen example. we crash somewhere else.
+As mentioned earlier, this probably happened
+because the object that leads to the 
+crash comes much further away on the heap,
+but we only log the first few objects 
+coming after our buffer in the filename.
+And so at this stage I thought it 
+would be better to take a step back
+and look again at the different crashing 
+functions and sort the testcases that way.
+This might seem like backtracking to an 
+earlier version of this heap analysis script.
+But we still have the heap object information 
+from our gdb script, which we didn’t have before.
+so I changed the script just a little bit, to 
+create a filename based on the backtrace of the
+crashing function. And let’s run this for a while…
+I mean, this doesn’t give us any different
+results. Just differently sorted. And I was 
+just wondering if we can learn more from that.
+Now watch this beautiful dog run in slow 
+motion while the fuzzing script runs.
+Ok it ran for a bit and we have collected a few 
+more crashes. It’s time to get a quick overview.
+These crashes in set_cmd are weird, because 
+this is the function where we have our overflow.
+So it crashes super early. I’m not sure what 
+to make of it, maybe this is something cool,
+but I don’t think so. Another crash we see is in 
+the Exit handler. I quickly peak into the crash
+condition, but I don’t see anything useful either.
+This Gettext crash is also weird. We crash in a
+string compare. Also probably not interesting.
+Though a really cool crash seems to be those
+errors related to free. Here we control the 
+address to a free call! In a more “complex”
+program where there is more interaction going 
+on, this would be a good exploit primitive. It
+would allow us to free any object on the heap. 
+Which means we can turn some other part of the
+program into a use-after-free condition, which 
+can be quite powerful. though in the sudo case
+probably not very useful. Remember, 
+we have one-shot and need to succeed.
+But… now we come to the ones 
+that are most interesting.
+These nss_lookup_function crashes. We 
+have quite a few variations of them.
+And “lookup function” just sounds soo good, we 
+should really look into what’s up with that!
+However this code is not part of sudo. It’s part 
+of libc, which initially turned me off. It’s
+always a bit dreadful to look into a huge library 
+like libc. But I guess we have no other choice.
+Because it would be too much for 
+this video, let’s do that next time.
+But for those of you who are motivated, 
+here is again the callstack. feel free to
+look into the sudo source code yourself and 
+see what the code does. And then head into
+the libc code as well. It’s really good practice. 
+https://elixir.bootlin.com/glibc is a good site to
+do that. And next video we will do this together, 
+so you can compare your thoughts with mine.
+Also because this video is a bit shorter, and I 
+didn’t have anything useful to add before diving
+into libc, I thought I use this opportunity 
+to thank my patreons and YouTube members.
+A video series like this is obviously not 
+very popular. Only huge nerds like you
+watch this. I am not super motivated by the 
+numbers, obviously, otherwise you would see
+me only do casual news videos. I make the videos 
+I wish I had when I started out. I hope you agree
+that this series is quite a unique learning 
+resources. And so I really appreciate the
+patreons and youtube members who pay it forward, 
+without really getting anything special in return.
+A typical video in this series maybe earns 40-50$. 
+Which I hope you agree is nothing compared to the
+time it costs me to create these videos. So you 
+members really make a difference to justify to
+work on a series like this. Thanks so much! And 
+by the way. This was an oldschool video without
+a face. What do you like more? The previous 
+episodes with face? Does it help to have a face
+to be less boring? Or does it hinder the 
+technical details? Let me know please.

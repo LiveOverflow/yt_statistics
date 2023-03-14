@@ -1,0 +1,263 @@
+A very common type of question I get is, how
+to get a job as a penetration tester.
+How to work in bug bounty.
+Are certificates necessary for a job.
+What should I study in university, and so
+forth...
+On this channel I typically don’t talk about
+career, job or interview advice.
+To be honest I find a lot of these type of
+videos kinda dumb.
+Most of the time people simply share their
+experience, and believe their way is the best
+way, or how it’s supposed to be done.
+And I’m very well aware that my job is pretty
+unique and I’m pretty young so I don’t
+have a lot of job experience.
+And on top of that, the field of IT, and especially
+security is constantly changing.
+For example, if you want to know which programming
+languages to learn, or what kind of vulnerability
+classes to look into, I would have said different
+things not even 5 years ago.
+But most importantly, everybody is different.
+Everybody is at a different stage in life.
+Everybody has a different background.
+There are huge differences between countries
+and even cities where you live.
+There is just no good advice for everybody.
+But I also understand that people want a bit
+of guidance and ideas on what to do next in
+their career.
+And so for example, I do advocate a lot for
+CTFs.
+More specifically the community driven CTFs
+you can find on pages like CTFtime.org or
+other wargames.
+That stuff worked for me, but I understand
+this will not be for everybody.
+And so I don't feel comfortable to tell you
+“do this, this and this”, and then you
+get a job.
+But I do have a few thoughts about this topic
+I want to share.
+So let’s discuss it in this video
+If you wonder why I wear so many t-shirts
+at the same time, This was my december 2020
+project.
+I have done a “creative video series”,
+where I go over t-shirts I have collected
+over the years from, for example, IT security
+conferences.
+And I used them to tell you about my life:
+how I went from a nerd doing penspinning,
+to somebody working professionally as a penetration
+tester, and also YouTuber.
+This series should never be a blueprint for
+your life, infact it’s impossible to follow
+exactly my steps, because the reality is,
+that any person’s career, is full of unforeseen
+opportunities or problems.
+It’s too unique.
+But for anybody younger, it’s a bit hard
+to imagine how a career could look like, because
+of course they never had one.
+At least that was my experience.
+When I was in school I imagined life to go
+the way:
+Kindergarten -> school -> highschool -> university
+-> job.
+And for a lot of professions that is also
+true.
+If you take for example the field of medicine.
+Then medicine is a very old profession and
+society, with it’s history, laws, regulations,
+customs have implemented systems that are
+pretty strict.
+This means you can literally look up a diagram
+for almost any country on how to become a
+doctor.
+For example here is a wikipedia entry for
+the medical education in australia.
+And if you are interested in becoming a doctor
+in australia, you don’t really have another
+choice than get into this system and follow
+the steps.
+And because most other professions evolved
+for centuries, they kinda all have pretty
+clear paths.
+Now diagrams like this also exist for IT security.
+For example this one . But the difference
+is that these are not institutionalized paths,
+some random person just made that up.
+Often for marketing reasons.
+Maybe selling their courses or certificates
+or whatever.
+But people want guidance, so there is demand.
+But the big difference from IT to other professions
+is that this industry is extremely young.
+There are so many people alive who work in
+IT, who went to school and university, before
+even computer science existed widely as a
+degree.
+And now think about hacking and IT security.
+When I had to choose what to study after school
+in 2010, there was maybe one university which
+kinda had an IT security degree, but maybe
+it was also only a masters degree.
+So I couldn’t even study it if I wanted
+to.
+So in the larger IT industry it’s very common
+that people get hired that have not studied
+computer science.
+Because people just don’t have those degrees.
+Well for computer science I think this is
+changing.
+Computer science degrees have been VERY popular
+the past two deceased or so.
+Which means, the people who studied computer
+science then, are now in positions where they
+decide who to hire.
+And slowly the hiring requirements shift into
+a more traditional institutionalized path.
+For a developer it slowly is more and more
+a hard requirement.
+But compared to medicine it’s still faaaaar
+from being as strict.
+But cyber security is lagging behind even
+more.
+Only this decade degrees about security start
+to become available.
+But we are still so early, that requirements
+for such degrees just do not make sense.
+And they won’t exist for the next decade.
+Only when you think maybe 10-30 years ahead,
+then it might also have changed.
+But then you, who is watching this now, hopefully
+already has many years of job experience,
+and then a degree is often also unnecessary.
+So because in the world if IT or cyber security,
+no clear path exists, you are also much more
+free.
+And so it also created a market for private
+education through paid courses and certificates,
+which somewhat have become an industry standard
+and might be perceived as a strong necessary
+requirement.
+But also I don’t really think that’s really
+true.
+I think the pressure to do certificates is
+mostly good marketing, and it’s more about
+instilling a fear that you need it, rather
+than it being actually needed.
+Unfortunately all of this means I can’t
+offer you a solution to this.
+I cannot tell you “do this and that” and
+you get a job.
+And I think everybody else who gives advice
+like that, either at best wants to be nice
+and helpful, or worst, wants to sell you a
+product.
+Anyway.
+I do think it’s good to somehow make a rough
+plan.
+Be it going to university, or going the certificate
+route.
+Any plan you can keep working towards is helpful.
+For example my plan was going through the
+traditional steps of school, highscool and
+then university.
+But I was always ready to change my plan,
+if new opportunities came up.
+Anyway, there is actually one career advice,
+that I do think is really helpful.
+And that is, try to look into the career of
+others, not to copy it, which is impossible,
+but just to realize that real life is messy
+and life always changes, and you cannot make
+a clear path.
+In 2017 I remember stumbling over bogotter’s
+video project, at the time he was a Guild
+Wars 2 youtuber, called “My journey to full-time
+streamer”.
+And it’s pretty long but I think it’s
+so fascinating.
+This is a normal person, with a normal career,
+and it really gives you a detailed insight
+into one example.
+I know this doesn’t have anything to do
+with IT security, but watching this helped
+me to better understand the world of jobs
+and careers.
+There was also a trend some years ago, about
+Youtuber’s draw my life.
+Unfortunately most of these videos are very
+short and don’t go into much detail.
+But I still love them because, in this case
+they are all youtubers, but all of them have
+different paths that let them there.
+So you can relate this to IT security, because
+like being a YouTuber, IT security is also
+such a young job that clear career paths just
+don’t exist.
+And that’s where I think my t-shirt series
+is another example for you.
+I have unlisted the t-shirt videos because
+they kinda spam my channel, many people are
+hating on it (btw you are all idiots), but
+you can find the playlist on the channel or
+in the video description.
+And I think my career path is another good
+example of life just being weird.
+And that I could have NEVER planned it.
+So let me try to summarize the only advice
+I can give.
+First of all you need to solve the problem
+of knowing what you don’t know.
+I mean this with regards to technologies,
+but also career options.
+For example it’s good to participate in
+career events at your school, watch videos
+and talks on this topic, talk to your teachers.
+Contact students studying at the university
+you are interested in and ask about their
+experience.
+There are many educational programs out there
+that you probably don’t know about, and
+you need to research them.
+See if you can do internships.
+And so much more.
+All of those things will increase your options
+and help with your choices.
+For example I hope my videos expose you to
+the existence of CTF and even if you don’t
+like it, at least you were aware of this option
+and tried it out.
+And that leads me to the second advice I often
+give, and that is just have fun.
+I don’t think that it really matters if
+you study computer science, at university
+A or B, or if you study forensics or get a
+job as a web developer.
+In the end I think the best thing you can
+do is to choose the things that you think
+will make you more happy.
+If you are motivated about the degree you
+choose, then you will have a lot more energy
+to maybe also do stuff like CTFs on the side.
+If you do something you are miserable in,
+then you should see if you can somehow change
+that.
+I know it’s easier said than done.
+But I hope you understand that I cannot give
+any better advice.
+You know your life best.
+Self-reflect on your life and choices.
+Self-reflect on your future plans.
+Don’t listen to only a single person, hear
+what a lot of DIFFERENT people’s experiences
+are, and see what you can adapt for yourself.
+That’s all I can say about having a career
+in IT security.
+I wish you all the best, and I really hope
+you can find work that you enjoy.

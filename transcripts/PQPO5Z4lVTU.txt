@@ -1,0 +1,294 @@
+If we look at the list of challenges, then
+we see that we made good progress.
+We only miss Overachiever, Blocky’s Revenge
+and Pirate’s Treasure.
+Blocky’s Revenge was one of the first things
+I stumbled over when I was just exploring
+the island in the let’s play.
+So just a quick recap.
+We walked into this cave that quickly turned
+into some kind of underground bunker.
+And we arrived at the very first closed door
+where we simply have to toggle the button.
+After progressing through this portal-esque
+test facility we realized that essentially
+the game implements logical gates.
+The buttons you can toggle are inputs and
+through a combination of logic gates such
+as NOT or XOR gates you have to get the desired
+output, to open the door.
+So for example the very first door was an
+input line, a NOT gate and and output.
+The second door introduced the AND gate.
+Which means both inputs have to be a toggled
+ON, or has an input as 1, or high, or whatever
+you wanna call it.
+So it starts out to be a fairly easy logic
+puzzle that seems to increase a bit in complexity
+and introducing more gates.
+However at some point we walk around a corner
+and reach the final room.
+Where we see this monster.
+So during the let’s play I already said
+that it’s pretty clear that these are logical
+gates and we somehow have to find the correct
+input to toggle the final block to open the
+door.
+But the amount of inputs is just crazy.
+Actually it’s 32 inputs.
+Or 32 bits.
+If you could find a very efficiently implemented
+algorithm of this logic check, then it could
+maybe be brute-forced.But if you have a well
+implemented algorithm, you could also just
+map out the logical combination and solve
+it yourself.
+Maybe, if you have it properly drawn on a
+piece of paper rather than a cluttered room
+like this, it’s even pretty easy to solve
+it by hand.
+Or at least use something like z3, which I
+have shown on this channel before.
+Either way we somehow have to figure out how
+the inputs are combined with logical gates
+to produce the output.
+And a very clear path to get to that, would
+be just grab a club mate, put on some hacker
+sounding music and just write everything down.
+It’s just laborious work.
+And you have to make sure to not make a mistake.
+So I was kinda dreading that idea.
+Now, if I would have played the CTF I would
+have to make a decision based on the time
+constraint of the competition.
+And maybe then I would have just done it,
+or ask others in the team to do it, because
+once it’s all mapped out, you can just throw
+z3 at it to solve it.
+But I had no pressure and I was kinda dreading
+doing that.
+Similarly to how we found the the location
+of the golden eggs by static analysis, I was
+actually hoping I could find the logic implementation
+in the libGameLogic library.
+Then I could either efficiently brute-force
+the input over a few days, or extract the
+the logical operations to solve it with z3.
+So I sat there in BinaryNinja looking for
+any functions that could be related to this
+challenge.
+Of course first search term would be “Blocky”
+or “Block”.
+And we see some things like the FlagOfTheBlock
+and the BlockyChest, but nothing directly
+connected to the logical gates.
+Nothing about input or output.
+But when looking around more, especially in
+other classes I saw functions related to “Circuit”.
+And that totally makes sense.
+It’s basically an electronic circuit, with
+Logic gates, inputs and outputs.
+And the player has a function “SetCircuitInputs”
+and “PerformSetCircuitInputs” which requirs
+a string and an integer as parameter.
+And from looking at the “InitCircuitStates”
+function we learn that each stage has a name.
+Stage1, Stage2, Stage3, Stage4 and FinalStage.
+So it totally would make sense if the function
+SetCircuitInputs is called with the stage
+name and the state of the inputs as an integer.
+And the final stage for example is exactly
+32 inputs, 32bits, so exactly one unsigned
+integer, like the parameter.
+And you could also easily verify that, by
+using the LD_PRELOAD method introduced at
+the very beginning of this series, where you
+can simply overwrite this function and print
+the value of the parameters when it’s called.
+And then when you try to toggle the first
+input you see the output here.
+However because we hijacked this function
+entirely, the original function is not called
+anymore, thus it doesn’t do anything besides
+printing this here.
+But now we verified the parameters.
+I looked into the input functions, but none
+really looked like implementing this kind
+of logic.
+ClientWorld:SetCircuitInputs just does some
+networking stuff.
+ClientHandler is very linear and short, so
+no real logic in here.
+You can also already see a lot of other weird
+functions here, and they are originating from
+standard templates I think.
+Like vectors, function pointers and stuff
+like that.
+But I had my highest hopes for the CircuitOutput
+functions.
+I was hoping they would kinda go over the
+input and update the logical gates.
+I mean, the client displays the logical outputs
+with glowing red connections, so I thought
+this information, which line to turn on or
+off should be somewhere in here, right?
+And the Player::GetCircuitOutputs looked kinda
+promising.
+It’s looping over maybe some vectors, and
+setting single bits, and testing some values,
+so it looked good.
+And at this point I was also trying to think
+about how would I implement this.
+Would I have some kind of tree or network
+with inputs and gates and some kind of loop
+is walking that tree and evaluating each logical
+gate?
+But I don’t know?
+How do you implement something like this.
+If you have different ideas how this could
+be implemented, you would know better what
+to look for.
+But for example I would create classes or
+structs implementing each gate and just hook
+them all up.
+But that’s not the case here.
+And so I couldn’t find a satisfying answer
+for myself.
+It seemed non-trivial, or rather non-basic?
+It’s not like everybody would implement
+it the same way, there are very different
+options how to do it.
+And so I kind of imagined these vectors with
+elements would somehow implement that.
+I tried to debug this, and other parts with
+gdb, but couldn’t find anything and gave
+up.
+And I’m still not 100% sure.
+I’m like 75% sure that our client doesn’t
+actually have this logic gate information,
+and the loops we are seeing here are simply
+handling just part of it.
+Like looping over the final result.
+What I have just described I did in parallel
+to other challenges, much earlier, and at
+that time I didn’t have the network proxy
+yet.
+But now I do have the proxy so I decided to
+look at the packets being sent and received
+related to the Blocky Dungeon.
+And it’s super easy to see the packets being
+sent when buttons are toggled.
+It’s a very simple packet, it starts with
+the packet ID 0x3031. which is actually in
+ascii the digit 0 and 1, so binary, bits,
+0 and 1, kinda fitting.
+Now that I come think of it, I think the 2
+byte packet identifiers all have some meaning.
+Health is a ++, mana is “ma”.
+Jumping is “jp”.
+The position packet is “mv”, maybe for
+move.
+Ooohhh man… that makes all so much more
+sense now.
+Anyway, in the circuit packet we can see some
+ascii data included again, and the length
+of that data, so we unpack that.
+And then we have an integer.
+And when toggling these buttons we see the
+value change.
+And actually if you look at the bits of it,
+instead of hex, it becomes much clearer.
+So here we have the CircuitInput unsigned
+integer.
+But also with the server response packet we
+get some additional data.
+So I had to modify my parser to pass the origin
+to the individual functions as well, because
+this part we only look at when the server
+is sending it.
+And that turns out to be the the state of
+the whole circuit.
+It took me quite a bit until I figured that
+out, but basically I went back to the start
+and started simple.
+And the first stage seems to have 3 output
+bits.
+Which I thought was weird at first, but then
+I realized each bit represents one important
+output line.
+And in another puzzle we have 6 output lines.
+This also made me realize the first byte,
+or actually two bytes, are the number of bits
+that will follow.
+So here we have 6 output bits.
+And in the FinalStage we have 0xae, so like
+174 bits or so.
+And 174 divided by 8 is 21.x, so we need 22
+bytes to hold the 174 bits, and that is exactly
+what we see here.
+Awesome, right!
+So this packet is coming from the server when
+we set a particular input.
+Which is another indication that actually
+the client does not know how to set the output
+lines.
+It simply sets it to whatever the server says
+it is.
+That might be the case, however later I remembered
+the offline mode, and then there is no server
+involved.
+And also in offline mode the Blocky puzzles
+work.
+So the client somehow has to know!
+So if anybody reverse engineers the client
+and is able to find exactly where that is
+implemented, please let me know!
+But now we can also use our proxy to inject
+the packet to send to the server, so we can
+set input to whatever we want very comfortably
+without having to walk to each button.
+See I didn't press the button, I just faked
+the packet, the server calculated which bits
+has to be set, returns that information and
+the client turns those particular lines on
+and off.
+At this point I was wondering how to proceed.
+Like I said I didn’t want to transcribe
+the whole circuit by hand on a piece of paper,
+which seemed super tedious.
+I wanted to be more clever.
+And I had another idea.
+I don’t know if it’s going to be feasible,
+and it’s not something I would have attempted
+during the CTF, but I was wondering, could
+I approach this challenge with machine learning?
+I always wanted to have a reason to try out
+some machine learning and maybe that’s it.
+We have input bits, some unknown function
+doing something with it and essentially a
+bunch out output bits.
+Isn’t that something where machine learning
+can be really good at?
+But in order to do some machine learning,
+we need a lot of training data.
+So I modified the proxy to inject random SetCircuitInput
+packets in a loop and in the response parser
+I look at what the server sends us, extract
+the input state along with the output bits,
+and write it to a file.
+Now I just have to trigger sending those packets
+and we can see how essentially the circuit
+input is brute-forced.
+These are all random input attempts and it
+looks super cool.
+Here just some shots from different angles.
+I think it’s awesome.
+I could look at this for ages.
+So the response is then written to a file.
+And this is how the file then looks like.
+Each line simply has all the 32 bit input
+bits, and the 170something output bits.
+What we can do with this data we will explore
+in another video.
+I have linked the dataset below, so feel free
+to play around with it as well.

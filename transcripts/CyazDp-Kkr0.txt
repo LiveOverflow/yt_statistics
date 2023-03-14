@@ -1,0 +1,217 @@
+exploit-exercises/protostar offers a linux
+image with several challenges to learn binary
+exploitation. But a lot has changed over the
+years and if you compile these challenges
+yourself on a modern system it’s not as
+easy anymore. I already showed you that in
+the previous videos about the stack challenge.
+I had to make a 3 part video series to explain
+how we can still do it. And that also only
+on 32bit. So if you are just starting out,
+make sure that you use the Linux image that
+you can download here and don’t compile
+it yourself. Otherwise all the tutorials about
+it won’t work. And now for this video, let’s
+continue with some other challenge. We compile
+them on a current Ubuntu version, without
+any compile flags and see what we get.
+Obviously the rules of the game, that is hacking,
+are, that maybe there are techniques I just
+don’t know about. I don’t really know
+the edge cases in exploitation, I mostly know
+the general techniques and I think I have
+some reasonable amount of creativity. But
+I don’t know everything. So it’s likely
+that there are people out there that could
+exploit it. In that case, I’d love to see
+a PoC for that. That being said, let’s continue
+with format0.
+So what is this challenge about? The attacker
+can pass in an argument, that argument is
+then being passed as the string variable to
+the format parameter of sprintf. So we can
+inject stuff like %d or %s.
+It’s also vulnerable to a buffer overflow,
+because sprintf, does not print to the console,
+to stdout, like regular printf, but prints,
+or stores the formatted string, in buffer.
+And the buffer is only 64 bytes long.
+Now when you attack this on the VM that you
+can download here that has these challenges
+precompiled, the target variable would be
+placed after the buffer so that you can overflow
+the buffer, and write into target. And then
+you have target modified and when you make
+it so that it’s overflown with 0xdeadbeef
+you pass this check.
+So enter 64characters, and 0xdeadbeef and
+you won.
+But the challenge here also said, try it with
+less than 10 bytes. And you would do that
+by abusing format string modifiers that would
+stretch the formatted output to for example
+64 characters, and then you can simply enter
+0xdeadbeef afterwards. So for example %64d
+would output a number with a up to 64 character
+padding. And so 64 characters plus 0xdeadbeef
+are written into buffer and you win.
+Well is that still possible?
+First we have to install gcc and gdb on this
+fresh maschine and I’m also going ahead
+to install peda, a gdb extension that makes
+things look nicer.
+So let’s start with the simple buffer overflow
+example. But first let’s set a breakpoint
+in vuln() before we compare deadbeef. Then
+let’s start the binary and pass in an input
+that is much larger than 64bytes. Okay.
+So we hit the breakpoint and it compares eax
+with 0xdeadbeef. But eax is 0. How can that
+be? Didn’t we overflow the stack?
+Well, we certainly did, the issue is that
+the target variable doesn’t come after the
+buffer. It is before, so we can write as much
+data as we want, we won’t overwrite target.
+You can also see this here. Eax is loaded
+from base pointer - 0x54, while the address
+for the string is loaded from basepointer
+- 0x50, so it’s located after target.
+Well does this mean it’s not exploitable?
+mmhh... So if you are familiar with format
+string exploits, you also know that you can
+write data with it, by abusing the %n modifier
+which writes the amount of already printed
+characters to an address on the stack. And
+we can overflow the stack, so we could place
+an address there and then carefully construct
+the number of characters printed before, such
+that it writes 0xdeadbeef to an address. And
+so we could write to target, and win that
+way, right?
+But ASLR is our problem. Let me add a printf
+to the code to print the address of target.
+ampercant target returns the reference of
+a variable, so that’s the address.
+And when we compile it and run it in a nice
+while true loop, you see how crazy the address
+of target changes. Target is a local variable
+so it’s located on the stack. So this is
+also a stack address.
+But how much does it change? It always starts
+with 0x7ff and ends in a C. And this one nibble
+here only appears to be C,D,E or F. That’s
+a huge number. It’s over 1 billion. but
+maybe in this case actually doable. Just takes
+some time. Maybe a day or so. I just like
+to refer to the previous three part video
+where we bruteforced a 3 byte stack cookie,
+that was roughly 16 million possible options.
+And so here, 260 million, is in reach, I would
+say. At least for a very small binary like
+this. The execution speed is quite fast.
+Let’s see how it looks like on 32bit. We
+have to install the gcc multilib to do that.
+And then we can compile it with -m32.
+When we execute it a few times, you can see
+that it obviously has less randomness than
+on 64bit. It’s only two full bytes and then
+again a nibble. That’s about 1 million attempts
+to hit it. So definitely even more in reach.
+But of course it’s only feasible if you
+can do millions of attempts reasonably fast,
+for example locally. If this were an application
+that takes longer to start or a remote service,
+then that would probably mean you couldn’t
+really do it.
+How to create a format string exploit and
+how that exactly works with %n you can watch
+in multiple other videos that I have done.
+But there is one additional trick that comes
+to mind we could look out for. So to write
+with %n we expect the target address to be
+on the stack. In a classic format string exploit
+you would use your input that is maybe also
+placed on the stack and reference itself.
+But nobody says it has to be an address you
+place there, the stack is full of values,
+maybe you get lucky. If we look on the stack
+when we are at the 0xdeadbeef compare in the
+execution flow, you can see a lot of stack
+addresses. And so these would always be valid
+stack addresses even with ASLR. Now if one
+of those would magically point to target,
+then we could just reuse it. We could just
+reference that address.
+But if we check the address we know of target,
+we can see that it doesn’t show up. Oh well.
+But you see how creative you can get with
+exploitation. We could have been lucky.
+But let’s actually continue that train of
+thought.
+Ok we don’t have the whole target address
+on the stack, but we do have a lot of other
+stack addresses. And we have an overflow,
+so we can overflow into the addresses. And
+just overwrite some low bytes and keep the
+whole front.
+Let’s add another printf to print the target
+value. And print the resulting formatted buffer.
+And let’s play with that. Here you can see
+the sprintf formatted result.
+Let try to find AAAABBBB on the stack by consuming
+values from the stack with someformat modifiers.
+I wanna find the offset where on the stack
+this value is placed, and we can explore that
+with %lx and the dollar notation.So at stack
+offset 1 it’s not, at offset 2 it’s not
+at offset 3 it’s not. And so forth. But
+here at offset 9 we now printed the hex value
+of our input.
+Now let’s look at the stack layout for a
+nice stack address we could partially overwrite.
+Ok so down here is one, let’s see what offset
+that has. Let’s keep going.
+There it is, at offset 19.
+Which also means from the start at offset
+9 to offset 19 we have 10 groups of 8 bytes,
+so 80 bytes to fill and reach this value.
+We can achieve that with a format string that
+pads a number to 80 bytes, and then some input
+to proof that we overflow.
+And when we now execute it, we see that the
+end of our address that got printed by our
+19 lx, got overwritten with As.
+If you paid attention you saw that target
+is always at an offset with a c, so we can
+choose some input that ends’ with a C as
+well to overwrite it. For example L, that
+is 0x4c.
+Let’s execute that now, and you can compare
+what address we got now through the overwrite
+with L, and what target really was. You see
+that often it’s not the same, but eventually,
+it will match.
+And so if we replace the %lx to print a 8
+byte hex value to %n, then we will WRITE to
+that address.
+So now we are writing the amount of printed
+characters, 81, because 80 + the single L
+to this address. And maybe at some point we
+hit target. Let’s keep trying.
+BOOM! There we hit target, we wrote 0x51 to
+it, which is 81 in decimal. And that works
+fairly reliably, we can try those few attempts
+by hand.
+And I think that’s awesome, unfortunately
+it’s not quite the solution, because target
+has to be 0xdeadbeef. And that’s 3 billion
+in decimal. So with this technique we would
+have to first print 3 billion characters before
+we can do %n, and that’s not possible.
+Anyway I think you can see how much exploitation
+can become a puzzle that you slowly try to
+piece together. In the end I didn’t manage
+to solve it but exploring this was really
+fun.
+I really wonder if somebody is able to make
+a semi reliable exploit for this.

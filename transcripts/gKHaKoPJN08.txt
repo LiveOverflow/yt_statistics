@@ -1,0 +1,275 @@
+so I got invited to troopers 17 in
+Heidelberg and it was a really great
+conference so a lot of conferences like
+this include a creative conference badge
+so this trooper 17 batch is super
+interesting as you can see because it
+has a Nokia 3310 phone strapped onto it
+and I especially love it because that
+was the phone I had when I was a
+teenager and now revisiting this old
+piece of hardware and seeing the
+capabilities of it but with my current
+knowledge is fascinating
+[Music]
+so when you get the badge you first have
+to solder some parts yourself if you
+want to use some of the other features
+as you can see there is an atmega 32:8
+basically in arduino and there are a few
+buttons and LEDs and these are infrared
+LEDs the phone also contains a trooper
+SIM card so they were running their own
+GSM network in the conference center so
+my phone number during the conference
+was nine one zero eight two there were
+also a few puzzles and secrets that
+could be discovered with the bench for
+example you could play hangman by
+sending SMS to a certain number so for
+example I'm taking here a guess for a
+letter and in a few seconds you get back
+a response and so that's quite fun and
+when you win a certain amount of times
+you get a flag that is worth points so
+there was also this kind of like
+conference CTF but it was more like a
+scavenger hunt you can also see these
+cables coming out from under the battery
+two of them are just for power supply so
+the PCB can be powered from the phone's
+battery and the other two are data lines
+but let me introduce you to Brian badge
+wizard on Twitter he's one of the people
+behind the badge and can tell us a bit
+more about it
+so the phone itself actually it's a
+plain low key Nokia of 33 tons but more
+interestingly is obviously how the PCB
+interacts with the phone and you can see
+those cables coming out from behind
+which are the the two lines in the back
+here which is the F bus connector the
+other pins are ground in the emboss and
+basically this is the interface that in
+past years were used to actually
+configure ringtones to read text
+messages from the device to add new
+pictures you know these provider
+pictures and yeah basically of all the
+stuff that you could buy by a job are
+sparboe is exactly the stuff that you
+could bring onto the form that
+which sparboe he's referring here to the
+terrible subscriptions where you could
+download these ringtones and images and
+the magazines from my childhood were
+full of them I guess these existed in
+other countries too and though I was
+wondering what exactly is being sent
+over these wires is it some standard
+like cereal it's a serial protocol
+running at 115 200 board only that speed
+so actually if you start looking at it
+you see sync works
+sending uuu which embodies one zero one
+zero one zero but the phone doesn't
+actually care about it so it's actually
+only using this one board right
+it's then got a binary protocol which
+goes across the set thing actually is
+not yet never actually published the
+documentation on it so there is lots of
+stuff in software projects like Gamu and
+VAR mu which are actually projects
+controlling of your phones and a few
+others and they basically reverse
+engineer to complete protocol and there
+are where the documentation is actually
+their source code so you actually go to
+the source code and try to work on how
+they did it and then you know we kind of
+reprogrammed it on the on the badge oh
+wow
+that already sounds like a lot of work
+to implement on the atmega so I want to
+know what exactly happens when you press
+a certain button my understanding was
+that sometimes it could send out an SMS
+or also react to incoming SMS so the
+best approach is the basic mind feature
+that we wanted to have was you know a
+little bit of IOT inspiration
+controlling lights as such when text
+message comes into the phone the micro
+control which is basically another
+window you know 80 mega 320 IP
+permanently watches the earth bus and
+when the signal comes in on the F cross
+which always happens when a text message
+comes in the chip will see the text
+message we'll take it where
+interpreted and will as such control the
+LEDs or do whatever we want using the
+button is exactly the other way around
+we've got an interrupt law aloof
+watching that button as soon as the
+button is pressed a little bit of VMware
+started which then fires up the F bus
+and basically just tells the Nokia phone
+to send a text message that sounds
+fairly straightforward and easy if you
+ignore the hard work put into
+understanding the message format and
+implementing this so as the board is
+like an Arduino can you still intact
+with it with a computer yes so we've got
+the auto in bootloader and the serial
+data that we've got on there if you've
+got an FTDI cable a normal USB to serial
+adapter you can hook it up to the other
+window ID and this program we've got
+debug messages coming out so every time
+when the phone talks to the chip
+there'll be a few message messages
+generated so that you can actually see
+that it works how it works but above
+that of course you know you can use the
+PCB as a bridge if you've got the USB
+serial adapter to the phone to the
+computer so that you can basically do
+whatever you want you know what let's
+just try that I take a USB to zero cable
+hook it up to the Rx and TX pin and plug
+it into my laptop then I simply you
+screen to connect to it and when we
+press the reset button on the board we
+can observe the atmega starting up and
+printing messages so what else can you
+tell us about the batch I noticed that
+when I press this button some lights
+start flashing weird
+so basically four or five years back we
+had a batch which was a TVB gonna you
+know just press a button it just kills
+all TV's that you can see and as it's
+the the 10 year annual work should try
+to work out something you know take some
+some things of the past badges so we
+added achieve you begun to dispatch we
+stayed at the memory we added that which
+is fired up by one of the buttons and
+above that you know just fun you can
+easily set up the batch and such where
+that it will receive a text message and
+we'll then replay binary code via the
+infrared LED light which you know
+nowadays is controlling TVs way
+infrareds might not be that interesting
+but right now down there my postman
+Dominic spear on stage actually
+presenting infrared hacks and how to
+break devices by infrared so this is one
+of those detective buses that you might
+be able to use oh and when I press the
+button and I still had the serial hooked
+up
+I also saw this message here printed
+activate TV GaN start then trying two
+different codes for EU or na TVs
+basically when we started with the
+project
+brother when we actually thought about
+really really doing it we had actually
+aimed for a different home we wanted to
+use a Motorola c11 ID which is supported
+by the osmocon project which is simply a
+stack of hacking and analysis tools
+which was you know it's an IT security
+conference I want to do 80 security so
+one of the interesting parts is the 3310
+also has the net monitor include
+so we should be gamoo not one more you
+can actually set the phone up as a as a
+sniffing so if it's but non encrypted
+messages you can actually read some
+accident SMS and text messages from the
+air so also this patch can be used as a
+passive sniffer for GSM signals which is
+oh that is really cool
+I've never played around with the GSM
+network stuff but checking out the
+network monitor features sounds really
+fun I put it on my list of things I
+should try at some point but while all
+these features are really cool I also
+wanted to find out more about the
+development process so I asked about
+challenges they had to overcome well the
+the basic hardware itself is simple
+you've got the arduino schematics which
+attend reuse the protocol itself i said
+it's not really documented that word so
+it could still got to do some
+understanding and working out how it
+works the biggest biggest change that we
+actually had was well we still wanted
+you have the functionality of being able
+to connect the badge to a computer via
+you out so we need one UART interface
+then we need to talk to the phone which
+meant mean the second viewer interface
+the 80 mega 320 IP only has one year at
+interface so we had to go for soft
+serial and soft serial is fine at about
+56 mega boards but not really good at
+hundred and ten mega board and
+especially not at eight megahertz so we
+overthrew got actually stepping in and
+writing a new soft several library for
+our church which now is actually able to
+do the full speeds your communication
+with the phone
+so with the basic theorem where all the
+basic libraries that we had that
+wouldn't even have been possible nice so
+the typically design challenges it's
+always so crazy how much work and
+dedication goes into something like this
+essentially a piece of hardware just
+used as a gimmick for a conference I
+love it
+but I guess at some point parts of it
+should also be open source as always
+with all badges will rise along about
+block balls on insinuate or not the
+firmware and schematics will at some
+point publish didn't get the only thing
+that we won't publish that always is you
+know we won't publish the layout for the
+PCB because this is the truth miss Burch
+it's a trooper 17 badge you know
+everybody can design their own badges
+their own shapes but you know this
+design is its unique and it's limited so
+that's awesome thank you so much for
+talking about it with me it's a really
+awesome badge and thanks to everybody
+behind the scenes who made this badge
+happen by the way I can really recommend
+the troopers conference unfortunately
+it's a professional conference which
+means ticket prices are really high and
+not something you generally buy
+privately but the cool thing is that
+they have limited spots available for
+students and you can write a
+motivational letter and maybe get a free
+ticket so that's really cool and I
+encourage you to do that the first
+deadline for submissions is over on the
+30th of November but there's a second
+round until the 31st of January
+[Music]
+you
+[Music]

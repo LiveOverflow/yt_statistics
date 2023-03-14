@@ -1,0 +1,374 @@
+In this video we are going to recover a private
+crypto key inside the arduino just by observing
+it’s power consumption.
+We are going to perform a differential power
+analysis attack on an AES implementation.
+In the previous video we have introduced what
+power analysis is, and how you can prepare
+the arduino board to do those measurements.
+And now we are going to actually solve the
+first side channel challenge of the riscure
+embedded hardware CTF.
+Piece of scake.
+S-C-A.
+Side channel analysis.
+100 points.
+So this is really a low amount of points and
+I do have a lot of … ehm… opinions about
+that.
+You will see.
+This is an easy SCA challenge using a cipher
+implementation without any SCA, so side channel
+analysis, countermeasures.
+Find the key used to encrypt and decrypt messages.
+attacks.
+To encrypt a message, send the letter ‘e’
+followed by 16 bytes.
+To decrypt a message send the letter ‘d’
+followed by 16 bytes.
+This sounds really easy.
+Should be a straightforward thing.
+Remember from last video how you can break
+a terrible RSA implementation by identifying
+the square and, square and multiply operations
+in a power trace and simply read the bits
+of the private key?
+That’s like the simple go-to example when
+introducing side channel analysis, because
+its so simple.
+so from the beginning I set my mind to RSA.
+This is gonna be RSA.
+I just send a decrypt command via serial to
+the board, trigger the oscilloscope at the
+right moment, basically trigger power consumption
+data collection after I sent the data to decrypt,
+and then the board will use the private key
+for the decryption and I can just read the
+bits from the trace.
+After the multiple days of fighting with the
+setup, soldering, knowing about groundloops
+and capacitors you should remove and requiring
+all this fancy equipment, I was sure this
+is what I gotta do.
+I will be rewarded for learning all this with
+a simple challenge.
+It’s the introductory side-channel challenge
+anyway.
+Gosh was I wrong.
+So I’m sitting there, staring at the oscilloscope.
+Zooming around trying different methods to
+acquire the data.
+Like averaging traces or different resistors.
+I just didn’t see what I would expect in
+an RSA power trace.
+This killed already multiple evenings for
+me.
+Until I was more or less told, this is not
+RSA… this is AES.
+Fuck my life.
+Also makes sense with the 16 bytes of data
+to encrypt or decrypt.
+That’s the AES blocksize.
+A rollercoaster of emotions.
+Happiness of learning something new, followed
+by pure rage and frustration.
+So here is the thing.
+I knew the FAQ introduced differential power
+analysis.
+DPA.
+I also larned about this in a hardware security
+class at university.
+So I knew that it’s a thing.
+And I knew what kind of equipment I need to
+do this.
+But I did not expect this to be the case for
+the first 100 point challenge.
+In a few minutes you will see why they gave
+it 100 points, from a certain point of view
+it makes sense.
+But I completely disagree with it.
+So what is DPA.
+Differential power analysis is a more advanced
+form of power analysis which can allow an
+attacker to compute the intermediate values
+within crypto computations by statistically
+analysing data collected from multiple crypto
+operations.
+These were introduced in the open crypto community
+in 1998 by a company called Cryptography Research.
+And they are filthy rich now for discovering
+this and creating a consultancy research company
+around it.
+I mean they deserve it I guess.
+It’s a pretty crazy attack.
+With simple power analysis we assumed that
+the implemented algorithm will perform different
+operations depending on the private key and
+thus show a different power footprint.
+But in case of the shitty RSA implementation
+you could just multiply and square in EVERY
+iteration and just keep the result of whatever
+the current bit was.
+Thus no difference anymore.
+BUT there is a deeper layer than that.
+The power consumption directly comes from
+the single bits, the transistors.
+So even if the algorithm performs the same
+operations independent from the private key
+bits, those bits would still cause a very
+very tiny different power consumption.
+This sounds even more crazy than the simple
+RSA example.
+Because these bit changes are soooo small.
+That’s why you do a smart statistical analysis
+on a lot of collected traces.
+I actually don’t wanna explain this method
+in detail, because it’s fairly complicated
+and there is a good video by Colin O’Flynn
+doing exactly the AES example.
+But the gist is, that you collect a lot of
+power traces from random input you encrypt.
+Then you make a guess on what the first byte
+of the private key could be.
+And then you perform part of the encryption
+algorithm as if that was the correct key,
+and given the random input valuesand that
+key guess, it would lead to different intermediate
+values.
+Then you take the traces where this intermediate
+value is the same for further analysis.
+If the key guess is correct, the power traces
+should all have correlation of power usage
+in that point in time.
+If the key guess was wrong, the traces you
+selected based on that would have completely
+different intermediate values, thus random
+power consumption and nothing would correlate.
+It would cancel out.
+So you do this for each possible key and for
+each possible byte.
+And in the end you should find the correct
+key.
+But how do you actually do this now.
+I knew I did not want to implement this math
+myself.
+Also I would have to write my own tools to
+automatically collect these traces from my
+oscilloscope, and the USB or networking API
+seemed horrible.
+I wasted some time with that but then gave
+up.
+I knew what I needed.
+It was a ChipWhisperer.
+It’s a piece of hardware that is specifically
+designed for doing this.
+And it comes with a software that has all
+these attacks already implemented.
+I thought about buying one initially, but
+I assumed an oscilloscope would be more flexible
+and I could learn more with it.
+I know some players bought a ChipWhisperer
+because it was recommended to use it for these
+hardware attacks.
+And it costs a bit money.
+But I think without additional equipment like
+an extra oscilloscope it’s hard to debug
+issues.
+Anyway, I’m happy with my purchase choice.
+But I still wanted that ChipWhisperer for
+this challenge and I knew where to get one
+from.
+Some of you know that I’m still a student
+at the Technical University of Berlin.
+I’m still working on my masters degree and
+we do have a small group at the university
+that does hardware security research.
+That’s where most of my theoretical knowledge
+about these attacks comes from and I have
+a fairly good relationship with them.
+And they obviously have a ChipWhisperer in
+their lab.
+So I wrote one of the PhD students and asked
+if I can come over and play with it.
+And that’s the awesome thing about a university,
+you can get access to awesome equipment as
+well as help and advice.
+So I encourage every student to take advantage
+of these things.
+That’s one of the reasons why university
+can be really awesome.
+So when I used it the first time, I just followed
+the example.
+Which is a DPA attack on the test board that
+comes with the Chip Whisperer.
+Everything is already set up for you.
+The test board has a connector for the probe.
+This is the measurement probe.
+And another broad connector which carries
+the power as well as the RX and TX lines for
+serial communication.
+Then you use the example script, which implements
+the serial protocol to talk to the test board.
+Basically it also sends 16 bytes that should
+be encrypted.
+And with a click on start, it starts collecting
+power traces.
+The trigger for the power measurement and
+all the other parameters are already set to
+the correct values.
+Then you let the attack script run, it does
+the DPA and after a minute or so it finds
+the key where the power spikes correlated.
+And you can look at all these fancy graphs
+and you can feel really cool that you just
+broke AES with DPA, without knowing shit.
+And this is why this challenge only gives
+100 points.
+Because in the end it’s just putting in
+the correct parameters and clicking GO. and
+then the secret key falls out.
+Well, there is a bit more to that challenge.
+But essentially that’s all it is.
+So I took the ChipWhisperer home and spend
+the next few days trying to do this on the
+CTF board.
+There were so many fails.
+I will tell them now in sequential order,
+but you have to imagine that they were all
+intertwined and only slowly I found all these
+mistakes.
+It was not a clear progression of “find
+error”, “fix it”, “find next error”,
+“fix it”.
+I tried a lot of things and spend hours over
+hours until I discovered the issues.
+So while I make it sound straightforward,
+it was absolutely not.
+It was hell.
+Ok first of all I had to learn how this ChipWhisperer
+framework works.
+I realized that the test board is just a little
+bit different from the CTF board.
+So I only have to change things like how to
+trigger encryption or decryption.
+But before the Chipwhisperer could communicate
+via serial with the baord, I had to solve
+the issue of different voltage levels.
+The Arduino Nano board runs with 5V, while
+the ChipWhisperer uses 3 volt.
+So I had to build a unidirectional level converter
+to convert the 3 v signal to 5v, and the 5v
+signal to 3 volt.
+But that worked surprisingly quickly.
+So this is the setup.
+Serial connection via the level converter.
+And then using a RIGOL probe to measure the
+voltage after the resistor.
+I was so happy and felt really smart for using
+the Rigol probe because it fit onto the plug.
+Then I copied the code for the example script
+and spend some hours modifying that and I
+was able to collect traces and run analysis.
+I thought the difficult part was now to find
+the correct moment in time where the crypto
+is happening.
+At some point I realized that one of the LEDs
+flashes just before the crypto starts, so
+you could use that as a trigger for the Chipwhisperer.
+Again, don’t forget the unidirectional level
+converter.
+But after a few days of not being able to
+find correlations in my captures I was so
+frustrated and I finally decided to look into
+the serial communication.
+And I realized that I did not send the raw
+data I wanted to encrypt, but I sent it as
+a hex string.
+This was obviously completely fucking wrong.
+No wonder no analysis worked, because the
+data was just wrong.
+So at some point I had fixed that, but stuff
+was still not working.
+And it’s really hard to figure out whats
+going on.
+The traces I took on the oscilloscope looked
+really good.
+I was able to easily see where the crypto
+is happening.
+AES has 10 rounds of crypto, and you can clearly
+see them.
+They are right there.
+So my trigger was at the right moment.
+But when I took traces with the chipwhisperer,
+I didn’t see that.
+After many many more hours and days I realized
+the RIGOL probe is the issue.
+You know these probes are not just plain metal
+wires, they have some components in there.
+In fact this probe is a 10:1 probe.
+So on the oscilloscope you actually have to
+set a 10x multiplier for it.
+And the ChipWhisperer was not compatible with
+that.
+Once I realised that I was about to jump off
+the next building.
+What the hell.
+Then I replaced the nice professional probes
+with a simple wire.
+And suddenly the measurements were great.
+Another challenge I had was to set the sampling
+rate high enough, because you want to sample
+a lot faster than the clock of the microcontroller.
+But setting that is super janky for the chipwhsiperer.
+And a looot of other small issues.
+The software constantly stopped working, I
+think it’s a memory issue.
+I had to guess what certain parameters are
+for.
+And you can imagine with all the issues I
+just told you about and not really knowing
+what’s causing it, it was overall a damn
+frustrating experience.
+Is it the capacitors, is something broken,
+is it interference, is the script wrong, are
+the aprameters wrong, am I collecting not
+enough traces, am I at the wrong point in
+time, is the trigger working, is the data
+even random, I don’t know.
+Oh.
+And I also lifted a second pin of the atmega
+up, because there are two VCC connections
+and I didn’t know if that was maybe an issue.
+It was hell.
+RERECORD HERE
+Anyway.
+Once the whole setup was correct and working,
+and I clicked start to collect the traces
+it started to look really good.
+Once you have a nice set of traces you have
+to allign them, because the trigger is not
+perfect in time.
+But there are modules for that.
+Like pattern matching.
+And then you can run the analysis, and the
+key magically poppes out.
+There it is.
+I transcribe the key, and hand it in.
+100 points.
+100 points for hundredes of euros I spent
+on equipment and days of work.
+100 points.
+I’m so so so depressed.
+I also have to give credits to Andres Moreno
+from riscure who despite my constant ranting
+and cursing still listned and helped me a
+lot.
+Thank you so much!
+Also thanks to my friend at the TU Berlin
+and others from the riscure IRC channel.
+I needed a lot of help for this challenge.
+But regardless of my hate for this challenge,
+I’m also really proud for having done it.
+It was so clearly above my skill level and
+in the end I succeeded.
+And I learned a lot.

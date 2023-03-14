@@ -1,0 +1,64 @@
+Hey!
+This is just a quick announcement video to
+tell you about Gynvael’s Winter GameDev
+Challenge 2018/19.
+Gynvael is also CTF player who is doing videos
+and livestreams on YouTube about security
+and hacking, however he also likes to challenge
+creativity through various GameDev challenges
+he has organized in the past.
+Checkout the cool footage of games from previous
+rounds.
+I really liked this, so for this round I joined
+him.
+Together we ramped up the prices and I will
+help him judge entries.
+The great thing about a GameDev challenge
+like this is, that you can win prizes, you
+are given a deadline and some other constraints.
+So you have a competitiveness that can motivate
+you, and constraints that allow you to be
+creative.
+In this particular challenge you are given
+the following premise of the story.
+You have to create a game where the player
+is a space marine technician, or hacker, who
+helps a squad of space marines while they
+are exploring an abandoned space station.
+And the idea is that you are supposed to create
+an “unrealistic” hacking simulation.
+Think of movie hacking scenes.
+I mean you can be realistic, or totally crazy,
+in the end all that matters is that it looks
+like crazy hacking and is FUN TO PLAY.
+You also have some other constraints, for
+example the game must run in 1080p and you
+must use this overlay for your game.
+Essentially this simulates two screens of
+a computer.
+We are currently working on a nicer overlay
+graphics that makes it look like a cool hacking
+screen terminal computer, so check back a
+bit later to see the final graphic.
+But we hope having only these two screens
+available for the actual game, it leads to
+some interesting gameplay mechanics.
+So think of something cool.
+You also must make this game with client-side
+web technology.
+Meaning javascript, css and HTML.
+You can also do web assembly, or straight
+javascript, whatever.
+And if you have never done that, it’s a
+perfect opportunity to start learning some
+javascript.
+Protip, look at previous submissions and get
+inspired by their code.
+But don’t worry so much about the code.
+Remember we are not judging your code quality,
+all that counts is the game itself.
+Anyway, please checkout the exact rules, constraints
+and frequently asked questions and how it
+all works on gynvael’s blog I linked below,
+and I really hope you participate.
+We are looking forward to your submissions!

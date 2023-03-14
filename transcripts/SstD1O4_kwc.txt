@@ -1,0 +1,210 @@
+Let’s do another trip to the United Exploitation
+country. We already visited the casino and
+the photo manager, so let’s continue this
+road and head to the animals.
+This is a 200 points exploitation challenge
+and it doesn’t provide us anything to reverse
+engineer. So we must be able to blindly exploit
+this.
+The description reads:
+After decades of research, we finally managed
+to catalogue all the animals on the planet
+earth. Including very rare pictures!
+Often times the text can contain hints, but
+this one is so short and generic, that it
+probably doesn’t really include anything.
+So let’s load the challenge onto the board,
+and get started.
+Let’s quickly checkout the functionality.
+We see here a menu and a prompt where we can
+enter characters, The menu items indicate
+that we can enter a c to print a cat or a
+d to print a dog or a m to print a mouse.
+We can also try to enter some more characters.
+Like write “cat”, and while it still just
+prints what the first character says, it’s
+interesting that we can enter more characters
+and get the whole string.
+So we could definitely try and see what happens
+when we enter more characters and you might
+already notice some odd behaviour, but let’s
+not get ahead of ourselves, this was the mistake
+I first made when approaching this challenge.
+Let’s do this systematically.
+I decided to use a whiteboard to visualize
+what goes on in my head as well as to document
+each discovery. Especially with blind challenges
+like this you need to build a good mental
+model of the program running there. And taking
+notes is crucial.
+So I start with writing down what I know.
+That there are three different characters
+in the menu. M, C and D, so I wonder, is there
+maybe a hidden menu option?
+Let's find out. Let's write some code that
+tries out every character and we look at the
+response.
+By now you already know this code, this just
+sets up the serial connection with the board
+and some helper functions.
+So first we read until we get the menu enter
+promot so we can send a character, and it
+makes sense to put this into a loop. So now
+we print the last output, construct our payload,
+which is just one character and enter it into
+the menu. Then we read the result, and try
+the next character.
+When we try to run it it doesn’t find serial,
+I forgot to enter the virtual environment.
+If you do any python programming make sure
+to checkout virtualenv. So now it works and
+it tries every character. But it’s a a lot
+of output, I think it’s better if we remove
+all the newlines and also show the raw bytes
+with repr(). Now it’s easier to spot stuff.
+When you now look through here, we notice
+that some characters, for example the percentage
+sign are turned into a null-byte. There are
+a couple of them. No idea if it’s important
+in some way or not, but let’s make sure
+to note these down. It’s important to not
+ignore an oddity like this.
+But besides that we didn’t find any secret
+menu option. So let’s think of something
+else we could try. How about trying out different
+lengths of input. Let’s modify our code
+to test that. So instead of using the loop
+number as a character, we use it to change
+the length of the input. And we just try it
+with some As.
+When we run it we can observer multiple things.
+First of all, the input seems to be capped
+at like 59 or 60 characters. Our input keeps
+growing, but the output stops. So let’s
+take notes of that.
+The first shorter lengths happened obviously
+very quickly so if we look there again more
+closely, we notice that with the 11th character
+we screw with something and suddenly leak
+a lot of bytes.
+Let’s write it down.
+So that’s very interesting, what is so special
+at this last character position. We can write
+some code to explore that further. Let’s
+enter a couple of Cs and then play with this
+exact value.
+And here is a very interesting result. You
+see we always enter a bunch of Cs but it only
+prints the amount of bytes we specify. So
+nullbyte will print nothing and 3 will print
+3 characters. And so when we get to high byte
+values, like actual ascii characters, we obviously
+leak like 30 or mroe bytes. It doesn’t leak
+up to 255 bytes, so there is a limit, but
+we can write this down. And we can change
+from 11 chars dumps some memory, to that the
+11th char controls the output lenght.
+So now we now that we have this big range
+of memory we can write to to, and certain
+positions can contain important information.
+So for example the 11th character is the print
+length. And to take notes we can enter the
+bytes that we leak into this long array.
+Also the ascii character number 7, hex 37,
+prints the maximum amount of output. After
+that the output doesn’t grow, that’s why
+I write a 7 here.
+So no we wonder, what could other positions
+in this memory here mean.
+When we fuzzed the input length we used the
+character A, so I’m wondering, what if you
+used a character that actually prints a picture,
+like c. The cat. So modify the code slightly
+and then let’s see what happens. And very
+quickly the cat disappeared.
+And if you do the same thing for dog, the
+dog picture disappears a little bit later.
+So you can write down how many characters
+it takes to reach a point where a particular
+picture is not shown anymore. That’s very
+interesting. What could we possibly overwrite
+in that memory that causes this behaviour?
+Look at the memory we leaked and mark the
+apparently interesting offsets. It’s clear
+that these bytes must mean something. these
+bytes have something to do with cat. So let’s
+modify the code. So I add the three bytes
+I know are the correct value, but replace
+the first one to try different bytes.
+But it doesn’t do anything. It seems like
+there is only one correct value that leads
+to printing the cat. In retrospect it’s
+probably like a stack cookie. We must use
+that one particular value.
+So let’s move on to the next byte. Do the
+same thing. And this time it does print the
+cat more often. But it’s a bit weird. I
+have strong feeling that it is part of an
+address, but I don’t know.
+Let’s move on to the third byte. Oh holy
+crap! This shifts the rat. This clearly moving
+the cat around. So that is definitely part
+of the address, or offset into memory where
+the cat is stored.
+Also it’s very interestign to see some weird
+characters before and afterwards. It’s not
+just 0 and cleary not just random garbage.
+So that’s something we shouldn’t ignore.
+But we still didn’t get the big breakthrough.
+But if you look at the leaked memory dump,
+you will notice that the dog and mouse seem
+to have 4 interesting bytes, while the cat
+only ahs three. Maybe the 4th byte of the
+cat just happens to be 0, but actually it
+also has 4 byte. Ignore some of the notes
+here, I was just exploring some random ideas.
+Anyway, let’s try the 4th byte.
+wooooh. This output is damn interesting. This
+is gold.
+If you look very closely, you notice that
+these weird characters have indeed a pattern.
+Doesn’t this look like the dog? The shape
+is there, just the wrong characters.
+And here this looks like the mouse.
+This reaaaaly stinks like XOR. The pattern
+is there, just the characters have to be transformed
+into something else.
+Si let’s write a simple python script that
+tries out all different XOR keys, applies
+them to the leaked character output and prints
+it. And when we now look through the possible
+outputs, we find a cleartext mouse!
+So to recap, We have a big chunk of memory.
+And at certain offsets we know there is some
+kind of information regarding the animal pictures.
+At least the last two bytes affect what we
+read from memory. We were able to extract
+an XORed picture from the mouse by changing
+the bytes of waht corresponded to the cat.
+So we clearly control here the location of
+memory we read.
+But the output is XORed.
+So now, we have a first serious shot at getting
+the flag.
+Let’s modify our loop to iterate over all
+2 byte values. Then we take the leaked memory
+output, pass it to a function that brute forces
+all possible XOR keys. And our assumption
+is, that some memroy location will contain
+the flag, just XORed, so if we find the word
+FLAG in any of the decrypted memory leaks,
+we won.
+Makes sense, right?
+So let’s try that! Oh man, I did first make
+here a mistake. I meant to brute force the
+3rd and 4th byte, but if you look closely
+I brute force the 2nd and third. Obviously
+that didn’t work. So after fixing that and
+some other minor mistakes I let it run, and
+it pretty much immediately outputs the flag.
+Let’s hand it in and collect our 200 points.

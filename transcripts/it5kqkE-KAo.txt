@@ -1,0 +1,272 @@
+Let’s look at the Pwn Adventure 3 challenges.
+Overachiever is a pretty simple challenge,
+because you just have to get all the achievements
+in game.
+So we don’t really have to bother with it
+now, as we will get it eventually.
+But the Egg Hunter sounds cool!
+When we were reverse engineering and debugging
+the libGameLogic library in previous episodes,
+we already stumbled over the GoldenEggs in
+the classes.
+So clearly there are golden eggs that we have
+to find for the Egg Hunter flag.
+And funnily enough, in one of the early episodes,
+when I tried to make a funny clip by flying
+out of the room where new characters spawn,
+I flew past something glowing that was really
+unexpected to see.
+So there I stumbled over the first golden
+egg that we can collect!
+But how can we find all the other eggs?
+Maybe we can find the other eggs by just exploring
+the map, though that could take suuuuper long.
+And probably is not how it is supposed to
+be done.
+Now I’m wondering.
+How could I find the location of all eggs
+on the map.
+Our game client has to have this information
+in some way to render them in place.
+So I started by looking at the GoldenEgg class.
+A GoldenEgg is an Item, which is an IItem,
+but all the functions don’t really help
+us.
+They just return some information about the
+kind of Item it is.
+Also we don’t even have a GoldenEgg object
+anyway.
+So what we are actually looking for is something
+that gives us a reference to a GoldenEgg,
+or even all eggs.
+Let’s see if we can find anything that returns
+or handles GoldenEggs.
+When searching for it, we come across this
+function GoldenEggList in the GameAPI class,
+we see that it returns a vector of ItemPickups?
+So why is it called GoldenEggList if it’s
+returning some ItemPickups.
+Well that class, which is also an Actor, can
+hold a reference to an IItem, and we know
+GoldenEggs are an Item, and thus also an IItem,
+so this class here can have a reference to
+a GoldenEgg.
+And on this ItemPickup class, we could also
+call ItemPickup or Use.
+So that is definitely a good candidate.
+So if we could get a reference to the GameAPI,
+we could call the GoldenEggList() function.
+That returns a vector which we can use to
+go over each item and pickup or find the eggs.
+Maybe you remember this global GameWorld variable
+that we found previously and was super useful.
+And during playing around with this, I also
+explored the other global variables.
+And the Game variable here is actually a GameAPI
+object!
+But when calling this in gdb (which I’m
+not sure if that works how I think it works),
+it seems to be empty.
+And there is another global variable called
+g_eggs, which sounds like it should contain
+a list to all eggs.
+But also this one is empty.
+So I first thought, ok!
+This could mean, the client doesn’t directly
+have the information about the eggs and maybe
+the server only sends us the position once
+we get close to it.
+As a way to prevent cheating or so.
+So I flew back to the spawn where I knew that
+there was an egg, but the list was still empty…
+That is so weird.
+Though it also kinda makes sense.
+If you set up your own server or watched the
+video, you might know that the libGameLogic
+librar is not only used by the client, but
+also the server.
+Which is smart, because then whatever the
+client calculates, is exactly what the server
+can calculate.
+No differences.
+So I guess the server will use the library
+here a little bit different and maybe has
+the list, while the client doesn’t
+But… the client still has to get the information
+about the eggs somehow.
+Because there is one right in front of us
+and so we have to know the position.
+The information must be somewhere in memory.
+That frustrated me a little bit.
+So I continued looking around and I kinda
+had in the back of my head, that an Egg is
+also an Actor via the ItemPickup class.
+And the GameWorld object that we know, also
+has a list of actors in the world.
+So maybe they are in that list.
+M_actor is a set of actor references, so we
+can write a for loop to iterate over them.
+And now _iactor is this ActorReference, so
+we get the real actor reference with m_object,
+that’s the same thing we did for the player
+in an earlier episode.
+Then we can even call GetDisplayName() on
+it, as well as GetPosition(), to get the vector
+where this actor is located.
+So the X/Y/Z coordinates.
+And I placed that into our chat command systems
+as a new command.
+So now ingame we can type “actors” and
+we get a list of all actors with their coordinates!
+Cool!
+And now let’s just teleport to these locations
+and check out what we can find.
+Here is the first one.
+Ok this just happened.
+Try again.
+AH!
+It’s the chest of Magmarok.
+So next one.
+This is the Cow chest we already got.
+AH!
+This is our first golden egg!
+New Achievement!
+Chamber of Secrets.
+And Quest started: Egg Finder.
+Here we have another one.
+And another one.
+Oh this is the blocky chest we already checked.
+We don’t need to port to Major Payne, because
+that’s just an NPC.
+But this is another egg.
+Just out of curiosity, where was this cave.
+Let’s fly up and get an overview.
+Interesting.
+And another one.
+UH!
+One in a fast travel place.
+Well you see.
+There are quite a lot of eggs.
+Let’s keep picking them up and fast forward.
+...
+Mhm… this is a weird spot.
+This location appears to be nothing special…
+but, of course it’s special because an actor
+is supposed to be here.
+So I wonder what’s going on here.
+Anyway.
+And the last location is this XKCD comic about
+the Ballmer Peak.
+XKCD comics are really cool, in case you don’t
+know them check them out.
+But damn, we still miss an egg.
+We have only 9 out of 10...
+But we visited all locations, it’s nowhere…
+Though this one place here was weird.
+So is the last egg maybe here?
+I looked again at the disassembly in binary
+ninja and typed in “Egg” in the function
+window, and I found the BallmerPeakEgg.
+AH!
+So maybe the last egg is a special one.
+And the XKCD poster was called Ballmers Peak,
+as well as the place itself.
+So it must be here, but how do we get it.
+It’s not just invisible, we can’t press
+E to pick it up.
+But if you look at the BallmerPeakEgg::CanUse
+function, then you can see it seems to check
+for a BallmerPeakSecret!
+And when we look at where else this secret
+is referenced, we can find it in the BallmerPeakPoster::Damage()
+method.
+What does the poster have to do with that?
+So I guess if we somehow reach this block
+here, we set this secret and could collect
+the egg.
+There is some kind of check, or test, before
+and it seems to have something to do with
+CowboyCoder.
+And CowboyCoder is a weapon we have!
+So I just assumed, that if we now shoot at
+the poster, we damage the poster, with the
+CowboyCoder, we set the secret.
+Mh, didn’t seem to have done much, but let’s
+check the spot.
+OH!
+Yes there it is now!
+The assumption was correct!
+Awesome.
+Acquired, Flag of the Egg Hunter.
+The fortress of Anorak is all yours.
+Cool!
+We solved another challenge.
+But I have more for you!
+Let me show you an example why I love making
+these videos.
+Because I just told you how I solved it, right?
+But when I was retracing the steps it took
+me, I realized I never properly investigated
+these initialization methods when I thought
+about the client and server initializing different
+things.
+I did see these methods, but I never thought
+about checking if I can find the creation
+of the egg objects with the locations there.
+Only because I tried to write it down and
+explain my thought process I realized this.
+For example InitObjects, InitLocal, InitClient
+and InitServer.
+InitObject is huge, and just by looking a
+bit over it you can see that it is linear
+and just creating a lot of objects.
+No program logic in here.
+So how can we quickly investigate this.
+Scrolling and reading by hand is a bit tough.
+So I decided to write a few lines of python
+using the binary ninja API.
+I have to say, I find the API documentation
+and design a little bit frustrating at times,
+I feel like it could be easier, but compared
+to IDA or Hopper it’s not that bad.
+You can get it to work, just have to read
+the documentation carefully.
+And so this for-loop here goes over all lifted
+instructions and looks for a call, gets the
+call target address, which is a function,
+so we get the function of that address and
+then the name of it.
+If the name contains Egg we print where we
+found that original call.
+So here we have all of the EggPickupLocation
+calls.
+Let’s have a quick look at one.
+So here it calls the constructor of this class
+then calls the operator new, so creates a
+new object of this, and then in fact it does
+this for all eggs.
+FYI, if you find it crazy how fast I read
+this assembler code, I don’t!
+You see, I don’t care about the instructions
+in detail, just by reading the functions it
+calls it already makes sense.
+I black out everything else.
+So let’s keep going with not reading assembler.
+At some point we create a new vector for the
+ItemPickups and here we also create a new
+3D vector.
+This vector is initialised with 3 parameters.
+See these special register xmm0, xmm1 and
+xmm2, these are registers used for floating
+point operations.
+You rarely see them in regular programs but
+of course heavily used in things like games.
+So these three hardcoded values here must
+be floats.
+Not integers.
+So let’s change the type to float, and we
+get the location of one of the eggs.
+So this is a second method to solve this challenge.
+I’m super happy that I looked into that,
+and only did it thanks to you motivating me
+to make videos!

@@ -1,0 +1,341 @@
+Check this out, this is really cool!
+I have here a file which clearly seems to
+be a .pdf.
+We can openi t, and it’s a print from my
+website.
+BUT!
+Let me rename it to .zip.
+Open the zip file, and that works!
+This zip contains a test.txt file which says
+“This is a text file”.
+So wait…
+Is this now a PDF file or is this a ZIP file?
+What exactly is a file format anyway?
+Let’s talk about it.
+I grew up with Windows, so my understanding
+of files was coming from the intuition I got
+just by using the explorer.
+I was using the computer a lot as a teenager,
+so I also learned about the view option that
+hides known file extensions, and a typical
+setting for me was to disable it.
+Another thing you might come across as a GAMER
+is, changing some game settings.
+For example League of Legends has a config
+folder with a game.cfg, which if you try to
+double click, Windows doesn’t know how to
+open it.
+But you can force open it in Notepad and suddenly
+there is plain text you could modify to change
+your settings.
+So in the Windows world, how files are being
+opened when you double click them, depends
+on the file extension.
+The .pdf file opens for me in the browser,
+and the zip file is directly opened in the
+explorer.
+Which program to use you can find in some
+windows settings.
+Here is a big list of extensions and what
+program is associated with it.
+BUT!
+If you are older or you just grew up with
+something like Linux, or more precisely a
+grew up with a command line, you probably
+have a very different intuition about what
+a file is.
+Because there is no double click.
+On the commandline you always specify a program
+to execute, and then you can give that program
+some arguments.
+For example ls, to list the current folder
+content and the arguments -la, to show it
+in this list view.
+And so when I want to work with zip files,
+I need to explicitly use the zip program.
+In this case I just want to list the files
+contained in this zip.
+But I could also just specify a totally different
+program.
+For example hexdump which reads the content,
+the raw bytes of the file, and displays it
+here with hex values.
+With -C it also tries to decode these raw
+bytes to plain text.
+If you are a basic windows user, maybe even
+view the files without extension, then files
+feel very abstract.
+Sometimes when you click on one, it opens
+with one program, but another file opens with
+another program.
+Files seem complicated.
+But if you have a background in the command-line,
+you have a MUCH better understanding of what
+a file is, because there is no magic.
+There is nothing that opens the file with
+whatever it should be opened.
+YOU decide how to read this file.
+You specify the program.
+And this means you are a step closer to understanding
+fun file tricks.
+So when you force open a zip file in notepad,
+you can see some binary data.
+But you can also see readable text.
+the text file included in this zip is visible
+here.
+The file name, including it’s content.
+In this case the text file was so small, that
+it wasn’t even compressed by zip.
+Actually the zip file is much larger than
+the raw text file because of all the stuff
+around it.
+So let’s open this file in a fancy hex editor
+called 010.
+This hex editor has some cool features called
+templates.
+And we can apply the ZIP template on it, which
+then dissects this raw data for us, so we
+can understand the zip file.
+Similar to how wireshark dissects packets
+into the individual components, we can also
+now explore the zip file components.
+We can for example see here a ZIPFILERECORD
+and a ZIPFILEENTRY.
+The RECORD shows stuff like the version or
+the compression type.
+Which in this case is 0, indicating no compression
+was sued.
+Some date and time, as well as size information
+about the file included, followed by the file
+name and the actual data of the file.
+And you can always see how these fields correspond
+to the actual raw bytes above.
+So a program or library that can work with
+zip files, has to write code to actually understand
+this binary structure and parse this file.
+And as you can see there are a lot of different
+values you can screw with.
+The first time I heard about file format tricks
+was in 2013 at a small berlin conference called
+berlinsides.
+Julia Wolf is a malware researcher and did
+a talk about “Stupid ZIP file tricks”.
+I can’t find slides for this talk and there
+were no recordings of this conference.
+But it was about crafting zip files, such
+that different programs that can read zip
+files, would understand the file differently.
+Because parsing this data is not straight
+forward, different implementations might understand
+it slightly differently.
+And this could be abused, for example to have
+antivirus which is scanning the files in a
+zip file, reading different files, than when
+the user opens the zip file with the explorer.
+Antivirus sees a harmless text file.
+And the user sees malware.
+And this was mind blowing for me when I heard
+this the first time.
+In 2014 I saw a great talk by Ange Albertini
+- Corkami - about Funky File Formats.
+This has a recording, so I highly recommend
+you to watch that.
+And I’m going to steal and adapt an analogy
+from this talk.
+Let’s say there are two people.
+Person A loves dogs.
+And Person B looooves cats.
+And then you show them a statue from the german
+fairy tale “Town Musicians of Bremen”.
+As you can see, there are four animals stacked
+on top of eachother.
+You point at it and ask Person A, is this
+a dog?
+And Person A looking at it and says, YEAH
+that is a dog!
+Then you ask Person B, is this a cat?
+And Person B says, “Of course, that is a
+cat”.
+But you shake your head in disbelief and disappointment.
+And you respond to them “You are idiots.
+You are so dumb.
+This is not a cat or a dog.
+It’s a statue of a donkey, a dog, a cat
+and a rooster.
+And this is basically how file formats work.
+Different programs look at the same things,
+but see something else.
+Ange Albertini is somewhat famous for his
+playful exploration of file formats.
+And he recently started to write a tool to
+help create binary polyglots.
+Polyglots are maybe a bit more known in computing
+with this idea, that you can write a script,
+that is actually valid source code in multiple
+languages.
+The wikipedia article about polyglots has
+here an example.
+If I would ask you, what programming language
+is this?
+What would you say?
+Well it’s a trick question.
+This is valid C, PHP and BASH.
+You can see traces of all these languages
+in here.
+This is a C define directive, but also a bash
+comment, and here is the start of a php script.
+So depending on YOUR preferences or experience,
+YOU might identify this as C or php code.
+But somebody else might interpret it as something
+else.
+Truth is, it is all three languages at the
+same time.
+So this polyglot here is source code, but
+file formats work exactly the same way.
+Source code is interpreted by a program that
+we sometimes call compiler or runtime.
+The same way how a regular zip file is interpreted
+by a program like the zip program.
+Now here is a bit of a mind-bending take.
+Concentrate and think about this carefully,
+I’m going to twist some words around.
+Some researchers would even say a zip file
+is source code.
+This binary data is binary source code.
+And when you create a zip file with this binary
+structure, you are actually programming in
+a weird zip file language, and the zip program
+is an interpreter for this language.
+The zip program simply runs your code and
+does whatever you wrote.
+So instead of saying this zip file contains
+this text file.
+You could say you programmed a zip file, and
+that code displays a text file when executed
+by the zip program.
+*whoosh*
+This all ties back into this langsec point
+of view with weird machines.
+I have talked about this in the return oriented
+programming video before, and I can also recommend
+to you again the talk “The Science of Insecurity”
+by meredith l patterson.
+Anyway.
+Now that we have a much deeper understanding
+of file formats.
+Let’s look at the took from corkami, called
+mitra.
+This can create binary polyglots for us.
+So here I have this zip file with the text
+file.
+And here I have a PDF that is simply a print
+from my website.
+Let’s also have a quick peek into how a
+PDF file looks like, by opening it in notepad.
+As you can see a PDF file is mostly plain
+text.
+You can almost imagine this like HTML code.
+But its very complex, you don’t really want
+to do this stuff by hand.
+Except your name is ange albertini.
+Anyway, let’s also have a brief look with
+the 010 editor, and select the PDF template.
+And again we can see here how thes bytes can
+be understood and parsed into PDF objects.
+Anyway.
+Mitra can combine them now.
+We can execute mitra and pass in the zip and
+pdf.
+This created now a file I call test.zip.pdf.
+So is it a PDF file?
+Let’s open it, and yes.
+This looks like our pdf.
+But if I rename it to .zip, and force it to
+be opened as a zip file, I suddenly find a
+test.txt file within it.
+Now it looks like the zip from before.
+This is awesome, right?
+We have a file that is a valid PDF and is
+a valid ZIP file at the same time.
+And depending on which program you use to
+interpret this file, you get different results.
+The same way how when you execute this code
+with bash or PHP, and you get different results.
+And that’s why I wanted to do the example
+with the statue.
+Yes if you very accurately look at this statue,
+it’s a statue of 4 animals.
+But if you explicitly ask the ask Person A,
+or program A to look at this statue, or a
+file, you know it will look for a dog.
+You know it will look for a PDF file.
+If you ask Person B, or another Program B,
+you know it will look for cats, or zip files
+and tell you everything about the cat.
+Both of them kinda ignoring all the surrounding
+other stuff.
+So let’s look at the whole statue, by opening
+our weird file in the 010 Editor.
+And let’s apply the zip template.
+You can find here two records and two entries.
+The first entry is HUUUGE.
+And looking at the content of that file, we
+can see it looks like the fill PDF file.
+Here is the start of the PDF file.
+But it doesn’t show up when we open it as
+a zip file.
+I’m not sure why the pdf is not shown, but
+I think this is because the file name length
+is set to 0.
+And then we have this second entry, which
+is the file we know.
+Test.txt.
+So this is the world view as a ZIP program.
+But let’s look at the same data as a PDF
+program.
+Apply that template, and we can see that there
+is some unknown garbage at the start, but
+it identified the PDF header here.
+So the PDF file really only starts here.
+And then we can see it being followed by all
+the PDF objects and whatever.
+So it turns out, that the PDF program will
+look at this file, the same way Person A and
+B looked at the statue.
+They started looking from the top until they
+see what they were looking for.
+Person A found the dog.
+The PDF program found the start of the PDF
+file.
+There are a lot of fun things you can do with
+files, so please checkout more of anges research.
+But there is one thing that is NOT FUN about
+this.
+And that is when you hide files within other
+files and make it a CTF challenge.
+For example this text file could contain the
+flag, you combine it with mitra, and you share
+out the .pdf version as a challenge.
+That is annoying, stop doing these kind of
+steganography challenges.
+This is a great example where the research
+is awesome and I want everybody to learn more
+about file format tricks, but naively putting
+this into a challenge, is stupid.
+If you want to do a file format challenge,
+do it the other way around.
+I have given an example at the end of last
+video, but to summarize, don’t have players
+trying to find out what you hid in the file.
+But have a challenge where the player needs
+to hide something themselve.
+It can be literally as simple as “submit
+a file that is a zip file that contains a
+test.txt, but also it is a valid .pdf”.
+You give them an upload field.
+And if the file checks pass, they get the
+flag.
+This is much better because the instructions
+are clear, and the educational value is much
+greater.
+No guessing involved.

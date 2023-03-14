@@ -1,0 +1,774 @@
+For our hacking competition I made an online
+game called “Maze”.
+Actually I made two hackable games, the first
+one is “Follow The White Rabbit” and that
+will be part of this story too, but the big
+one was “Maze”.
+And in the next videos I want to recap the
+journey of creating that because I want to
+document it for myself, but I think it also
+serves as cool example how you can start learning
+something, and then making something.
+But first, what is it?
+In this game you are a bunny, living on this
+green patch in the middle of a maze and your
+goal is to uncover the mysteries and ascend
+to become a mysterious white rabbit.
+The twist, you cannot solve the challenges
+of the maze without hacking.
+There will be spoilers in this video.
+So if you want to try it out yourself, you
+find the game on maze.liveoverflow.com.
+Though when I publish this video, there might
+be a lot of traffic and the game servers and
+the site might be down.
+Then maybe come back another time.
+Or maybe at the time of you seeing the video
+I have even published the server so you can
+set it up yourself.
+In this video I want to tell you about the
+development process, because I have never
+made a game, and I had to learn everything.
+So I thought it would be interesting to share
+my approach.
+Hopefully it gives you a good idea how learning
+something new can look like.
+
+Chapter 1 - Motivation
+If you are a subscriber of this channel, you
+might have seen another intentionally vulnerable
+game, that you have to hack, called Pwn Adventure
+3.
+I made a whole series about it, me trying
+to solve all the challenges and to this day
+it remains one of my most successful series.
+I love this game, especially because it was
+only made for one capture the flag hacking
+competition.
+I was always inspired by this and dreamed
+about making my own hackable game.
+But I have watched plenty of indie game developer
+documentaries to know, that making a game
+is a massive undertaking.
+Especially alone.
+So I thought that’s unrealistic.
+In 2019 I finally finished my masters thesis.
+At this point in time my whole daily routine
+just consisted of waking up, working my normal
+job or making videos and going to bed.
+Every day.
+And there was this growing urge to learn game
+development, but I didn’t allow myself to
+learn it, because my mind was telling me that
+it would be a waste of time and I should focus
+on stuff like making YT videos istead.
+Even though, I always try to tell people that
+learning something is never a waste of time.
+And my argument for other people would be:
+“with game development you would still be
+doing coding.
+There is definitely transferable knowledge,
+so just go for it.”
+But I was still stressing myself too much.
+But sometime around the mid of 2019 I stopped
+doing weekly scheduled videos.
+And then at the start of 2020 I deliberately
+blocked a few weeks from work to finally just
+have ME time.
+I wanted to learn game development, and I
+rewarded myself with this time.
+So I don’t get a bad conscious, just doing
+game dev stuff.
+And fast forward to today, I do think I learned
+a lot and that even though it was just meant
+for fun, I still think it has benefits to
+me as a professional in another IT area.
+Chapter 2 - IT Background
+I think to get the most out of this video
+to understand my learning process, it’s
+important to understand the experience I already
+had.
+I’m not starting game dev without any programming
+knowledge.
+When I started gamedev in January 2020 I was
+28 years old.
+I have a bachelor's degree in Applied Computer
+science and also just finished my masters
+degree in regular computer science, but there
+I selected very IT security focused courses.
+I have never worked as an actual developer,
+but I have worked on countless of programming
+projects in all kinds of programming languages
+since I was a teenager.
+I never made a video fully going over my life,
+but I share a bit in the “Secret step-by-step
+guide to learn hacking”.
+So I have absolutely no struggle with the
+concepts of object oriented programming, interpreting
+compiler and runtime errors to find my mistakes,
+how to use google search to find answers to
+most of my problems, and other important concepts
+such as code that has to run every frame vs.
+long running functions.
+Threading and thread safe types.
+And so forth.
+You understand, my general computer science
+experience in other areas will still help
+me A LOT to get into game development.
+This is going back to the point made previously,
+learning something is never wasted time, it
+can still benefit you in other areas.
+And so my maybe 15 years of shitty programming,
+while not really being game dev, still is
+a huge advantage.
+But I should also mentioned some of my game
+related experience.
+Probably one of my earliest introduction to
+some kind of programming was with RPG maker,
+where you could click together some command
+blocks and basic functions.
+And in highschool I made a very shitty and
+buggy 2D monopoly game in C++ with SDL.
+So without really an engine, but it’s also
+not complicated you simply have to figure
+out how to draw an image on the screen.
+That’s easy code to copy and paste.
+And then you just move those images around.
+I also had a computer graphics course in university,
+but that was mostly just the foundational
+math.
+Vector math and matrizes.
+Quaternions.
+I was really bad in that course, but I still
+think even though I don’t remember the math,
+some general understanding about the effects
+of 3D matrix transforms.
+Like Scaling, Rotation, Skewing and also things
+like gimbal lock, does help me to better understand
+what is going on in 3D games.
+Besides that, I also really enjoy various
+talks from GDC, the game development conference.
+MAAAN those talks are so much better than
+IT security talks.
+I don’t understand why our conference talks
+have to be sooooo booooring.
+Anyway.
+Those talks don’t really go deep into technical
+stuff, but it still provides inspiration and
+context and talks about higher level problems
+that developers were facing and how they solved
+it.
+Chapter 3 - What Engine?
+I want to make a game.
+But how?
+Will it be 2D or 3D?
+And then which engine to use?
+Unreal?
+Unity?
+Godot?
+Oof. difficult.
+It was pretty clear to me that I wanted to
+do 3D game dev.
+That related more to Pwn Adventure and I better
+understand 2D game development.
+Essentially just draw images on a screen.
+3D is what is more interesting to me.
+Alright but what engine.
+I did watch plenty of youtube videos discussing
+differences.
+And read discussions on reddit.
+I was also looking a little bit at the licensing
+agreements and costs, because in the context
+of this YouTube channel which earns money
+with ads, this could be a commercial use.
+And you know.
+Maybe I would even make a small game hacking
+game together with educational videos and
+sell it for 20$.
+You never know.
+But in general I was thinking of maybe making
+a hackable game, which means I also have to
+consider if the engine is a good choice for
+that.
+Unreal Engine would make me code in C++.
+And Unity would be C#.
+And tooling around game hacking is insane.
+There are tools to simply decompile C#, modify
+the code and run the game again.
+It’s crazy.
+So C++ would be more interesting in terms
+of hacking.
+But there are crazy tools for Unreal Engine
+based games too.
+In the end I chose Unity.
+Mainly because it seemed like that there are
+much more tutorials and educational resources
+online.
+Me wanting to learn it, I felt like, with
+Unity it would be the easiest and fastest.
+There was one last concern, though.
+I also wanted to be sure making a hackable
+game does not violate the user agreements
+of Unity.
+The last thing I want is legal trouble.
+So I asked on reddit regarding “if there
+are License Restrictions on Games Built With
+Unity?
+And if I can have a permissive EULA for my
+own game to Create a Hacking Game?”
+And official Unity responded: “There are
+no restrictions so long as you are not granting
+permission to reverse engineer Unity's software.”.
+Which is all I wanted.
+Perfect.
+Unity it is.
+Chapter 4 - Learning resources
+At the end of 2019 I stumbled over the Unity
+Humble Bundle.
+Typically I’m not a big fan of something
+like humble bundle.
+Not because it’s humble bundle, but because
+it’s a bundle.
+It’s like steam sales.
+You spend money on stuff you THINK you want,
+but actually will never use.
+And there is this psychological component
+of the limited time offer, and the discounts,
+which is just something I try to avoid.
+So for me most of the time it’s a waste
+of money.
+But here I made an exception.
+First of all, some of those unity assets seemed
+useful.
+For all of these assets there are alternatives,
+which might be much better, but I have zero
+experience.
+So why not get a random selection of tools
+and assets and play around with and see what
+they can do.
+That seemed fun to me and provides a bit of
+motivation to just spend time with Unity.
+The other thing I thought would be useful
+is the Unity Learn premium, a one year subscription
+to official Unity tutorials, which I imagined
+would be a great resource.
+There was also “The Ultimate Guide to Game
+Development with Unity 2019”.
+VALUED AT 200$.
+Which might be interesting too.
+Udemy rant
+Quick rant.
+This is bullshit Udemy pricing.
+Udemy is full of those courses that are always
+200$.
+But actually they constantly go on sale or
+there are coupons that lower the price to
+like 10$-20$.
+What annoys me here is that it’s similar
+to the psychological tricks with humble bundle
+itself, Udemy, or the course authors using
+Udemy, engage in shitty manipulative sales
+tactics which I just despise.
+So this is a 20$ course.
+Not a 200$ course.
+Keep that in mind when you look at Udemy courses.
+The pricing is bullshit.
+It’s artificially inflated so you can do
+marketing with massive discounts.
+Anyway.
+Regarding those learning resources that I
+wanted, I’m a bit embarrassed.
+Because I generally tell people you don’t
+need to spend money on courses, because there
+are amazing YouTubers who make great courses,
+most likely even better, for free on YouTube.
+And they earn much much less from adsense.
+Only problem is finding them, I admit that.
+But they are out there.
+There is a psychological effect when you PAY
+for something, it FEELS more valuable than
+free content, even though it’s not better.
+And you also don’t like to admit the money
+you spent wasn’t worth it.
+Our brains are evil.
+Here I was a victim of this sales tactic myself.
+I thought spending money on those courses
+could maybe help me.
+Looking back now I can say, the courses were
+alright.
+Wouldn’t say they were amazing.
+Me making educational videos I have a particular
+style and idea how an educational video should
+look like.
+But it was okay for what I paid as part of
+the humble bundle.
+I’m not regretting that.
+But it pains me to know, that I used MUCH
+MORE youtube resources from amazing channels
+like Gamefromscratch, Game Dev Guide, Jason
+Weimann and of course Brackeys and many more,
+and they have not received a share from that
+money.
+Think about that.
+The free YouTube content was a lot more useful
+and actual valuable to me and probably MANY
+MORE, vs the paid courses, but the money went
+to the paid courses.
+Fuck capitalism I guess.
+Chapter 5 - Game Assets
+To make a game you need assets.
+Mostly 3D models and textures.
+But making models myself would require me
+to first learn a tool like blender or maya.
+it still seems like a useful skill.
+For example I don’t have a 3D printer but
+maybe in the future, and it would be cool
+if I had experience with making 3D models.
+But I knew right from the start, I don’t
+have the time for that now.
+That would take at least as much time as programming
+and learning Unity.
+And my models would look like shit.
+So I knew I would want to buy assets.
+Now from watching YouTube videos about indie
+game development, I know that players, WHO
+HAVE NO CLUE WHAT GOES INTO MAKING A GAME
+and have never written code, heavily criticise
+games that use bought assets.
+When I realized that's a widespread opinion,
+I got really pissed.
+There are some scummy asset flip games.
+Literally just copy tutorials and try to sell
+them as games.
+Of course that’s dumb.
+But attacking people that actually wanted
+to make a game and bought assets because their
+experience is mostly programming, that sucks.
+But luckily that wasn’t really a concern
+for me, because I didn’t intend to sell
+and market a game.
+I just wanted assets to make it look good.
+I really love the stylized assets, something
+like World of Wacraft or My Time at Portia.
+I would loooove to have that style for a game.
+But then found Synty Studios who have a massive
+collection of Polygon style assets, and I
+immediately fell in love and knew I wanted
+to use those.
+Actually I discovered them because besides
+the humble bundle deal I mentioned earlier,
+shortly after, there was a Unity Mega Bundle
+sale.
+That was directly from the asset store.
+One of them was the Synty Studios Mega Bundle.
+So that was perfect for me.
+Since then I have bought many more Synty asset
+packs.
+I basically own almost all Polygon assets
+now.
+Besides 3D models I also bought a few other
+assets.
+For example a character controller, a spline
+tool to easily make paths for objects to follow.
+Something to combine and optimize meshes.
+But also the World-building Mega bundle.
+And because I imagined making an awesome big
+island like Pwn Adventure, I was very interested
+in one tool in particular tool.
+That was Gaia.
+Overall I spent over 1300Eur, so over 1400USD
+on Unity assets.
+It’s an addiction.
+It’s awful.
+It’s so much.
+But all those asset creators are self employed
+or a small company.
+So it’s also kinda cool to have given the
+money to people that try to make cool stuff
+for Unity.
+And ultimately it’s money from YouTube ads
+and Patreon that I used here.
+So I wasn’t too concerned about spending
+that money.
+I mentioned multiple times that YouTube is
+not my job.
+So for me it was really just reinvesting some
+money I got from a side project, back into
+the side project.
+I should make it clear that assets are not
+necessary for learning, you can find plenty
+of free ones, but I think they were helpful
+to make the game look nice in the end.
+Chapter 6 - First Step, Getting Started
+The most DIFFICULT step in learning something
+new is just getting started.
+Especially if you are younger and you have
+never really experienced how the learning
+process looks and feels like.
+I have plenty of experience what it takes
+to learn something.
+I know what time and mental commitment it
+takes.
+Let’s take for example my journey learning
+penspinning as a teenager.
+If you see me doing that, it’s a good chance
+that you play with the idea to learn it too.
+Doesn’t look too difficult right?
+Fun party trick.
+I thought exactly that when I discovered the
+JapEn 1st penspinning collab on YouTube.
+And at that moment I told myself “I’m
+gonna learn this and get good at it.”.
+Shortly afterwards I was sitting in front
+of the TV I started practicing and trying
+to copy the basic tricks.
+After a week you have some of the basics down.
+But practicing different tricks and their
+nuances when combining them smoothly, that
+can easily take months.
+And that’s something I learned.
+I want to make this very clear.
+There is NO REALITY where you discover penspinning
+on a friday, and on monday you impress your
+classmates.
+No chance.
+Learning this means committing hours and hours
+of time, I’m talking hundreds and thousands
+of hours, and most likely engaging in that
+community and become a part of it.
+While penspinning worked out for me, other
+stuff I wanted to learn and tried to get into,
+I of course failed.
+I gave up long before I would become any good.
+But I stuck with penspinning for whatever
+reason and it showed me what it really takes
+to learn something.
+I think that’s why I don’t have a distorted
+fantasy of quickly learning anything.
+And so the goal of learning the basics of
+game development is a daunting task.
+Because I knew it would mean I have to spend
+hundreds of hours on this.
+If I don’t find the time for it, I will
+never learn it.
+And so it was important for me to build up
+initial motivation, this URGE I was talking
+about at the beginning.
+Me really wanting to learn it, to get the
+motor started.
+But also somewhat having a rough plan what
+to do next and allocating time for it.
+I have often heard from people around me who
+want to learn something, that they make a
+study plan.
+Collect tutorials.
+Buying Udemy courses.
+Asking constantly questions about recommendations
+for resources and books.
+And they spent dozens of hours on just researching
+tat.
+And I’m claiming, if they had just started
+immediately.
+With anything.
+Even with the first SHITTIES tutorial that
+shows up as the first result on YouTube, they
+would now be closer to their goal, than after
+they made that plan.
+Because even if it is a shitty tutorial, you
+will still learn something.
+For example different words that you didn’t
+know before related to whatever you learn,
+and then you can use that to search for new
+additional learning resources.
+Now I don’t want to dismiss that this planning
+approach doesn’t work.
+I haven’t done any studies on the effectiveness
+of this.
+Everybody is different.
+So I can only speak for myself, that that
+would never work for me.
+I just need to force myself to do something.
+And then the gears start turning and I’m
+trusting the motor to just keep finding stuff
+to keep going.
+So how did I get started with game development?
+I picked a random Unity tutorial where somebody
+just walked me through step by step from creating
+a project, adding some game objects, writing
+some code and running the game.
+You can find soooo many tutorials for that
+online.
+I don’t think it matters at all.
+Any of these tutorials will teach you the
+basics of how to use the Unity editor, and
+then important terms such as “GameObject”,
+“Scene”, “Prefab”, Components added
+to GameObjects such as “Colliders”.
+I have to tell you, that these super basic
+tutorials are BORING AS HELL.
+I want to make a game and not deal with that
+basic shit.
+And so you lose motivation very quickly.
+But this is a feeling I expected and prepared
+for.
+I knew it would be boring.
+And I anticipated it will be slow.
+But I also knew I just had to push through
+that part and learn how to use the tool, at
+least the basics, so I can then make what
+I wan.
+So use the initial motivation, to force discipline
+in the early steps, push through that, and
+when you then know how to use the tool, it’s
+much easier to enter a state of motivation
+that just keeps driving you forward automatically.
+Chapter 7.1 - Playing Around: Gaia
+Now that I know the basic terminologies Unity
+uses, and how the Editor kinda works, I can
+start playing around.
+This is also something I say a lot when people
+ask how to learn hacking, I say simply play
+around with it.
+So let me give you a few of the examples how
+I played around with Unity.
+One of the tools I got through the World-building
+Mega Bundle was Gaia.
+It’s basically a tool to create really nice
+looking terrains very quickly.
+It has this concept of a stamp, and then you
+just combine stamps.
+There exist plenty of Gaia tutorials on YouTube
+that I used.
+Here are some clips from my very early projects.
+Don’t mind the pink colour, I later played
+around with different render pipelines and
+and that’s a whole other issue.
+But you can somewhat see here that I selected
+a mountain stamp, and I can stamp the terrain,
+and now there is a big mountain.
+And I spent a lot of time making different
+islands.
+Getting a feel how to use the tool.
+I also had the asset Crest, the water, which
+is free for the normal render pipeline, but
+I got the paid version for the universal render
+pipeline in the mega bundle as well.
+So I also played around with the water.
+Gaia also comes with default textures but
+I wanted to use the polygon synty style, so
+I also had to experiment and learn how to
+adapt Gaia to use the textures from Synty.
+Which you can see here.
+So stuff like this takes hours but it’s
+necessary practice.
+Chapter 7.2 - Playing Around: Character Controller
+Another very important thing to play around
+with and get experience is making character
+controllers.
+A Character Controller is what people call
+the code that controls the player character.
+And that is obviously a super important key
+part of any game.
+Controlling the character.
+But this is not trivial because EVERYGAME
+has unique requirements how the player character
+is supposed to behave.
+And there are soooo many things you consider.
+Here I again watched tutorials on YouTube
+of how somebody creats a basic character controller.
+And here you can see mine.
+It’s very easy to move an object with key
+presses, but how it behaves with moving the
+camera and then things like gravity, collision
+detection quickly gets very complex.
+For example, so you implement walking around
+and you have collision tetection for walls.
+Now what if you have a very very tiny misaligned
+object, or a small staircase, will this block
+your character?
+You have to think about, and by think about
+I mean write the code, that handles these
+cases.
+How high can a step be and does it simply
+teleport the player up the step, is it a slow
+transition?
+And what happens to the camera, does it jump
+up like here in this very janky movement?
+Do you implement some smoothing?
+Slopes are another challenge.
+Does the player slip down?
+You need to code that.
+And consider a bit more complex objects, where
+maybe some surfaces are steeper than others,
+but you should still want to be able to stand
+on it.
+Will the code you write cause the player slip
+here or not?
+You also can have stuff that affects eachother.
+If you naively implement a jump, that can
+be used when ground is detected below a player,
+then having a steep slope that makes the player
+slip, can still allow the player to simply
+jump up the slope by smashing the jump button.
+Or think about gravity.
+How do you detect if you have to fall down
+or not?
+Well you can for example cast a ray straight
+down and check if it interesects with something.
+In that case you are on the ground.
+If you then walked off an edge, the ray doesn’t
+hit anything, so you fall down.
+But when you use a bridge out of wood with
+holes in it, as soon as you reach a hole,
+the player will fall thought, because that
+single ray didn’t hit anything.
+You can solve this problem in different ways.
+For example you can make the decision to make
+every collider for the objects also span over
+the holes, or if you implement some kind of
+other logic to detect ground, for example
+with a sphere cast or Overlap sphere.
+The devil is really in the details.
+And so I have gained a HUGE appreciation for
+making a good character controller for a game.
+Another thing I played around with were the
+Unity example projects.
+One in particular was interesting because
+it featured a third person controller, the
+3D Game Kit.
+And that controller felt pretty good so I
+thought, maybe i could be inspired by that.
+And by inspired I mean steal the code.
+So I loaded up the example project and examined
+all the game objects that make up the player,
+including the camera and tried to replicate
+it my own project.
+And this later actually became the character
+controller for the first hackable game challenge
+I made.
+Which I called “Follow the White Rabbit”.
+Chapter 7.3 - Playing Around: Cinemachine
+Along this whole process I kept watching Unity
+videos in the background from many different
+channels.
+This also helped me to just learn what exists.
+For example I heard of cinemachine.
+This is a tool that allows you to create very
+nice camera movements.
+And for example the character controller in
+the 3d Game Kit used cinemachine’s Third
+person camera.
+Which comes with features like collision detection
+for the camera.
+That’s the next complexity.
+How do you handle camera collisions with the
+environment in a 3rd person view.
+Do you zoom in, do you move closer on a direct
+path, do you keep the height.
+Do you do that for every little tree or is
+there some kind of tolerance when you move
+the camera?
+This is all stuff you just have to play around
+with and experience and discover these challenges.
+Chapter 7.4 - Render Pipelines
+I briefly mentioned already that there are
+different render pipelines in Unity.
+And it is a mess.
+At least at the time where I started because
+they were just in the process from consolidating
+the Light Weight Render Pipeline and the Universal
+Render Pipeline.
+And there is also the default render pipeline
+and the HD render pipeline.
+It’s all very confusing.
+I heard that the URP or LWRP is the cool shit,
+and also the crest water I bought was for
+URP, so I tried to create and change the render
+pipelines for my Unity projects.
+And this is when you start running into those
+pink issues.
+Because textures and shaders all have to be
+adapted to work with the particular render
+pipeline.
+And one asset or tool you bought doesn’t
+support it.
+And form Synty support I know that they don’t
+want to spend time on adding support yet because
+it was still changing so much.
+And so I went through a lot of pain and ultimately
+decided to stick with the default render pipeline.
+It might not look as cool as in the HD render
+pipeline, and it might not have the new features
+and also possibly performance of the Universal
+Render pipeline.
+But whatever.
+Staying with the default one was so much easier
+and I would also recommend that to you.
+Though maybe in the future, when it doesn’t
+change rapidly anymore, then maybe URP is
+really cool.
+Chapter 8 - A First Test
+Here you can see a first early proof of concept
+version that I also shared on instagram at
+the time.
+You can find here all the stuff I talked about.
+First of all you can see the landscape, the
+island.
+That was made with Gaia, and of course adapted
+to use the Synty textures.
+I also adapted the 3D Game Kit character controller
+to use one of the Synty characters.
+This also required me to learn how to work
+with animations in unity.
+And about this awesome site called mixamo
+from Adobe where you can download free animations
+for humanoid models.
+For example when falling, when speed increases,
+the animations transforms into this diving
+position.
+And I also implemented fall damage.
+Another feature I wanted was swimming.
+And goooosh.
+That is another deeeep rabbit hole to to go
+down.
+Making a character float with the waves and
+swim around is not straight forward.
+In this case I had to understand Crest, the
+water engine I used, how to get the water
+level at the current position.
+And so I was able to implement something that
+kinda worked.
+And I was satisfied.
+But it’s not perfect.
+And then I wanted to exit the water and I
+realized how difficult that is to implement.
+Imagine waves on the shore.
+First you are deep in water and you swim,
+but the wave goes down, suddenly you switch
+to standing because water is too shallow,
+then the wave comes back and picks you up
+again.
+And so this can cause this constant back and
+forth switching between swimming and standing.
+It doesn’t feel nice in a game.
+So anyway.
+Implementing that stuff in a good way is so
+much work, so much you have to think about.
+But for me I only needed good enough and I
+reached that.
+Over here you can also see where I experimented
+with different slopes and having the character
+slip down.
+Overall I was pretty satisfied with the character
+controller and felt like I could actually
+now play around with making my hacking game.
+But this video is getting quite long already.
+And we covered all the technical aspects of
+getting started with game development.
+So in the next video I want to talk about
+creativity.
+And how my creative journey eventually led
+from this proof of concept, to my first hackable
+game called “Follow The White Rabbit”,
+which laid the foundation for the third video
+about making the MMO game “Maze”.

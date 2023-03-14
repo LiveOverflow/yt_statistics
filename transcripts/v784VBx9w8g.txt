@@ -1,0 +1,268 @@
+In this video, we are going to develop a 
+cybersecurity product called “Crypto WAF”. It
+is an advanced web application firewall, which 
+automagically protects any user data with military
+grade encryption, as well as stopping serious 
+hacking attacks such as XSS and SQL Injections.
+Ok I admit. I didn’t invent this product. And 
+this is just a Capture the Flag challenge I
+created for our ALLES! CTF 2021. BUT, this 
+is more than just a CTF challenge, because
+like the recent “screenshotr” challenge I made,
+this is based on a real-life product that 
+I encountered during a security audit.
+But this is not going to be a regular CTF 
+walkthrough. In this video I want to focus
+a bit more on the idea of the challenge and how I 
+built it - I think it’s a unique perspective for
+a bug hunter or aspiring security researcher. 
+Understanding or imagining how a product was
+developed can help you when hunting bugs. 
+There will be spoilers ahead, so if you
+want to try to solve this challenge yourself, 
+you can find the link to the challenge below.
+If you are here for a regular CTF walkthrough, 
+checkout the video by Bug Bounty Reports
+Explained. He is another YouTuber who solved this 
+challenge during the CTF and even got FIRSTBLOOD!
+In his video he will walk you through how 
+he approached and solved the challenge.
+Anyway... So what’s the idea for this challenge?
+
+As I mentioned this challenge is based 
+on a product that exists in real-life,
+but I implemented the code for the 
+challenge myself. The vulnerability
+and attack idea is inspired by what was found 
+in the real product, but I want to emphasize
+that I made here a very basic, minimal and 
+insecure implementation of the general idea,
+so it obviously doesn’t compare 
+to the real mature product.
+Anyway, let’s look at the challenge.
+I like challenges where the source code
+is available. This means there is no trickery, 
+no guessing, all the information you need is
+in front of you. And so if you cannot solve it, 
+you know you lack some knowledge or skills. I know
+that might sound harsh, but that’s what I love 
+when playing CTFs myself: “I have the full code,
+so if I cannot solve it, I still have to 
+learn more!” - and that’s motivating to me.
+Anyway, nowadays basically 99% of all web 
+applications come with Dockerfiles or even
+docker-compose files that are being used for local 
+development, testing and even deployment. And they
+are awesome, because they make test setups for 
+research very easy and also give you a quick
+overview of all the components. And yes, most bug 
+bounty programs are about attacking proprietary
+blackbox closed-sourced software, BUT there are 
+many bug bounties for open source apps as well,
+for example GitLab. So this challenge 
+is a great learning opportunity.
+Ok but what is the idea here? 
+What is this Crypto WAF.
+Let me tell you about the 
+problem this product will solve.
+Let’s say you have developed a notes taking 
+application and you want to take privacy
+seriously. Now imagine you have a bug like 
+a SQL Injection and your database is stolen.
+Do you want to be responsible for leaking 
+those extremely private notes of your users?
+No! You want to protect them. Ideally you 
+don’t even want to have access to the notes
+of your users yourself! So you decide, you want 
+to encrypt them. But if you encrypt it yourself
+in the database, then you know the private 
+key. And you can still decrypt everything
+and read the private notes. And you don’t 
+like that. So here comes “Crypto WAF”.
+This Crypto WAF product is a layer 
+sitting between your app and the user.
+And it automagically encrypts user data passing 
+through it. Which means, YOU as the developer,
+don’t have to do anything. You can focus on making 
+a great notes app, and the Crypto WAF developers
+just have to focus on securely handling the 
+crypto. Perfect separation of responsibility.
+Now I want to be clear, this is not 
+the best solution for this problem
+and what I will show you is not 
+perfect. there are way better and more
+“correct” ways of doing this.
+But still I think that’s an
+interesting idea for a product. So let’s 
+think about the implementation details.
+Remember, we want to have a 
+layer sitting between the user
+and the application. So the HTTP requests 
+and responses pass through our Crypto WAF.
+Encrypting the user data seems simple. When a 
+request is coming through our system, the HTTP
+request might carry data. This could be a POST 
+request with url form encoded data or json. And
+so it’s easy for the Crypto WAF to take the values 
+in the request, encrypt it, and forward it to the
+actual app. Now the app only receives encrypted 
+values and never knows what really was written.
+And this is how it looks in 
+practice. If you add a note here,
+you see text. But if you would look at 
+the site without the WAF crypto layer,
+all the data is encrypted. You need to go 
+through the crypto layer to get the real data.
+BUT! Do you really want to encrypt 
+EVERY value coming through? You will
+quickly realize you run into practical 
+problems. Specifically with identifiers.
+Let’s say you write a comment on a post. You 
+submit the request and it has the comment text,
+as well as the ID of the post this comment 
+belongs to. If both values are encrypted,
+the app receives an encrypted ID rather than 
+the number. Now you don’t know which post the
+comment belongs to. You need the real ID value.
+So IDs must not be encrypted in this setup.
+Which means you have to define exceptions 
+for certain values to be not encrypted.
+When you look into the app.py source code 
+of the crypter part. You can find here the
+“encrypt_params” function which defines exactly 
+these exceptions. The submitted data keys uuid,
+id, pk (primary key), username 
+and password are not encrypted.
+And of course, in a proper product this 
+should be configurable by the customer.
+Ok. One practical problem solved! 
+But what about the decryption?
+Imagine a user wants to read a post with comments. 
+If the app is implemented with a clean API
+returning JSON data, then you could just do it in 
+reverse. if encrypted values arrive from the app,
+you decrypt them and return it to the browser.
+But many websites have server-side template
+rendering. So the note could be embedded within 
+the HTML response. And now you don’t know, which
+parts are encrypted and which parts are not?
+This can be solved by making a clear pattern
+for encrypted strings, this way you 
+can find and decrypt them easily.
+So let’s have a look into the decrypt_data 
+function in the source code. Here you can
+see that it uses a regular expression looking for 
+a string starting with ENCRYPT, colon :, and then
+expects a base64 encoded text. It then goes 
+through all matched strings, decrypts them,
+and replaces them in the data.
+Cool!
+So let’s think about a fundamental 
+design issue of this implementation.
+Remember the main purpose of this crypto 
+layer? We, as the developer of the app,
+do not want to handle the private data of 
+users. So we use the service to encrypt and
+decrypt the data for us. Our hands stay clean. 
+But the other promise of the Crypto WAF is that
+when your database leaks or is exploited through 
+an SQL injection, the data will be worthless
+for the attacker. Because all the notes are 
+encrypted with a key we don’t have on our server.
+It’s the same reason why we hash passwords. 
+It protects us from a compromised database.
+But is that really true? mhhh... 
+Here is the potential design flaw.
+Let’s say we compromised the database, and we 
+got an encrypted value. How can we decrypt it.
+Well… we happen to have a service that happily 
+decrypts any value when it’s returned by the app.
+So IF we manage to inject this string 
+into a response, the crypto WAF would
+happily decrypt it for us, right?!
+The problem is just how to actually do that.
+Because when we would insert this as a note, this 
+string would be encrypted, then stored in the DB,
+and when returned it would get decrypted to its 
+original encrypted format. So it wouldn’t work.
+And so we need to implement a first “flaw” in 
+the code to make that possible. That’s one of the
+issues you need to figure out when attacking this.
+Looking around you might notice that when you
+delete a note, the response will be a redirect, 
+where the redirect URL is also shown in the
+response body. And the value here is a uuid. 
+And UUIDs are excluded and not encrypted.
+So this is the way you can control what is 
+reflected here onto the page. So if we take
+a encrypted string, place it here, we can see 
+that the result will be the decrypted value now.
+So this is how you can decrypt any leaked value.
+And basically this defeats the 
+crypto part of the Crypt WAF.
+But how do we get the encrypted 
+data in the first place?
+When you look at the where the flag 
+is located for the challenge, you can
+see that it's added as a note by the flagger 
+user. So somehow we have to leak the database.
+And here is where the other bug is. The main 
+app had an SQL injection vulnerability in the
+order by clause. And I chose this, because 
+I didn’t want it to be easily discoverable
+and solvable with SQLmap. And it seems like 
+SQLmap fails to identify the vulnerability.
+Here I run sqlmap against the URL, and you 
+can see, no injectable parameter was found.
+This was by the way without the Crypto wafc
+But when reading the source code,
+the vulnerability is super clear. Here is 
+a typical string concatenation failure.
+So I guess this is a great example, how 
+a genuinely awesome tool like sqlmap,
+still has limitations, and how a source code 
+audit would very easily reveal this vulnerability.
+But it wouldn’t be a crypto 
+WAF, a web application firewall,
+if it also wouldn’t prevent hacking attempts 
+such as an SQL injection in the first place.
+And the source code of the WAF has here this 
+function waf_param, which checks the GET and POST
+parameters for attacks. If there is any occurrence 
+of select, union, alert, script sleep or even just
+single and double quotes, the WAF will 
+block the request and return an error.
+So all we need is to bypass the WAF, then we can 
+use the blind SQL injection to leak the encrypted
+note of flagger, and combine it with the design 
+flaw of the crypto part, to decrypt the flag.
+BUT! I won't tell you how to bypass 
+the WAF. The flaw is on the screen
+right now, so maybe you can see it.
+I’d say, for the full solution you
+should check out the video from Greg of 
+BugBountyReportsExplained. Or look at my
+solution script in the description. You can find 
+all the challenge files and source code on GitHub.
+Also I wanted to say, I was very impressed 
+by Greg. he got firstblood, so solved the
+challenge before any of the other teams.
+WHAT THE HECK CTF PLAYERS. I ALWAYS BELIEVE
+YOU TO BE THE BEST. AND NOW WE HAVE 
+SOME RANDOM BUG BOUNTY HUNTER COMING
+INTO OUR SPACE AND THEN KILLING IT??!?!!? WHAT?!?
+Of course I’m just kidding. But I have a theory.
+I’m a strong believer that good CTF players, 
+who solve a challenge like this, will also be
+great bug bounty hunters. And I think here we 
+saw evidence of that. Well… the reverse of it.
+Greg is spending a lot of time studying the 
+top bug reports for his videos. These are not
+the basic XSS, subdomain takeovers or whatever 
+issues. These are really impressive findings.
+And they are often complex, sometimes 
+difficult to understand, so they are very
+to CTF challenges. So I believe exposing himself 
+to these more advanced topics, instead of doing
+the same basic boring bug bounty stuff all the 
+time, made him a successful CTF player as well.

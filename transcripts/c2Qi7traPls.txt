@@ -1,0 +1,182 @@
+It’s time. In this video, we will discuss 
+possible exploit strategies for sudo. In the
+past 8 episodes we have used fuzzing to rediscover 
+the crash in sudoedit, we have analyzed the crash
+with address sanitizer and found the loop that 
+causes a memory corruption, and then we looked
+at the root cause in detail. And now it’s time 
+to make a plan for exploitation. How can we turn
+this memory corruption in sudo, into an actual 
+privilege escalation exploit? Let’s head in.
+For heap exploitation there 
+are basically two strategies.
+First you can exploit the heap implementation 
+itself (so attacking the heap metadata),
+or you can attack the data stored in the heap. 
+Let’s think about exploiting heap metadata first.
+If you have watched my exploit education 
+playlist, then you might remember the videos
+about heap exploitation. The heap is basically a 
+data structure with metadata, you can imagine it
+as a linked list, and this metadata for example 
+contains the size of the chunk and some flags if
+the previous chunk is in use or not. Blah blah. 
+Details unimportant right now. And in those old
+videos we exploited a very old allocation 
+algorithm called dlmalloc. Not gonna lie,
+that heap exploitation of dlmalloc was mindbending 
+and is complex, but it also didn’t have any
+mitigations, thus it was relatively simple. 
+Nowadays, the default malloc algorithm is a bit
+more advanced. We have for example fastbins, which 
+are a different data structure additionally to the
+“regular” heap that you might know. And the malloc 
+algorithms have also gotten a bit more hardened.
+But only in some ways. For example some techniques 
+with fastbins are actually super simple.
+But generally, in order to exploit the heap 
+implementation directly, you need a specific order
+of memory allocations and free operations. So in 
+CTF challenges you often have some kind of menu
+where you can create or delete stuff, and thus 
+you can perform the exact order of mallocs and
+frees you need. But in our sudo vulnerability, 
+we have a single-shot overflow on the heap.
+We don’t have any interaction with the program. 
+And on top of that we have to deal with ASLR!
+And the typical way of dealing with ASLR, 
+is to only deal with relative offsets,
+or first have a bug to leak addresses, thus defeat 
+ASLR, and then you can go further. But again,
+we don’t have any interaction with sudo. We 
+can’t perform multiple overflows. We can’t
+really decide how we want to allocate or free 
+chunks. With our one overflow, we need to win!
+That’s why I believe, attacking the 
+heap directly, the heap algorithm,
+the heap metadata, is unrealistic. I don’t 
+want to say it’s impossible. People always
+find crazy creative ways. But I don’t know 
+any reasonable technique that we could try.
+So that’s why I want to go for the 
+second strategy. Attacking data
+on the heap. We have a heap overflow, and we 
+can overwrite arbitrary data in other chunks.
+And we don’t immediately crash when we overwrite 
+this data. We crash because of the side-effects
+after we overwrote other data, we call this 
+corrupting memory. So maybe there is some
+very interesting and useful data stored 
+after our buffer, that we can overwrite.
+As an example, if we find a function 
+pointer on the heap after our chunk,
+and it is then used afterwards, we could overwrite 
+it. When the function pointer is then used,
+at least we would have control over the 
+instruction pointer. ASLR would still be an issue,
+but we could maybe do partial overwrites. 
+Whatever, future problems. Something like
+that would get us a huge step forward.
+But how can we find
+something like that? How hard is that?
+What do we need to know to make this work?
+Let’s look at the heap again with heap chunks in 
+gdb, here is our buffer. Now how could we know
+what is stored after it. What is the meaning 
+of this data. How could we know if there is a
+function pointer? That’s not easy. And maybe there 
+is no function pointer here at all right now.
+But that’s not the only question we should 
+investigate. Check out this. The allocation
+of our buffer happened right before we caused 
+the overflow. So it’s the last chunk that was
+allocated. BUT our buffer is not at the end of 
+the heap. This means that during execution of
+this program, memory was allocated and freed many 
+times. And there was a hole in the middle, where
+our new buffer could fit. This means depending 
+on the size of our buffer, we could end up in
+different places. To rephrase this, depending 
+on the length of the arguments, so the size
+we allocate, we might have different heap chunks 
+after the buffer we can overflow. But that’s not
+all we have to research. We have no clue what 
+influences the sizes of the other heap chunks.
+If you casually scroll through the allocated 
+chunks, here is a chunk with the folder path. And
+here are what looks like environment variables. 
+Which means, if you have a different set of
+environment variables, and probably many more 
+things, these things influence what size of chunks
+are allocated on the heap. Thus the hole where our 
+buffer will be allocated might be in a different
+place. The whole heap could be arranged completely 
+differently if you control this other data.
+What does that mean? Does this make it easier or 
+harder? On one hand this means we might be able
+to carefully control where we want to place 
+our buffer and overwrite the right thing,
+on the other hand, it might not work on 
+another system. Either way, we gotta try.
+And by the way, this careful planning 
+and arrangement of heap chunks, is called
+heap feng shui. Feng shui? Feng Shui is 
+a pseudo science where you “use energy
+forces to harmonize individuals with their 
+surrounding environment”. Or in other words,
+the pretty arrangement of objects in a room. And I 
+think there is no better word that could describe
+this for heap exploitation - harmonize the heap 
+chunks perfectly, so that our exploit can work?!
+It is kinda “magical”.
+Anyway…
+I am not a pwn expert. To be honest I rarely solve 
+pwnable CTF challenges. I know many wont believe
+me, because I made the binary exploitation series. 
+I must be an expert and do that all the time,
+but that’s not true. This sudo exploit feels a 
+bit out of my league. I think I have the skills to
+attempt it. I have some ideas I want to try, but 
+maybe I will fail. And that’s totally fine for me,
+because I know by trying this I will learn a lot. 
+Actually I have already learned sooooo many new
+things working through this project. And it 
+is already a success for me. Remember other
+people have done the research and there are many 
+good exploits already, but that’s not the point,
+we use this sudoedit vulnerability to learn. 
+And it’s actually cool that others have written
+exploits already. Because if I get stuck, I can 
+always look at the other exploits for inspiration.
+So either way, huge success for me.
+That being said, what should be our next steps?
+I have two ideas I want to combine. The first 
+idea is to write a tool that helps us enumerate,
+or fuzz, different hep configurations by 
+controlling buffer sizes. But to be honest,
+this idea is not actually from 
+me. When sudoedit was released
+I obviously read over the advisory 
+and I remember them saying this:
+“To implement this initial technique, we wrote 
+a rudimentary brute-forcer that executes Sudo
+inside gdb, overflows the "user_args" buffer, 
+and randomly selects the following parameters:”
+So this is an example of where I read about an 
+idea, it seemed obvious and I saved it in my head
+and facing this exploitation challenge, I recalled 
+that you could try to bruteforce different
+parameters. Now the advisory specifically talks 
+about which parameters they fuzz, because they
+have an actual exploit technique they are going 
+for. But for my learning attempt, I don’t want
+to do that. I don’t know this technique, so I 
+want to see if I can figure something out myself,
+but still using the technique 
+of brute forcing heap layouts.
+That was the first idea. But I have a second idea. 
+I thought I could specifically search through
+the heap for function pointers. How would I do 
+that? I’m sorry, not telling you just now. But
+I would love to hear your ideas in the comments 
+below. Next video I show you how I have done it.

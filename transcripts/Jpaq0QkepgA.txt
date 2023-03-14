@@ -1,0 +1,48 @@
+With the all the information that you are
+being bombarded with when auditing, testing,
+reverse engineer and so forth, it’s important
+AND natural to look out for patterns.
+For example a lot of web applications encode
+data in base64.
+Sometimes in cookies, sometimes in APIs.
+And one thing I immediately notice in base64
+strings is “ey!”
+Look at this string.
+Does it tell you anything?
+Well maybe you already can recognise that
+it is base64 without having to attempt to
+decode it, but anything besides that?
+Anything about the data it encodes?
+Without having to do a base64 decoding I KNOW
+this is going to be JSON data.
+You see, JSON starts with a curly brace and
+a quote, and that results in e, y
+And being able to see that saves time, and
+allows you to quickly find interesting data.
+Same with debugging binary exploitation challenges.
+When you look at a hex memory dump, it is
+very overwhelming when you start out.
+So many different values.
+But eventually you start to learn to see here
+patterns.
+That is a stack address, I know that because
+it’s very similar to the stack pointer and
+something you see a lot when doing this stuff.
+But also here this fairly random looking data,
+I don’t even have to decode values from
+it, to see what it is, it is clearly ASCII.
+These bytes are in the ascii range.
+You can generally see that based of the first
+nibble.
+Ascii really only goes from around 2-something
+to 7-something.
+20 is a space.
+You might also see soem null bytes and obviously
+A or D also for new lines but most characters
+are in this area.
+So over time your brain develops this intuition
+to quickly judge if most of these values look
+like ascii.
+And so looking for and learning patterns like
+this will help you to be much more efficient
+when researching something.

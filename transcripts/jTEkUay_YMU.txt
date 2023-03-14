@@ -1,0 +1,310 @@
+In this miniseries I want to explore a hardware
+reversing project.
+I have this air-conditioner which uses a remote,
+and we want to understand how it works.
+So in this miniseries I want to reverse engineer
+the communication between the remote and the
+A/C unit.
+It’s not advanced or new in any way, it
+was done countless of times already, but if
+you have never done any electronics stuff,
+I think this is an awesome example to get
+started.
+I have not done this before either, I just
+know theoretically how it should work, so
+I want to take you along how I approach this
+project.
+First we try to understand the behaviour of
+the remote and A/C Unit, because from that
+we can already infer a lot of information.
+And after that we will use some electronics
+and build a poor man’s logic analyzer with
+an arduino.
+I have here this remote with a display, showing
+the set temperature and other settings such
+as cooling or fan modus and some other stuff.
+The first question is how does the click information
+on the remote travel to the A/C, and is there
+any communication back from the A/C because
+we can see the set temperature on the remote
+screen.
+This is easy to test.
+We can simply walk into another room, far
+away from the A/C, change a few settings and
+then walk back to the main unit and look on
+that display.
+And we can see that the settings on the main
+unit hasn’t changed, but the remote says
+something else.
+And when we click now another button on the
+remote, the A/C unit immediately jumps to
+that value.
+This already tells as soo much on how the
+protocol works.
+Not every single click is transmitted alone.
+So when I press temperature UP, it doesn’t
+send an “UP command”.
+It actually transmits the whole state of the
+settings.
+This means there is some kind of packet, that
+is transmitted, that contains all values.
+To verify this assumption we can also change
+the settings on the unit and see if the remote
+changes.
+Which it doesn’t.
+And as soon as we press something on the remote,
+it jumps back to that value.
+So this reveals so much about the protocol
+already.
+It’s one way from the remote to the A/C
+unit.
+And it seems to be a bigger packet containing
+all the settings information.
+So how does the remote transmit this information.
+Well when we look at the remote we can see
+at the front - what looks like any normal
+LED.
+And you probably_ know that that is an infrared
+LED.
+Just a quick refresher about the electromagnetic
+spectrum.
+Not that I claim to know physics in any meaningful
+way, but we should have some idea about it..
+So visible light is a tiny area of the electromagnetic
+radiation.
+Our cells just happen to respond to those
+wavelengths and our eyes are dark for all
+the others.
+That’s bad for a few things, so for example
+we cannot see dangerous gamma or X rays.
+But also good because we can use the non-visible
+em spectrum to transmit data.
+So your WIFI, bluetooth, mobile, radio is
+all just different kinds of electromagnetic
+radioation, it just happens to be a different
+wavelength our eyes can’t pick up.
+And Infrared is also defined as a certain
+wavelength, which is just barely out of our
+capabilities to see.
+Though there are some animals that can see
+infrared light.
+Also most of our photo sensors in our cameras
+react to the wavelength of infrared light,
+thus we can use strong Infrared lights to
+see in the darkness with cameras.
+And we can also point the remote at our phone
+camera to see that light.
+Uh.
+mmh…
+I can barely see it.
+Well, a lot of times cameras use an IR filter,
+because humans can’t see Infrared, thus
+capturing infrared could falsify the colours
+and stuff.
+I’m using an iPhone here, and I know that
+front facing camera doesn’t have an IR filter,
+so we can see it better with that one, and
+also if we go into a darker room we can really
+see it easily.
+So to properly analyse it, because it just
+quickly flashes, we need something to capture
+this.
+The 24 or maybe 60 frames a second of a camera
+are way to slow to capture the fast flickering.
+So we will build a small circuit to analyse
+this.
+We need a sensor that reacts to infrared light,
+but not to other light.
+There are light sensors, so called photo-resistors,
+which increases or decreases resistance depending
+on the amount of light.
+Though this one is calibrated for regular
+visible light so it’s no good use to us.
+But I have here this IR receiver, which works
+more like a transistor.
+It has three pins, two pins are basically
+the power supply, +5v and ground.
+And the third pin is either high or low depending
+on if it captures a significant amount of
+IR light or not.
+I put this here on a so called breadboard.
+That is a convinient rapid prototyping plattform.
+So for example the long red and blue lines
+on the side are all connected in a row.
+Which I use for the power supply.
+So I connected the IR receiver’s power supply
+with those lines.
+And the holes in the middle are also connected
+in columns but divided in the middle.
+So I can plug in the IR here and it will get
+the power.
+There is this great hobby eletronics platform,
+which you probably know called arduino, which
+makes it super easy to use by everybody.
+I use an arudino compatible board from SainSmart,
+because it came in this cheap electronics
+tutorial learning box.
+But you should definetly check out all those
+arduino learning packs and resources.
+They are awesome.
+Those 50-60$ are worth more than buying a
+game.
+You learn so much.
+Anyhow, this board has some pins and they
+are are labelled.
+And we can see here a 5V and GND, which stands
+for ground pin.
+So we can use that to supply the breadboard
+with power.
+And we can use one of the digital input and
+output pins to connect to the third leg of
+the IR receiver.
+If you have never done this yourself it might
+look already a bit complicated, but it’s
+really really easy.
+You just ahve to do it once yourself.
+Here is also the schematic how this setup
+looks like.
+We have the IR receiver.
+It’s connected to ground here and to VCC,
+which refers to the power-supply, here.
+And the third pin is connected to the digital
+pin of this arduino, or sainsmart leonardo
+board.
+Arduinos have this super easy programming
+IDE, where you can program in C and simply
+upload the compiled program to the board.
+And it just works.
+So we want to write some code that reads the
+output of the IR receiver so we can analyse
+it.
+We can take an arduino example, that would
+read the state of a button and just modify
+it to read the state of the IR receiver.
+So there are 2 main functions.
+The setup function which initialises the serial
+communication, that’s a protocol so the
+computer can communicate with the board and
+send text.
+Out of scope right now, but we will look at
+serial some other time.
+And we initiate the pin number 8 as an input
+pin.
+Then the loop function here is like an endless
+while loop.
+This is what will be executed constantly in
+a loop.
+And here we want to read the state of the
+input pin 8.
+And send this input via serial to our computer.
+Then we can compile it, we have to make sure
+the board is properly recognized with the
+software, and then we can push it onto the
+board.
+Now it’s running there, we can open the
+serial console and see the output.
+So currently it’s sending only 1s, so the
+IR receiver outputs always high, 5V, which
+is a digital one, when it’s idle.
+And now we point the remote at it and when
+we press it, we can see some 0s rushing by.
+That’s cool but a bit hard to analyse.
+So let’s modify the code to use a so called
+trigger.
+We can start with a state 0, where we constantly
+read the input, and once it drops to a 0 for
+the first time, we switch the state to 1,
+where we now send the input, including the
+microseconds, so we have some time information
+as well, to the computer.
+Now we push it to the board, wait until it’s
+booted, and now we see now input being sent
+to the computer.
+But if we point now the remote at the IR receiver,
+and we press a button, we get the first 0
+and now the data is rushing in.
+That’s better.
+Now we can simply copy this output into a
+text file, to analyse.
+We can collect now multiple samples, for example
+the packet to select farenheit or celsius,
+or turning it on and off.
+I use jupyter notebooks to work with stuff
+like this.
+It’s basically python, just with an awesome
+interface to do explorative scripts.
+I first start by including some important
+modules, so we can plot data.
+And then we read one of the logged data files
+with numpy and specify that the data is comma
+seperated.
+This will give us a big numpy array.
+Now we can extract the microseconds and the
+single bits.
+Next we can use pyplot to plot this data in
+steps.
+Looks a bit awkward so let’s play around
+a little bit with the limits of the y and
+x axis, as well as the figure size of the
+plot.
+And maybe also cut the data points at some
+length, because we only are interested in
+the data at the front.
+We can now also wrap this into a function
+so we can simply call load, with a filename
+and get this nice digital logic plot.
+Awesome.
+Look at this.
+This is a great poor mans logic analyzers.
+Though we might want to add some points, so
+we can see exactly where our datapoints are.
+And then we can compare for example celsius
+to farenheit packet and the on and off packet.
+But how do we read this.
+They clearly look similar, so this is not
+random wiggling.
+This is some kind of real pattern.
+This is the infrared LED flickering on and
+off in a specific way.
+But how the LED flickers is defined in the
+protocol.
+And somehow we have to understand now how
+the protocol works.
+So one attack you can do, without knowing
+the protocol, is compare multiple packets
+of the same command, like multiple turning
+ON packets, and then you would see that it
+is always the same.
+So there is no crypto, or timestamp, or whatever
+involved.
+So a replay attack is easily possible.
+Without knowing what the bits mean we can
+just resend this pattern to perform this action.
+Another thing to work out the protocol is
+to compare similar packets.
+Like celsius and farenheit.
+And we notice that some spikes are very close
+together and some spikes are far appart.
+And we can try to see if this pattern is different
+for both of them.
+Because farenheit or ceslisu can be represented
+by one bit, it’s either 0 or 1, we can infer
+from that what a bit 0 or 1 might look like
+in this pattern.
+Maybe you can pause this video here and try
+to extract the single bits from those packets.
+But there is a big problem here.
+Each single dot is a point where we read the
+state of the receiver.
+And they are so little compared to the amount
+of spikes.
+Thus maybe we missed some spikes.
+Or some spiked appear wider or thinner even
+though they were the same.
+So 
+this arduino and laptop setup is a great start,
+but it’s not very precise.
+It is enough to work out the protocol, but
+next video I want to show you how you can
+do this a little bit more advanced.
+And we will start reversing the packets.

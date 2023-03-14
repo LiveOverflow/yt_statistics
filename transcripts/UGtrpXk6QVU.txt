@@ -1,0 +1,370 @@
+In the previous episode we gathered a lot
+of information and even did some security
+research into a potential DOM clobbering technique.
+And in this video we try to piece together
+all the little things that lead to solving
+this challenge.
+We know from the description that the whole
+attack starts with TJMike from pasteurize.
+So we can create a XSS on pasteurize that
+sets the window.name to our attack debug JSON
+string and then redirects to allthelittlethings
+with the __debug__ parameter, which then takes
+our debug string from the window.name and
+applies it to the user.
+We don’t know yet how that leads to being
+able to XSS or just how to extract the flag,
+but this is the best start we have right now.
+Now we can think about how we can use this
+debug JSON to our advantage and do something
+nasty.
+And the first thing that came to our mind,
+was obviously controlling the theme!
+The theme is an attribute on the user object
+and it is used in update_theme() to set the
+callback handler of the javascript that is
+embedded.
+So if we would set theme.callback to for example
+alert(), when the user and the theme is loaded,
+it would embed alert as a script and execute
+it!
+But when we try that, it doesn’t work.
+We get an error when we try to appy/merge
+this debug object with the user, because “property
+theme has only a getter”.
+We can see in the user class, that theme is
+infact a getter function.
+And it cannot be set.
+This getter function accesses the internal
+private #theme attribute, which we cannot
+set with this either.
+I thought the plan forward was clear, but
+this threw a wrench into the wheel.
+This is where I really got stuck.
+But then managarmr from our team immediately
+had an idea.
+Let’s overwrite the prototype of this object.
+The prototype of an object defines basically
+the base class functionality.
+And the prototype of the user includes things
+like the getter functions.
+Overwriting the prototype of the user, throws
+those away.
+Let’s try this.
+We set __proto__ to an empty object.
+And maybe now our theme definition can take
+over.
+Let’s refresh the page.
+AND YES!
+WE GET AN ALERT!
+So load_theme() accessed the theme from the
+user we set, used the callback name alert,
+created the script tag with our name, which
+looks like this, so it executed alert with
+this parameter.
+Cool!
+But what now.
+unfortunately we are still far from being
+done.
+So before we reached this point, we actually
+already had played around with the JSONP endpoint.
+Because we wanted to know what we are allowed
+to use as a callback parameter.
+If we for example could write here any javascript,
+we could create a fetch() request to take
+the page content and send it away.
+This could be used to leak the list of private
+notes, so we would basically have solved the
+challenge.
+But if you try that as an actual callback
+parameter, you see that almost all symbols
+are removed.
+So we iterated through all characters to see
+which characters are allowed.
+And we found out it’s all letters, numbers,
+dot and equal.
+That’s very restrictive.
+But we are still making small progress and
+we know we are getting closer.
+So we have here a Script Gadget.
+We have the ability to insert one statement
+into here.
+And somehow that has to get us one step closer
+to the flag.
+Let’s think about this logically.
+What ability does this actually give us.
+First of all, we can call any function we
+want.
+Like alert.
+But we don’t control the parameter.
+We always will have this odd object as an
+argument.
+We also have dot available, so we can call
+basically any function that exists.
+We can do things like Object.constructor.apply().
+Okay, so ability 1.
+Call any function.
+But this is not all, we also have the equal
+symbol, and this allows us to assign a value
+to something.
+So we can have blah = asd, but asd will also
+always be a function call.
+Overall, both options are very restrictive,
+but we knew there must be some tricks.
+And we just started playing around with this.
+We did this simply by opening the developer
+tools and try to write javascript with these
+kind of patterns to see if we could do something.
+I for example wanted to call fetch, to send
+away the page data.
+So I tried to figure out how I could call
+fetch.
+Of course fetch with this parameter makes
+no sense, because we need to get a URL into
+there.
+So I started to think of things like .bind(),
+because after the bind function call it still
+returns the original function, just with .this
+bound to the object passed in.
+Just very weird stuff.
+Very aimlessly just playing around.
+But eventually this lead to the realization
+we could write stuff into the innerHTML of
+some element.
+And that was a first breakthrough.
+We could do something like document.body.innerHTML
+= and then something that returns a string.
+If we for example do this with alert, the
+alert call doesn’t return anything, the
+return value is undefined.
+But we can still see that the document.body
+HTML is overwritten with undefined!
+So if we somehow can control what string is
+assigned to the innerHTML, we could do a full
+XSS, right?
+This again took some playing around because,
+remember, we always have a function call on
+the right side.
+But we figured something out.
+I decided to use an input element with a value
+set to the payload I want to inject.
+This way I’m able to get a string into the
+page.
+And remember from DOM clobbering how we can
+access this now?
+In theory I just wanted to access window.xss.value,
+to read that string and assign it to innerHTML.
+But again, we have this function call here.
+And obviously we can’t call this string
+as a function.
+But then with playing around it also clicked,
+we can call toString!
+So calling toString on the string just returns
+our string!
+Another small trick that helps us.
+Awesome!!!!!
+.At first I chose an image tag with onerror.
+If we try to execute it as if we used the
+window.name debug trick, we see the broken
+image loaded.
+Which means our payload somewhat worked, but
+no alert box.
+Unfortunately we run into the next problem.
+“Refused to execute inline event handler
+because it violates the Content Security Policy”.
+The CSP is very restrictive.
+It requires a script tag with a random nonce
+you cannot predict, or you need a
+tag but with a src hosted on the same self
+URL. crap…
+BUT!
+Wait!
+Our JSONP endpoint allows us to create a minimal
+script that is hosted on the same self domain!
+So we should be able to inject a script tag
+with another /theme and a callback of our
+choice.
+This would give us an extremely limited script,
+but now we can inject multiple of them.
+And we can maybe build more complex primitives
+that way…
+But of course we have another problem… this
+actually doesn’t work, because script tags
+assigned with innerHTML are not executed.
+The HTML5 specification actually says that.
+“Note: script elements inserted using innerHTML
+do not execute when they are inserted.”.
+Oh maaaan!
+So many little steps forward and we are still
+not there.
+And this is where another trick comes into
+play.
+Using an iframe with no src, but a srcdoc
+that contains the script tag.
+I cannot remember how I came up with that,
+I think maybe I saw that trick before and
+just tried it out, or I stumbled over it again
+while researching CSP bypasses.
+But eitherway, it’s out there, it’s a
+thing.
+This will create an iframe with a new document
+that contains this script tag.
+And a new document means the script tag has
+to be executed.
+This works even though CSP itself does not
+really allow iframes.
+At least if we try to actually iframe something
+else, we get a CSP violation.
+But we only get that because we try to load
+a specific source.
+We are not loading a source here.
+We are simply embedding an iframe inside this
+page with a custom document.
+And that document happens to have a script
+tag.
+Sneaky awesome trick.
+We still cannot do full XSS in there, because
+we are still bound to CSP, but we can now
+insert multiple JSONP /theme callback scripts,
+and chain them.
+I think you understand how we walked very
+little steps forward and gained more and more
+abilities.
+But this video is getting very long.
+So I think to fill in the last remaining puzzle
+pieces, let’s just look at our solution:
+So this is the window.name debug JSON string
+that we inject.
+We see we overwrite the __proto__, so that
+we can set the theme callback parameter.
+Our initial payload is basically what I showed
+you already, setting the innerHTML of something.
+But Instead of using a dom clobbered input
+element with a value, I’m actually abusing
+the window.name itself.
+This is a trick I figured out all the way
+at the end.
+Because the problem with our original idea
+was that the victim would have to have access
+to a note with such an input element.
+And the logged in victim couldn’t access
+our private notes.
+So we couldn’t a note to get our payload
+string in there.
+But we can control the window.name string.
+This might be a bit mind bending.
+But window.name is just a string.
+This is just text.
+It looks like JSON, but this is JUST TEXT!
+It will be parsed and interpreted as JSON
+when load_debug is called.
+BUT window.name is just text.
+So setting the innerHTML to this as text,
+this all will be garbage normal text.
+BUT HERE, we have now HTML tags.
+And it will render this HTML.
+Does that make sense?
+And well, the HTML it will render, is an iframe
+with a srcdoc.
+And that srcdoc contains a few HTML elements.
+So let’s investigate what happens in there.
+I executed the javascript as if the JSONP
+theme callback parameter was embedded and
+executed.
+Here you can see the injected text.
+And then it renders this iframe.
+The first element in the iframe is an image
+tag.
+With the ID x.
+And it contains a link to a burpcollaborator
+URL. so this is just a URL where we can see
+any request sent to it.
+You see, it’s intended to leak stuff.
+This image will make sense in just a moment.
+Next we have three script tags.
+All three load the theme URL with a special
+callback parameter.
+You can see here essentially the three lines
+that are being executed.
+First we overwrite the overall Object prototype
+of the toString function and set it to the
+RegeEx to string function.
+Remember the prototype tells an object what
+it basically inherits.
+So all general objects toString functions
+now become the toString implementation from
+a more special RegEx object.
+Then we set the attribute source of all Objects
+to the text of the parent document.
+So this reaches out of the iframe, goes into
+the parent, and gets the text.
+This gets the IDs of all those notes.
+And then we set the src of our image X, by
+calling concat on the src string.
+Remember, this is how the whole javascript
+string looks like.
+So this line NORMALLY would simply concat
+this object parameter with the URL already
+in the image source tag.
+BUT because we did this magic here before,
+the source of the concat copy, is now our
+leaked text.
+So internally it will not concat this parameter,
+but actually uses the text we extracted before
+and set as source.
+And when the source is set on an image, the
+browser attempts to load this image, sending
+a request to that URL.
+At least that’s what I think happens.
+BECAUSE WHAT THE FUCK IS THIS MAGIC?!
+We didn’t come up with this.
+We actually went through all published research
+from the challenge author, terjanq, and we
+stumbled over this tweet.
+“I recently discovered a fancy way to execute
+arbitrary XSS without parentheses.
+As far as I am concerned this is a novel technique
+😁”
+Our payload is a variation of this.
+By playing around we were able to figure out
+and construct a primitive with the image to
+concat the URL with the document text.
+Thus creating this image URL, sending the
+request and LEAKING the page content.
+Now we have everything that we need to solve
+this challenge.
+We just need to pull off this XSS twice.
+Here is the recording from the CTF just before
+we solved it.
+Here I’m constructing the XSS payload for
+pasteurize.
+This eval blob here simply sets the window.name
+to the JSON payload we just looked at.
+And then it redirects to the note overview
+page.
+As explained this will cause the whole chain
+to kick off, and eventually result in the
+image tag inside the iframe, to load the leak
+URL with the page content of the parent.
+Leaking any private note IDs to our burp collaborator
+server.
+And here is the image load request.
+In there you can find the private secret note
+IDs of TJMike.
+And next we do the same payload, but instead
+of leaking the note overview page, we want
+the full content of this particular note.
+Do the same steps again, reporting this pasteurize
+post with the XSS to TJ mike, this fires off
+“all the little things” that get executed
+in a chain resulting in leaking the private
+note.
+Which we can find leaked here.
+And there is the flag.
+“When the world comes to an end, all that
+matters are these little things”.
+awww…
+We submit it, and we were the 20th team to
+solve it.
+The last team to solve it.
+Just about 2h before the end of the CTF.

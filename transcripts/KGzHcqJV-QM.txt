@@ -1,0 +1,343 @@
+This video is the third and final video where
+we will now finish the exploit for stack level
+0 from protostar, which we have compiled on
+a modern system.
+In the first part we got a general overview
+of what has changed when the code is compiled
+with a more modern compiler and looked more
+closely at the stack cookie.
+In the second part we then ignored the cookie
+for now and identified a few more exploitation
+mitigations and developed a bypass for them.
+So only one thing is left.
+Finally defeating the stack cookie.
+Like we talked about in the first video, we
+can bruteforce a stack cookie if the binary
+is a 32 bit binary.
+There are around 16 million possible values
+for a stack cookie.
+That’s not that much, but 16 million executions
+is maybe a number where you start want to
+optimize a bit.
+While I’m not an expert in super fast computing,
+I decided I didn’t want to write a potentially
+slow python script, but write some C code.
+But like I said I’m not an expert in what
+is the fastest and I actually suspect that
+maybe the bottleneck here would not be a slow
+script, but the kernel which has to do a lot
+of stuff to execute the program over and over
+again.
+So maybe it’s unnecessary to write C code
+and maybe my C code is very bad too.
+But I just wanted to mention it that it’s
+not always easy to decide what is the best
+approach.
+Now that we said that, let’s try to approach
+this step by step.
+First.
+How do you execute a program in C. Well, there
+is a system call for it called exec.
+But usually we never call syscalles ourselves
+directly, but use wrapper functions provided
+by something like libc.
+So libc offers a few different versions of
+exec, but they are ultimately all using the
+same exec syscall underneath.
+It says here in the man page:
+“The exec() family of functions replaces
+the current process image with a new process
+image.”
+I think when you never thought about how a
+program is executed before, this sounds really
+weird.
+“Why do you replaced the current process
+and not just execute it?
+That’s so weird”.
+Well that’s just how it works, that’s
+the execution model of Linux.
+And so in our case we don’t just want to
+exec and thus replace our program, but we
+want to execute the stack0 binary as a new
+process over and over again.
+To spawn a new process we have to fork the
+process before we exec.
+fork() creates a new process by duplicating
+the calling process.
+The new process is referred to as the child
+process.
+The calling process is referred to as the
+parent process.
+And maybe also interesting is this down here:
+Difference between C library function and
+the actual kernel.
+Since version 2.3.3, rather than invoking
+the kernel's fork() system call, the glibc
+fork() wrapper [...] invokes clone(2) with
+flags that provide the same effect as the
+traditional system call.
+So what you do to execute the process over
+and over is to:
+First fork our current process.
+now we have a child.
+An actual new separate process.
+And you have to imagine this code is now dooplicated,
+we have two processes running the same code,
+just one runs as the child and one runs as
+the parent.
+And you can check the return value of fork
+which process you are.
+In the parent process you get the pid of the
+child.
+In the child it’s just 0.
+And then in the child process we can call
+exec, to replace the current process with
+stack 0.
+Now in our case we want to communicate with
+the child.
+Meaning we want to write the exploit input
+to it, and read the output of it, to determine
+if we were successful.
+Usually you would do this by creating pipes.
+pipe() creates a pipe, a unidirectional data
+channel that can be used for interprocess
+communication.
+The array pipefd is used to return two file
+descriptors referring to the ends of the pipe.
+pipefd[0] refers to the read end of the pipe.
+pipefd[1] refers to the write end of the pipe.
+Data written to the write end of the pipe
+is buffered by the kernel until it is read
+from the read end of the pipe.
+Basically the same pipe you can use on the
+commandline.
+You pipe stdout from one program, cat, into
+the stdin of another program, grep.
+That’s why we call this character a “pipe”.
+So for basic stdin and stdout communication
+you would create two pipes.
+And then when you fork, because you clone
+the process, the child and the parent have
+access to the same pipe.
+Now obviously depending on if you are the
+parent or the child, you use one or the other
+side of it.
+And in case of the child, we are actually
+going the replace the default stdin and stdout
+now with those pipes.
+By calling dup2.
+The dup2() system call performs the same task
+as dup(),
+And The dup() system call creates a copy of
+the file descriptor.
+After a successful return, the old and new
+file descriptors may be used interchangeably.
+They refer to the same open file description
+and thus share everything.
+But dup2, instead of using the lowest-numbered
+unused file descriptor as dup(), it uses the
+descriptor number specified in newfd, the
+second paramenter.
+If the descriptor newfd was previously open,
+it is silently closed before being reused.
+So dup2 closes the current stdin and stdout
+of the child, and plugs in the new pipe we
+created.
+And when we exec, the stack0, and replace
+the current process with the new one, stuff
+like open fildescriptors stay in tact.
+So the new process will use the pipes we just
+connected for reading input and writing output.
+And then in the parent we can simply read
+and write to the other end of the pipe and
+thus communicate with the child process stack0.
+A nice thing to do is to close the ends of
+the pipes you are not using in either process.
+So for example we don’t need the reading
+side of the stdin pipe because we want to
+write, send data, to the child process.
+Ok.
+Once we have written our buffer overflow input,
+we can wait for the child process to finish
+and read the output to see if we were successful.
+Now here is a first big issue.
+Buffering.
+Libc will buffer output you write.
+So the output of the child process is buffered
+in the process.
+And you can imagine, that if we do a buffer
+overflow, screw with the stack and get a segfault
+this buffer is lost.
+The program is just dying horribly.
+But maybe you think that doesn’t make much
+sense, because we showed in part 2, that our
+exploit theoretically works and we see the
+output on the shell.
+We saw the modified variable message.
+SO how how does it make sense that the shell
+would see the output but I’m telling you
+now, we won’t see it with the code we just
+have written?
+Well.
+There is a difference to how libc buffers
+output depending on what kind of pipe it’s
+connected to.
+And in our case we have just used regular
+pipes and libc will buffer the output data
+until the process calls flush(), or maybe
+until it’s filled nicely, maybe after 1024
+bytes or so.
+I don’t know.
+But we have neither, the output is super short
+and the child process never calls flush().
+So what’s different on the shell.
+Well programs executed by the shell are not
+connected via regular pipes, but are connected
+to a pseudo terminal.
+Pty.
+And when libc sees.
+That the output is written to a pty, pseudo
+terminal, then it will flush() the buffer
+upon a newline.
+Because newlines are like the ultimative indication
+that you want to print a new line (laugh)
+on the terminal output.
+I think it’s like speed thing, you don’t
+want to flush if not necessary, but on the
+terminal you want to see outputs after a newline.
+This means, we could also execute the stack0
+program in the context of a pty, so that we
+fool libc into flushing on every newline.
+And there is a convinient libc function that
+does that for us.
+Called forkpty()
+The forkpty() function combines openpty (open
+pseudo terminal), fork(2) (which we know),
+and login_tty() to create a new process operating
+in a pseudoterminal.
+The file descriptor of the master side of
+the pseudoterminal is returned in amaster.
+So that’s really cool.
+We fork a child process and already get the
+filedescriptor so we can communicate with
+the child process.
+Then I disable a few options of the terminal,
+for exampel I don’t want to echo the input
+again.
+For example if you watch my embedded hardware
+security CTF videos you notice that usually
+whenever I type something on the shell to
+the board, I don’t see the characters I
+type, that’s because I didn’t configure
+the terminal to echo back the characters.
+While it would have been nice there, I don’t
+need it here.
+And there are a few other options that could
+screw with what we want to do.
+And then we also don’t have to fiddle with
+pipes.
+So the child is just exec now.
+In the parent we define our bufferoverflow
+input, that’s basically the one we developed
+last video, and then also add some random()
+function to get three random bytes for the
+cookie.
+And place those into the buffer overflow string.
+A simple ugly loop to avoid newlines, because
+that would indicate the end of our input,
+and we dont’ want that.
+Then we write the bufferoverflow string to
+the master filedesriptor of our pseudo terminal
+and stack0 will read it and will get exploited.
+Then I create a short loop to check the status
+of the child, but I don’t want to block
+and wait for it, because the child could horribly
+die or not die because of the buffer overflow,
+so I just check the status a few times in
+a loop and if the child is dead, we continue,
+If we waited already a few times we decide
+to kill the child process,
+And otherwise we sleep a bit.
+Usually it shouldn’t loop much, as the child
+program is very short, but it’s a safety-net.
+BTW.
+program ids, pids, are prone to race conditions
+in linux.
+You see we don’t have some kind of handle
+direclty pointing to the child process, we
+only have the number.
+And numbers can be reused.
+So theoretically our child could have died,
+another process like a webserver could have
+been executed and assigned our old pid, and
+then we kill it here.
+And there is no better way, linux is just
+really ugly some times.
+Anyway.
+One other thing I want to add now is a signal
+handler, which will be notified if the child
+dies or so.
+We could just read the output after the wait,
+but we don’t know why and how the child
+might die and so forth, and I also found it
+to be a third slower if I do that.
+So used the signal handler instead.
+This handler function is called to notify
+us if anything happens to the child.
+So when it receives a SIGCHLD.
+And in the handler function we then read from
+the terminal the output of stack0.
+First we read the “Try again?”
+message.
+And then potentially read the stack smashing
+detected error, OR maybe the successful modified
+variable message.
+Or maybe nothing.
+Then I do an ugly check of the second output
+to see the success message.
+If that’s the case we print it and we are
+done.
+So now it’s basically ready.
+I add some more debug output to see whats
+going on, add an argument to supply a seed.
+and then we can compile it.
+Because we want to use forkpty, we have to
+also link the utils library.
+Here you can see how many executions we get
+per second per process.
+This machine has only one CPU, so this will
+take a while, let’s come back later.
+Let’s see.
+Mhhm… nothing happened yet.
+Maybe let’s rent a bigger server for a few
+hours with more CPU cores.
+Mmh maybe this one.
+Now to run it I do some ghetto parallelisation.
+But oh what.
+Only 9 executions per second, what kind of
+crap is that?
+If you look at the processes you can see something
+called apport.
+Apport is a system which:
+intercepts crashes right when they happen
+the first time,
+gathers potentially useful information about
+the crash and the OS environment,
+Ah, so because we constantly crash a process
+this thing is gatehring information and slowing
+everything down.
+Let’s disable this service.
+And then let’s wait for a bit.
+AWWW YEAH!
+See, one process output the modified variable
+message.
+How amazing is that.
+I admit not the most reliable exploit, but
+it worked.
+I’m happy.
+If you have a better exploit strategy for
+this here, please share it with us.
+I’m really curious what other techniques
+could be used to exploit this program in a
+more reliable way.
+Thanks guys, see you next time.

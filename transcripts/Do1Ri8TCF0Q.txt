@@ -1,0 +1,220 @@
+Last video we setup AFL to fuzz the sudo binary 
+in order to rediscover the sudoedit vulnerability.
+So let’s have a look at the results. As 
+you can see the fuzzing campaign has been
+running for over 24h now. AND we seem 
+to have some crashes! Maybe we actually
+found the sudoedit vulnerability! 
+So let’s investigate those crashes!
+AFL stores all inputs that crash the binary 
+in the out folder. In my case it’s in /tmp/.
+Because I ran AFL in parallel, you can find four 
+folders based on their name in there. In each of
+these folders is a folder named crashes, and 
+that contains the crashing inputs. So let’s
+look at the first crash input with hexdump. And 
+there it is. Remember, this file format has to
+be seen as if they were arguments for sudo. It’s 
+basically a null-byte seperated list of arguments.
+And the first one should be the program 
+name. But this testcase it’s neither sudo
+nor sudoedit. So could it have even found 
+the sudoedit vulnerability? We can also grep
+through all crash inputs, checking if AFL found 
+any crash with sudoedit. But we find nothing.
+Huh… not what I was hoping for. 
+But we did find some crashes,
+so there is a chance we found 
+another zeroday in sudo!
+Let’s investigate.
+As a first test we can just cat
+one of the example crashes into our fuzzing 
+sudo binary, and we can confirm, it crashes
+the binary! Segmentation fault!!! COOL!
+To understand where exactly it crashes,
+we should let it crash with GDB attached.
+Btw I installed pwndebug in this container, to get
+a bit nicer gdb output. Just copy and paste those 
+install instructions and you should have it too.
+Now we run the binary, and we pipe 
+one of the crashes in. There we go.
+And we crashed because of afl_init_argv.in_buf?
+AFL_INIT_ARGV is from the header file we added.
+And in there we have a in_buf, 
+that holds the fake argv arguments.
+What the heck? If we look a bit around with 
+GDB, looking at where we came from before
+we jumped there, we can see that it indeed 
+crashed inside of sudo, and we find a `call
+rax` in sudo_warn_gettext_v1. 
+That’s weird. I’m suspicious.
+Before we go further with this, I wanted to 
+create a small proof of concept, that crashes
+regular sudo. Not the AFL instrumented sudo. 
+The actual sudo on the system. Because if it
+crashes regular sudo then we know the crash 
+is legit. If not, we know something is wronf.
+But to do that we have to turn this crash 
+file into actual arguments and execute sudo.
+But that’s pretty simple. We can actually reuse 
+the argv-fuzz-inline header file for that.
+We basically create a small execve wrapper that 
+I call afl2sudo, where we use the AFL_INIT_ARGV
+makro to get a fake argv, and then we execve the 
+real sudo binary, but pass in the fake argvs. So
+now we execute sudo with the malicious arguments.
+When we compile this now, we should be able to
+run a basic test, by specifying sudo and 
+for example the -l argument, with those
+null-byte separators. And yes! It looks like our 
+wrapper works, we indeed called sudo with the -l
+argument. Now let’s try the crash file. 
+We cat and pipe it into the sudo wrapper.
+AND BOOM! Segmentation fault! I THINK WE FOUND 
+A NEW ZERODAY. Let’s investigate with gdb.
+We debug our afl2sudo wrapper program and 
+pipe in the crash input. But damn…… we crash
+inside our wrapper program. If you look 
+at where we crashed, you see we crashed
+inside the afl_init_argv function. We didn’t 
+even make it to the execve to execute sudo.
+It looks like we have some bugs 
+in the afl fake argv setup stuff.
+GODDAMIT?!
+How annoying is that?!
+So I did a quick check and added this 
+debug printf, where each loop I print some
+variable values. And when I compiled and executed 
+that. I noticed that rc is counting very high.
+Over 1000. Even though MAX_CMDLINE_PAR is only set 
+to 1000. So we are actually causing here a buffer
+overflow. Which means we are writing pointers 
+from our fake argv, into some other memory.
+And this explains the crash 
+we were seeing with afl!
+The crash AFL found through fuzzing is a 
+bug in AFL’s experimental argv wrapper code.
+Our fake argvs are static buffers, 
+so basically global variables.
+And so our input must have caused 
+the loop to count rc very high,
+wayyy out of bounds of the ret array buffer, 
+OVERWRITING a lot of global data, including a
+function pointer used by sudo_warn_gettext_v1 - 
+overwriting it with a pointer of our fake argvs.
+This didn’t immediately crash the 
+program. But in some conditions the
+sudo_warn_gettext_v1 function was executed, 
+using the bad pointer, causing the crash.
+Anyway. we need to fix the argv wrapper. Which 
+is pretty simple. We just have to make sure,
+that rc never gets above the MAX_CMDLINE_PAR value
+of 1000. If we reach that, 
+we just bail out of the loop.
+Okay, this should fix our false-positive 
+crashes. Now let’s recompile the sudo
+binary again and setup fuzzing again. But 
+instead of parallel fuzzing the same setup,
+I thought we could do some additional experiments.
+The first fuzzer I start is the same. I’m 
+just adding two more testcases. You can see
+here I added a set of different sudo argument 
+flags that I took from the sudo help page.
+Just so afl can use some correct arguments 
+for fuzzing. Hopefully this fuzzer finds
+the different functionality with 
+sudoedit and then finds the crash.
+Besides this, I want to get another independent 
+fuzzing instance going, but have a testcase
+that already includes sudoedit. So here I 
+prepare the fuzzer with those testcases.
+This fuzzer should find the crash much faster, 
+because afl already knows about sudoedit.
+But that’s not all. For both these testcases we 
+use afl. Original afl. But I thought it would also
+be interesting to try out AFLplusplus. Which 
+according to their readme “is a superior fork
+to Google's afl - more speed, more and better 
+mutations and more and better instrumentation”.
+So I created another dockerfile, you can 
+find it in the episode folder on Github.
+This image, instead of AFL, installs 
+AFLplusplus. Usage is pretty much the same,
+so we don’t really need to change anything. 
+Except that we use afl-cc as the compiler,
+as all the other variants like afl-clang-fast 
+are just symlinks to the same one.
+We just configure sudo to build with 
+it, and then `make` it as we did before.
+And now I use the same input testcases as we did 
+for afl. We end up with 4 different but comparable
+fuzzing attempts.
+Let’s start them!
+To summarize. These two fuzzers are vanilla afl. 
+But this one with only sudo testcases. And this
+one also has sudoedit testcases.
+The other two are AFLplusplus,
+also with only sudo and then also with sudoedit.
+I’m really curious to see how this develops.
+Btw, we haven’t really looked at the afl output 
+yet, so let’s use this opportunity really quick.
+Here you see how long the fuzzing has been 
+running. And information such as last new path
+or even last unique crash, can really help to 
+get a feeling for how well the fuzzing is doing.
+Early in fuzzing we of course expect 
+constantly new paths to be discovered.
+If fuzzing hasn’t found new paths in a long 
+time, then maybe you can stop the fuzzer.
+But “long time” is relative. For some projects you 
+might feel like 2h without a finding is too long,
+and for other programs maybe just a 
+week without findings is too long.
+There is no magic crystal ball that tells 
+you if afl found everything afl can find.
+Here you can see the fuzzing speed. How many 
+program executions do we get per second.
+And we have for all roughly 280 to maybe 
+300 execs per second. For me it’s kinda
+crazy to think that we are executing the 
+sudo binary over 200 times per second. But
+maybe for larger fuzzing campaigns 
+this number is also extremely low.
+And of course here it counts how many 
+total executions we have completed so far.
+The other interesting output is the findings 
+in depth. Here it shows you if you found any
+crashes. Of course, we have 0 crashes so far, we 
+just started. But for some really bad programs,
+you might IMMEDIATELY run into crashes. Or you run 
+into crashes because your fuzzing setup is wrong.
+Like the issue we talked about in this video.
+Timeouts are also intersting to look at. If
+the fuzzed program runs into an endless loop, or 
+calculates something extensive that takes a while,
+a timeout might occur. I believe default 
+timeout is one second. So if this number would
+be crazy high then maybe you need to finetune the 
+timeout value, or investigate what is causing it.
+maybe you can slightly patch the target binary 
+to not run into these timeout conditions.
+But I’m not a fuzzing expert, I have no 
+clue how to interpret the other values.
+I mean I know that the fuzzing strategies 
+down here refer to different ways the input
+is mutated between runs. But I couldn’t say if 
+any of these values are weird or interesting,
+and if they give me any information that I 
+can use to change something about the fuzzing.
+Anyway. Let’s let these fuzzers run for 
+a bit and see what they come up with.
+Btw, if you want a server to run your own 
+fuzzer, checkout my affiliate link for linode.
+You will get a 100$ free credit so 
+you can run a bit of fuzzing for free.
+Also Linode has different plans, and for 
+fuzzing maybe a dedicated CPU plan makes sense.
+If you end up spending some money on 
+linode, I will get a small reward.
+If you want to support my videos directly, 
+checkout liveoverflow.com/support.

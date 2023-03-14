@@ -1,0 +1,615 @@
+Welcome back to the next episode of 
+Minecraft Hacked. I have to admit something.
+I played some more off screen. You 
+can actually see the result behind me.
+I wanted to build some nice stuff, I have said 
+that in the past few episodes. But then I never
+done it. Constantly I’m getting distracted by 
+looking at minecraft source code and looking
+for vulnerabilities and stuff. SO here, finally, 
+I took a bit of time and made a nice walkway from
+the start of my base going up the hill where 
+we have the potato farm and villager breeder.
+And you know what, I want to show you 
+something up there. So just follow me.
+I started watching Hermitcraft, I have NEVER 
+watched minecraft series like that before.
+But it starts to really grow on me. Watching the 
+different perspectives and characters and builds.
+It’s really nice. I get why it’s so 
+popular. I cannot wait for the next episode.
+And yeah, seeing builds there made me 
+want to make something nice as well.
+So what do you think? Does my 
+path look nice? I know it’s basic
+Before we head up to the village breeder, let 
+me get some potatoes first. I thought it might
+be useful to start trading emeralds. I made sure 
+both of them trade potatoes so I can very easily
+stockpile some emeralds for later. Nice. Okay. 
+Now let’s head up the hill. And wait for it.
+You probably wonder, WHAT THE F IS THIS?!
+Okay. Yeah. I started to breed villagers. 
+I added a farm on the backside with another
+farmer. Like the potato farm we built before, 
+they will also harvest the potatoes and throw
+them to the other villagers. But here I 
+actually want the villagers to have it,
+because they need food to breed.
+And yeah, when they have enough food,
+they produce a baby. This baby then walks 
+out as you have seen in a previous episode.
+And eventually sits in a boat. And stays 
+there. This is perfect to capture villagers.
+I let this farm run for a couple of hours, and it 
+seemed to work well. You can see over time quite a
+few villagers get trapped in the boats. Nice.
+But why do I want so many villagers?
+Let me show you where I bring them.
+I made here a pathway along the hill
+and so I can transport them with the boat. Boats 
+on land are not the fastest, but they are great
+for transporting villagers. And wait for it. There 
+we are. Look at that. THIS! Should probably be
+illegal. I’m gathering tons of villagers here, 
+because I want to create a big trading area.
+For enchanted books, but also other stuff.
+By the way, I made this pathway for the boat,
+so I can tell you the fake story that I travel 
+with the boat over there. But then I remembered
+“AY WAIT! They know I developed a flying 
+hack!”. So of course, I flew with the boats
+over there. Yeah. So I have been doing that.
+But I also think we got enough villagers for
+now. So I decided to turn the breeder farm off. 
+To do that I just transformed it a little bit
+into a regular potato farm. You know, adding the 
+hopper minecart to snatch the thrown potatos.
+But also I put a composter there, because I 
+figured getting some bonemeal would be useful too.
+Anyway.
+I told you I have bigger plans. It annoyed
+me that my base looked so terrible. So I looked on 
+YouTube what to build, and I really wanted an iron
+farm, but also one that looked nice. And I found 
+this video with a really nice build by Avomance.
+It’s an iron farm in a very pretty house. So I 
+used this opportunity to try out something new
+and I built the farm in creative mode first. I 
+mentioned this before, there are mods that help
+you build. For example litematica is one a lot 
+of people use. So after I finished building and
+decorating the house in creative mode, I created 
+a schematic from it which I can now use in my
+survival world. So going back to the server, now 
+I can decide where I want to place it. I think
+here somewhere would be a nice spot. course this 
+doesn’t build it for you, it just helps you to
+visualize where to place the blocks. It’s still 
+survival and I have to have the blocks. It can
+also display a material list what you need. This 
+is very helpful so I can make sure I have enough
+of it in my inventory. But luckily we mined a lot 
+of blocks and wood in the past episodes! We have
+to transform some blocks with the stonecutter into 
+a different kind, but we definitely have enough.
+So let’s start building!
+While I was just mindlessly placing blocks,
+I thought a about Griefing. Basically the opposite 
+of building. Griefing is destroying somebody elses
+build. It used to be a big genre on YouTube, where 
+people just go on random servers and grief them
+with fire, lava casting and tnt. It still exists, 
+but I don’t feel like it’s that popular anymore.
+I think there is an interesting parallel between 
+griefing and finding vulnerabilities in other
+people’s software. In both cases, you are 
+breaking something somebody else made.
+Of course. Most of the time, griefing is 
+awful. And yet some people seem to find it
+funny. I don’t know how humor works, but I know 
+from experience, I can laugh about pretty dark
+jokes myself. I understand that they are 
+awful. And yet I laugh. I don’t know why.
+I guess I can somewhat understand that misery can 
+be funny sometimes? And griefing plays into that.
+I don’t want to sound like an old man, but I guess 
+it’s something mostly younger people find funny?
+The reason I think is, once you have been 
+on the receiving side of it, you understand
+the pain that it can cause. The older you 
+are, the more likely you have been bullied,
+pranked, cheated on, lied to whatever. You have 
+a much better understanding for what it means
+to feel this kind of emotional pain, so you 
+probably try to do it less to other people.
+And yet I said griefing is not funny “most of 
+the time”. So when is griefing not terrible?
+Isn’t destroying somebodies hard work, that they 
+spent dozens of hours on always awful? Well,
+I think what sucks about griefing is, that it’s 
+unbalanced. What takes hundreds of hours to build,
+can take seconds to destroy. But hear me out.
+Have you ever been the target of a prank?
+Was it a good or negative experience. When 
+is a prank fun, and when is it bullying.
+Pouring water over somebody you don’t 
+like at school, that’s bullying. It’s
+not a prank. You are just an asshole.
+But coming up with an elaborate plan,
+putting a plastic container on a 
+remote controlled car. And then.
+Okay… I’m not that creative. I don’t know. Imagine 
+a super cool elaborate plan to get somebody wet.
+Well now, it could be funny. The reason for that 
+is that it actually took a considerable amount
+of effort to pull off this prank. The targeted 
+person could have a response where they feel like
+“WOW, they spent so much time just to 
+prank me”. That definitely could be a
+positive experience. People care about you.
+And I think what this shows is, that there
+needs to be balance. Low effort, huge damage, 
+that sucks. It sucks to be griefed for nothing.
+But if somebody puts in a lot of effort. 
+Has to come up with super creative ideas.
+Or MAYBE the prank even takes MUCH MUCH 
+more effort than repairing the damage takes.
+Well then everything feels a bit different.
+So when you just have the IP of somebody's
+minecraft server, you go on there 
+and destroy everything. That’s
+lazy. Not funny. Not a great prank.
+But if you write your own scripts to
+scan the internet for minecraft servers, 
+you check what player is currently online,
+you do that over a long period of time, just in 
+order to find the private server of the mojang
+developer jeb_. With the goal to grief him?
+Well… I think now it really becomes debatable.
+It’s still somewhat of a dick move. It still maybe 
+made jeb_ angry or sad. But at the same time,
+hats off to the effort. This was not 
+lazy. This was actually kinda cool.
+And here we can slowly make 
+the bridge over to hacking.
+At the Massachusetts Institute of Technology, 
+the MIT, there is the concept of “hacks”.
+Hacks at the MIT are practical jokes and 
+pranks meant to prominently demonstrate
+technical aptitude and cleverness.
+Although many traditional college
+pranks have involved maximizing embarrassment 
+or inconvenience for a victim or target,[...],
+such antics are usually disparaged 
+by MIT hackers as "unimaginative" or
+"boring". [...] Even when an individual is 
+targeted [...], the jest is good-natured,
+often eliciting admiration rather 
+than anger from the "victim".
+And this is the difference. The group who went 
+through all this effort to find the server from
+jeb_, it’s clever. It’s different. It’s a lot of 
+effort. You almost have to admire them for it.
+Now I don’t know this group. I don’t 
+know what their motivation really was.
+I don’t know how much damage they actually caused. 
+I guess there are still lines you maybe should not
+cross. Maybe destroy only one building or so. 
+I don’t know. I guess you cannot say that the
+group who griefed jeb_ is completely absolved 
+of their crime. But at the same time I also
+think it’s not pure evil. The effort somehwat 
+balances it. What do you think? Comment below.
+And there are more examples of this. On the 
+oldest anarchy servers in minecraft, 2b2t.
+On there its allowed and even expected to grief 
+bases. There are tons of amazing stories how
+certain bases were discovered or leaked. And 
+then destroyed. Sometimes it was just low effort
+from the griefer. But sometimes the griefers 
+had amazing techniques, maybe even discovered
+and exploited vulnerabilities to find bases. In 
+those cases, you can have respect for the skills.
+Unfortunately, most people are unskilled lazy 
+noobs. Script kiddies. People who dont put
+any effort into anything in their life. And then 
+feel powerful and boast about their lazy griefs.
+Those exist amass and I dont want to defend them. 
+But I do think there are some crazy smart evil
+people. And when they do evil stuff. They do it 
+with a creativity and skill where you just have
+to press thumbsup on this video to pay respect.
+Anyway. I wanted to also relate this to breaking
+software. I know that many developers feel 
+pride in their creations. And they should.
+But I also know that when somebody reports or 
+documents vulnerabilities in their software,
+maybe even making fun of it (that’s a bad habit 
+in our industry), it can feel really awful.
+It feels like the researcher just wants to destroy 
+your software. I can totally understand why a
+developer would feel that way. But I also think 
+it’s kinda misunderstanding what’s going on?
+First of all, the obvious, a security researcher 
+does not create the vulnerability. The
+vulnerability was there in the code all along. 
+The hacker just discovered it. And secondly,
+usually finding, documenting and reporting 
+vulnerabilities requires time and effort. It can
+require a lot of skill and creativity to uncover 
+it. And the researcher probably didn’t look for
+them in your software because they wanted to 
+hurt you. They looked for it because it was a fun
+technical challenge, and somehow your code 
+was so interesting for them to spend time on.
+It should be seen as something positive.
+But when you compare it to the previous examples,
+you can also see that there are cases 
+where maybe the security researcher is an
+asshole. If somebody downloads a vulnerability 
+scanner, just copies an exploit from the internet,
+and in the end boasts about their amazing skills, 
+maybe laughing at the bad developers or admins.
+Yeah, suddenly you are not the cool hacker 
+anymore. Congrats you are a script kiddie.
+Anyway… the story of how jeb_’s server 
+was discovered actually motivated me to
+try to implement something like this myself.
+I have always wanted a reason to develop some
+internet wide scanning tool. Scanning minecraft 
+servers is maybe not super useful for IT security,
+but this whole project is about having fun. 
+Of course creating an internet wide scanner
+to discover assets for bug bounty hunting would 
+be more “professional”, but in the end it doesn’t
+matter. You have to solve the same technical 
+problems so the experience I gain from this
+is still useful. it’s a really good opportunity 
+to practice coding and try out some new stuff.
+So I wanted to build a scanner 
+with multiple services.
+Let’s make a plan. First we need a discovery 
+component. We need something that can scan
+for IPs with open port 25565. The 
+default minecraft server port.
+And when this service discovers a 
+candidate, it should be placed into a queue.
+Then we want something to consume this queue 
+to check if it’s really a minecraft server.
+Maybe you have noticed this before, but without 
+joining a server you already see some information
+about it when it’s in your server list. That’s 
+because there is a feature in the protocol to
+get this information from the server. It’s here 
+in the Server List Ping wiki. Requesting the
+server information makes the server return this 
+JSON data, which contains the server version,
+protocol version, the description of this 
+server, but also a sample of online players.
+So we need a component that can do that. 
+Just query the server status information.
+And then maybe we want the system to be extensible 
+if we want to do more stuff. Maybe some of you
+know what that stuff is, because I accidentally 
+made a lot of people very angry. But that has
+to wait for next episode.
+In this episode I want
+to introduce the base scanner.
+So how do we implement the two components now.
+I know about masscan but I have never used 
+it before. Masscan is a TCP port scanner,
+spews SYN packets asynchronously, scanning 
+entire Internet in under 5 minutes.
+It’s a very clever design. A TCP connection 
+is established by sending a SYN packet
+and then the server responds with a SYN ACK.
+So instead of waiting for this response.
+Masscan can just spews out SYN 
+packets to tons of IP addresses.
+And then patiently waits for SYN ACK responses. 
+If you get a response, probably that port is open.
+Now we need to be somewhat responsible and be a 
+good cyber citizen. Don’t be an asshole. This can
+be like a denial of service attack filling up 
+any available network capacity. So especially
+when you do this from a server in a datacenter, 
+be nice. And ratelimit the search. You don’t need
+to scan the internet in 5 minutes. But what is 
+a good ratelimit? Hard to say. Here you can see
+mine. I use a python wrapper around masscan and I 
+send 260.000 SYN packets per second. It was lower
+before, but I scan IP addresses in batches and it 
+took a bit too long. Even now I think I have not
+scanned the whole internet even ONCE, even though 
+I had it running for like a month or so. So I
+think it’s fine, but I’m also not sure. I don’t 
+know. It’s just very important that you think
+about this and you understand what you are doing. 
+So you don’t accidentally crash any networks.
+Anyway. When masscan identifies a potentially open 
+port I want to place this as a job in a queue.
+So how do we now get the miencraft status 
+information? And then where do we store the data?
+I want to make this clear, I did this to whole 
+project to learn and practice. My solution
+is not perfect, it’s actually terrible. But I 
+only learned this because I tried this. And I
+think if you want to become a good developer you 
+need to make experiments like this. So here is
+my docker-compose file. First of all you can see 
+here redis and mongo. Mongo is basically my object
+database. This where I store all the results 
+into. Because the whole process was explorative,
+and not every server responds with the perfectly 
+same information, using mongo is good. We can
+just throw any json data into the storage. Redis 
+is used as the backend for the task scheduling.
+It is used by Dramatiq. Dramatiq is a background 
+task processing library for Python with a focus
+on simplicity, reliability and performance.
+I have never used it before. I know about celery,
+and I have used that before. But it always 
+felt a bit of a hassle, and so I was intrigued
+by “simplicity and reliability”. For me who 
+is only developing small scripts and tools
+this is important. I’m not trying to build a 
+scalable service used by millions of users.
+I need a simpl and reliable solution. And 
+so I used this project to checkout dramatiq.
+Then we have here some python app. I mentioned 
+it before, I use python as a masscan wrapper
+so this is just a basic loop that picks a random 
+ip range, starts masscan and for any candidate is
+Launching here a minecraft server status check. 
+Basically putting the task into the queue. So
+let’s look at this mc_status function. Here you 
+can see the dramatiq.actor decorator. So this
+is a job executed by dramatiq. And here things get 
+weird. So to get the minecraft server information,
+I’m using quarry. I have used quarry in 
+episode 1 for the network protocol analysis,
+so I was already familiar with the code and wanted 
+to use it. Anyway. this is where the whole project
+fell apart. That’s why you see here time_limits, 
+timeout_process. And whatever. Turns out dramatiq
+is not as reliable as I needed it to be.
+You see in this worker function we don’t
+just calculate some basic stuff. We connect to a 
+TCP remote server, which might not even be there
+and timeout or the connected minecraft 
+server is weird. Or quarry has some bugs.
+there can be tons of issues with networking. 
+And look at this warning in the dramatiq docs:
+Warning
+Time limits are best-effort.
+They cannot cancel system calls or any function 
+that doesn’t currently hold the GIL under CPython.
+To be honest, I don’t know if that is the issue. 
+I tried to get around this by starting an entirely
+NEW PROCESS doing the whole networking in 
+it’s own space. And then terminating that
+process after a 10 second timeout. But for 
+whatever reason, dramatiq keeps hanging.
+Its running fine for a few hours, and 
+suddenly NO OTHER TASKS are scheduled anymore.
+Every day I have to restart the dramatiq worker.
+I’m not sure what the problem is. It’s very likely
+just my fault. BUT that’s the point of this whole 
+experiment for me. Dramatiq is probably awesome,
+if you use it right. But it’s not the 
+simplicity and ROBUSTNESS I was looking for.
+So this was kind of a failed 
+project for me. It worked,
+I scanned minecraft servers. But as I said, I 
+constantly had to restart the worker service.
+So on one hand it’s failure, but on the other 
+hand, this experience is SUPER valuable to me.
+I know if I want to build internet wide scanning 
+again, I need to use a different worker system.
+Anyway.
+As I said, all the information is then put into
+a mongo database and I found mongo-express, which 
+is a nice web user interface for mongo. This way
+I can very easily look at the data. And here it 
+is! Sorry for blurring the minecraft server IPs,
+but through this project I also learned that 
+people really really don’t like their PUBLIC
+SERVERS to be scanned. And my intention is of 
+course NOT to cause any harm. And if I show here
+a handful of public servers, good chance some of 
+you go there and grief it. SO yeah. I blur it.
+Anyway, here is the server status, so 
+the version and server description and
+it shows how many players are online. You can try 
+different queries, like the different versions.
+And you can see how many servers I found there.
+We could also try to look for a new 1.19 server?
+BTW it’s martch when I record this videos. 
+SO MAYBE MOJANG LEAKS IT?! No. No finding.
+I also log every player I encounter 
+in the player list of the server.
+Oh My GOD! Grian? Is that the real grian? 
+Looking at the UUID it looks like the real one.
+Could this be the hermitcraft server? 
+Though some servers have fake players,
+so I’m not sure. But looking at the other players 
+on this server, there is also paluten and gronkh.
+These are german youtubers. Wait! Wasn’t yesterday 
+the twitch rivals minecraft? Did they play?
+I don’t see them in the list. No clue what’s 
+going on there. Maybe it’s a secret society
+meeting of big gaming youtubers. It says here it’s 
+version 1.16.5. So I install that and then try to
+join. I’m NOW ALSO A BIG MINECRAFT YOUTUBER. 
+But of course I’m not allowed to join. Aww…
+Okay… so… the data is there now. what 
+do we do with this information now?
+Well… I don’ know to be honest. I don’t have 
+any big goals. The PROJECT ITSELF was the goal.
+I wanted to work on some technical projects 
+related to minecraft. This way I can turn my
+gaming addiction into something productive. And 
+that’s what I did here. I wrote this scanner,
+I scanned servers. I gained tons of more IT 
+experience. And I’m happy. There was no goal.
+JUST KIDDING! OF COURSE I DID ALL 
+THIS TO GRIEF THE SERVERS? MUAHAHHA…
+LET’S GO! I wrote simple python 
+script that looks through all my data,
+picks a random 1.18.2 servers, and wrote the IP 
+to the etc hosts file. This way I can connect
+to random_server.local, and get connect 
+to a random server. So let’s go! Connect.
+Oh looks like there is activity on 
+this server. Let’s find some flint
+and steel or TNT so we can get started!
+With flyhack and xray it should be easy!
+Oh hello there! We even have somebody 
+who can watch us destroy THEIR WORLD!!!!
+JUST KIDDING! Of course I’m not griefing. I want 
+to look at amazing builds form other people. And
+so I’m officially the ANTI-GRIEF SQUAD. If I 
+join your server, I leave with a net positive.
+So let’s maybe harvest and replant some of 
+those crops. And then we did a bit of good.
+Next server. This one looks a bit empty. Probably 
+they just moved away from spawn. I flew around a
+bit but couldn’t find any buildings. But I 
+still wanted to leave with a net positive.
+So I got some wood, crafted a chest. And placed 
+the leftover materials in there. There we go. Next
+server. Ah nice, some more player activity here. 
+Over there, it looks like a castle. Interesting.
+I love the new terrain generation. I really should 
+have built in such a place as well. Anyway. this
+looks like some automatic smelting setup?
+But nothing there.
+There was also a nether portal and maybe it’s 
+a highway to a bigger base? There was a long
+hallway. So let’s run down and see where it leads. 
+BTW this is NOT speed up. This is just the flyhack
+basically walking on the ground. This is the 
+actual speed. OH MY GOD, almost ran into that lava
+fall. Okay nothing here as well. Let’s go back. 
+We did pickup a lot of blocks from our sprint,
+so let’s place them into a chest, and 
+then we also did something good on here.
+Next server.
+Another player is online here. Cool. We had a
+nice chat and I wanted to find where they are, so 
+maybe I could help them mining. With my xray mod
+I could collect a few diamonds for them. I flew 
+around spawn but just didn’t see them anywhere.
+And then I had my glitch again. I got disconnected 
+for flying. But I HAVEN’T DONE ANYTHING GOOD YET.
+And the person i talked to was so nice. So 
+I wanted to go back. But… I’m banned. Sorry.
+Next server.
+Ok this server looks crazy. There are also
+commandblocks and buttons that teleport around. 
+There are loots of builds on here. I also noticed
+that there are entire diamond block buildings, 
+so I guess I don’t need to help anybody here.
+They got everything. But it’s still super fun 
+flying around and exploring some of the builds.
+And UH! What’s that over there?
+THAT IS HOGWARTS. FOR SURE. I KNOW A HOGWARTS
+WHEN I SEE IT. YEP. that’s definitely hogwarts.
+By the way there is an incredible harry
+potter hogwarts minecraft map and 
+whole game. It’s incredible. Let’s
+see what else we can find on here.
+Uh… I really like this walkway here,
+the reddish fences look really nice. 
+Maybe I steal this for my own server.
+On to the next server.
+This spawn looked insane.
+LOOK AT THIS. So pretty. A green oasis surrounded 
+by big snowy mountains. A beautiful pathway.
+I really need to take some inspiration from here.
+And at the end of the path, there is even this
+amazing house. Really cool. In one chest I found 
+a pickaxe and I thought I wanted to help out
+and find some diamonds. I flew over the mountain 
+top and on the other side I found a village where
+definitely players had built stuff. This here 
+is an iron farm. I really like it when people
+try to make their farms fit into the world. And 
+this totally fits into this village. Really nice.
+There was also a nether portal which led to a 
+mob farm. And looks like they have also enough
+materials already. I don’t think I can really 
+help much here. So let me go all the way back,
+and return the pickaxe. And onto the next server.
+Here I finally used my xray. I got an iron
+pickaxe, went underground and mined 
+some diamonds. I really hope they
+appreciate that. Put them in the chest. And 
+the ANTI-GRIEF SQUAD is on to the next server.
+This server was really fun again. There was a 
+player online. They were not at spawn but I got
+lucky and found their place while flying around. 
+UH there they are. Hellooo.. Just looking around.
+They still have iron armor, so maybe they 
+would really appreciate a few dimaaonds.
+I found some sticks but still need iron to 
+craft a pickaxe. Is there no iron around?
+But then this funny situation happened.
+They asked, “How did you get here so
+fast?”. And I, just casually, slowly float 
+upwards. Like a real SUPER Saiyan BADASS?”.
+And the reaction. “Oh”.
+And just a moment later.
+I got killed. And put into adventure mode.
+Actually, that’s really nice. Thanks for
+still allowing me to explore your server and not 
+banning me right away. But I would have really
+liked to mine some diamonds for you as well.
+Anyway. Back to exploration. I looked at their
+villager trading prison. Which is actually 
+quite comfortable. They really have a lot
+of space with a bed. In my villager 
+trading hall. This wont be the case.
+Anyway. That was fun exploring random 
+minecraft servers. Minecraft itself is
+a game about adventures and exploring the unknown 
+world. And so this is really just an extension to
+that. Joining these random worlds is very nice to 
+see. You never know what you will stumble into.
+So here is my video idea for you. 
+Instead of griefins random servers,
+why don’t you try to be more creative and try to 
+figure out a way how you can help on the server.
+Create a house to extend their village, do 
+a bit of farming. Some mining. I don’t know.
+There are tons of nicer things you can 
+do. Anyway. Back to my own world again.
+The iron farm and sugar cane farm is done. 
+Here is the iron farm. The zombie is constantly
+scaring the villagers, which will summon an 
+iron golem. And everything around is spawn
+proof. Except the kill room. So the golem can 
+only spawn in here and is pushed into the laval.
+Whichs kills the golem slowly. The dropped iron 
+is then collected by some hoppers. And below
+the farm I built some basic item sorting. BTW.
+I named the zombie “upper management” because
+it’s like a joke. It’s like a joke for adults. 
+Doing nothing all day and focring the poor workers
+to do their job and spawn the iron golem. Yeah.
+Anyway.
+Here is the sugar cane farm. The observers 
+will see if the sugarcane grew tall enough.
+And then trigger the pistons destroying part 
+of the sugar cane. Which is then picked up
+by the hopper minecart below. Also a very 
+basic design you can find everywhere online.
+BUT I tried to make it more pretty so it fits 
+into the area. I used campfire to make these
+chimneys. And I think now it kinda looks like 
+an industrial building fitting into this space.
+Cool.
+Next up is the
+villager trading hall.. I got started on it, 
+but I will tell you more about it next video.

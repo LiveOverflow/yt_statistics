@@ -1,0 +1,360 @@
+Okay sorry sorry, I know you wanna see more
+technical stuff, but I think it’s important
+to hear a bit more about why you would even
+use a cryptocurrency hardware wallet and what
+you protect against.
+What’s your threat model.
+These devices promise that they are more secure
+than an alternative but threats are multifaceted
+and I want to explore this a bit more.
+When you unpack the Ledger you will find a
+paper called Recovery Sheet.
+That is actually intended to backup your private
+key, by writing down the mnemonic phrase that
+can be used to derive your actual private
+key from.
+Basically, by indirection, it is your private
+key.
+Now why would Ledger, this supposedly awesome
+secure wallet tell you to write down your
+secret key on a paper?
+If the paper is more secure then why would
+you buy a ledger?
+This comes down to the threat model and the
+huge amount of different situations you have
+to consider.
+The paper wallet and the hardware wallet cover
+different aspects and are thus in some way
+difficult to compare.
+I mean we can compare them but we can’t
+rank them.
+Which one is better, totally depends on a
+given situation.
+The advantage of a paper wallet is, that everybody
+understands the strength and weaknesses of
+paper.
+Even amish understand the limitations of a
+secret written on a piece of paper.
+And this is a huuge advantage.
+You understand that you shouldn’t carry
+it around in your pocket because you could
+loose it.
+Which means you definitely shouldn’t travel
+with it.
+It’s also obviously not a digital device
+so it can’t get malware.
+You also understand that if somebody breaks
+into your house they could steal it.
+And so you also know that a small mini-safe
+might prevent simple thieves, but also that
+a huge secure built in safe is better to protect
+it.
+But also that your kid could shouldersurf
+you when you enter your code to the safe.
+You also understand that paper can burn in
+a fire or be destroyed by water damage.
+But also that everytime you want to access
+your cryptocurrencies, you need to enter that
+private key into some device to perform the
+cryptographic computations, and those could
+have malware.
+You get the point, you understand, probably
+every kid understands, the limitations and
+advantages of paper.
+Because of that Ledger encourages you to write
+it down.
+Paper is probably the easiest to understand
+method to store a private key, because everybody
+understands what it takes to keep that safe.
+That’s why it’s a great way to backup
+your key.
+But it’s also obvious that that might not
+be true for everybody.
+For example if you travel a lot, then where
+could you keep that paper safe.
+It has limitations.
+And I hope that makes sense.
+Now what about these hardware wallets.
+Ledger, Trezor, KeepKey, Bitfi?
+In a very simple sense they are devices that
+somehow store your secret key, but also perform
+the cryptographic algorithms, so the key never
+leaves the device and for example malware
+on your computer can’t steal your coins.
+So this is probably the biggest threat model
+that hardware wallets want to cover.
+Protect YOU from malware you might get on
+your internet connected laptop, because you
+download cracked games bundled with a trojan
+after you put all your money into bitcoins
+instead.
+But this is simpler said than done.
+There are a lot of different ways how this
+can be achieved, so let’s quickly look at
+a few hardware wallets and what they consider
+their main features.
+Ledger supports different apps to support
+different crypto currencies.
+Those apps run on the secure element of the
+Ledger.
+It has a built in display to verify transactions
+It has buttons to confirm transactions
+Access to the ledger is protected by a PIN,
+which apparently erases your data if it was
+entered wrong three times.
+It also supports FIDO, which is something
+entirely different but super nice, I also
+use U2F for many of my accounts.
+And then the most funny feature is the Backup
+& Restore feature, that your accounts are
+backed up on a recovery sheet.
+So this paper is one of the notable six features
+coming with the Ledger.
+Pretty funny.
+Trezor has more transparency due to open source
+it also features a display and buttons to
+verify transactions and you also get a paper
+to write down your recovery key.
+It also has PIN and passphrase entry to prevent
+simple access to your wallet.
+Keep Key also offers you to backup your recovery
+sentence on a paper.
+Also is protected by a pin entry.
+And the display also allows you to verify
+transactions before sending them.
+And apparently it’s virus and malware proof.
+And there are probably more but the point
+is not to show you all the available commercial
+products.
+I just wanted to show you that the idea is
+generally the same.
+So let’s talk quickly about why they are
+sharing those same traits.
+Those were:
+Backup and recovery by using a paper wallet
+Secure storage of your private key
+A display to show some critical information
+Some kind of buttons or input
+And a Pin or passphrase
+First of all, digital devices can be destroyed,
+they can break or can be lost.
+Especially because these hardware wallets
+are intended to be carried around with you.
+So it’s important that you have backups.
+And maybe a backup of your backup.
+Or some multisig setup where you give different
+trusted entities different pieces.
+So that’s a general threat everybody knows.
+Then we have the secure storage.
+Now the Ledger for example uses a secure element
+which is a special chip which is intended
+to be a secure chip.
+There are a lot of hardware countermeasures
+implemented in there and there is a bit of
+secrecy around it what they actually do, but
+that’s just how it is.
+As you know from the previous video, the Ledger
+has a Secure Chip and an insecure chip.
+The Trezor and the KeepKey just have a simple
+non-secure chip.
+But that doesn’t mean that much.
+The problem with the Ledger was not that it’s
+not a secure chip, but that they don’t care
+that you could run malicious code on it.
+Anyway.
+Then we have a display and buttons.
+And that becomes super important when we talk
+about the probably most important case.
+Malware on your computer.
+There are two possibilities for a regular
+software wallet.
+First is you just have the private key somewhere
+on disk.
+Or the second option is that the key is encrypted
+and requires a passphrase or pin to decrypt
+first.
+In either case the key is at some point accessible
+for malware on your computer to steal it.
+These hardware wallets are intended to be
+used together with a software on your computer
+and so even if a malware would spoof the address
+shown to you on your computer, or try to create
+transactions without your knowledge, the device
+will show this request to you and you can
+accept or decline.
+And all hardware devices kind of fulfil that
+same purpose.
+Offload the private key and crypto calculations
+to a second device so that your coins are
+safe even if your regular internet connected
+computer is compromised.
+Now if you trust your machine to never catch
+malware, or never catch malware that targets
+your coins, then making sure your private
+key is encrypted when it’s not used, is
+probably enough.
+If your device is stolen or you forget to
+lock your laptop, your coins are safe.
+But if you want an additional layer, because
+you can’t trust your machine, you can offload
+that stuff on a second device.
+And you could totally use a raspberry pi or
+an old laptop that will never be connected
+to the internet, or firewalled and only allow
+to connect to the crypto networks.
+Then do the crypto calculations on there.
+And have full disk encryption with a passphrase
+to prevent access in case it’s stolen.
+It’s a simple clumsy hardware wallet solving
+the same threat.
+But as you may slowly understand is, then
+why would you not just use a raspberry pi,
+or why would you want a ledger or a trezor
+instead of a keepkey.
+Well, there are nuances to everything.
+A HUUGE factor is, that it has nothing to
+do with security.
+And that’s convenience.
+These hardware wallets are just super convenient.
+I personally don’t mind to spend money on
+something that is less hassle.
+And maybe some wallets support some obscure
+scam coins that you really want.
+So from this highlever perspective you could
+use any hardware wallet.
+They all implement pretty much the same thing
+and aim to protect against the same threats.
+So why not just get the one you feel the coolest
+with.
+Except the BITFI wallet.
+DO NOT BUY the bitfi wallet.
+So the other day a new hardware wallet appeared
+on the scene, the bitfi wallet.
+Heavily endorsed by charlatan, fraudster and
+scammer John McAfee.
+That alone should already ring your alarm
+bells… buuuut…
+I got baited into buying two for doing some
+research, because of the ridiculous claim
+that it’s unhackable and they offer 100.000$...
+shortly after I placed my order I found the
+bug bounty rules what exactly they require
+for a reward.
+They say they put some coins on it, and if
+you successful extract the coins and empty
+the wallet, this would be considered a successful
+hack.
+So basically they only consider loosing or
+stealing of the wallet a valid threat.
+But that’s complete bullshit.
+That’s just one possible situation.
+The bitfi wallet prides itself with Open Source,
+which is just a charade because only the key
+derivation algorithm is open source.
+As you can see here, you plug in your passphrase,
+along some other stuff and the private key
+falls out at the end.
+So even if you completely get access to all
+the data on the wallet, you have no chance.
+You need to bruteforce that.
+And so even putting your regular encrypted
+wallet on your parents malware infected machine
+is equally safe.
+Because to decrypt it you need the passphrase.
+That threat model is soo stupid.
+Especially because that device is just a shitty
+repurposed android phone, with wifi, so that
+doesn’t scream confidence at all.
+They say it’s unhackable because they at
+least understand basic math and crypto and
+know that the data is worthless without the
+passphrase so they structured this bullshit
+bounty around it.
+And the fact that maybe you can get malware
+on it and steal it as soon as the user unlocks
+the private key - doesn’t count.
+Urgh… makes me so angry.
+I really hope somebody finds a flaw int the
+key derivation which lowers the brute force
+search space drastically.
+Anyway…
+So we talked about the general more highlevel
+goals.
+But as I just hinted at with the bitfi wallet,
+there are small nuances to everything.
+For example in some way the Ledger with the
+secure element might offer much stronger protection
+than just a regular chip storing the key like
+in the Trezor, though hopefully both devices
+have the key encrypted and derive a decryption
+key from the user input.
+But then also the Ledger allows running apps
+on the secure element, which is sandboxed
+and offers only restricted syscalls, but there
+were issues with that before, so I’m not
+sure if that was a good architecture choice.
+Then you have the super easy ability to run
+untrusted code on the Ledgers unsecure processor,
+a malware can spread to the Ledger.
+But as we know from last video, that might
+not even be problematic.
+While the Trezor also has an unsecure chip
+but at least tries to make getting malicious
+code on there harder.
+Another aspect is, and I’m not paranoid,
+I totally trust Ledger as much as I trust
+Windows and Google and Apple to not push malicious
+updates, but theoretically those wallet developers
+could push a backdoored software update to
+steal your key.
+And then there might be even smaller nuances.
+How fast does the hardware wallet lock itself
+if you walk away from your machine.
+How long can passphrases or pins be and how
+easy is it to enter them.
+Are keys extractable from memory if somebody
+does a cold boot or somehow accesses the memory
+while device has still power vs. when it was
+powered off.
+And mauch much more.
+And the problem here is, that I don’t even
+f’n know what to do now.
+All these hardware devices are extremely complex.
+Just because I spent now several days with
+the ledger I have a better understanding of
+the architecture and can criticise and praise
+it in certain aspects, and I can’t do that
+for any other wallet.
+And I’m even pretty experienced with IT
+security compared to the average person.
+How do you expect people to use these devices
+well.
+And this is where we come back to the paper
+wallet.
+The paper is so easy to understand and it’s
+easy to be confident when handling it.
+And so even if I have some criticism about
+the ledger, because I understand better the
+possible weaknesses, right now, I would probably
+prefer a Ledger over another wallet, just
+because the research into it empowers me as
+a potential user to use it’s potential and
+pay attention to the situation where I don’t
+trust it.
+I mean I don’t really have use for a hardware
+wallet anyway.
+But that’s an interesting perspective for
+me.
+And to become a bit political, that’s why
+it’s so important that we have to fight
+for more laws protecting researchers and allowing
+reverse engineering, because these things
+are so complex without being allowed to look
+under the hood and check if the marketing
+claims are correct, we are lost.
+So I hope this unstructured rant helped you
+a bit more in understanding the complex threat
+models and how to analyse if a security product
+really does what it hope it does.
+Next video we will start with opening up the
+Ledger Nano S.

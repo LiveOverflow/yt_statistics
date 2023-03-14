@@ -1,0 +1,276 @@
+In this video we will script radare2 in python
+with r2pipe to extract the encrypted code
+and recover the flag.
+Last video we reverse engineered the algorithm
+that is used to verify the input key (the
+flag) with binary ninja and gdb.
+The challenge is called Zwiebel from the TUM
+CTF 2016, and that’s the german name for
+onion.
+We learned that the binary will decrypt itself
+layer for layer and check different bits of
+the input during each step.
+Now we want to create an automated script
+that performs the tedious reverse engineering
+task for us.
+First make sure that your radare2 installation
+is up to date.
+Always work with the repository and not install
+it from a package manager.
+Then simply run sys/install.sh which will
+update to the latest commit.
+And make sure you have r2pipe for python installed.
+Now we can access radare from python.
+The API is super simple.
+After opening a file you simply execute commands
+as you would with the radare commandline.
+So let’s get started.
+Open the binary with radare2.
+Then use doo, which reopens the binary in
+debugging mode.
+Then I take the address of the call r14 and
+set a breakpoint with db.
+With dc we can continue the process execution
+which will for the input key.
+After that we hit the breakpoint.
+Now let’s do the same in our script.
+First we need to import r2pipe and then we
+can open the executable with radare.
+Then we can simply execute those commands
+with the cmd() function.
+It’s that easy.
+Here is what I try to do.
+I will write the script here and in this small
+window I try to show you the radare command
+descriptions and what it does.
+Then I hope it’s easier to follow.
+So the first command was doo, which reopens
+the binary in debug mode.
+After that we want to add the first breakpoint.
+Which is db.
+Then we resume/continue the process with dc
+which should hit the breakpoint.
+At this point we should be just about to execute
+the call to r14.
+Which is the actual code doing the checks
+and deecryption loops.
+So we want to do a step forward of one instruction
+into that code.
+I think we will single step a few times, so
+let’s define a helper function step(), which
+will execute ds, which is a single step.
+When you execute a single step, then obviously
+the instruction pointer of the CPU moves on,
+but the current address of radare does not
+update.
+So we want to also seek to the new address.
+We can use sr rip, which will seek to the
+value of the register rip.
+Cool.
+We will use that function in a moment.
+So now we can start writing the loop that
+will perform the same steps over and over
+again.
+So our first step is to extract the current
+bit checking rule.
+How does this look like.
+We can scroll back up to where we looked at
+this in gdb and look at how this looked like
+in assembler.
+So we are somewhere before this code, and
+what we want is to now extract all those lines
+of assembler until we reach that jump-equal.
+So we define a list disass, which will hold
+each line.
+Then we do the following loop.
+We first step one instruction forward, and
+then use pd, which prints the disassembly
+of one instruction at the current address
+of radare.
+That’s why we seek to RIP in the step function().
+But actually we will do pdj, because that
+outputs json information instead of just a
+text line.
+And in python we can call this now with cmdj,
+which will automatically return a python dict
+to easily access the JSON data.
+Let’s quickly see if our script works by
+opening a python shell and copy the code.
+Looks pretty good?
+Or no.
+Somehow it all hangs.
+Mh.
+We kind of forgot to handle the input.
+The process is currently waiting for a key,
+which we can’t enter.
+I started to google a bit and found this.
+So I created a rarun profile that specifies,
+that the process shall receive this string
+as input.
+We can set this profile through radare’s
+environment variables.
+So we add this command to our script.
+Then we can try to run it again, and indeed,
+it now proceeds and the breakpoint after the
+key input is hit.
+Now let’s continue with the script.
+Let’s add the current instruction opcode
+to the list.
+Pdj returns a list of instructions.
+So we get the first element.
+And then we get the “opcode” value of
+the dictionary.
+Then we also check if the instruction type
+is a conditional jump.
+Cjump.
+If that is the case we reiched the jump-equal.
+This means we reached the end.
+If the bit check was ok, it will continue
+to the decrypt loop afterwards.
+This means, after we break out of this loop,
+we have a list of instruction and the last
+one is the jump-equal.
+And the one before is the binary and value.
+And the one before that is the mov that get’s
+the character at a certain offset.
+So the first instruction is the character
+offset.
+The syntax of the mov opcode has the offset
++ something after rax.
+So this is ugly python, but it get’s the
+job done.
+We split the string at “rax”.
+And the second element of the result, minus
+the last character is our offset value as
+a hex string.
+Though, sometimes the first character is references,
+then it doesn’t have a + hex 0.
+So if we got an empty string, we simply set
+the offset by hand to 0.
+Then we can convert the hex offset value to
+an integer number.
+Next instruction is the binary and value.
+Which will tell us which bit is checked.
+Similarely like before, we can take the opcode
+string and split, after the comma.
+And that is the hex value which we can convert
+to an integer.
+Cool.
+One more thing we need now is a variable to
+build our flag.
+I’d suggest we simply make a long list of
+numbers, which we then can add the single
+bit informations we extract to.
+I initialize it to hex 20, which is the ascii
+space.
+So once we got this info, we can simply update
+the flag at the offset and set this particular
+byte with a binary or operation.
+After that we can write some code to print
+the current state of the flag.
+We loop over each number, if it is between
+a certain printable ascii range we convert
+it to the ascii character, otherwise we append
+a space to the output.
+With sys.stdout.write we can directly write
+to the output, because python print appends
+a newline.
+This way we can use \r instead, which makes
+the script look really cool.
+The next step in our script will be to perform
+the decryption.
+If you remember, after the loop instruction
+we have the jump into the decrypted code.
+So we could simply perform single steps forward
+and check after each step the opcode of the
+current instruction.
+And if we found the loop instruction we can
+stop.
+The instruction afterwards is the jump, so
+we can use pdj 2, to get the current and the
+next instruction.
+And from the next instruction we can take
+the address where it wants to jump to.
+We can extract that value easily thanks to
+the json data, and then add a breakpoint at
+this new address.
+Next we simply continue.
+I think we are bsically done.
+Let’s test it.
+No syntax errors, but something else seems
+wrong.
+It stops way too quickly after only a few
+rounds.
+Let’s add some debugging output that displays
+us some of the instructions.
+When we run it now, we get the instruction
+that check the bits.
+And when you look closely you can see, that
+it’s not always jump-equal.
+There are actually some jump-not-equal.
+So that is the inverse of the check we know.
+The normal one, checked if a character has
+a certain bit set to 1.
+the jump-not-equal check will make sure that
+a certain bit is NOT set.
+So it’s 0.
+And we don’t have this logic yet.
+Let’s write that code.
+We can simply check the last opcode if the
+jump was jump-equal and then set the bit to
+one, with the binary OR that we already know.
+Or if we have a jump-not-equal, we set the
+bit in the flag to 0.
+That’s a bit more tricky, but basically
+you use a binary AND, with a bit sequence
+of all ones, except the one bit you want to
+set to 0.
+To get this binary sequence you can take hex
+FF, which is all 1s and XOR it with the bit
+you want to set to zero, this will produce
+the bit sequence with that one bit 0.
+Just play it through on a paper it becomes
+clear.
+But there is another problem, which is our
+input flag. because we specified in the rarun
+profile that it’s a fixed “AAAAA” string,
+which will eventually fail the bit checks.
+And that’s the real reason why it stopped.
+But we could add some code that bypasses this
+check and always continues to the next layer.
+These conditional jumps je, and jne are sometimes
+also called jump if zero and jump if not zero.
+The CPU has a register that contains flags
+and one of those flags is the zero flag, which
+will be 1 if the previous calculation resulted
+in a 0.
+And it will be 0 if the result was non-zero.
+This makes sense, because if you want to compare
+two values you can simply subtract them from
+another and if the result is 0, they were
+the same and the zero flag will be set.
+This means we always want to make sure the
+zero flag is set to 0 or 1, whatever makes
+the code continue.
+We can set those registers in radare during
+debugging with dr, and then set zf, zero-flag
+to 0, so the jump-equal will not jump.
+And we can set it to 1, so the jump if not
+equal will not jump.
+Oh and we should remove our debug output.
+Now let’s run it and see what will happen.
+Urgh ehm.
+Radare outputs everytime we hit a breakpoint.
+That’s not pretty.
+But it does it on the standard error out.
+So we can simply redirect the stderror to
+/dev/null.
+Now we have a very pretty output.
+The program is running, decrypts each layer,
+extracts the rules, updates the bits in the
+flag and display it to us.
+It slowly recoveres the flag now.
+Looks so 1337!
+And there we have it!
+I hope you didn’t peel the onion by hand!
+Awesome!

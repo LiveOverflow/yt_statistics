@@ -1,0 +1,678 @@
+This video could be a little bit controversial,
+so I wouldn’t mind a civil discussion about
+this afterwards in the comments or on reddit.
+And if you you watch this video far in the
+future, please don’t blindly assume that
+I still hold the same believes, because I
+will obviously adjust my world view based
+on new information.
+Scientific method and stuff.
+But in this moment I believe this is generally
+an issue that we have to deal with, and figure
+out where we as hackers, security researchers,
+the infosec community at large, stand.
+So let me make my argument.
+Before I go into a very specific example that
+motivated me to make this video, I would like
+to approach this topic from a fundamental
+level.
+This is about mobile security or mobile app
+security in particular.
+So what makes a mobile app secure or insecure?
+Generally the apps that concern us are more
+than just applications on our phone.
+Facebook, whatsapp, wire, snapchat, instagram,
+various banking apps, paypal, bitcoin wallets
+and so forth all interact via some API with
+some kind of online service.
+some private user data is cached and stored
+on the phone, but probably most of it lays
+on the servers.
+Which means generally a security audit of
+a mobile application should includes an audit
+of the server component or the API as well.
+I have done a lot of mobile app security audits
+and I personally find them pretty boring.
+Don’t misunderstand me, I love technical
+challenges.
+Debugging apps with frida and maybe defeating
+some obfuscation or reversing a weird obscure
+layer of crypto.
+Super fun.
+But with “boring” I mean more the impact,
+the severity, of vulnerabilities that you
+can find.
+Because our mobile phones are probably the
+most secure computers that you can get.
+if they would get security patches *cough*
+android *cough*.
+So let’s consider an up-to-date iOS or Android
+device.
+Both platforms were designed with attack surface
+reduction in mind.
+It starts with the the permission model where
+each app can define which APIs they want to
+use.
+That’s very different from a regular PC
+where basically every program can access anything.
+Though to be fair that also gets better.
+We get sandboxes, namespaces, on mac you have
+SIP (system integrity protection) and so forth.
+Anyway.
+So these mobile apps run in this very restricted
+permission model and have limited access to
+those APIs, and only if permissions was granted.
+Now obviously a big issue why mobile phones
+might not feel very secure is, that the general
+public doesn’t pay attention to permissions
+and might install trojanized apps from the
+google play store that request access to every
+api and maybe even higher privileges through
+device admin and so forth, or a user has a
+rooted phone and runs a trojan as root.
+And that’s obviously very bad for the user’s
+naked pictures but that’s not really application
+security, is it?
+So if we audit a mobile app we have to look
+at how this particular app protects the user’s
+data.
+And like I said the app sandboxes are generally
+great - if the developers follow the development
+security guidelines.
+For example when a developer uses the internal
+storage the developer even doesn’t have
+to think about protecting that data, because
+you get that for free from the system.
+You can save files directly on the device's
+internal storage.
+By default, files saved to the internal storage
+are private to your application and other
+applications cannot access them (nor can the
+user).
+When the user uninstalls your application,
+these files are removed.
+So the user’s data is secure.
+Of course some developer save data on the
+external storage, then for example sb.
+Could take out the SD card and get the data
+through that.
+And sure, that’s an issue that then should
+be fixed.
+Another example is the update mechanic, which
+you don’t have to care about.
+The playstore or appstore is perfectly safe
+to push your updates.
+You don’t even have a chance to fuck that
+up with downloading unsigned updates via http
+and execute it.
+Then generally android apps are written in
+Java, so you don’t have to care about memory
+corruption vulnerabilities, of course an app
+can place some stuff in native code, which
+some do, often for obfuscation or anti reversing
+reasons, which might actually introduce memory
+corruptions.
+And sure, that’s then an issue too.
+But even then you wonder, what’s even the
+attack vector for that.
+How does an attacker even reach these code
+paths.
+So let’s explore one example in a bit more
+detail.
+android applications can define so called
+intents.
+They are basically entry points to your app
+that could be called externally.
+For example you can register a broadcastreceiver
+for ACTION_BATTERY_LOW, which will then be
+called when the battery gets low.
+And these intents, or basically external interfaces
+can also pass data around.
+It’s kind of like a more complex function
+call.
+And some developers use it to pass data between
+some trusted apps.
+For example the android facebook app will
+most likely use that to interact with the
+facebook messenger app.
+And sometimes developers forget to properly
+restrict access to only trusted apps, or didn’t
+realize that what they expose is bad.
+And so you can have very interesting vulnerabilities
+where for example application A implements
+a vulnerable intent that reads a user’s
+SMS and returns the text, exposes this intent
+publicly, and then app B, which DOESN’T
+have the sms reading permission, can then
+piggyback on app As intent to get access to
+the SMS.
+And I have seen terrible intents, and yes
+they should be fixed.
+But let’s be honest.
+How realistic are those attacks.
+Some intents might be reachable from a URI
+in the browser, but then that also isn’t
+really interactive, it’s not like a page
+can invoke an intent and steal SMS text.
+And so generally we are talking here about
+other malicious apps that abuse these intents.
+And I mean how likely is that?
+I’m not saying that it’s not an issue,
+it should be fixed.
+But how realistic is it that a user installs
+a malicious application from the appstore
+that particularly targets this one other application.
+Now here we might get into things like banking
+trojans because we know those exist.
+So yeah, a banking app with an exposed intent
+that allows money transfer without user interaction,
+that’s bad.
+A banking trojans might target that.
+But beyond that.
+Who really cares?
+To me the impact is fairly low, rare, very
+targeted, nothing people really have to worry
+about, mostly because it’s something that
+can be very easily found and fixed because
+these intents are defined in a simple .xml
+file and so apps that get audits are generally
+safe.
+You can kind of compare it to CSRF on the
+web.
+But on the web you just have to hide a hidden
+iframe that performs the attack in an ad or
+just send them a link.
+That’s bad and google even pays quite a
+bit for that on their plattform.
+But exposed intens, you have to get a user
+to install another malicious app.
+And at that point they have much bigger issues
+than the exposed intents of an app.
+But this is probably as bad as it gets for
+android app vulnerabilities.
+Like I said the sandboxing and permission
+model is great, it’s not much you can do
+on a phone.
+You can kind of compare most mobile apps to
+the browser.
+The browser renders and runs a javascript/html
+client application on your computer which
+interacts with a server in the background.
+And so does your mobile app.
+It’s just a piece of UI written in java
+and interacting with the server api.
+And browser client security has a lot more
+impact because web applications in the browser
+share the same browser, while apps are very
+isolated from each other and have to be installed
+first.
+Now the much more serious issues, like with
+web security, obviously lie with the server
+component.
+For example the API could have access control
+issues where one user is allowed to request
+messages from other users.
+Because a developer forgot the authorization
+check.
+And you know a whole bunch more issues…
+but at this points it’s basically web security.
+And so if you find an issue with the web api,
+would you classify that as a mobile app issue?
+I think the issue here is not the mobile app.
+And the server is in direct control of the
+vendor and can immediately be patched, while
+mobile apps have to get a new update via the
+store and many users might not update for
+a long time.
+Calling these kind of issues mobile app issues,
+is I think misleading.
+But there is also a big part in between the
+app and the server - and that is the network.
+Which I think is probably the biggest risk
+and threat for mobile apps.
+Because over the network you will send all
+the user’s private data, session tokens
+and so forth.
+And mobile phones are very mobile, a lot of
+people connect them to open wifis.
+And we generally have accepted that the network
+is untrustworthy, that’s why we use SSL.
+And so of course if an app communicates with
+server over http, then that is bad.
+Somebody just has to sniff the air.
+And I would consider that an issue with the
+mobile app.
+Now even if HTTPS is used, it has to be implemented
+securely.
+That means you have to have a valid trusted
+certificate and you don’t ignore SSL errors.
+If you do ignore those errors in your app,
+then it can be very bad if you have an attacker
+in a man in the middle position.
+But if you use SSL correctly, with a valid
+certificate, then the connection is secure.
+Ok.
+So up to this point I hope I was able to kind
+of show you with a few examples that android
+apps are pretty secure.
+You can screw up some stuff but it’s generally
+also easy to fix and if there are issues they
+generally are very targeted and are not as
+scalable as for example an authentication
+bypass on the web api, which could be automated
+to taking over every facebook account there
+is and download the private messages.
+Now let’s move to one particular example
+that motivated me to make this video.
+And let’s start with how a particular research
+was described in the abstracts and short summaries
+about the work.
+It’s from 2016 and is about the banking
+mobile app from Number26.
+N26.
+Here is Reuters, a very reputable news agency:
+Vincent Haupert, a research fellow and PhD
+student ..., told the Chaos Communications
+Congress in Hamburg how he and two colleagues
+found N26 security defenses riddled with holes
+that could have been used to defraud thousands
+of users.
+For example, Haupert said he compared data
+from a leak of 68 million account credentials
+from online file sharing company Dropbox with
+information on N26 users … to identify 33,000
+N26 user credentials - without being thwarted
+by N26 anti-fraud systems.
+From there, he said it would have been simple
+to send a phishing email to these N26 customers
+that could potentially have allowed him to
+break into their accounts.
+Wait, I thought Haupert got 33.000 user credentials?
+Why does he need to send out phishing emails?
+Well Reuters kind of misunderstood what the
+guy did.
+N26, like almost every website I know will
+tell you in some way if an email is registered
+with the system or not.
+So he just took a list with millions of emails
+and found 33.000 of them had a N26 account.
+And he could use that to target them with
+phishing.
+But it sounds so much worse... he was able
+to identify 33,000 N26 user credentials - without
+being thwarted by N26 anti-fraud systems.
+I understand.
+Not his fault in this case.
+Reporters have also mixed up stuff that I
+have said.
+It sounds terrible to the reader, those are
+nuances they probably don’t understand.
+But let’s move on.
+In response, N26 said in a statement it had
+made customer accounts more secure by reducing
+and encrypting data transfers.
+Wait.
+They now encrypted data transfer?
+Did they not use SSL?
+Holy shit for a banking app that would be
+bad.
+Let’s look at Hauperts official abstract
+of his research that he had presented on 33c3.
+Here he writes:
+we succeeded independently from the used device
+to leak customer data, manipulate transactions,
+and to entirely take over accounts to ultimately
+issue arbitrary transactions—even without
+credit.
+Entirely independent of the used device, we
+were not only able to reveal N26 customers
+and to manipulate transactions in real-time
+but also to completely take over a victim’s
+bank account.
+This sounds insane.
+If that were true, this is massive.
+And I can only explain this kind of impact
+if you somehow can either mitm everything,
+for example when they use HTTP.
+Or the API completely fucked up authentication.
+And that’s why this makes me so mad.
+Because this is not the case.
+And I better insert here now a disclaimer.
+I’m going to rant now a little bit, and
+I don’t want to attack this researcher,but
+I will criticise his scientific work.
+And he just happened to be the scapegoat now,
+because he was very public about this research,
+with a lot of media attention.
+But this is not a single isolated example.
+I know he didn’t deliberately mislead or
+manipulate.
+Infact I know more people that agree with
+his assessment of the vulnerabilities here,
+than I know people that agree with me.
+And that’s why I said in the beginning that
+this video could be controversial and I would
+like to see a discussion because it’s not
+quite black and white and there is a fine
+line here.
+So let’s see what the vulnerability actually
+was.
+I’m going to play the crucial part of his
+talk “Shut Up and Take My Money!
+The Red Pill of N26 Security”
+Just to talk about like the infrastructure
+of N26.
+Basically they have two apps, one for iOS
+and one for Android and they communicate over
+a JSON based protocol, TLS encrypted.
+Their backend is at api.tech26.de
+How do I know actually that this is a JSON
+based protocol?
+Because I used a TLS mitm attack, a man-in-the-middle
+attack to log the protocol.
+I actually suspect that I only needed to install
+a certificate, a mitm certificate on the client
+, but actually I was suprised I didn’t need
+to touch the client, because they didn’t
+implement any certificate pinning.
+.
+WHY IS THE AUDIENCE LAUGHING AND CLAPPING
+HERE?
+What is the surprise here.
+SSL performs verification of the certificate
+with the local CA store.
+Of course if you install your own certificate
+on the device the device will trust it.
+And the application did nothing wrong here.
+It checked the certificate via the local trust
+store and found that the user trusts it.
+This is how SSL is supposed to work.
+And yes, there is criticism about the CA system.
+We have issues with it.
+Certain CAs are not trustworthy.
+We had incidents of compromised root certs
+and we have a rampant problem of middleboxes
+and anti virus software that install their
+own certificate into the local CA store.
+But there is not much evidence or data on
+actual attacks of SSL mitm.
+But take a step back from mobile app security
+and lets look at the web.
+There is HPKP, which will actually be deprecated
+now because it has it’s own issues.
+We have the chrome public key pinning preload
+list and some of the big sites are listed
+there.
+But as far as I can see for example paypal
+doesn’t do it for their website.
+Why is nobody screaming how insecure paypal
+is because they don’t use pinning on the
+web?
+SSL has it’s issues.
+No question.
+But it’s also holding up surprisingly well.
+Realistically, how many real world attacks
+on SSL connections do we actually see?
+Public key pinning can be a defense in depth
+strategy, but claiming that an app that doesn’t
+do it is insecure?
+That I don’t agree with.
+Or most of the web can be considered broken.
+Let’s continue with the talk.
+Because now he makes an exam ple how that
+could be turned into an attack.
+The first thing that comes to mind is.
+Lets do real-time transaction manipulation.
+That means we manipulate a transaction that
+the user does, but we will change the recipient
+and the user won’t see nothing about this.
+Remember in his abstract he claimed that he
+will show how to “manipulate transactions
+in real-time but also to completely take over
+a victim’s bank account.”
+So if you look at this graphic again, what
+if an attacker could get the DNS record of
+api.tech26.de under control?
+That would mean that all traffic is routed
+over the man in the middle attacker server,
+and as there is no certificate pinning we
+could just issue a let’s encrypt TLS certificate
+and the app is going to trust the certificate.
+AGHJdafadasrfhsekf wat?
+I mean we have seen DNS hijacks in bank heist
+before, but if you can hijack the DNS record
+of a domain to redirect it to your own server
+and now MITM everything, of course you are
+screwed.
+What is the surprise there?
+But does that count as vulnerability for N26?
+No the issue, the vulnerability or attack
+would be the weak DNS system or account they
+used.
+Maybe through social engineering or bruteforced
+credentials.
+Everything that happens after the DNS hijack
+is pretty much just creative ways how you
+can cause damage.
+And yes again, pinning might have helped here
+to protect the transaction, but we don’t
+know what other systems and data could have
+been compromised through a DNS hijack like
+that.
+So at best, it would be a defense in depth
+mechanism, and sure a nice to have improvement.
+But I don’t agree that this is a vulnerability
+of the app that leads to complete take over
+of accounts.
+And in the paper he describes this as:
+If an attacker can launch a man-in-the-middle
+(MitM) attack, the transaction can be tampered
+with transparently.
+Yeah, if it were HTTP, but you can’t.
+Because SSL is used.
+But he argues:
+This becomes possible because, even though
+the N26 apps make
+strict use of HTTPS, they do not make use
+of certificate pinning—a best practice that
+prevents unauthorized third parties from breaking
+the confidentiality and integrity of the transmitted
+data.
+Strict use of HTTPS does ensure confidentiality
+and integrity.
+Without pinning you don’t loose that.
+And he lists three claims how this could be
+done..
+– A trusted certificate authority (CA) issues
+the certificate.
+Vulnerabilities in CA validation processes
+sometimes allow an attacker to take hold of
+a certificate for domains they do not own.
+Ok yeah.
+Could happen.
+Theoretically.
+But you know, how realistic is that this would
+be used in an attack against N26?
+Is that a real risk or just a theoretical
+risk?
+And also isn’t that then a vulnerability
+in the CA and not really a vulnerability in
+the app?
+– Both Android and iOS are frequently the
+prey of privileged malware—that is, malware
+that performs a privilege escalation exploit
+before executing their payload.
+It is a trivial task for privileged malware
+to place a certificate.
+That doesn’t make even sense?
+Why would a malware that used a privilege
+escalation exploit even bother to install
+a certificate so somebody can perform a MITM
+attack?
+Why not just extract the credentials from
+the app, hook the functions to change recipient
+or do whatever?
+But there is malware that does in fact install
+certificates sometime, because they run a
+local proxy to inject ads into everything.
+That’s a common thing.
+But not for MITM attacks like that.
+And if you have a malware on your phone, a
+privileged malware that is.
+You have other problems.
+This is where obfuscation comes into play
+as a possible defense in depth strategy, but
+come on.
+If we talk about theoretical attacks like
+that, then theoretically you can always reverse
+engineer and steal stuff with a privileged
+malware.
+Nothing helps.
+– A user can be tricked into installing
+the certificate through phishing or other
+means of social engineering.
+The user is the weakest point in the system.
+So, the app should pin its certificates.
+In general, attacks using phishing or social
+engineering are particularly dangerous and
+have a high success rate.
+A user can also be tricked to install a malware?
+Or a N26 developer could be phished for DNS
+account credentials or to install a malware
+and grab the SSL root certificate that they
+are pinning.
+It’s not a good argument.
+And so, no!
+N26 does not have massive security issues.
+Once you have the MITM setup you can hijack
+all the stuff obviously.
+Now N26 had some API design issues that the
+researcher also goes into that were quite
+interesting, some logic issues with some card
+number and two factor issues.
+I think these were valid API design concerns
+because N26 clearly wanted to implement something
+a certain way and he showed that it was a
+bit flawed.
+But nothing that would warrant this large
+negative response.
+Now I want to summarize.
+The media will obviously exaggerate certain
+security issues.
+Or just make genuine mistakes not understanding
+the impact.
+But in this case, “manipulate transactions
+in real-time but also to completely take over
+a victim’s bank account.”.
+I find this to be a very misleading wording
+coming directly from the researcher.
+And seeing through that is particularly difficult,
+because his research is not bullshit.
+There is a lot of good information and research
+in there, but it feels like the impact of
+them were a bit artificially inflated and
+so you have this kind of half true, half theoretical
+mix that for somebody who is not very experienced
+with, will lead to a wrong impression.
+And I think that’s dangerous and maybe even
+a little bit unethical.
+And very early in the video I mentioned that
+I don’t think he did that intentionally.
+Because I know that many people hold this
+believe that “no cert pinning” on mobile
+is a valid issue.
+I already explored earlier why I don’t really
+think it’s an issue.
+My thesis is, and the main point of this video
+should be, that I think mobile apps are sooo
+boring because issues are generally very low
+impact, that somehow the security industry,
+researchers our community agreed that missing
+certificate pinning and “only” implementing
+SSL correctly is apparently not enough.
+And I think what I say is true, because nobody
+really complains about that on the web.
+Nobody says using only SSL for your website
+is an issue that can lead to traffic manipulation
+and full account take over.
+Because SSL is actually the technical solution
+to exactly those issues.
+And like I said there are certain weaknesses
+in the whole CA system, but that is something
+else.
+That is a different research field.
+Now the researcher also announced a talk for
+the 34c3.
+Most of the information including the abstract
+only seems to be available in german for now.
+It’s again about banking apps.
+Banking apps are often target of banking malware.
+And there is a lot of android malware.
+So what banking malware usually does, for
+example on your desktop pc, it will hook into
+the browser and steal your credentials or
+use your session to wire money.
+And basically they would do similar stuff
+on android as well.
+As long as the malware somehow gets root,
+either through old unpatched android exploits
+or because sb runs a rooted device and gave
+the malware root permissions.
+And so banks obviously don’t want that their
+customers get “hacked” because of malware.
+So banks invest money into solutions attempting
+to mitigate that.
+But obviously the banking app can’t prevent
+that.
+It can try to implement root detection and
+refuse to run.
+Or obfuscate itself so hard, that it’s not
+easy to hook into the app and steal credentials.
+But it’s always going to be a cat and mouse
+game.
+The bank just tries to make reversing expensive
+enough, that it’s not economically feasible
+anymore for the malware author.
+It’s just a best-effort in order to protect
+users from themselves.
+Now if a malware is able to bypass any anti-debugging
+anti reversing or anti root detection mechanisms,
+Is that a security issue of the banking app,
+an issue of the obfuscation solution?
+Is it fair to blame the bank for it?
+And that seems to be the gist of his new talk.
+At least from what I can understand from the
+abstract and few interviews, he seemed to
+have implemented some kind of hooking, dynamic
+or static analysis of the promon obfuscation.
+And is able to basically do what promon tries
+to prevent in this best effort approach.
+Which is neat, it’s probably some really
+cool stuff and I’m looking forward to the
+technical details.
+I’m obviously just speculating here, and
+the talk and paper could be actually much
+more.
+But if I’m right, why is this talk not just
+called “Defeating Promon” and going then
+into details of how promon works and how you
+can get around it?
+That would be a cool technical talk.
+Why does this talk have to focus on banking
+apps and fear mongering.
+Leading to countless of media titles claiming
+how 31 banking apps are insecure and hackers
+can hack them.
+That’s only half-true.
+We are talking here about already compromised
+devices and a best effort approach of banking
+apps trying to protect users from their infected
+devices, why shame the banking apps?
+What is the purpose of this, if not just for
+self-promotional reasons, making the research
+sound more scary and impactful.
+And at the same time ignoring the damage it
+does in the public perception of what are
+actual threats and what are hackers capable
+of.
+This to me is FUD.

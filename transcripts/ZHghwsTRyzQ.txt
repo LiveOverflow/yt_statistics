@@ -1,0 +1,234 @@
+A very common issue that we still constantly
+encounter is shown in heap level 2 of exploit-exercises.com.
+This is a classic use-after-free vulnerability.
+Let’s try to understand the code first.
+We have here a big while loop inside of main.
+In each round it prints the variable auth,
+which is a pointer to an object of this auth
+struct up here.
+And auth has the attributes name which is
+a string up to 32 characters and an integer.
+And the other variable that is printed is
+a char pointer service, which can point to
+a string in memory.
+So both of these are addresses - pointers.
+Then we read a line from standard input.
+Maximum 128 bytes, so this is a secure fgets
+read.
+No buffer overflow.
+Afterwards we have a couple of ifs that check
+if the input line is one of the following
+commands.
+Either “auth”, “reset”, “service”
+or “login”.
+Let’s execute the program as well and then
+let’s talk about each command.
+When we first start the program, both the
+auth and the service pointer are null.
+Now we wait for input.
+Let’s have a look at the “auth” command.
+When we type auth, it will allocate the size
+of the auth struct, so that should be 32byte
+for the name + 4 byte for the integer.
+Then the whole allocated memory is overwritten
+with zeroes.
+This makes sense because if on the heap, data
+is constantly allocated and freed, then a
+newly allocated area can have old data in
+there.
+A free does not zero out the memory.
+So here it’s zeroes out on allocation.
+Afterwards the length of the input line is
+checked, so it doesn’t exceed the 32 bytes
+available in the auth struct for the name.
+And if that is safe, the characters after
+the auth command are copied to the name of
+the auth object.
+Let’s try that, let’s authenticate as
+admin.
+Cool, as we can see the variable auth contains
+now an address.
+This is where the auth object is on the heap.
+Now the last command is “login”, which
+checks if the integer of the auth object is
+not zero, and if that’s the case we sucessfully
+logged in.
+Otherwise, if it’s zero, then it tells us
+to enter a password.
+Though in this case there is not more functionality
+than that.
+but just imagine that you are trying to login
+as admin, without knowing my password.
+So somehow our goal is to set the integer
+to a value, and then we are authenticated.
+At the moment it seems impossible, because
+the integer auth is never set anywhere, but
+we have learned from the beginning, that there
+are bugs that allow us to modify variables.
+Another command here is reset, which will
+free the auth object on the heap.
+And this is actually where the issue is.
+You notice when we reset the login process,
+it frees the auth object, but as you can see
+the auth variable is not reset to zero, it
+still contains the pointer into the heap where
+the object was before.
+And when we for example login now, it will
+check the name attribute of that object.
+Well, it hasn’t changed so we are still
+unauthenticated.
+But the login command will “use” the variable
+auth after we just freed it.
+“Use-after-free”.
+Get it?
+Now the last command here is service, which
+will perform a strdup, a string dublication,
+of the characters after the service command.
+So for example we can specify that we want
+to use the hack service.
+And now we also have an address in the service
+variable.
+And strangely it’s the same one as auth.
+That is weird.
+So what does strdup do?
+Let’s read the man page.
+strdup returns a pointer to a new string which
+is a dublicate of the string s.
+The memory for the new string is obtained
+with malloc, and can be freed with free.
+Ahhh.
+so it’s just a convinient function that
+allocates the length of the string we pass
+to it, and copies it there.
+So it will also call malloc and thus allocate
+stuff on the heap.
+And you can already guess why service got
+the same address as auth, because auth was
+freed, there was free space, and service got
+that free space there.
+Let’s look at this in gdb.
+First we set the assembler syntax to intel.
+And then we disassemble main.
+Let’s first run it and use auth once, so
+we performed at least one malloc.
+Then press control+c and check the address
+of the heap with info proc mappings.
+Now we can print 20 words from the heap with
+examine.
+Also because this application has still all
+the symbols and stuff inside of the binary,
+gdb also knows that auth is from the type
+struct auth, which we can print pretty again.
+And we can see here the string name and the
+auth integer.
+We can do the same for the service string.
+Now let’s create a breakpoint before the
+printf.
+And with command we can type what (gdb) commands
+shall be executed when we hit this breakpoint.
+We can use echo to print some strings to make
+it all look more pretty.
+First we want to print the heap.
+We echo a line.
+Then we want to print the auth variable.
+Another line.
+And the service variable.
+At the end we continue automatically.
+Finsih the command sequence with end.
+Now let’s rerun this binary.
+Ok at first we get some memory errors because
+the heap doesn’t exist yet, so let’s malloc
+our first value by authenticating with “auth”
+as admin.
+Also let’s disable gdbs pagination so we
+always print everything and don’t get the
+“type  to continue” dialog.
+set pagination off
+Now we can see here our heap.
+Like we expect we have here a chunk with our
+string name admin.
+Buuuuut.
+Something is weird.
+Why is the length of this chunk only hex 10,
+that is only 8 bytes after you subtract the
+8 byte chunk headers….
+Shouldn’t it be 32byt name + the integer?
+What’s going on?
+Well this is not that important for the solution,
+but this is what happens if you write shitty
+code, and name everything auth.
+The struct is called auth, the struct auth
+pointer is called auth and the integer in
+here is called auth.
+And when the programmer calculated the size
+of auth, it calculated the size of the variable
+auth, not the struct auth.
+Thus it’s only 4 byte - but malloc aligned
+it to 8 bytes.
+Gosh.
+People.
+Please name your variables better.
+This is how bugs and security issues are created.
+Anyhow, let’s ignore that for now.
+Earlier we were wondering how the free works.
+So let’s free the auth object with reset,
+and pay attention to what changes.
+Ok lol.
+Basically nothing changed.
+Except that the first word of the chunk data
+got replaced with 0.
+That’s because this first word in a free
+chunk is defined as the previous free chunk
+address.
+Because free chunks are a linked list.
+But we don’t have another free chunk in
+this list, thus it’s null.
+So really not much happened, other than the
+malloc algorithm knows that the free heap
+starts again at the beginning and it doesn’t
+care if there are still leftover values on
+the heap, as long as the metadata like the
+previous address pointer are correct.
+Thus it only changed that particular value.
+Anyhow, we can now see that the auth object
+still exists with the pointer into the heap
+here.
+But the name is now empty with nulls, and
+the integer is also still null.
+But.
+Let’s use service to allocate a string on
+the heap.
+Let’s allocate just some recognizable characters.
+Like AAA.
+Note only 3 As, because the code is shitty
+and it also takes the space before the As.
+Here on the heap we can see that the string
+got allocated.
+And we see that the name of the auth object
+has now some different values.
+Now let’s allocate a new string with service.
+BBB.
+And another one with CCC.
+We see the heap slowly filling up.
+And huh!
+What’s that.
+Suddenly the auth integer has a huge value.
+That’s because it points into the heap where
+the CCC is stored.
+And if we now login, then we get the message
+that we are already logged in.
+Awesome!
+I have to say this level is so horribly broken.
+As I mentioned before the code is so shitty
+that it allocates the wrong size for the auth
+object.
+The space is too small.
+I show you.
+Let’s restart it and auth again as admin.
+Now simply enter a along service string.
+And boom, we also overwrite the integer.
+And we get the logged in message.
+So we didn’t have to free the auth object
+with reset to solve it, but I wanted to introduce
+the term use-after-free and that was also
+kinda the intended challenge.

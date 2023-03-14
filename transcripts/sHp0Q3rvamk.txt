@@ -1,0 +1,313 @@
+In the very first video, we learned some basics,
+on how to use docker, as a regular user.
+With a bit of focus on playing CTF.
+In the second video we investigated how docker
+works by tracing the syscall used to start
+a container.
+And we found out that there is this kernel
+feature called “namespaces” that facilitates
+this.
+On that first video I got a comment by Daniel
+Mitre who wrote:
+“I made a docker-like programm and a tutorial
+that made me understand how docker works”
+And I remembered seeing that blog post somehwere.
+I wasn’t planning on making a third video
+about this, but actually that blog post motivated
+me.
+For me this blog post is an excellent example
+of what I always try to get across.
+This playful investigation of technologies
+for learning purposes.
+This is why most of my videos are not just
+typical step-by-step explanations, but they
+are more like investigations.
+CTFs reflect that too, they are a playful
+tool to learn stuff.
+I feel like this loose and wide approach to
+learning, gets you further and deeper than
+just being boxed into a topic by some kind
+of standard tutorial.
+So let’s checkout some interesting and playful
+docker and linux namespace resources.
+And at the end we even look at some Linux
+kernel source code.
+So here is Daniel’s blog post.
+“Understanding Containerization By Recreating
+Docker”.
+“We choose to implement in C/C++ to call
+the system calls directly”.
+He explains what namespaces are and shows
+with sample code how to do it.
+Here for example he looks at the PID namespace
+like we did last video.
+The writeup comes with animations showing
+you everything.
+So if you want a bit more hands on trying
+it yourself, checkout the blog post linked
+below.
+I also remembered a similar project called
+bocker.
+“Docker implemented in around 100 lines
+of bash”.
+Yes, it’s as terrible as the title suggests.
+But again, it’s not necessarily useful,
+but it’s a fun playful experiment to learn
+more.
+And it can also be a learning resource to
+you, by practicing reading code and seeing
+how it was done.
+So let’s check it out for a moment.
+“Bocker run” is like “docker run”
+the command to start a container.
+So here we should see the unshare syscall,
+to create the namespaces.
+First we see some ip commands, so those are
+for setting up some networking stuff.
+Then there is a btrfs commands.
+As we know docker containers have their own
+separate filesystem structure.
+If you remember in the second video, we had
+different /etc/passwd inside and outside the
+container.
+So we can lookup what this command does.
+“Create a snapshot of the subvolume 
+with the name  in the  directory.”
+So essentially it creates a copy of the prepared
+filesystem in the container image, so it can
+be used by the started container.
+And then eventually we see an unshare.
+Unshare is basically a command-line wrapper
+for the unshare syscall.
+So you can easily call unshare from your shell
+or from a bash script like here.
+And from the flags we can see it creates for
+example a new pid namespace.
+And then it also chroots - so changes the
+root of the filesystem - into the new btrfs
+path.
+Where we copied the filesystem to.
+So that for the container it looks like this
+btrfs filesystem is the real filesystem.
+Pretty neat.
+Another interesting command could be “bocker
+exec”.
+As we know “docker exec” can be used to
+execute a program inside of a container.
+We typically execute /bin/bash to get a shell
+inside the container.
+And you can see the command here is very short.
+It’s essentially just nsenter.
+And I find “nsenter” a much more fitting
+name than “docker exec”.
+“nsenter - run program with namespaces of
+other processes”.
+Very self-descriptive.
+Docker exec is so abstract, but “namespace
+enter” makes much more sense.
+So here I have the docker container running
+from last time with the “watch process.
+We also remember that we could look up the
+actual pid of it with ps on our host, and
+we can check the namespaces of this process
+in the procfs.
+So let’s try to enter this processes namespace
+but instead of using docker exec, let’s
+use nsenter.
+The flag -t specifies the target process id
+whos namespace we want to join.
+And then we use the other flags to join all
+of the different namespaces.
+Mount namespace, uts namespace.
+IPC namespace.
+Network namespace and our good old pid namespace.
+But then it executes chroot, with the path
+of the container filesystem and then execute
+the command we want.
+Actually I’m curious what happens if we
+join the namespaces and don’t chroot.
+Because we do have a mount namespace which
+should isolate mounts from the host system.
+Let’s see.
+Directly /bin/bash.
+So here we are… this looks like a typical
+docker shell with the docker hostname.
+And this for sure looks like our docker image
+filesystem.
+The mounts also look fine?
+We see here the docker overlay fs.
+So maybe this chroot is just necessary to
+make bocker work.
+But not really needed here for docker.
+No clue.
+I’m not that experienced with that stuff.
+If you know more, let me know in the comments.
+Anyway.
+There is a very interesting observation that
+can be made.
+WE ARE ROOT!
+This is special because when you do docker
+exec on this container, you are the unprivileged
+ctf user.
+This is because in the docker image we specified
+that the user is switched to CTF.
+But if we directly by hand join these namespaces
+we just didn’t switch the user.
+But we could by hand execute “su ctf”
+and then we are also ctf user.
+I hope it’s clear, this is not some kind
+of vulnerability.
+We needed to be root to execute nsenter.
+Thus we became root.
+And then we simply entered that namespace
+while being root.
+But it’s a cool trick if you need root privileges
+inside of your container, when docker exec
+drops down the privileges.
+For example maybe you are debugging something
+and you needed netcat.
+But it was not installed in the image.
+And your user inside of the container isn’t
+root, so can’t apt-get install something.
+This can be annoying.
+Remaking the whole image and installing those
+tools.
+Instead you can use nsenter as root to enter
+the same namespace and then simply install
+for example netcat.
+when you now try it as the ctf user, it works.
+Netcat is installed now.
+I was looking around a bit more for interesting
+resources.
+And I stumbled over this blog post by Denis
+Andzakovic - “PLAYING WITH NAMESPACES - WRITING
+DOCKER-AWARE ROOTKITS”.
+And I really like the first two sentences.
+“Containers aren’t really a thing.
+They’re a mishmash of Linux kernel-isms
+like namespaces and cgroups.”
+And I love that, because it highlights again
+that containers are not some kind of isolated
+system like a VM can be.
+And this namespace kernel feature mish-mash
+we have also seen.
+This blog post also talks about something
+that shouldn’t be too surprising, but it
+underlines again what containers are, or more,
+what containers are not.
+Docker containers can run in privileged mode,
+which allows you do to things like install
+kernel modules and gives you complete access
+to /dev.
+If you can see /dev/sda in your docker container,
+it’s probably privileged.
+You can usually just mount the root file system.
+So even if you didn’t have the root filesystem
+inside the container, you can simply mount
+it again from /dev/sda directly.
+And obviously if you are root and have the
+capabilities and privileges to install kernel
+modules, you can execute code in the kernel
+and get around any namespace restrictions.
+And this blog post goes through such an example
+on a very technical level.
+It also includes some notes on how to setup
+a kernel debug environment.
+I haven’t tried it out myself, but seems
+very interesting.
+Link is also below.
+And now at the end I thought it could be interesting
+to take a small peak behind the curtain and
+look at the kernel source code.
+Because now we have touched upon the pid namespace
+so much, I thought it could be interesting
+to look at the getpid syscall.
+This syscall essentially returns the process
+id of the current process.
+Which means if a process is running inside
+a pid namespace it should see its fake pid.
+And not the real host pid.
+So let’s check it out.
+I’m using here Elexir cross referencer to
+move around the kernel sources.
+And we are looking for the getpid syscall
+entry.
+The function inside the kernel that is called
+when you execute the syscall getpid from userspace.
+So search getpid.
+And then I know it’s here in the sys.c file.
+It’s a bit tricky to know where to look
+if you have never done it before, because
+there is heavy usage of macros and especially
+that userland and kernelland boundary is special.
+But here it is.
+sys_getpid - return the thread group id of
+the current process
+So it calls task_tgid_vnr with current.
+Current is the task_struct of the current
+process that called this syscall.
+The task struct is a big structure containing
+all the information about the current process.
+For example the priority, exit state, the
+pid, the stack canary if stack protection
+is turned on, a reference to the parent process’s
+task struct.
+References to children.
+And so forth.
+Anyway.
+Let’s get back to the function task_tgid_vnr.
+So it gets passed in the tastk_struct of the
+current process.
+And then it calls __task_pid_nr_ns, with the
+flag PIDTYPE_TGID.
+This function has this comment here:
+The helpers to get the task's different pids
+as they are seen from various namespaces.
+The namespace wasn’t specifically set here,
+it was NULL, but we are not looking for the
+pid as seen from some other namespace, we
+want to know from our current namespace.
+So this is just a prototype, the actual function
+is somewhere else.
+It’s in pid.c
+If the ns parameter is not set, it will call
+this helper function to get the active namespace
+for this current process.
+Taks_active_pid_ns takes the task struct of
+the current process and get’s the task_pid,
+of it.
+Which is simply the thread_pid of this process.
+It then looks up the namespace of this process,
+which can also be found in some member variable
+of this pid struct.
+Dot NS.
+And returns that.
+We go all the way back, now we have the reference
+to the namespace of the current process.
+And then it calls pid_nr_ns, and passes in
+that namespace reference.
+Along the pid struct taken from the task struct.
+And here it almost does the same as the previous
+function that looked up the namespace reference.
+It also follows the pid struct into that namespace
+reference.
+But here it goes a step further because it
+now gets the process id number as seen in
+this namespace reference.
+Return that.
+And eventually we return all that from the
+syscall back to the userspace.
+So this is how essentially the pid namespace
+is implemented.
+Instead of just returning a process ID how
+it might have been many years ago in oldschool
+linux kernels, you now need to always be aware
+and need logic to determine which namespace
+you are in and then getting the correct number.
+I hope all of this helped you getting an even
+deeper understanding of linux namespaces and
+containers and docker.
+And don’t be scared to always investigate
+and play around with technology.
+I said it before: the worst thing that can
+happen is that you accidentally learn something.

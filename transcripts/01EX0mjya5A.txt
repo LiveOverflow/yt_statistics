@@ -1,0 +1,218 @@
+Welcome to another video covering the riscure
+embedded hardware ctf.
+Basically it’s about hacking an embedded
+device as part of a competition, and if you
+want more details about it, checkout the introduction
+video and the playlist.
+Also at the time of releasing this video,
+the competition is over and the sources should
+be available and you can setup your own arduino
+nano board to follow along.
+You find some links in the description.
+But now let’s checkout the challenge.
+So now that we solved the first two easy challenges,
+and Jumpy was already pretty hard for me,
+I decided to write a little program that crawls
+the current scoreboard and counts which challenges
+have the most solves.
+This way I can see which challenges I should
+be capable of solving.
+And it looks like Photo Manager will be our
+next target.
+It’s another exploitation challenge.
+The story here doesn’t really tell us any
+technical information, so let’s head right
+into it, download the .hex file, flash it
+onto the board and start a screen session
+to interact with it.
+So… the first time I approached this challenge
+I didn’t really follow a structured path
+and basically just played around with it.
+I found the bug quickly, but when I tried
+to actually solve it with the bug I found,
+I didn’t really have a good mental picture
+on how to move forward.
+Basically all my information was jumbled up.
+It’s difficult to explain what I mean, because
+my solving attempt itself, was so messy that
+it’s not possible to explain my thought
+process - because there was none.
+Sometimes that approach is ok, because it
+can be very quick if you get lucky or know
+what you do, but here I failed.
+I wasted actually like 2 hours on that until
+I decided, scrap all that, I start over again.
+Which was the right decision.
+I kept turning in a circle.
+For the second attempt I didn’t try to rush
+the solution but properly structure the attack.
+Basically we follow the scientific method.
+First we observe behaviour, then build a mental
+model of the system, on which we can create
+certain assumptions that we can try to proof
+or get them disproven and adjust the mental
+image.
+This means, we go step by step.
+First, what can we can we actually do?
+We see a menu with 2 options.
+Login and Memory manager.
+With login we can apparently enter some token,
+of the length 8, that contain these letters.
+If we do that we get a welcome message and
+those 8 characters back.
+There is also a memory management option,
+that displays the total memory space and the
+currently used space.
+So in our mental model we can take note, that
+the login name seems to be our only input
+we have, so whatever our attack will be, it
+is very likely that it will at least start
+with some, login input.
+The memory management seems odd for now, but
+probably might be important information, why
+else would it be there.
+We can also enter some more characters, this
+time less than 8, and notice that the previous
+As are still there and were simply overwritten.
+Interesting.
+Maybe useful, maybe not.
+It also didn’t change our memory usage.
+We can also try what happens when we enter
+more than 8 characters, in this case I tested
+16, it did overwrite the As, but still only
+8 characters are printed.
+And again, memory usage is not affected by
+this.
+Ok, so we can assume some kind of fixed global
+buffer for the input, because we always overwrite
+and work on the previous entered data.
+So if this is some limited memory space, let’s
+see what happens when you enter a lot of data.
+I keep the letter a pressed to send a lot
+of letters, and suddenly we get a stack cookie
+corrupted message.
+Awesome, so the buffer we operate on seems
+to be on the stack and has a cookie at the
+end.
+A stack cookie is a simple buffer overflow
+mitigation, which means you place a random
+value after your data, which is checked before,
+for example, the current function returns.
+And if the value is still the same, the cookie
+was not overwritten right?
+SO no buffer overflow took place.
+But in this case, the application doesn’t
+quit or reset, and thus maybe not regenerate
+the cookie.
+This means we can slowly bruteforce the correct
+value.
+Even if the cookie were always random, it
+might only be one or two bytes long, which
+can be simply guessed correct by chance, because
+we can automate it and let it run for a while.
+So to explore the stack cookie further, we
+first need to know how long the input has
+to be to overwrite it.
+Let’s write a script.
+We can copy some code we have written before
+to interact with the board.
+Because we still don’t know what the memory
+usage is for, we better not ignore it completely,
+but keep that information with us.
+So we select menu option two and read that
+data.
+Then we select option 1 to login, and simulate
+the keeping a key pressed by always only sending
+one character.
+After each character we check if the board
+sent us the corrupted cookie alert, and if
+that is the case, we break.
+We leave the loop.
+Otherwise we increment the counter, which
+counts how many characters we have sent.
+At the end we can print the used memory and
+the length we need to overwrite the cookie.
+When we now run it, and you paid attention,
+you might notice that the used memory number
+changed.
+Actually it changes every time when we make
+a new connection with the board.
+And not only that, now we see that the length
+that is required to hit the stack cookie also
+varies.
+Doing some simple math reveals that the memory
+usage and the length required for the overflow
+is correlated.
+This means by knowing the used memory we can
+calculate now how long the input has to be
+to overflow the cookie.
+Cool.
+So let’s write a loop that bruteforces the
+cookie value.
+We don’t know yet how many bytes the cookie
+will be, so let’s start by bruteforcing
+the first byte, and then go from there.
+Basically we loop over every possible byte
+value and then wait for the menu to be written,
+select option 1 to login, and send enough
+As to fill the buffer plus the character that
+will overwrite the cookie.
+Actually had that calculation here wrong,
+because it never found a correct value.
+I sent one A too much.
+Anyhow, once we would find a character that
+did return a corrupt message, we can stop
+the loop and use that to explore the next
+byte.
+Also the loop should not start at 0, and also
+not include newline or carriage return, which
+is 0xa and 0xd, because they probably end
+our output prematurely, and we don’t want
+that.
+So once we find a valid cookie, we can then
+basically use the same loop again, and bruteforce
+the next byte after the cookie.
+Obviously we don’t know yet what the next
+byte means, maybe the stack cookie is two
+bytes long, or maybe something else.
+So let’s remove the break here and let us
+see the response for ALL possible bytes.
+When we run this now, we will find the valid
+cookie quickly, and then go on to overwrite
+the byte afterwards.
+And that byte seems to control the length
+of the input.
+See how overwriting it with a 1 only outputs
+1 A. Or overwriting it with 8 will have 8
+As.
+And you see that after 8, it will start to
+complain and say that the input is now too
+long, and it is exactly the byte value again.
+So this byte controls the length.
+Interesting.
+No idea yet what that could be used for, but
+we can update our mental model of how the
+memory layout looks like.
+Maybe we have to explore a couple of more
+bytes and find something that could be used
+for an attack.
+Eh…
+wat?
+The flag?
+Our loop finished, and it looks like the highest
+value for that byte, hex ff, or 255 in decimal
+triggered the flag output.
+That was unexpected, but I take it.
+This challenge was really a good reminder
+for myself, that I should not approach a challenge
+without a plan, but follow a structure, make
+notes, and really think about what I’m doing.
+Once I did that, it wa really straight forward,
+there was not even ambiguity in our mental
+model.
+Each step was a logical progression from the
+one before, so it’s like a very simple sudoku
+where you don’t have to precalculate multiple
+steps in your head in order to figure out
+if a value is correct or not.
+You just keep going forward, step by step..

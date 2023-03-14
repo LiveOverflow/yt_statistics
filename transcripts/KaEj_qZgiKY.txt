@@ -1,0 +1,277 @@
+This video will be about the powerful technique
+called Cross site request forgery, CSRF.
+In the last videos we have explored XSS - Cross-site-scripting
+- which allows us to execute javascript in
+the context of a user’s session.
+This allows us to perform any actions the
+user could do.
+Thus we can use it to send messages to other
+users on the platform without the victim noticing,
+or injecting fake news article into a site
+or simply defacing it.
+But if a site implemented user input securely,
+properly escapes the strings, then you are
+out of luck.
+One might wonder why you cannot simply run
+javascript on your own site that you control
+and perform the same requests and actions.
+Well the security model of the browser prevents
+that.
+This security model is called the same-origin
+policy.
+Whatever is running on my liveoverflow.com
+domain is not allowed to access resources
+cross-origin.
+You will get an error.
+BUT WAIT!
+That doesn’t make sense…
+How can the reddit domain access resources,
+namely images, from this other origin imgur.com?
+Does that not violate the same-origin policy?
+You are so smart for asking this question!
+The same-origin policy is obviously a little
+bit more complex and there are a lot of different
+cases you have to consider.
+Let’s do some examples so you just see how
+diverse it is.
+I’m here on reddit.com.
+It has the origin https://reddit.com
+Over here I have https://imgur.com.
+So on reddit I can easily use an HTML image
+tag and load the image resource.
+As you can see the browser did the request
+without complaining.
+On reddit you can get a lot of data in JSON
+format.
+That’s a neat trick if you didn’t know
+about that.
+Question.
+Can imgur.com access those JSON responses?
+It’s a simple GET request like the image
+too, right?
+And we were able to display the image, so
+we should be able to get the content of this
+request as well, right?
+We can use XMLHTTPRequest to perform a GET
+request.
+Looks like it worked, but the response is
+empty JSON, and doesn’t contain the data
+we expected.
+Let’s have a look at the network tab to
+see what happened.
+We first notice there is more than one simple
+request.
+The first one here got a response from the
+reddit server with a Location: header.
+The browser receiving this header will now
+perform a redirect to this new location.
+And this new location is /login.
+Ahhhh!
+That makes sense.
+When we look closely, we don’t see any cookies
+being sent along with this request.
+Like it did when we simply opened this URL
+on reddit.
+A quick google search will tell you that you
+can include the cookies by setting withCredentials
+to true before sending the request.
+But nope.
+Now it doesn’t work.
+Now the browser complains that you are violating
+the same origin policy.
+The domain imgur.com is not allowed to perform
+a GET request to reddit.com with cookies.
+This makes it kinda useless for an attack.
+Because as an attacker we would like to extract
+private user data, but without cookies it
+will never contain private stuff.
+Let’s try something else.
+Let’s use an image tag like earlier and
+load this .json file.
+We look into the network tab and WTF.
+It did send the cookies with this request.
+So did we just find a bypass to the same-origin
+policy?
+Well… no.
+You see, we can’t access the response of
+this request.
+We cannot access the json content, thus we
+cannot access the private user data.
+Ok.
+So it looks like the same-origin policy is
+pretty good.
+It prevents us from accessing private data
+cross origins.
+Of course there are some technical possibilities
+to loosen up this policy.
+And chrome even tells you about it in the
+error message.
+With this special response header, that could
+be set by the reddit server, this could be
+allowed.
+But one thing is still fishy.
+With the image source we just performed an
+authenticated, meaning cookies were included,
+request to the other domain.
+We don’t get the response, but could this
+be exploited in any meaningful way?
+Yes it can!
+Let’s see.
+You remember the different HTTP methods.
+Like GET and POST.
+generally GET requests are intended to fetch.
+To get.
+a resource.
+And nothing else.
+While POST is used by forms to submit data.
+Like POSTing in a new thread.
+POST-ing.
+Get it?
+Hehe.
+This means GET requests generally don’t
+affect the site at all, while POST requests
+potentially change a user’s data.
+So performing an authenticated GET request
+should generally be safe, except when a site
+is developed badly and a URL accessible via
+GET performs an actual action.
+If that is the case, you have found your first
+cross-site-request-forgery, CSRF vulnerability.
+So if there is for example a url that deletes
+a user, like /profile/delete, and you embed
+that as an image on your website, then every
+user visiting your site will delete their
+profile without them noticing it.
+Okay, but let’s say a developer follows
+this design and there are no state changing
+GET requests.
+Is the site safe?
+Well here is another technique for POST requests.
+I can create a form with the method POST and
+the action aiming at the other domain, and
+when the submit the form, it will perform
+a POST request WITH the cookies.
+So yes, we can perform an authenticated POSt
+request as well.
+Though, the site also redirected now to the
+other domain.
+But we can hide that from the user.
+Or don’t care, because the attack is then
+over anyway.
+But how do I get a user to click?
+Well a user doesn’t have to click, you can
+simply auto-submit this form with javascript.
+Just to make it clear, the same-origin policy
+is not violated here, because our origin does
+not get access to the resources, the response,
+the data of this other domain.
+So how do we protect from this kind of attack?
+One approach would be, to compare a legitimate
+request from our domain with an illegitimate
+request from another domain and see if there
+are differences that we could check for.
+And yeah, we could check for the Origin header,
+which is definitely different.
+This might sound good.
+It certainly prevents some kind of Cross site
+request forgery attacks.
+But for example sites like forums allow users
+to embed their own pictures.
+And if this forum is vulnerable to a GET CSRF
+attack, then users could simply embed that
+URL as an image into a message.
+And then the request would come from the same
+domain.
+So this is not a bullet proof protection.
+There are also some other kind of mitigations,
+for example form post requests always send
+the data URL-encoded.
+you may have found this old stackexchange
+thread telling you that a cross-domain request
+with the content-type json are impossible.
+And your endpoint could only accept JSON data
+- and this might prevent some noobs from exploiting
+it.
+But your trust into this protection is flawed.
+Down here, hidden in a comment, you find information
+about a trick using navigator.sendBeacon.
+It’s a super awesome trick.
+And little tricks like that make the difference
+between a normal web penetration tester and
+a great one.
+Anyhow, as you can see, this is also not bullet-proof.
+So then what can we do?
+The solution is a called CSRF token.
+CSRF tokens can be implemented in a few different
+ways, but generally you want a secret random
+value to be set by the server in a way, that
+it’s only accessible to the website running
+on the same domain.
+And this secret value has to be included in
+every POST request to the server, otherwise
+it will refuse to react to your request.
+And that works, because the same-origin policy
+prevents other domains accessing your data,
+thus cannot get the secret CSRF value, but
+the legit original domain can.
+Obviously if you find a way to leak the CSRF
+token, then you defeat the CSRF protection.
+Now, this token doesn’t have to change with
+every request.
+But the idea is that it’s hard to predict.
+So it shouldn’t be valid for forever.
+ALSO, very very important, CSRF tokens have
+to be BOUND to a user’s session.
+Otherwise I could for example collect valid
+CSRF tokens with one account, and then use
+them in the CSRF attack against other accounts.
+Cross site request forgery can be extremely
+powerful and bypassing a weak CSRF protection
+can be super fun.
+But make no mistake, just because a website
+has a vulnerable endpoint doesn’t mean it’s
+a critical issue.
+https://twitter.com/tqbf
+Before we finish this here, I want to stimulate
+your creativity a little bit by giving you
+an example in how you can turn a few low severity
+bugs into a cool attack.
+Se here is the recipe.
+First low-severity issue, is a stored self-XSS
+vulnerability.
+Self-XSS means that we can inject a javasript
+payload into the website, for example a personal
+notebook on that site, but it only affects
+our own user account.
+We can’t trick anybody else in executing
+this javascript payload, because we are the
+only one seeing our personal note.
+So it’s useless, right?
+Or is it.
+Next issue is a logout cross-site-request
+forgery.
+This allows us to logout anybody visiting
+our evil page.
+The last issue is a login cross-site-request
+forgery.
+So this allows us to send the login credentials
+to authenticate with that website.
+But what the hell would we use that for?
+Well, here is our attack plan.
+First we create a new account and add the
+self-XSS.
+Maybe the payload can create a fake login
+prompt telling the users to reenter their
+password - so we can steal it.
+Then we build an attack site that will execute
+the following two things in order.
+First it will make sure the victim is not
+logged into the site, by using the logout
+CSRF.
+And then we perform a login CSRF with the
+account credentials of our self-XSSed account.
+Now we simply have to redirect the victim
+back to the site, and the victim will be authenticated
+with our account executing the self-xss, asking
+for the password.
+Beautiful phishing attack.

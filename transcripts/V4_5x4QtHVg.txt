@@ -1,0 +1,440 @@
+I couldn’t remember who I was or where I was 
+going. All I had was a feeling that drew me into
+this direction and so I kept walking and swimming. 
+Survival was my top priority. But once a while I
+got flashes of memory of what had happened to me.
+I remembered falling out of the
+sky. Probably lost consciousness from the impact.
+But I had no time to question it. It was night,
+monsters everywhere and I had no shelter.
+Eventually I reached a shore and using my
+bare hands I used the tree to craft a boat.
+It was peaceful on the sea, and so I had
+more time to think about what had happened.
+Another memory. There were people around me.
+They were floating. And they watched me 
+while I was carried by a weird machine.
+Who were they?
+I kept sailing through
+the night until the next morning. Finally 
+it was safe to gather some food, cook my
+first meal and upgrade my tools. Eventually 
+I continued my journey and I was wondering
+about the bottle I carried with me. This is the 
+only thing I had in my posession after the fall.
+It started raining. And the lush oak trees 
+turned into dark forest. It was scary,
+but I had no choice but to follow 
+the urge and keep on going.
+But then. A blue light in the distance. The 
+feeling inside of me got stronger. I climbed up
+the mountain getting closer and closer. It looks 
+like a lantern. And a chest. What could it be.
+Eventually I reached it. I opened the 
+chest. There was Club Mate. Everything
+rushed back to me! I REMEMBERED!
+During a concert I fell asleep and
+they kidnapped me with a flying machine. They 
+didn’t want me anymore so they sent me off
+into the distance. I kept flying and flying 
+until. Until… Until the world turned upside
+down. The world seemed to suddenly change 
+and I found myself falling out of the sky.
+But now I’m here. I remember my powers. I remember 
+what I’m capable of. So I will rebuild my kingdom
+right here. This is my new place. You wonder where 
+I am? Here are my coordinates. Come and find me.
+
+You know what. All those players who kicked me 
+out and made me come all the way here, they are
+going to suffer. This is now a 1.19.2 server. 
+All your hacks will become useless. And the
+old server will become HELL. For that I created 
+a basic server plugin that when players move,
+will fling TNT into random directions. This way 
+I can destroy ALL OF THEIR beautiful builds.
+Look at it. How confused they are about what 
+is happening?! All the time they invested into
+building this place. And I will take 
+it away within minutes. Enjoy hell…
+But I’m here now. And I gotta say. I love 
+this place, I think I can build something
+really cool on these thin floating pillars. And 
+deep down some more secrets are waiting for us.
+But before we try to go there, let’s setup camp.
+On the long walk here I gathered a few materials,
+so we can already place down a crafting table, get 
+a bed and use an oven to cook some of the meat.
+Now where do we go from here? The area 
+looks amazing. I love the change of
+scenery from the previous area. Lots of 
+mountains. And a village on the horizon.
+So let’s start with the basic game 
+loop. Cutting down trees to gather wood,
+setup chests, and maybe mine some coal and 
+iron. This is always the most relaxing and
+enjoyable part in minecraft for me. 
+The start of a new world. So join me.
+
+As you can see I’m using my fly-hack to get 
+around. But as you know, I’m not using a hacked
+client I downloaded somewhere. Actually we we 
+figured out how to bypass the anti-flight check
+of the server in episode 4 of this series. But 
+since then I actually changed the way how I do
+it. Back then I fully coded the movement. 
+I look at the key presses and then modify
+the velocity and movement of the player.
+But you know how the fly hack looks now?
+It’s so much simpler. It’s just one line. 
+client.player.getAbilities().allowFlying = true;
+So during this whole project at some 
+point I realized that setting this,
+it’s basically giving the player the 
+ability to fly like in creative mode.
+Which makes it so much easier for me not to 
+handle each key press and it feels a lot more
+familiar. But of course this only has effect 
+on the client side. The game client thinks
+we are in creative fly mode basically. Which 
+means we still need a bypass for the anti-fly
+kick. Quick refresher, the minecraft server 
+counts for how long you have been floating,
+kicking you when a threshold is reached. But 
+when sending a brief movement packet downwards,
+as if you were falling, it resets this counter.
+I used to do it by setting the player position
+lower directly, but now I’m actually just 
+sending a spoofed movement packet with this
+lowered position. To send this packet I 
+created this PacketHelper class that uses
+a ClientConnectionInvoker mixin to access the 
+private sendImmediatly method. This can be used
+to just send any minecraft packet to the server. 
+immediatly. Seeing this it still feels like magic
+to me. I mean not the flying, I mean being able 
+to access a private method of the connection
+class. But we know already how it works because 
+I introduced how modding works in episode 3 and
+there I also explained how mixins work. So this 
+ClientConenctionInvoker mixin exposes the private
+method now. Anyway. As you can see, I use what 
+I learned over time and keep improving my hacks.
+After I gathered a lot of stuff like diamonds 
+and even netherite I wanted to really start
+working on the base. And the first thing 
+I thought about building was an iron farm.
+Look what I found! I was looking for open 
+mineshafts to find name tags in chests. I
+need that for the zombie in the iron farm 
+and came across a woodland mansion. Now
+that we are on 1.19 I had to kidnap an allay.
+Well, in the back you can also see that slowly
+the iron farm is coming together. Unfortunately 
+I had some failures along the way. like the first
+time I got a zombie the villagers got 
+scared and jumped to their death. Oops.
+But eventually I got a working farm. Iron golems 
+spawn at the top in the water get flushed down
+and fall into a lava kill room. Awesome. But 
+I know you don’t care about normal minecraft.
+So let’s talk about another hack of mine.
+If you carefully watched the episodes you might
+remember that I created an XRay mod, but then 
+never really used it afterwards. The reason for
+that was, that it was incompatible with Optifine. 
+Optifine is a mod to have fancy shaders and better
+performance. So it messes with the way how blocks 
+are drawn. And my Xray mod was basically a Block
+mixin that hooks the shouldDrawSide method. And 
+returns true or false if the current block is
+an important block.
+But that simple
+solution didn’t work with optifine.
+Now with the change to 1.19.2, I also switched
+from optifine over to sodium + iris, another combo 
+for performance and shaders. But it still broke my
+xray mod. But this time I was motivated to try 
+to make my Xray work. But how would I do that?
+Well! Xray how I want to do it, I basically just 
+want to tell the game which blocks to draw or not.
+Somehow the game has to know that Air blocks 
+are not drawn, glass blocks are translucent,
+and stone blocks are solid. So I started 
+looking into the iris and sodium source-code
+to see how they mess with blocks. Maybe I could 
+figure out why my simple mixin doesn’t work.
+And I started searching for shouldDrawSide, 
+because it’s the only related method I knew.
+And in the sodium code I stumbled over the 
+BlockRender class, which does sound very
+related. And it calls this shouldDrawSide method. 
+Following it it leads to a BlockOcclusionCache.
+So occlusion means that something is covering 
+something else. Meaning the block behind other
+blocks don’t need to be rendered. And cache 
+means it’s storing that occlusion information.
+So maybe if I could figure out how to make this 
+shouldDrawSide return true or false depending on
+the block type, maybe I could get xray to work.
+So I started going over all the code paths that
+return true and false. Is there maybe a way 
+how I could control these return results. For
+example to return a false, all I had to do is 
+to make isSideInvisible return true. And this
+is called on the selfState, which is a BlockState 
+object. And we can create a mixin for BlockState.
+So here it is. Here I have a new mixin 
+for BlockState and it hooks into the
+isSideInvisible function and it returns false 
+for all the important blocks. And return true
+for all the unimportant blocks. So 
+their sides should be invisible.
+And that’s basically the process I continued for a 
+little bit, trying to control as much as I could,
+for example down here the isSolid method. I also 
+overwrote this one. And I did this for a few
+other interesting methods I discovered this way. 
+Including luminance and ambient occlusion which
+controls how bright or dark blocks are drawn.
+In the end, I got a working Xray mod. Compatible
+with sodium and iris. I was so proud of myself 
+and of course I started using it right away.
+So that’s what you saw in the footage 
+when I hunted for diamonds and netherite.
+We are making good progress here, but of course 
+we still have a long way ahead of us. And in the
+background you can see another project of 
+mine. I needed wheat for breeding animals,
+as well as carrots and potatoes to trade with 
+villagers for emeralds. So for that I cleared
+out an area for farming! And let me show you 
+how it works. here, all the crops are grown.
+Aaaaand. Check this out. Farming goes brrrrrrr.
+This is another hack *cough* I mean utility
+mod I added. It’s super simple. On each tick I 
+scan blocks around me and try to plant a crop.
+This actually means that we check 
+if the block is farmland and then
+we try to use a seed we either 
+hold in our main or off-hand.
+And in here it checks if we are holding wheat, 
+beetroot, potato, carrots and so forth, and then
+calls interactBlock trying to use the seed on 
+the farmland. Super simple but effective. I can
+just run through here and crops get automatically 
+replanted, as long as I hold a seed in my hand.
+You can see I have been busy, but I have done 
+much more and I don’t want to split up the video,
+so let me actually summarize all the stuff I made.
+When I was using my xray mod to look for diamonds
+I actually came across a mob spawner and in order 
+to prepare for enchanted tools with mending and so
+forth I wanted a small XP farm. So I transformed 
+this mob spawner into a basic mob farm.
+I then also later upgraded it trying 
+to get more XP by adding a regular mob
+spawner area above it. I dug trenches with 
+trapdoors trying to flush the mobs down. I
+also went around and tried to place 
+torches in some of the caves nearby,
+trying to increase the spawn rate in that dark 
+place. It helped but it wasn’t super effective.
+Now back to the main base, I also wanted to add a 
+second iron farm to increase the iron production
+rate, and I built it right below the previous 
+farm. Which I later realized that it was kinda
+dumb, because I watched a video about irongolem 
+spawning rules and the villagers down there
+might see the iron golem falling from the top and 
+then not spawn their own. Anyway, it exists now.
+I then also added a kelp farm because 
+I wanted to produce kelp blocks for
+furnaces as well as maybe get a bit more 
+XP this way. At first it was very small,
+but then I expanded it a little bit. Yeah. I 
+always tried to kinda integrate it into the rocks.
+Similarly I also wanted to add a sugarcane 
+farm which I added into another pillar,
+but this time a bit further up and floating.
+On top of the pillars I also started to add 
+a new island where I wanted to place two
+villagers to get some first enchanted book 
+trades. Mainly I wanted mending. Searching
+for mending books is pretty annoying, so I 
+actually wrote another utility mod for that.
+Let me first show it in action.
+When I destroy the lectern it
+will automatically place a lectern again, then 
+check the trades and print them below. If I’m
+not satisfied I simply destroy the lectern again, 
+and it automatically places and checks it again.
+So it’s still a little bit of a manual 
+process, but it’s much faster than always
+checking the trade menu yourself.
+The code for that is incredibly
+ugly, but let me show you. I have a simple 
+state machine, and we first start by scanning
+for librarians nearby. So if we find a librarian, 
+meaning a lectern must have been placed and turned
+that villager into a librarian, then we call 
+interactEntity onto that villager and go into the
+WAITING_FOR_TRADEOFFERS state. So this basically 
+clicks on the librarian to open the menu.
+But now we have to go into 
+the ClientConnection Mixin,
+because here we are waiting for a tradeoffer 
+packet. If we receive a trade offer packet and
+we are in the WAITING_FOR_TRADEOFFERS state, we 
+can then print the enchanted book the villager
+offers. Additionally we also cancel the trade 
+offer packet, as well as the open screen packet,
+because We only want to extract the book the 
+villager offers for trading. And display it
+as text. we don’t want the client to 
+show us the actual trade menu window.
+Then next game tick comes and we are back in 
+the main mod code. So when we got an offer,
+now we actually wait for the villager to 
+lose the profession again. So if we are
+not satisfied with the book we got, 
+we can now break the lectern again,
+which takes the profession away, triggers 
+this code, which immediately places down
+a new lectern. Which restarts the chain.
+If the villager turns into a librarian again,
+we interact with them again to get 
+the trade offers, check the book,
+and wait for the lectern to be destroyed again.
+Very ugly, but effective. Basically just keep
+breaking the lectern until the text 
+shows mending. Or whatever you need.
+Unfortunately I realized that the mob spawner 
+XP farm is just too slow to repair myself and
+to enchant items on the enchantment table. So I 
+wanted to build a XP farm in the nether. This is
+the first time I’m doing this, so I looked 
+again for tutorials and watched Rays Works
+video on an AFK XP farm. basically I adapted 
+this design. You will see mine looks similar
+but I tried to understand how it works 
+and simplify it for my basic needs. For
+example I don’t need the piglin bartering.
+To build this I had to collect a lot of magma
+blocks, but that turned out to be quite easy. But 
+it was really nice to have a fly hack to build
+the farm because obviously standing on the magma 
+blocks to build the platform doesn’t work well.
+It took a few iterations and experiments, but 
+eventually it seemed to work well. Here it is. So
+I have this zombified piglin with a nametag nearby 
+which is kinda the “memory” for the aggression
+towards me. Then I hit some other piglin, they 
+will tell eachother that I’m evil now and I
+can go to the middle. Now they keep spawning, 
+walking towards me, falling down a trap where then
+minecarts kill the piglins due to entity cramming. 
+And because they were trying to attack me,
+I get XP for it. This is a super powerful farm 
+and I don’t know why I never built this before.
+Maybe an enderman farm in the end is even 
+better, but this one here is an AFK farm AND
+I’m like SOOOO far away from the next stronghold. 
+So I couldn’t even go to the end if I wanted to.
+I guess that’s all I have. This is how far I 
+have gotten. And luckily nobody has disturbed
+me here yet. Probably thanks to my advanced 
+position protection system. Aka texture rotation.
+In the last episode I actually hid a little teaser 
+for this episode in the description giving people
+the challenge to find me. And I followed some of 
+their progress and coordinated cracking attempts.
+But nobody seemed to notice in my hacked mod 
+menu, “texture rotation”. This should tell
+them they cannot just bruteforce my location.
+Look, let me quickly turn texture rotation on
+and off… do you get excited now? Leaking the 
+real rotation? No way! You wont get it this easy.
+Let me actually create a quick superflat test 
+world to show it in action. I also placed some
+grass so you can see that effect as well. Now when 
+I change the texture rotation state in the menu,
+you can see that several textures change.
+In episode 9 of this series I learned about
+cracking coordinates from texture rotations and 
+I showed you the responsible code. This hashCode
+function returns a seed given a x,y, z location, 
+which is then used to decide how to rotate the
+specific texture. So I just created a mixin that 
+changes these values. You will never find me here.
+Besides the new base location I also changed 
+the server IP again I mentioned at the
+beginning that on the day of the switch, 
+I installed a plugin on the old server
+that keeps spawning TNT. It was kinda fun 
+to watch this initial destruction. But I
+haven’t looked at it in a few weeks, 
+so lets see how the server looks now.
+Wow… it’s almost not recognizable anymore. This 
+is the spawn area. And flying up to my base,
+it’s crazy. It really looks insane. Over there 
+the roller coaster. The sorter. Dammmn. But it’s
+time to shut off this server now, because this 
+costs me 70Eur a month and running two servers
+in parallel is just a bit too expensive. 
+Byebye original 1.18 world. Welcome 1.19.
+So far I have been undisturbed in my base. But 
+you should really try to find it, I’m really far,
+believe me. But it will be worth it. because there 
+are some secrets hiding deep below this base.
+Now one
+last thing. Like last episode I also wanted to 
+showcase some community projects. Now that there
+is a new server IP, players had to start looking 
+for it again and I received many messages with
+various scanning projects. Here some clips from 
+Cheesburger implementing a server scanner in Rust.
+Or here, the stats from a scanner by Nocturne. 
+Ever wondered how many active minecraft servers
+and active players there are? How many servers 
+are online or offline mode. Or historical data,
+how did the amount of active servers 
+and players change over time.
+For example this spike here is early 
+August, which should be around the 1.19.2
+release. Which apparently made people 
+want to start new minecraft servers.
+Besides scanning, I also received several mod 
+showcases, people sharing their own hacking
+mods. Here are some clips from AliFurkan. For 
+me, the most interesting part is always to see
+what kind of system they are using. Like, 
+what is this resolution and task bar? And
+also you can see they host their own internal 
+git repositories, here their worldguard bypass
+project. It’s just really fun to see how much 
+effort everybody puts into their own hacks.
+Just FYI, I received several showcase submissions. 
+And unfortunately I cannot show everybody at the
+same time, sometimes I also forget, I’m sorry, 
+or sometimes you might showcase something I don’t
+want to share just yet. There are quite some 
+spoilers in some of the submitted videos. I’m
+sorry about that, believe me I don’t leave 
+you out intentionally. It’s mostly random.
+I love everybody who is motivated enough 
+to submit something. Thank you so much.
+Anyway… Let’s get to another full showcase. 
+actually there was kind of a “war” on the
+server between bots and players. Philip, the 
+owner of NoobBot actually tried to implement
+an artificial whitelist. The idea is to 
+fill up all slots of the server with bots,
+and only leave when an allowed player either joins 
+a specific proxy or hits an API endpoint. Then the
+bot leaves and opens up a spot. It was an attempt 
+to block griefers from joining, but lots of other
+players hated the system because they couldn’t 
+join. So LeBogo implemented his own placeholder
+bot. He kept a bot around that leaves to open up 
+a slot when he wants to join. So take it away.

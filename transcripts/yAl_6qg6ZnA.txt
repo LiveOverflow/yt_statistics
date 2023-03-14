@@ -1,0 +1,268 @@
+I want to be able to fly around in the
+game pone adventure 3 especially because
+my first attempt at making a fly heck
+was rather bad I was only able to change
+the behavior of the jump by jumping very
+high and float down slowly and I could
+also somewhat freeze myself in the air
+but also very glitchy because gravity
+was pulling down so it was not really
+like you imagined flying in-game so
+let's try this again on Windows
+[Music]
+to fly around we need to find where the
+position of the player stored in memory
+and so now we need to figure out a
+clever way to use the incremental
+scanning of cheat engine to find it and
+I have been wondering about that because
+we don't really know how the x y&z
+coordinates are stored we also don't
+know the orientation of the coordinate
+system so we couldn't say if walking in
+this direction we increase or decrease
+the x value I mean you can take a guess
+and just see if it works and if you find
+nothing try the opposite like with any
+creative puzzle there are many ways how
+you get to the solution then I was
+watching a guided hacking video and they
+are they were scanning for the height
+position that makes sense it's very
+likely that when you are higher or lower
+the value would increase or decrease so
+let's start our value scan with a first
+scan for an unknown initial value we
+find 168 million values again and now we
+want to increase that value so we switch
+to the game walk to a higher slot and
+rescan for that increased value 825
+thousand left for good measure we can
+scan for an unchanged value now because
+we have moved down to four hundred
+seventy-one thousand possible addresses
+now let's look around a bit because that
+can change memory values but we
+shouldn't affect the position scanner
+again for unchanged value 250 3,000 left
+so let's decrease the value again and
+walk to a lower point next scan 38,000
+left we slowly get there looking around
+but not moving again we can see that
+this already changed some values so
+unchanged values can hit it a few times
+down to 22,000 then let's increase the
+value again by going to a higher point
+7000 left and you get the idea we keep
+doing that for a bit longer and keep
+scanning
+hopefully we can bring the amount of
+possible addresses further down and we
+make slow but steady progress but
+eventually we reach a point where we
+have a lot of similar values that seem
+to really be connected to the position
+so I thought I could maybe jump which
+shouldn't affect my position so I keep
+scanning fun changed value but oh oh
+these values now look bad
+we can also add all of them to the
+address list and then toggle the check
+box in the front you can hit space when
+they are selected meaning that cheat
+engine will constantly set the value to
+the original one in theory if this is
+the true source for the players position
+this should freeze the player at a
+certain height but when jumping down we
+just fall so changing these values has
+zero effect which means none of them are
+the value we want we cannot use them to
+teleport around crap we screwed up the
+jumping up and down seemed to have
+affected the position a little bit and
+we have lost important values during the
+scan so let's delete the address and do
+a whole scan again this time without
+jumping I won't bore you so let me just
+fast forward I got it down to 129
+possible areas so I added all of them to
+the address list and now we do a freeze
+test again we select half of the
+addresses and freeze them now we can
+jump from this rock but no effect this
+means none of these addresses actually
+control the player's position and we can
+delete them and we repeat this process
+in a binary search fashion
+next again we select half of the
+remaining addresses Oh see how we click
+out when we try to jump we are
+immediately pulled back to our current
+position this means that one of these
+addresses actually controls our position
+so let's delete the addresses that we
+didn't select and we repeat this process
+now of always selecting half and sorting
+them out this can take a bit but
+eventually we get it down to just a few
+candidates and find the real value this
+one looks good
+so let's see what happens when we modify
+the value let's set it to 2000 yep we
+teleport it a little bit into the air
+and fell down so how can we find the
+other coordinate values now well
+typically you store a coordinate or a
+position in a simple struct or array
+which means the other values should be
+right next to each other so let's open
+the memory view and put it next to the
+game window
+now observe when we turn the camera we
+see multiple values updating so these
+values seem to correlate to the camera
+view direction
+and when we keep the camera straight
+then these values seem to be updated
+when we walk around we see three packs
+of three one two three one two three and
+one two three maybe ex mindset or value
+that we can control was at address zero
+nine eight so these three could be our
+position vector so let's add these
+addresses to the address list and give
+their names XY and Z and when we move
+around we see them update this looks
+great
+let's try to modify the x coordinate
+let's teleport to zero here we are we
+are somewhere under the map ah we are
+here above us is the block his revenge
+challenge room we can even change the
+other coordinate let's do 40000 oh we
+landed somewhere on the beach let's play
+around with it a bit more oh no the game
+crashed no this means our addresses are
+now useless no no no no no crap we have
+to redo it all again you see this is not
+always going smooth you can always run
+into crashes or can't find certain
+values and that's just part of it so
+don't worry about it it's normal so let
+me skip forward to when I found the
+value again I think I got it this one
+looks good
+so in order to not lose the value again
+let's do a point of skin this is the
+address you want to find but for the
+base address I want to do something
+special in our first point to scan about
+the selected skill value we found some
+offset in the game logic DLL and I make
+the assumption now if that is pointing
+to some kind of global object we should
+also be able to find the position based
+on that start address let's do that
+cheat engine supports you to specify the
+address of a module as a string so we
+can simply use here the game logic tol
+and we restrict the area around the
+offset hex 9 7 e 0 0 that's good enough
+then we do the pointer scan and we found
+99 our original offset for the selected
+skill was at hex 974 8 let's see if we
+find that here too
+yeah looks like we found a few pointers
+from the start so let's add a few of
+those to the address list and then we
+kill the game restarted logging in
+selecting character
+and then we attach cheat engine to the
+new pawn adventure process this looks
+good it looks like we still point to a
+good value let's have a look into the
+point of scan list as you can see some
+point of us still point to good values
+but many paths don't so we can risk and
+the point of our list to filter out the
+pasture don't point to the correct value
+and then we have 18 left so all of these
+should work and you can see they are
+some kind of variation from another this
+gives us confidence that the point the
+path we found is reliable now when I was
+doing all of this to look for the
+position of the player I actually found
+another address that has an interesting
+behavior as well it doesn't teleport the
+player but it still effects something
+this one here let me change it you can
+see that we teleported up and we stay
+there we don't fall down however as soon
+as we move the camera it gets updated
+and we are back down so we actually
+didn't teleport we probably just moved
+the camera up and as soon as the camera
+was updated we were back to normal
+position looking around this memory area
+we can of course also find the x y&z
+coordinate you can see it updating when
+we move around also we can find for
+other various that seem to be connected
+to the view direction and when changing
+them we also seem to control where the
+camera looks at which is updated as soon
+as we move the camera with the moss and
+when I saw that I had an idea I always
+wanted to fly around properly but the
+gravity was always an issue but it looks
+like we could instead of moving the play
+around we could fly the camera around
+maybe this is how we could implement
+flying we would just have to prevent the
+game to update the camera view so how
+can we do that first we can of course
+check what updates this variable what
+writes to this memory we can use that
+cool cheat engine feature again and then
+we go into the game move the camera and
+there we go this is the assembly line
+that writes to that value and check out
+what we can do now we can do right click
+replace with code that does nothing knob
+we can override this assembly
+instruction with knobs let's do that
+when we
+now go into the game and move the mouse
+nothing happens and when we change the
+values of the few direction it remains
+fixed I have no clue what the values
+represent they tilt and turn the camera
+in a weird way but it stays fixed we can
+even still walk around and pay close
+attention to the walking direction here
+I'm just pressing forward but we walk in
+two different directions this is because
+I move the mouse and look in two
+different directions and pressing
+forward moves there but we have frozen
+the camera update the camera view
+Direction is not updated anymore and we
+can do the same thing for the position
+of the camera we can check that this
+writes the position value there seems to
+be only one assembler location for that
+so let's replace that one with nobs
+tour and now we don't seem to move at
+all anymore however we can now change
+the value of the position and the camera
+position is updated we've frozen the
+camera view direction and position
+update this means we should be able to
+create a game hack that allows us to fly
+around in the world but that has to wait
+for next video
+[Music]
+you
+[Music]

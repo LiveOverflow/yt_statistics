@@ -1,0 +1,298 @@
+the other day I saw on Twitter this
+picture of some PHP code and it's asking
+about a deadly bug in there it's so
+short that I thought I could use it to
+explain how I approached something and
+tell you in excruciating detail what I'm
+thinking along the way so last chance
+for you to figure it out on your own
+after the intro we head right in PHP is
+generally running on a web server
+handling HTTP requests so I know that
+the variable to allow underscore post
+contains the variables submitted in a
+post request and so on my first rough
+scan over the code I have that in mind
+that is input we can control so there is
+some input coming in and it has to be
+not empty otherwise we get an error then
+we have some kind of secret environment
+variable after that we check if another
+input is set and if that was the case
+this optional H mech with sha-256 is
+executed the second H MEK below will
+happen every time then we compare the H
+make result with another user-supplied
+value and if it matches we reach this
+exact function that probably means code
+execution so as this is a hacking
+challenge to find a deadly bug it's
+clear that we somehow have to get user
+controlled code in this post variable
+host pretty obvious so I started looking
+at this by scanning the code from top to
+bottom reading code like it was executed
+but still just skimming I didn't really
+pay attention to which user input
+variables exist and what effects they
+have I still don't know exactly what the
+role the H make has and so it's still a
+very blurry picture however I obviously
+have some experience and so even though
+I didn't look closely I know roughly
+what to expect with the H MEK HMA is a
+simple algorithm or sequence of
+operations you do with a hash function
+in this case sha-256 this is used to
+authenticate messages or data it's like
+a fancier hash but with a secret and so
+the secret affects the output of the H
+mech and only somebody who knows the
+secret
+can generate the same output so I know
+that H MEK is cryptographically very
+strong and that without knowing the
+secret you can't do anything so I don't
+really have to research hmm and how it
+works and if there are cryptographic
+weaknesses it's simple and strong so I
+have that in the back of my mind but now
+that I've found the goal that I want to
+reach apart we could exploit I want to
+trace the code backwards I want to
+figure out the conditions that led to
+this being exploitable so I make a
+mental note that the host variable could
+lead to code execution before that we
+find an if check that has to succeed
+otherwise we exit we never reach the
+exploitable part and so here is another
+user controlled variable called H mech
+but it's compared to a PHP variable H
+mech that was generated in the line
+before it's the output of the hash hmmm
+function so we have to know the output
+of this H mech functions so that we can
+supply the same value via the HMI post
+variable and pass this check but that's
+not the only way in PHP how checks could
+fail for some reason my brain in that
+moment ignored the exclamation mark I
+just wanted to see a different reality
+stupid brain so unreliable for a second
+I thought this is an insecure PHP
+comparison so what does that mean PHP
+has type juggling which means that
+variables type is determined by the
+context in which the variable is used
+and so for example these two different
+strings evaluate to true because based
+on the context they are automatically
+converted to numbers and so those are
+both 0 and what can happen now is that
+if for some reason two different hash
+strings start with 0 e followed by only
+numbers they would evaluate to true this
+is a very typical CTF PHP challenge so I
+thought maybe we have here a similar
+issue because equal equal and PHP means
+equal after type juggling while equal
+equal equal means identical and the type
+has to match too so I guess my brain saw
+two equal signs and thought of type
+juggling but of course the secure string
+comparison for
+not identical is in fact exclamation
+mark equal equal the insecure variant
+would be exclamation mark equal so I had
+this in mind and I was exploring this
+wrong lead for a little bit so I was
+wondering is this type juggling really
+feasible here with the sha-256 H Mac
+hashes our input here can easily have
+the correct format of 0 is something but
+to get 256 bit HTML to have the same
+result without knowing the secret we
+would have to brute-force the server
+here and that seems very unlikely with
+such a text you generally try to brute
+force for example md5 hashes locally
+until you find such a pattern it just
+didn't feel right the challenge calls
+for a deadly bug and this would always
+be different depending on the used
+secret it's not dead deadly and so we're
+thinking about that I also at some point
+realized oops this is actually a secure
+comparison but that's ok that is so
+normal that you steer into wrong
+directions when having ideas and hacking
+is creative and not the check those kind
+of things so that's to expect ok so now
+we know that comparison is secure which
+means we have to somehow predict the H
+Mac result so that we can supply the
+same value with our input from the hm a
+post variable so that H make value how
+is it generated it does the H Mac with
+sha-256 over the host input variable so
+that's the code we want to execute and
+it uses dollar secret for the secret and
+there are two sources for secret one is
+the environment variable secret so
+that's the value we don't know we could
+try to brute-force or guess it maybe it
+was left empty but this is not a live
+server or challenge we can't test it we
+have to assume the secret is actually
+secret and not brute forcible it's a
+deadly bug brute force or guessing would
+not be part of it and it should be
+solvable just by this code shown here
+but the other source for secret is the
+output of the HTML call and that call is
+done over the nonce that we control with
+the input
+but that one uses then definitely the
+secret we don't know hmm
+so without the nuns we don't know the
+secret which means we can't generate the
+same age make output locally and pass it
+in to succeed in this check and also if
+we use a nonce we generate a new secret
+but that output is also not predictable
+because we don't know the secret for
+this function actually the code doesn't
+look too bad it's harder than I thought
+it would be so now I start to get a bit
+frustrated I thought I would look at it
+and figure it out immediately especially
+because the code feels fishy the part
+with the nuns is weird I've read a lot
+of source code over the years and I
+believe I have generally a good
+understanding and intuition on how for
+example hm8 can be used and what kind of
+problems it solves and also generally
+software design and architecture and
+this construct here doesn't resemble
+anything it's weird
+so it was obviously specifically crafted
+for a challenge but still I'm not sure
+what I'm getting at here hmm so now I'm
+going through my PHP checklist in my
+head stuff I learned from experience and
+over the years we got the insecure PHP
+type juggling for example for comparison
+but that one is safe we have dangerous
+functions like exit but they don't miss
+our goal and we can't reach it with
+arbitrary input right now the other
+functions I think are safe sometimes PHP
+can be surprising about which functions
+are dangerous but these I think are all
+good
+I will not check them all now that would
+be a very desperate measure I know that
+for example CGI scripts get the input
+data from the actual server that
+receives the HTTP request as environment
+variables so I'm wondering if there is
+maybe a way how we could actually set
+the secret variable from an HTTP request
+but not in this way generally the web
+server would prepend any arbitrary
+variables with for example HTTP
+underscore our wise that could be a very
+bad vulnerability in itself maybe you
+could LD preload something so that was
+just another dumb brain fart the only
+last thing I can think of has to do with
+the inputs you see not every user input
+coming in has to be a string I know that
+because when I was very young in my tea
+Cheers I used to program a lot of PHP so
+from my programming experience I know
+that you can also pass for example
+arrays by a post or get variables you do
+this by adding brackets after a variable
+name and then you can have multiple of
+them and they will be combined into an
+array so in PHP as an attacker you
+cannot only just control the value of
+the input but also the type and that's
+very clearly the last resort right now
+if it's not that then I really have no
+clue what's wrong I know our main target
+is the H make here it's the check the
+authentication of the message the part
+that is preventing us from reaching the
+exit so of course that is the first
+thing I want to check how is the H make
+function behaving if the user input here
+would be an array to do this I just use
+PHP with PHP - a you can get an
+interactive PHP shell okay let's see
+hash a check we use sha-256 and then we
+enter a string that would be our input
+followed by some secret and don't forget
+the semicolon at the end oh and you want
+to echo the return of the function so
+here we get the H make output you can
+also use var dump instead of echo
+because that gives you also the type of
+the return value so now let's see what
+happens if our input was an array
+instead we get a warning hash HM ech
+expects parameter - to be a string but
+an area was given in PHP shell code on
+line one but the crucial part here is
+this is just a warning and you can see
+here the returned value was no when I
+saw that hash HM heh only throws a
+warning with a wrong parameter type and
+not dying horribly with an exception I
+knew that this is bad this must be the
+trick so what kind of fact does that
+have in our code we can control the
+secret for our HTML on the host by the
+HTML of the nonce and we can control the
+nonce
+so if it would pass in an array as nuns
+then this H mech would return null so
+let's see how hedge H MEK behaves
+when the secret is now null for the
+second age back nothing no warning null
+is a perfectly fine secret apparently
+which means we can now fully predict or
+calculate the correct HTML for any input
+we want the secret will be null here so
+now it's easy we just have to choose the
+string we want to enter into X X for
+example semicolon idea semicolon to end
+the host command followed by the ID
+command to print the current user so
+that will be the value for the host and
+then we generate the H mech for that
+with the secret now and then we just
+have to make sure that the nonce is an
+array and here we have two full HTTP
+POST request body done one other thing
+when writing down what I thought I had
+one other idea that I mainly should keep
+in mind for the next challenge very
+rarely but sometimes developers screw up
+the order of parameters of a function
+and so I should have checked which
+parameters hash hmm actually takes
+because maybe the real secret could have
+been the first parameter and then the
+secret would have been always sha-256 of
+course that is not the case here but
+that was not an idea or thought ahead
+when originally approaching this
+challenge and so I should probably keep
+that as a possibility in mind anyway I
+hope you liked this deep dive into my
+brain
+[Music]

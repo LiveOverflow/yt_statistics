@@ -1,0 +1,47 @@
+A regular expression, in simple terms, is
+a pattern that can match a string of characters.
+For example /abc/ would first look for an
+A, then a B and then a C.
+You could also draw this pattern as a finite-state
+automaton.
+This is the kind of theoretical stuff you
+would learn when you study computer science.
+So we start here, then we can move to the
+next state when we see an A, to the next when
+we see a B and to the last one when we see
+a C, which means we match the string.
+And obviously if our string would have been
+A,X,C instead, then we would find the A and
+move forward, but there is no path for the
+X.
+So our pattern doesn’t match the string
+AXC.
+And if you think about regexes as these graphs,
+all the other features of regex become very
+clear.
+So it’s really helpful to draw this, if
+you find a more complex regex you don’t
+understand, or if you want to come up with
+a regex yourself maybe start drawing a finite-state
+machine instead.
+And then translate it into the text version.
+There is this really awesome website called
+debuggex which basically does exactly that
+for you.
+And I use it all the time because regex are
+often used to validate input, and it can be
+really helpful to see if you can somehow get
+malicious input through.
+Here just as an example a simple mail regex,
+and while you type you can observe here the
+pink cursor that shows you what characters
+you are allowed to use next.
+Until it matches
+And if it doesn’t match you can easily explore
+where it happened.
+Now debuggex is not the only service for this,
+you can find plenty of regex debugging tools
+and they are all cool and sometimes a regex
+is better visualized by one of the others,
+I just happen to use debuggex mostly.
+No particular reason.

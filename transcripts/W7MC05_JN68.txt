@@ -1,0 +1,304 @@
+Okay, I have been dragging this on for a while
+now, but we will finally do our first hack.
+I know you have been waiting for this, but
+it’s important for me to show each step
+along the way, because you can’t jump straight
+to hacking stuff.
+A huge hidden chunk of hacking is about studying,
+gathering information, testing, engineering
+and so forth.
+I think this tweet captures it perfectly:
+I'm starting to think that hacking isn't about
+tech skill.
+It's being willing to stare at a screen for
+hours, try a million things, feel stupid,
+get mad, decide to eat a sandwich instead
+of throwing your laptop out a window, google
+more, figure it out, then WANT TO DO IT AGAIN.
+So yeah, don’t be impatient.
+We get there eventually.
+At the end of last video I said that we can
+easily extract class information from gdb
+with ptype.
+And that is mostly true, but there are a few
+caveats.
+So let’s start by copying a few classes
+into our header file, and include it in an
+empty program, then try to compile it.
+This will reveal a lot of new classes, that
+are referenced by the current classes, and
+we can use that to extract even more.
+Or we learn about basic classes, like strings,
+we need to import.
+And maybe some other minor mistakes like missing
+semicolons.
+There are also some gdb errors, like this
+Python exception produced by gdb, in the middle
+of those classes, so those have to be removed
+as well.
+But at some point we gathered all the information
+needed to compile it.
+But what can we do with this now?
+There is something called LD_PRELOAD.
+LD_PRELOAD is an environment variable interpreted
+by the linux dynamic linker/loader.
+The ld.so library that, basically every program
+you execute uses.
+You can also read the man page of it.
+man ld.so.
+The program ld.so finds and loads the shared
+objects (shared libraries) needed by a program,
+prepare the program to run, and then run it.
+Linux binaries require dynamic linking (linking
+at run time) unless the -static option was
+given to ld(1) during compilation.
+And in there you can also find information
+about the LD_PRELOAD environment variable.
+LD_PRELOAD - A list of additional, user-specified,
+ELF shared objects to be loaded before all
+others.
+This can be used to selectively override functions
+in other shared objects.
+That sounds really amazing right?
+We can use that to force the game to load
+any shared object we want before other shared
+objects, so we could create our own libray,
+loaded before the
+Shared object libGameLogic and overwrite functions
+from that.
+To do that we simply have to compile our program
+as a shared object instead.
+So with -shared, the resulting binary is not
+an executable anymore, but a shared object.
+And you can check that out now with ldd, which
+shows the dynamic libraries loaded by this
+program.
+And if we add the LD_PRELOAD environment variable
+with our compiled shared object, suddenly
+the game also loads our test shared object.
+Cool, right?
+This means we can include any code we want
+in it, and it will get loaded into the process
+as part of loading the dynamic libraries that
+implement functions used by the program.
+That means that we can for example define
+a function Player::SetJumpState.
+And when the program wants to use this function,
+which it wants to call inside an external
+dynamic library, then it will find ours, and
+not the intended one from libGameLogic.
+So let’s add some test printf output here,
+which also prints the bool parameter given
+to this function.
+Oh if you define a function like that now,
+you also need to compile it woth PIC, position
+independent code, so it can be loaded anywhere
+in memory.
+Now let’s try it.
+Let’s start the game with LD_PRELOADing
+our test shared object.
+We go into the game.
+And when we JUMP, we see the function being
+called.
+Isn’t that awesome!
+In fact we set setJumpState to 1 when we start
+to jump, and when we land it gets set to 0
+again.
+That’s so awesome.
+Though, there is one tiny problem here.
+You see, we overwrite this function.
+And from last episode we know that it would
+lead to inform the Server of the Jump.
+So if I log into the game on another computer
+and look at this character, I see no jumping
+at all.
+The server never gets the information that
+we jumped.
+And when we remove the LD_PRELOAD again, and
+now the program uses the real SetJumpState
+function, we can see the player jumping again.
+So that is a problem, or can be a problem,
+depending on what you want to do.
+But we deal with calling the intended function
+when we need to.
+For now let’s keep it a bit more simple.
+Remember the GameWorld global variable?
+Which has references to the currently active
+player, or all other players in the world,
+and much more?
+I think it would be super cool to interact
+with that object.
+While investigating the classes I found this
+Tick() function that exists for a lot of objects.
+The ClientWorld:Tick is executed multiple
+times a second, and it calls a lot of other
+Tick functions.
+One of them is the World::Tick, which appears
+to do nothing.
+So because it’s constantly called, and it
+does nothing else, it’s a perfect candidate
+to be replaced.
+So let’s do that.
+But what can we now do in it?
+So there is a function called dlsym.
+It optains the address of a symbol in a shared
+object or executable.
+And it takes two parameters.
+A handle and the name of a symbol.
+The handle could be a handle to an opened
+dynamic library, but we can also use RTLD_NEXT,
+which will Find the next occurrence of the
+desired symbol in the search order after the
+current object.
+This is actually also the solution for the
+previous problem, but like I said, we deal
+with that when ne have to.
+But just for completeness sake,
+This allows one to provide a wrapper around
+a function in another shared object, so that,
+for example, the definition of a function
+in a preloaded shared object can find and
+invoke the "real" function provided in another
+shared object.
+But we will use it to get the address of the
+GameWorld symbol.
+And the GameWorld symbol is an address, where
+we have a pointer to a ClientWorld object.
+Which means GameWorld is a pointer to a ClientWorld
+pointer.
+Because dlsym doesn’t know that and just
+returns a void pointer, essentially an address,
+we have to cast it to a ClientWorld pointer
+pointer.
+And then we dereference that to obtain a direct
+ClientWorld pointer.
+And then we should have access to the whole
+Object and it’s attributes.
+And we can write something like this.
+So we take the world object and get the currently
+active player, which should be us.
+We can also do this in gdb to figure out what
+exactly we have to do, and it’s a very fun
+to explore the objects.
+So the activePlayer is this ActorRef, with
+a m_object attribute, which is then our player.
+Or almost our player.
+We have to cast that IPlayer to an actual
+Player Object.
+And then we can for example call the GetPlayerName
+function to print the name.
+Or we can access the amount of mana.
+If we compile this now, and execute the game
+while we LD_PRELOAD this, we should see the
+mana and name of our player.
+And it almost works?
+We see our name, the character name is “asd”,
+but the mana is 0?
+That doesn’t look right.
+Especially because with gdb we can confirm
+that the player object should hold our amount
+of mana.
+So something goes wrong.
+Let me show you what the fix for that was.
+So gdb reported these attributes to be of
+the type std::string, but in reality they
+were const char pointers.
+Replacing them makes it work.
+And why that was an issue is, that the std::string
+type takes more space in the class structure,
+than a simple pointer would.
+So these other attributes of type std:strings
+pushed down, the for example, mana attribute.
+And so based on our header file, the compiler
+thought the player mana is much further down
+in memory, than where it actually was.
+And debugging this, because I have almost
+no C++ experience and doing this for the first
+time, took me around 8-10 hours.
+I’m not kidding.
+This small change to fix this, blocked me
+more than a full day worth of work.
+Thinking about this is just so sad.
+But on the other hand, I really learned a
+lot during this process.
+This is a topic I don’t know a lot about,
+this is the first time that I really look
+at C++ objects and classes in memory.
+So during this painful process I actually
+learned a lot.
+I mean I can’t even summarise all the stuff
+I tried and investigated in those 10 hours,
+but the breakthrough came from combining two
+observations.
+One was when I was looking at the offset to
+the mana attribute from the start of the class,
+where gdb thinks the mana should be, and where
+our compiled library thinks it should be.
+AND noticing the gdb error when printing the
+object, that something is not quite right
+there.
+Still took me quite a while to figure out
+what exactly it is, but yeah.
+Reversing and hacking can be really painful,
+but very rewarding if you get it at the end.
+So what can we do with that now?
+I promised you a first hack in this video.
+If you had a close look at the player class,
+you may have seen an attribute called “walkingSpeed”.
+So we could try to set the walking speed to
+a super high value.
+So what will that do?
+Let’s compile the library again, LD_PRELOAD
+and start the game.
+So let’s try to walk a little.
+And whooooooosh.
+Look at that speeeed.
+We are so fast that we can even take over
+our fireballs.
+That’s so awesome.
+But there are even more attributes.
+There was also a player health.
+Can we make us invincible?
+Let’s try to always set our player health
+to over 90000.
+If we try to compile it now, then we can’t
+access the health attribute directly, because
+it’s a protected attribute.
+But you know, there is no such thing as protected
+by some kind of magic memory, this is just
+C++ convention and so if we change this in
+our header file to public, then the compiler
+allows us to access it and wont throw an error.
+And now we can compile it and head into the
+game.
+Hahah look our health doesn’t even fit on
+the display anymore.
+So let’s go to the chest protected by bears.
+Thanks to our walking speed hack we are super
+fast.
+And now when we try to open the chest for
+the flag, a timer will start and bears will
+attack us.
+But we have so much health now, You can’t
+do anything!?
+Muahahah.
+Look we are invincible!
+You have died.
+Killed by a bear.
+Oh.
+Well, so you see, it’s not that easy.
+Apparently the game server trusts the player
+position sent to the server, and thus we can
+walk super super fast.
+the server just accepts these new positions,
+even when they are unrealistically far away
+from the previous one.
+But it doesn’t get fooled by our health.
+So clearly the server keeps track of what
+our health should be and the damage we get.
+So we can set the health super high on the
+client.
+It just doesn’t help us at all.
+But with the power to change values of our
+player object and even other stuff in the
+world, you can still achieve a lot.

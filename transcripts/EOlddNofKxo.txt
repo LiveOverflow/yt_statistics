@@ -1,0 +1,341 @@
+We are going to solve a crypto challenge with
+some cool math.
+I think it’s an awesome example of linear
+algebra applied to some real world security
+problems.
+The story about this challenge is that we
+have a firmware update that will only be applied
+if verified, and works by hashing files and
+folders with sha256, and xoring those hashes
+together.
+The resulting xored result is then checked
+against a signature.
+If you want to hear more about how we explored
+different attack ideas you can checkout part
+1, but in this part I just want to focus on
+the mathematical solution and try provide
+an intuitive understanding for the linear
+algebra involved.
+And I’m also sorry to all mathematicians
+out there if I butcher some terminology, I’m
+a math noob.
+Okay, so to understand the solution I have
+to introduce two concepts.
+One is about linear independence, and how
+linear independent vectors in some vector
+space can match to any point.
+And the second concept will be Galois Fields
+or finite fields, specifically the GF(2),
+the field of only two elements.
+If you didn’t learn this kind of math, for
+example in university or you are still too
+young, then these terms sound crazy, but I
+wanted to mention them because while it sounds
+crazy, I think it’s really easy to understand
+once I explained it.
+So let’s start with linear independence
+of vectors.
+If you are not familiar with vectors, just
+ignore the term and just see how we are using
+it.
+They are basically just arrows.
+So...
+Imagine a 1 dimensional space.
+So just a line of numbers.
+And I give you a one dimensional vector.
+Now a vector is like an arrow, so this vector
+starts at 0 and points to 2.
+With a scalar, or just “regular number”
+we can multiply that vector to move that arrow
+around.
+For example 2x the vector will point to 4.
+And 4x the vector will point to eight, and
+-3x this vector will point to -6.
+Easy.
+And as you know, multiplication is just fancy
+addition.
+For 4x the vector we just add the vector to
+itself 4 times.
+So you see that with this one vector, if we
+multiply it with some value, we can make it
+point to EVERY number in that one dimensional
+space.
+Now let’s look at this in two dimensional
+space.
+Just a flat surface.
+We add another axis.
+Now a vector will have two values, x and y.
+Now let’s take one vector, for example [1
+1].
+Now this is an arrow that points to this point
+(1/1).
+Again we can multiply a scalar or just add/subtract
+this vector many times, we can move around
+where it points to.
+With 2x this vector we point to (2/2).
+With 5x we point to (5/5).
+And with -3x this vector we point to (-3/-3).
+But you see that we can’t add or subtract
+and reach every value on our plane.
+We only ever can reach any point on this line.
+Let’s introduce a second vector.
+[3 3].
+Now this one points to (3/3) and again we
+can add or subtract it, we can even combine
+our two vectors, but we are still limited
+to this line.
+You might also have noticed, that we could
+basically create this vector by taking our
+first vector 3 times.
+These two vectors are linearly dependent.
+But if we get a vector that is linear independent,
+that is not laying on the same line, for example
+[1 0], now we can’t reach this point with
+only the first vector.
+And vice versa, the new vector can’t reach
+a point of the second vector.
+Except of course 0.
+But we can now use them together to get to
+any point on this 2 dimensional field.
+For example to reach the point (3/5) we can
+take the first vector 5 times, now we are
+at (5/5).
+And then we take the second vector and subtract
+it two times, and now we reached (3/5).
+And so with TWO independent vectors we can
+get to any point of the TWO dimensional field.
+And this also works with three dimensions.
+If you have three linear independent vectors
+in this three dimensional space, you can get
+to ANY point you want by adding or subtracting
+them.
+That makes sense, right?
+Just think about it for a second and imagine
+in your head how you can combine three different
+arrows in a three dimensional space and reach
+any point in there.
+And of course this also works in 4-, 5- or
+higher dimensional space.
+In 4 dimensions we need 4 linear independent
+vectors and in 5 dimensional space we need
+5 linear independent vectors, and so on.
+Of course you can’t really visualise that
+anymore, but you can just write them down
+as a vectors and play around with adding and
+subtracting them from another to reach any
+point you want.
+Amazing right?
+But if you have very large vectors, it’s
+a bit cumbersome by hand to select the vectors
+you want to add or subtract to reach certain
+points.
+That’s where you get into linear algebra.
+You just put all those vectors as columns
+into a matrix, here is the point you want
+to reach, and then you can solve this.
+But we don’t have to do that by hand, we
+can let computers do that for us.
+Ok so, what the heck does this have to do
+with this challenge?
+We get there.
+Patience.
+So now let’s introduce the second concept.
+Finite field is already a fancy sounding name.
+But there is a much nicer name for it.
+That’s synonymous.
+Galois fields.
+That’s a nice french name, right?
+Ok.
+So when you wanna, tell your girlfriend or
+boyfriend or your mother, whoever you want
+to impress what you did today, at university,
+say I learned about Galois fields.
+Ok?
+Specifically we want to have a look at GF,
+Galois Field (2).
+Ahh it sounds sooo cooool.
+But it’s really dumb.
+But clever.
+Basically, throw away any numbers you know
+and just keep two.
+0 and 1.
+And you live now in a world where only 0 and
+1 exists.
+The binary world.
+No 2, no 3.
+Only 0 and 1.
+Now let’s think about how addition could
+look like in this world.
+0 + 0 could be 0, that makes sense
+0 + 1 could be 1, that makes sense too
+So does 1 + 0, that’s also 1.
+But 1+1 is a bit weird, because in our world,
+there is nothing larger than 1.
+And so we are imprisoned in this weird world
+and if we try leave here to find a larger
+number, we just wrap around in our world and
+arrive at the start again.
+Like the game snake.
+And as a computer scientist, do you notice
+something?
+What is this?
+This is XOR.
+Addition in the finite field of two elements,
+GF(2) is equivalent to the logical XOR operation.
+Ding ding ding dinggg.
+Does it ring a bell?
+So when we XOR for example two bytes, each
+byte has 8 bits.
+Eight 1s or 0s.
+For example 0x55, in ascii the capital letter
+‘U’, would be 0101 0101.
+And if we XOR that with 0xD9, in binary 1101
+1001, we get 1000 1100 , or 0x8C.
+So these bytes could also be understood as
+a vector, it’s an 8 dimensional vector with
+8 elements either 0 or 1.
+They are vectors in an 8 dimensional GF(2)
+vector space.
+Each vector has 8 bits, and a bit exists only
+in a world of 0 or 1.
+A bit can never be 2.
+It’s always either 0 or 1.
+And we just learned, that an XOR in GF(2)
+is like addition.
+So no we just added two vectors together and
+got another point in that vector space.
+And this means a sha256 hash, has 256 bits,
+and can be understood as a 256 dimensional
+vector in a Galois Field (2) vector space.
+And the first concept we learned about was,
+that if we have enough linear independent
+vectors, we can add or subtract them to reach
+any point in the space.
+And so if we had 256 linear independent vectors,
+256 linear independant sha256 hashes, we could
+reach ANY point in the 256 dimensional space.
+And the point we want to reach, is the 256
+bit vector, or better to say the final xor
+result of the hashes that is already valid
+and signed!
+So if we can create these 256 linear independent
+vectors, we should be able to combine them
+by addition, or as you know now, XOR, to craft
+any XOR result that we want.
+In mathematical terms, we then just have to
+solve this matrix equation of the 256 independent
+vectors with the vector that we want, any
+XOR result that we want.
+And actually, that is very simple.
+Hashes are basically random data.
+Random bits.
+They are a random vector.
+And it’s very very unlikely that such a
+random vector is linear dependent.
+But you can also very easily test that.
+So let’s start by creating 256 linear independent
+bit vectors.
+Or vectors operating in GF(2).
+To do this I’m using sage, which is basically
+a tool to perform mathematical calculations.
+Sage scripts are basically python.
+The code gets transformed into a python script
+and that is then executed.
+Also as I explained in part 1, I did not come
+up with this.
+The solution and the code I show was written
+by bennofs from our CTF team.
+Just so that you don’t get the wrong impression
+that I’m some kind of wizard.
+He is.
+So we can start with a loop to find these
+independent vectors.
+We know how the hashes are generated by the
+firmware installer, check out part 1 if you
+forgot, so we basically we do the same now
+here, we generate a filename from just counting
+numbers, and append the null-byte.
+Then pass it to something that will return
+the 256bit vector for it.
+The make_vector function takes the filename,
+generates the sha256 hash and then goes over
+each byte of that hash.
+For each byte it extracts the single bits.
+It does that via a lookup table of bits that
+was generated at the start of the program.
+Long story short, that function will just
+return the vector with all 256 bits of the
+hash.
+Now that we have the vector that represents
+the hash for this file, we can create a matrix
+of all the possible vectors.
+Defined over the Galois Field GF(2).
+And then we can check the rank of the matrix.
+In linear algebra, the rank of a matrix is
+the dimension of the vector space generated
+by its columns.
+This corresponds to the maximal number of
+linearly independent columns of the matrix.
+So if the new vector increases the rank of
+the matrix, so increases the number of linear
+independent columns of the matrix, then we
+can keep that one.
+And so we just remember all those vectors
+and filenames that are good.
+And we can also print if a vector wouldn’t
+be linear independent.
+If we run that now, it takes a moment for
+sage to get going, and then we print out all
+the filenames that produces linear independent
+vectors.
+And you can see, after the first 256 we didn’t
+even get ONE that was linear dependent.
+Next we have to define the point in our 256
+dimensional vector space, that we want to
+reach by combining our vectors.
+To do that we have to read the current valid
+xor result, the one that is signed, then we
+do our modification of the pre_copy python
+script to spawn a shell, and then we get the
+new invalid xor result.
+If we xor those two, we get our target goal.
+If we can somehow craft this XOR result with
+our files, basically find which vectors we
+have to combine to reach that point in space,
+then they would be xored with the now invalid
+xor result to produce the valid signed result.
+So we take that result now and define a GOAL
+vector, and then we take the matrix of all
+our vectors, and say that we want to solve
+this system of equations for the goal vector
+to the right, basically just solve this matrix
+equation and the resulting vector will tell
+us which vector we take and not take.
+Where we have a 1 we take it, where we have
+0 we don’t take it.
+Or to be more mathematical, we multiply the
+first vector with 1 and add it, we multiply
+the second vector with 1 and add it, and we
+take the third vector and multiply it with
+0 and add it.
+And so forth.
+So we can now loop over this resulting vector,
+and wherever we have a 1 we print the name
+of the file we have to create in order to
+craft the corresponding XOR result.
+And if we do all of that.
+We can create the new .zip update file with
+all of these chosen files, and that should
+have a valid signature, but a modified pre_copy
+script.
+And so we can connect again to the service
+and send our modified update.zip.
+It gets unpacked, the signature checked, and
+the precopy script is executed.
+And this should have now spawned a shell on
+the server that we can use to look around,
+and in the end, read out the flag.
+Boom.
+Solved.
+Isn’t that amazing.
+t

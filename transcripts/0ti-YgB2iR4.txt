@@ -1,0 +1,220 @@
+Last video we started doing depper crash analysis 
+on sudo and started looking into one particularly
+interesting case. This crash happened inside 
+of libc, and the backtrace included this
+interesting function named lookup_function. 
+Let’s see if that is useful for a sudo exploit.
+Looking through the crash information from the 
+fuzzer. Specifically those which show nss_lookup,
+in the callstack of the crashes, we can notice 
+different places that ended up crashing in
+nss_lookup. One is called within some 
+sudoers policy check. Get group id lists.
+And the other one is also sudoers policy 
+check, but more specifically in check_user.
+Looking from some patterns in the heap analysis 
+info, it’s noticeable that the one crash always
+had the same objects lined up. While the other 
+crash had a bit more variety with the object.
+Currently It’s unclear which of these 
+objects, if any, is the cause of the crash.
+But if we take a testcase from the check_user 
+stuff, we seem to have a lot more consistency.
+The crashes had all the same 
+objects there. and I prefer that,
+because heap stuff can be frickly, 
+and this seems to be more reliable.
+So… let’s load one testcase into 
+gdb with our poc helper script.
+Here we break at the overflow location. 
+So let’s continue to run into the crash.
+In this case we crashed in a strcmp, coming from 
+nss_new_service, nss_loa_library and nss_lookup.
+This is not the whole trace though. With bt 
+or backtrace we can see the complete one.
+It all started in sudo main. Which called 
+policy_check, then sudoers_policy_check,
+check_user, sudo_auth_init, sudo_passwd_init,
+sudo_setspent, and then we leave sudo and 
+head into libc. You can see how the address
+significantly changes and also the file path 
+is not a known sudo source code file anymore.
+Quick interruption for a 
+public service announcement.
+When I encounter a function I don’t really know, 
+I really like to use grep.app to quickly look up
+example usages. And when looking for setspent, 
+we can see for example this snippet of code,
+which first calls setspent, 
+followed by a loop over getspent.
+And in the man page of setspent we can read:
+The getspent() function returns a pointer to
+the next entry in the shadow password 
+database. The position in the input
+stream is initialized by setspent().
+So setspent initializes somehow the
+shadow database, so getspent can read entries. 
+So this is basically code to interact with
+/etc/shadow. so it seems like we want to get 
+the /etc/shadow information of our current user.
+And that makes sense for sudo. We probably want 
+to check the password the user enters for sudo.
+Now let’s dig into the libc code. First 
+of all we have to know the libc version,
+which we can find with ldd --version, 
+or executing the libc library.
+Doesn’t do much, but shows 
+the version. So we have 2.31.
+Then I’m using the elixir code 
+browser to easily navigate the code.
+First I tried to find setspent as a file, but 
+only found getspent.c. And in there we only see
+a define for SETFUNC_NAME setspent. Let’s remember 
+SETFUNC_NAME and that the DATABASE_NAME is shadow.
+Also it includes nss/getXXent.c.
+So let’s follow into getXXent.c.
+There is a function GETFUNC_NAME, but that 
+function is weird. Don’t think it’s related?
+So I went back and searched for SETFUNC_NAME 
+directly. we can find a getXXent_r.c.
+No clue how that relates, some C magic. But in 
+there we can find SETFUNC_NAME as a function.
+And looking into the calltrace we can see that 
+we call nss_setent, which is also called here.
+So this seems to match. And this function takes 
+in the name of our function, so “setspen”t.
+we can also have a quick peak into 
+gdb again, going down the callstack.
+Here we call nss_setent, and as expected the 
+first parameter is the string setspent. We can
+also look at the other structs, for example nip, 
+but no values there that we have overwritten.
+Anyway. So we know the function 
+nss_setent is defined in getnssent_r.c.
+And we know that next we call setup. 
+Setup is called with the function name
+again and it says here “cycle through the 
+services and run their setXXent functions.”
+OHHHHHHHHH I FINALLY UNDERSTAND WHY IT HAS XX 
+in the name. setSPent. SP is an identifier.
+So it should be read as SET  entry. And 
+looking at the SETFUNC_NAME define from earlier we
+can find tons of function with that pattern. Looks 
+like SP is for shadow files. PW is for PASSWD. GR
+stands for GROUP. So it seems like this family of 
+functions is used to somehow interact with these
+different databases of information! I just learned 
+something new about linux! Anyway. Let’s continue.
+We are now in setup and we passed in the 
+function name. setSPent. And in there we
+see a call to __nss_lookup, which apparently 
+looks up the first function. We are getting now
+really close to the crash, so let’s walk 
+a bit more careful. This function calls
+nss_lookup_function quite a few times. And I don’t 
+know which of the calls resulted in the crash.
+But all of these calls take the function 
+name and the service_user pointer pointer.
+So let’s look closer into what 
+this service_user struct is.
+It seems to be a linked list, as it 
+has here a pointer to the next entry.
+Then we have some lookup actions, no 
+clue, and then we have a link to the
+underlying library object. As well as the name 
+of the service, like files, dns, nis and more.
+The file we are in right now is called nsswitch.h, 
+and these names actually relate to the values from
+/etc/nsswitch.conf. Let’s have a quick peak at 
+this file. NSS stands for Name Service Switch
+and to be honest, first time for me learning 
+about this too. It’s interesting. For example
+passwd functionality is offered by files. A 
+file. That’s why there is the /etc/passwd file
+that is the underlaying source for password 
+information. If you for example would have
+authentication not implemented with the passwd 
+and shadow file, and for example you use ldap,
+then you replace it here. And sudo ,as a software 
+that has to check the user authentication
+asking for the password, has to obviously look 
+up, “hey, where can I find passwd and shadow data
+for users.” in a basic ubuntu setup it 
+will be provided by these files or systemd,
+but if you have central user authentication 
+via ldap, it will be provided via ldap.
+And all of this is handled by these nss functions 
+of libc. Sudo doesn’t have to implement all that
+logic. It simply can ask with libc functions for 
+a particular user’s data! AMAZING!!!! Anyway.
+What is this service_library struct? So this 
+contains a name of the service and a pointer
+to the loaded shared library. As well as a 
+pointer to the next service library. Cool.
+Now let’s go back to the code. We now 
+call one of those nss_lookup_functions
+with the function name “setspent” and the pointer 
+to the first service_user entry. Here it is.
+Let’s read briefly over this code. First we 
+call tsearch, which seems to be a tree search
+for functions previously requested. And we pass 
+in the function name and a pointer to ni->known,
+the collection of known pointers. I do remember 
+we definetly had crashes where objects on the
+heap were related to tsearch. So yeah. we might be 
+able to influence this linked list maybe somehow.
+But let’s continue.
+So we search for this function and it’s either
+known, or not known. If it’s known this function 
+seems to be dereferenced and prepared to be
+returned. But if it’s not known, we now allocate 
+a new known struct to prepare for the function
+we are about to find out, and we end up calling 
+nss_load_library with that struct. this function
+checks if the library is 0, which is zero in our 
+case, and then calls nss_new_service. Passing in
+the name stored in the struct. Now this function 
+calls strcmp and we crashed in string compare.
+The ni struct seemed fine, so the cause 
+of the crash must be the database object,
+but it’s not printable right now. So I set a 
+breakpoint specifically in nss_new_service and
+restart the process. The first two breakpoint hits 
+are long before our overflow. So just continue.
+So here we are at set_cmd, the overflow happens 
+here. So any next call to the function could be
+just before we crash. I continue again and see 
+that it crashes. So we know, the one after set_cmd
+is the one we are interested in.
+Redo it again and so here we are.
+just before the crash, and we can look at 
+database, which has a pointer to library,
+and that library object was clearly overwritten. 
+And so of course, taking here the library pointer
+and then passing that name to strcmp, we crash.
+So let’s think about what happens if we control
+the name properly THEN this comparison would 
+succeed, and it would return our library
+pointer. Going further back the nss_load_library 
+has now ensured that ni->library points to an
+object. So if that would be the case. Then 
+we have this if-case if lib_handle is null.
+We overwrite that data too, so we can 
+definitely ensure to set it to null.
+And look at that. It says here “load the shared 
+library”. It constructs a shared object name with
+string copies, using the ni->name. And then calls 
+libc_dl_open!!! Damn! that would be an insane goal
+to reach. Then we could execute arbitrary code 
+when a library we create is loaded. Unfortunately
+we do not control ni->name in this case.
+Mhmh…
+Well… maybe we can find a way to control 
+it? Let’s see about this next episode.
+Thanks again to all YouTube Members and 
+Patreons who make a video series like
+this possible. And if you want to support this 
+series in other ways, I’m always grateful;to see
+it getting shared! I’m sure there are more 
+people that would like to see such videos,
+and you can help to spread the word. thanks!

@@ -1,0 +1,179 @@
+In this video we are going to write a simple tool 
+in python, to assist us coming up with an exploit
+strategy for the sudo heap corruption. Our problem 
+is that we have a simple overflow into other data
+of the heap, and we need to figure out if there 
+is any interesting data that we can overwrite.
+And very useful and powerful would be 
+a function pointer. A function pointer
+is just an address, that some other code uses 
+for a function call. So if we overwrite that,
+we would be able to redirect code execution. 
+So how can we figure out if that is the case
+for sudo, and would it be a feasible 
+exploit strategy too? Let’s find out.
+So my idea how to do that is very basic. It’s 
+actually not perfect it has a major weakness,
+but more on that later. For 
+now, here is the rough plan.
+From the virtual memory map we 
+know what area contains code.
+All the areas that have the executable flag set. 
+So we can search the heap for addresses in that
+range. if we find such an address, it could be a 
+function pointer. Once we identified such a case,
+we could check if this address comes after the 
+buffer we can overflow, so we can overflow this
+address. And we can combine this with the first 
+idea from last video, we could write a tool
+that brute forces different heap layouts, hoping 
+that function pointers end up after our buffer.
+Here I’m back in gdb with the gef gdb extensions. 
+First I go to where the overflow happens and I
+execute a few loop rounds. So now we have written 
+some data into our buffer. Looking at the virtual
+memory map with vmmap, we can see where the heap 
+is. And then we can create a binary data dump from
+the start to the end of the heap. I write this 
+dump into this heap file so we can write some
+code to find function pointers in it. But to 
+find possible function pointers, first we need
+to know all address ranges with executable code. 
+So I also copy the complete virtual memory map,
+put it into a new python script and I 
+write a first loop going over each line.
+If we have readable and executable memory, this 
+memory area probably is code. So we split this
+line into the individual parts and we get start, 
+end, size, and other stuff we don’t really care.
+These values are in hex, so I convert them to 
+an integer and add them to this memory map list.
+Next we can open the binary heap dump and 
+read it all Into the heap variable. Next
+we can create a loop that goes over that data, 
+by using a counter variable that starts at 0,
+up to the length of the whole data, and counts 
+up in bytes of 8. The file obviously starts at
+offset 0, but the real heap address starts at 
+55555f0000. So we can also calculate here the
+current real heap address by adding the 
+start address. And then for each offset,
+we are extracting a range of 8 bytes. Why counting 
+in 8 bytes and extracting 8 bytes? Well we have
+here a 64bit binary and system, so addresses would 
+be 8 byte. And they should be 8 byte aligned.
+We then convert these 8 bytes to an integer. 
+And then for each integer we extracted from
+the memory we can loop over the memory list 
+of executable memory and we can check if
+that integer is in the range of this particular 
+memory range. If that is the case this address
+points into executable memory! And we can 
+print it. This is likely a function pointer.
+Also we know where our buffer that we overflow 
+starts. It was at 6131e0. So if we reach that
+heap address, we also print that information. 
+Now we can run our script, and look at that!
+We get a collection of addresses that point into 
+executable memory. And also where our buffer we
+can overflow is. Unfortunately it is at the end. 
+So right now we couldn’t overflow data into any
+of these addresses. But maybe by playing with the 
+argument lengths and other data that can influence
+the heap, we can find a configuration where our 
+buffer is placed before some of these addresses.
+But before we explore that further, I 
+want to check if any of those addresses
+are actually being used and called! Just 
+to see if that idea would be feasible.
+And to do that I simply overwrite them with 
+an invalida address, and let the program run
+and see if it crashes. I use the script to quickly 
+generate the commands to overwrite each possible
+function address with a unique value. This way if 
+we get a crash, we know which one caused a crash.
+Now, I create a minimal test case that doesn’t 
+cause any overflows, because I don’t want to crash
+from a side effect of the overflow before we get a 
+chance to execute one of these function pointers.
+I set a breakpoint in the overflow loop, 
+run the binary with the minimal testcase.
+Overwrite the potential function pointers. 
+Let’s assume our overflow overwrote them.
+Delete the breakpoint, and continue.
+BOOM! We crashed. And look at rip.
+So this function pointer with 4f4f4f4 is called 
+AFTER our overflow. So if we would manage to get
+our buffer right before this address we could 
+overwrite it and redirect code execution!
+Just for curiosity, what is this function pointer?
+If we type bt, we can see the backtrace, so all 
+the function calls that lead here. And we came
+from rbfind. If we type “up”, we go up the call 
+stack into rbfind, and our debug build shows us
+the line. So apparently we are executing 
+the compar function on a tree structure.
+Print tree shows that this memory on the heap 
+is a rbtree struct. rb probably means red black
+tree. HEY WOW, COMPUTER SCIENCE CLASS! RED BLACK 
+TREES IN THE WILD! WHO SAID THEORETICAL COMPUTER
+SCIENCE IS USELESS???! Anyway. With p *tree we 
+can also dereference that pointer and print the
+tree struct. And we can see that this tree struct 
+contains a compar variable, that is a function.
+So if we find a way to put our buffer before this 
+buffer, we could overwrite this pointer. Awesome!
+This function pointer is cool, but it might not 
+be the only useful function pointer. we can do the
+whole thing again, but DO NOT overwrite the one 
+we know. Then we might crash in a new place. Set
+breakpiint in overflow loop, restart the binary. 
+Overwrite the function pointers except the one we
+know works. Delete breakpoints and continue. BOOM! 
+We crash again! This time its 43434343. Again with
+bt we can look at the call graph, and apparently 
+we came from display_lecture. Up again to see the
+causing code line, it’s this call sudo_conv. 
+So this also contains a function pointer.
+This is awesome we have a potential second 
+function pointer we could overwrite.
+We can repeat this whole process again, but 
+it seems like we don’t crash anywhere else.
+More candidates would of course 
+be better, but I’m also satisfied,
+we could try to move forward 
+with the two we found.
+That is already very helpful for us. BUT 
+the attentive viewer might immediately
+have noticed that this is not a perfect 
+method to find potential function pointers.
+Actually the program might have a lot more 
+function pointers that might be even better for
+us. But when they are not set by default, we will 
+miss them. Oftentimes unused function poitners
+are null by default, and then there is code that 
+checks that, before calling it. So there might be
+more or even better options to overwrite, but the 
+method of finding function pointers that we used,
+would of course not detect those. But ultimately 
+it’s an engineering problem. For example we could
+write more automation to bruteforce ALL values 
+on the heap to find those. Might run for a while,
+but what it could find could be very useful. There 
+are probably also other strategies, for example we
+could try to find any function pointer in the 
+C code and add logging information about where
+it’s located on the heap, or maybe even some kind 
+of compiler instrumentation to find all function
+pointers. So obviously what we have is not a 
+perfect method. But I thought it’s a clever and
+very easy one. It might be enough! Though I have 
+never tried this before, and this might not help
+us at all. But I give it a shot. So next video 
+we will tackle the second problem. Our function
+pointers are currently not placed after our 
+buffer. So we cannot overflow them. Which means
+we need to develop a tool that takes some input 
+we know influence the heap, and let it bruteforce
+values. Hopefully we find a heap layout where 
+those function pointers can be used. I’m excited.

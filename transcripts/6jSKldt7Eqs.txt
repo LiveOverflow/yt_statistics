@@ -1,0 +1,322 @@
+Now I want to introduce how a CPU works.
+I hope I can take away any fear of assembler
+you might have, because it’s actually pretty
+simple.
+And in the next video you will be able to
+use this crack your first small program.
+First I had a long script where I basically
+tried to develop the concepts of a CPU step
+by step.
+But I realised it’s just too long and I
+think I didn’t get the point across.
+But then I came accross this hacking game
+by starfighters.io - at the time of creating
+this video, starfighters.io was not available
+yet.
+But when you see this here it should be up
+and running.
+So go check that out.
+And the creators of that site have uploaded
+an article as a preview of the game.
+That preview is a fictional report of reversing
+a hand-held device used for financial trading.
+And even though it’s fictional, it’s not
+far away from how it would look like in reality.
+That’s why I strongly recommend you to read
+it.
+But I will now take just the part where they
+introduce programming assembly and talk a
+little bit more around it.
+And then I hope you will start to understand
+how a CPU works.
+A CPU has amazingly simple concepts that can
+be used to solve very complex tasks.
+It’s pretty crazy.
+I hope you realise that by the end of this
+video.
+So Imagine just a sheet of paper, where you
+write instructions from the top to the bottom.
+This is your memory like the RAM in your computer.
+And each line on that paper has a number assigned,
+just like a location in memory has an address.
+So instead of line 5 on a paper, in memory
+it would be something like address in hex
+0x4005db.
+So that paper, or you know, your memory contains
+the assembly code.
+But what can assembly code do?
+So first of all, you're given 8-32 global
+variables of fixed size to work with, and
+they are called ‘registers’.
+So your CPU, depending on your architecture
+has a number of those registers.
+So for example the 64bit intel CPU has like
+16, 17, maybe more?
+Depends a little bit on how you count.
+But generally that’s the amount of registers
+that you mostly see or use.
+Anyway.
+They call those registers ‘global variables’,
+and that is what they are.
+Just like in your C or python programming
+you can use them like variables.
+Store a value in them and perform some arithmetics
+on them like adding or multiplying.
+The next keyword here is the fixed size.
+In a 32bit machine, they are 32bit wide.
+And in a 64bit machine, they have 64bits.
+So this is the biggest number you can store
+in one of those registers.
+And when you want to have bigger numbers,
+you obviously have to write code to split
+up the number over multiple registers.
+And some of those registers are special registers.
+The most important is the "Program
+Counter", which tells the CPU which instruction
+we're executing next.
+Every time we execute an instruction, we advance
+the program counter.
+This register is often called PC, meaning
+Program Counter, but on our intel x86 architecture
+it’s referred to as the Instruction Pointer.
+IP.
+Or EIP, or RIP - depending on 16bit, 32bit
+or 64bit mode.
+So when you look at your paper with instructions
+in each line, the instruction pointer register
+will have the number of the line that will
+be executed next.
+We often also refer to this as pointing to.
+So the instruction pointer points to line
+5.
+And when it has executed that instruction
+it will be increased by one, to move it to
+the next line.
+Virtually all computation is expressed in
+terms of simple operations on registers.
+Let’s do an example.
+In x86 assembler you can move a number into
+a register.
+Like ‘mov eax, 5’.
+This means that eax will now have the value
+5.
+And then you can add a number like 3 to it.
+‘add eax, 3’.
+Now let’s set another register to value
+8.
+So ‘mov ebx, 8’.
+And then you can subtract those to with ‘sub
+eax, ebx’.
+This means that ebx is subtracted from eax
+and the result is stored in eax.
+But Real programs need many more than 32 1-byte
+variables to work with.
+And what doesn't fit in registers lives in
+memory.
+In our case of x86 architecture that would
+be more than 16 registers with 64bit, which
+is 8-byte.
+Imagine to write a game like Super Mario in
+assembly.
+You would have to store marios x-/y-position,
+the lives, the enemies, the coins.
+You just need more than 16 variables.
+And when you want to collect more than 32bit
+worth of coins, you need more space.
+Next point is, what doesn't fit in registers
+lives in memory.
+You can just use other parts of the paper
+where there is no assembly code to store more
+values.
+Makes sense, right?
+Memory is accessed either with loads and stores
+at addresses, as if it were a big array, or
+through PUSH and POP operations on a stack.
+So the load and store instructions are called
+move in x86 assembler.
+So we can move values from a memory address
+into a register, and we can move values from
+a register into memory.
+For example ‘mov eax, [0x4005db]’.
+There are different syntax how you can write
+assembler.
+I like intel assembler syntax the most.
+So in this case the brackets are like brackets
+from an array or list.
+So for example in python to access a certain
+value in a list you would write ‘my_list[5]’
+to get the element at index 5.
+So we just do basically the same, just with
+a very big number 0x4005db, because our RAM
+is very big.
+Also they talk about push and pop operations
+on a stack.
+The stack is nothing else than just an area
+at the bottom of the memory.
+So like at the bottom of our paper.
+And then you have a special register that
+always points at the top of the stack.
+The stack pointer SP.
+Or ESP.
+Or RSP.
+It’s special like the instruction pointer.
+And when you push a new value on top of the
+stack, for example `push 5`, the stack pointer
+will be incremented, pointing to the next
+address and the value will be placed there.
+And when you do `pop eax`, the value at the
+address of the stack pointer will be saved
+in the eax register, and the stack pointer
+will be decremented.
+This is used in programs all the time.
+Eh…
+I have to correct myself.
+The stack is ususally upside down.
+so the stack grows downwards.
+Meaning it starts from the highest address
+and when we push a value we don’t increment
+the stack pointer, we decrement it.
+and with pop vice-versa.
+But doesn’t really matter.
+Just imagine literally a stack, where you
+put something on top, or take something away.
+Memory is to an assembly program what the
+disk is to a Ruby or Python program: you pull
+things out of memory into variables, do things
+with them, and eventually put them back into
+memory.
+Now when we talk about efficiency and speed.
+Then calculations on registers are super super
+fast.
+And ideally your whole program should only
+use registers.
+But because that’s unlikely you have to
+put values sometimes into memory because you
+need the registers for more complex stuff.
+But if you would optimize your code, you would
+always want to make sure to access memory
+as little as possible.
+Well.
+This is also only half true, because you have
+something like caches near your CPU.
+Actually multiple levels of caches.
+So if you repeatedly use a certain memory
+address, it will be cached in a special super
+super fast memory near the CPU and not in
+RAM.
+Which is not too bad.
+But you get the idea.
+Control flow is done via GOTOs --- jumps,
+branches, or calls.
+The
+effect of these instructions is to alter the
+program counter directly.
+Control flow means that a CPU would be less
+useful if it would just execute your program
+line by line, without being able to jump to
+somewhere else.
+For example to repeat a task, you want to
+constantly jump back.
+In assembler you have different instructions
+to do that.
+They are referred to as jumps, branches or
+calls.
+And they all basically change the instruction
+pointer to a different value.
+So when you read a ‘jump 2’, you would
+simply set the instruction pointer to 2, and
+continue with that line.
+Kind of like ‘mov eip, 2’
+A jump is just an unconditional GOTO.
+So when you encounter a jump, you will always
+follow it.
+But much more interesting for complex tasks
+is to make decisions what to calculate next.
+And Most operations on registers, like addition
+and subtraction, have the
+side effect of altering status flags, like
+"the last value computed
+resulted in zero".
+There are just a few status flags, and they
+usually live in a special register.
+So for example when we earlier added 3 to
+the 5 with the ‘add eax, 3’ the result
+was bigger than zero, so the zero flag would
+have been not set.
+or simply 0.
+But when we subtract 8 from that with ‘sub
+eax, 8’, the result will be 0 and thus enabling
+the zero flag, setting it to 1.
+And branches are just GOTOs that are predicated
+on a status flag, like, "GOTO this address
+only if the last arithmetic operation resulted
+in zero".
+In x86 assembly that would be the ‘je’
+instruction.
+Sounds weird, but how would you test if two
+values are equal?
+You can simply subtract them and when their
+result is 0, they were equal and thus set
+the zero flag.
+So it makes sense to call the ‘branch if
+zero flag is set’ simply ‘jump if equal’.
+A CALL is just an unconditional GOTO that
+pushes the next address on the stack, so a
+RET instruction can later pop it off and keep
+going where the CALL left off.
+So earlier I explained how the push and pop
+instruction works.
+So a very clever usage of the stack is this
+call instruction.
+Let’s say in C you want to call a function.
+How would you do that in assembler?
+Especially because a function might be used
+in multiple places, so you always want to
+jump back where you came from.
+If you would just use the ‘jmp’ instruction,
+you would have to specify the exact address.
+So what you can do is use the ‘call’ instruction
+instead.
+This will push the instruction pointer of
+the next instruction on to the stack.
+And when the function you jumped to finishes,
+it will execute the ‘ret’ instruction.
+And ret will pop the current value on top
+of the stack into the instruction pointer
+again.
+So like a `pop eip`.
+So we can continue executing where we originally
+came from.
+And before we finish this video,I just want
+to make clear, that the assembler instructions
+are actually just numbers.
+As you know a computer can only store 0 and
+1s, and we generally represent those as numbers.
+So assembler code doesn’t actually say ‘mov
+eax, 5’.
+It will actually ‘B8 05 00 00 00’.
+And hex B8 refers to `mov eax`, and the remaining
+numbers are available for the number you want
+to move into eax.
+So when the hardware reads this number, it
+knows that it has to move the following number
+in it’s eax register.
+And a disassembler is a software that takes
+this number B8 and makes readable text out
+of it for us to easier read assembler.
+If you want to try this out in practice, you
+can go to microcorruption.com.
+It’s a hacking game where you are given
+a fictional architecture and CPU.
+And then you have to use a debugger to solve
+different challenges.
+They also have a nice tutorial introduction
+to that debugger.
+And even though it’s not a real x86 gdb,
+it has exactly the same concepts.
+And understanding concepts is way more valuable
+than mastering the technique.
+In my opinion.
+In the next video we will use this knowledge
+to do a practical example where we will crack
+a small license-check program.

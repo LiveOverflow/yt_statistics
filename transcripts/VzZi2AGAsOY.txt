@@ -1,0 +1,180 @@
+Last video we figured out how to overwrite
+certain functions with LD_PRELOAD and how
+to access the internal objects from libGameLogic.
+With that we were able to increase our walking
+speed a lot.
+So let’s see what else we can do.
+One really cool thing would be flying, right?
+Flying… so how could we get flying.
+There is obviously not an attribute in the
+Player class to simply enable flying, but
+we can maybe be creative with what we have.
+And jumping is definitely close to flying,
+we just can't fly very high.
+And we will fall back down.
+So Maybe we can make something out of that.
+I have noticed there is a jumpHoldTime and
+jumpSpeed.
+So let’s set jumpSpeed to a higher values
+and check what it does.
+Let’s compile our evil library, then we
+LD_PRELOAD it into the game and then let’s
+see what changed.
+When we now jump, whooooosh… ok I think
+the speed was a bit too crazy.
+But we get a nice view of the map.
+Including an island?
+We haven’t found that island during our
+let’s play in episode 1.
+I wonder what we can find there.
+So let’s tone down the speed a bit.
+And now also add the jumpHoldTime with a higher
+value.
+Then we can try it again.
+Ok…
+So jumping seems fairly normal.
+Except that I can keep space pressed, or you
+know hold space for a longer time.
+And then I keep rising up.
+That’s pretty cool flying already, but the
+issue is, that once I release space again
+we start falling down and we can’t jump
+anymore until we touch the ground again….
+Mhmh
+This is kind of the challenge with game hacking.
+We have essentially all power of the world,
+we can modify any memory, call any function
+we want, we just need to be creative with
+what and how we do it, so we can make it usable
+and fun.
+So when I was looking around a bit more I
+found that the Player class has a function
+called CanJump(), which returns a boolean,
+true or false.
+So let’s try to overwrite that function
+and always return 1.
+When we now try this ingame, we can fly up
+when we press space, decline when we release
+it, but then we can also press it again to
+jump again and thus, fly up!
+While the flying is not perfect, because the
+player has an awful velocity while in the
+air, it’s still pretty neat.
+If anybody finds a way to be able to move
+horizontally as if you are walking on the
+ground, let me know!
+Let’s fly a bit higher to see again which
+direction the island was.
+Hehe so cool.
+The island looks awesome from above.
+Oh… there is a dark spot over there.
+Is that an island?
+ENHANCE!
+It could be the island!
+Let’s fall back to the ground, which takes
+a little bit, but then thanks to our super
+speed we just quickly run there!
+We are approaching it.
+ISLAN HERE WE COME!
+Entering Cowabungalow!
+Oh look there is a chest!
+And the Cow King!
+Remember the Gold Farm from the Let’s Play
+in episode 1?
+Welcome to the gold farm.
+I farm all day to provide for this island.
+But it has all gone wrong.
+What’s wrong?
+My Cows are missing!
+One night I heard a massive amount of thunder
+, then my cows had disappeared.
+I have no idea where they went.
+I will let you know if I see them.
+So sounds like we found the Cows!
+Ouch!
+The Cow King just killed us!
+Damn…
+With the attack Static Link.
+It’s a 1337 Magic Spell.
+And dealing a lot of shock damage.
+Let’s respawn. and checkout that house here.
+Welcome to my humble bungalow.
+I was enjoying my private island until those
+mad cows showed up.
+Where did the cows come from?
+One night I heard a thunderous boom, and when
+I looked outside there were mad cows everywhere.
+There is one in particular that worries me.
+That sounds familiar.
+I think I know who owned these cows.
+Which one worries you?
+The one with the crown!
+Anything that gets close gets struck by a
+bolt of lightning out of the blue.
+Do you know any magic?
+I do.
+Why do you ask?
+I have a legendary magical cube here.
+I read that it posseses.
+TYPO!
+THERE IS A TYPO.
+LITERALLY UNPLAYABLE!
+I read that it posseses the power of the fable
+Rubick, and might be able to steal the thunder
+of the Cow King, leaving it defenseless.
+Have you tried to use it on the cow?
+I would, but I’m terrible with magic.
+My last attempt got me stranded on this island.
+That fast travel spot right there is such
+a tease, as whatever magic got me here is
+preventing me from using it.
+Would you please take the cube and try it?
+I will take it and try to use it.
+Here it is, I won’t need it back.
+No more magic for me.
+Good luck, now go steal the Cow King’s thunder.
+Thank you.
+I will see what I can do.
+Acquired Rubick’s Cube.
+I am Legend.
+AND WHAT THE HECK.
+Killed by a Mad Cow.
+Thank you.
+Ok.
+Now let’s go to the Cow King again.
+It’s attacking me, let’s spam using the
+Rubicks Cube, and I steal the Static Link
+skill!
+Now I can use Static Link.
+There we go.
+Quest complete.
+Until the Cows Come home.
+And a New Achievement.
+Monster Kill.
+We also get a weapon, the Cowboy Coder.
+But let’s check out the chest.
+Acquired Flag of the Cow!
+1337 Flag.
+The key is: I should’ve used dynamic link.
+Wuhooo…
+Our first flag.
+And if we would have found this during the
+CTF, we could now submit this flag to the
+scoreboard to get points for our team.
+Awesome!
+We are slowly making progress.
+Before we end this, maybe we could also take
+a quick look at the original list of challenges
+to get an overview what our goals are.
+This was the CTF page for the Ghost in the
+shellcode CTF 2015.
+And here is the challenge we just solved,
+“Until the Cows Come Home”.
+We would have gotten 100 points for that,
+and it was the easiest one.
+I think next time I try to go for Unbearable
+Revenge.
+Btw.
+If you wanna follow along and try this out
+yourself, you can find all the files in the
+description of the videos.

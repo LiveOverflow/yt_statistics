@@ -1,0 +1,261 @@
+I made a video about the history of JavaScript, 
+or rather the history of JavaScript security.
+And I had planned to continue telling 
+the story about what happened after 1996,
+but after doing more research, I actually found 
+out a lot more about these super early first
+JavaScript hacks. And that was so fascinating to 
+me that I felt like I have to share it with you.
+So here let me present to you, the three 
+JavaScript security legends of 1996.
+Scott Weston, John Tennyson 
+and John Robert LoVerso.
+Keep watching if you want to 
+know what makes them legends!
+
+Quick recap, in the previous video I told 
+you about Netscape 2.0 from early 1996.
+which introduced JavaScript. And I showed you 
+a vulnerability, basically we could create a
+website that loads two different sites in frames, 
+and the javascript running on the one website,
+could read out the content and 
+cookies of the other website.
+Or an alternative exploit could also 
+be that instead of another website,
+we load a local folder in the browser, 
+and steal the list of files from there.
+And yes, as many correctly pointed out, there 
+is a small nuanced difference between the term
+“site” and “domain”, but for the purpose 
+of exploring these old vulnerabilities,
+I think it doesn’t matter. I’m also sure 
+this difference didn’t exist yet in 1996.
+Anyway. This issue was fixed in Netcape 2.02 
+which basically prevented one domain using
+javascript to access the content of another 
+domain, or site, or whatever they called it.
+And that’s very cool, but the thing is, I kinda 
+just imagined what the first vulnerabilities
+looked like by reading between the lines and 
+applying my experience in browser client side
+security. But after many more hours reading 
+old mailing lists, I found something crazy.
+It all started with this email from 
+1997 on the bugtraq mailinglist.
+John Robert LoVerso, one of the “three legends”, 
+wrote an email criticizing somebody about an
+inaccurate javascript vulnerability 
+description and here he says this:
+“As history, I *found* a bug with JavaScript and 
+file upload about 16 months ago in Netscape 2.01,
+just a few days after that 
+release. I did not release
+details of that bug until 2.02 was released.“
+This exactly falls into the early timeline.
+JavaScript was “invented” and introduced in 
+Netscape 2.0, and 2.02 had the famous fix.
+So he was one of the people reporting 
+those very early javascript attack
+ideas to Netscape. And apparently it was 
+related to javascript and fileuploads.
+Going to his website, (thanks to the webarchive),
+we can find here a list of JavaScript 
+issues he discovered. And check this out:
+“The bug in Netscape 2.0 beta 3 that 
+allowed JavaScript to directory browse
+lives on in the 2.0 release, even 
+after Netscape told us it was fixed.”
+This link also still works. So this is one 
+of the actual first javascript exploits ever.
+So what does
+“With 2.0, when you click on List directory a 
+window will popup with the directory contents,
+which will be read and displayed below 
+in the results box. Clicking Submit to
+sends the results box off to a remote host, 
+meaning the results have been ``stolen''.”
+So let’s have a look at the 
+javascript sources of this page.
+First it references a few forms and 
+elements. That part is not that important,
+it’s just to display information later.
+More importantly is the doDir function
+which “grabs a user's directory”. So here it 
+first gets the folder name of the list/steal
+directory input element, creates the file URI and 
+assigns it as the action to the dirsteal form.
+So when the form is submitted, it 
+will submit it to the directory URL.
+But before it submits it, it opens another window.
+After that window is opened it will submit
+the form. And then comes doDir2, 
+which goes through the document
+of this new window and extracts all links.
+Now on first sight this might look different
+to what I guesses the first exploit might have 
+looked like, but it’s actually very similar.
+Let me play a quick clip from 
+from my first video again:
+
+As you can see, first, the 
+extraction stealing part,
+we simply access the document links and take them.
+Only difference is how we load the victim
+directory list. I loaded the folder in another 
+frame. And here, we load the files in another
+window. This code is super weird though, this 
+doesn’t work anymore in modern browsers. This
+is setting here the form action URL and submits 
+the form, but instead of this form submitting
+to the main window where this code runs, it will 
+submit it to the new opened window. To be honest
+this sounds like a “bug”, at least today, but 
+back then it seemed like a neat trick to submit
+a form into a new window, instead of submitting 
+on the same page. Anyway. Window is loaded, links
+extracted and placed into this text box. Which 
+could now be sent to another server to steal it.
+So this was actually one of the first javascript 
+attacks. And that’s why John Robert LoVerso
+is one of the three legends.
+But there is more here.
+“Chronology: Original report by Tennyson, 
+describing these bugs in 2.0b3.”
+So hgere is the second 
+legend we are going to meet.
+John Tennyson. While the link here was 
+unfortunately not archived by the web archive,
+at least now I had a name and could research 
+more. Which led me to this AMAZING article
+by Keith Dawson in the”Tasty bits from the 
+technology front” newsletter or magazin.
+Keith was documenting some of these 
+very early javascript security events,
+so lets read a paragraph here:
+“JavaScript, which started out life as 
+"LiveScript," displayed security flaws
+as early as beta 2 . Scott Weston 
+was among the first to be awarded
+Netscape's $1000 "bug bounty" for 
+his demonstration of a way to capture
+the "clickstream" of the browser 
+user. The bug was fixed in beta 3.”
+Wowowowo. Was netscape the first company 
+offering a bug bounty program around 1996?
+Huh!... Seems like this goes even back 
+to 1995 as seen in this news article.
+“The company has also announced a "Bugs 
+Bounty" program offering $1,000 to the
+first person who can identify a major security
+bug in the new beta version of 
+its Netscape browser software.“
+Damn! I thought bug bounty is a super modern 
+term. But it is not. Wow. Anyway. We got
+sidetracked. Back to the article. So Scott 
+Wattson is the third legend we get to meet.
+And there is actually another TBTF 
+article about this finding here. As
+you can see. this even related to the first 
+release where javascript was still called
+livescript. So this might really be the very 
+very first (public) javascript (or livescript)
+exploit. Which would make Scott Wattson the 
+true grandfather of javascript security:
+“Scott Weston discovered a gaping security hole 
+in Netscape's second beta that can result in
+a chilling loss of privacy. He reported it 
+to Netscape and they have fixed it already;
+(I hope they pay him the $1000 under their Bugs 
+Bounty program.) The problem is in LiveScripts.“
+So let’s have a look at this 
+privacy bug. Here Scott says:
+“The "LiveScript" that I wrote extracts all 
+the history of the current netscape window.”
+Mh. Unfortunately he didn’t attach example 
+code and other links I found were dead.
+But looking at the javascript manual of like 
+1997 we know there is the history list. And
+maybe his exploit was simply taking the links 
+of that list and sending to another server.
+Unfortunately “Netscape has fixed this bug in 
+2.0b3” and the Netscape version I have is that
+beta 3. So I think that’s why I couldn’t read 
+the history here. If anybody has a beta release
+from before beta 3, where javascript was still 
+called livescript, please send it over to me.
+Anyway. Let’s read another paragraph of TBTF.
+In early January a cluster of bugs with 
+similar effect was reported by John Tennyson
+against beta 4; he was awarded a $1000 bounty. 
+Netscape claimed to have worked around these
+problems in beta 5 and 6; they said that 
+the real fix would come in version 2.1.
+On February 13 LoVerso notified 
+Netscape that one of these bugs,
+the "directory browser" [5], still 
+exists in the released Navigator 2.0.
+So as you can see, these three people all 
+reported serious javascript security bugs
+in the early months of 1996. And that’s why I 
+call them the legends of javascript security:
+Scott Weston, John Tennyson 
+and John Robert LoVerso.
+Now to put this all a bit more into 
+context again. What does this all mean.
+You have to keep in mind, it’s early 1996, 
+JavaScript was just invented. Netscape was running
+full force into the future trying to implement 
+new features to make a rich web experience.
+And at the time Java Applets already 
+existed for dynamic client applications,
+but at the time there were constantly serious 
+java issues in the browsers, allowing for drive-by
+downloads you now - serious browser exploits. So 
+Netscape came along and claimed (or hoped) that
+JavaScript is a lot more secure than Java.
+But I guess this claim motivated these
+people to look into it, uncovering lots of 
+issues. Leading to articles like this one:
+“JavaScript can make no claim to being 
+proveably secure. As LoVerso points out,
+Sun's Java was designed to be secure in the 
+network environment; its design and implementation
+have been examined by hundreds, perhaps thousands, 
+of knowledgable and critical people. Netscape's
+JavaScript is a separate implementation of 
+an interpreted (not precompiled) language
+syntactically similar to Java; it derives 
+no security from the similar name.”
+And this is important. Maybe the reason why 
+Netscape wanted to have Java in the name is
+because Java was familiar and carried some trust. 
+At least in the regular computer user world.
+But unlike to Java:
+“There is no specification for
+JavaScript available for public scrutiny 
+-- [in contrast] Java is spec'ed, with
+details of the language, the bytecode, and 
+the virtual machine. Netscape's JavaScript
+specification [2] is intimately tied to the 
+single existing implementation of the language,
+in the Navigator browser; the source code has 
+not been examined by anyone outside the company.”
+Crazy times. Of course 
+nowadays JavaScript has a spec.
+It grew into a very mature language. 
+And you probably have all heard about
+it ECMAScript. That’s basically the 
+javascript language specification.
+And it was initially released in 1997. So that’s 
+one year after the events presented in this video.
+Alright. Now that we have explored the very 
+first months of JavaScript enough, we can
+slowly move forward. And a little bit over half 
+a year after Javascript was added to netscape,
+in August 1996 Internet Explorer 
+from Microsoft would join the scene
+with their copy implementation 
+of javascript called JSCript.
+So let’s see what happened next in the 
+history of browser client-side security.

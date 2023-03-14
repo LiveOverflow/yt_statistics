@@ -1,0 +1,127 @@
+if you watch the two-part video about
+the exploitation challenge from the rhm
+III qualifier then you know I had some
+wrong assumptions about the heap this is
+what I said in the video we just have to
+find a sequence of operations where we
+get control of this pointer in general
+this should happen when we create some
+players select one remove some and add
+some again as you can see I imagine this
+is like the old school DL malloc heap
+with these basic chunks when you free
+them they are usually combined again to
+bigger free chunks and thus you can
+allocate a new much bigger one in its
+place and write anything in that place
+but this is not what is happening
+I know fast burns exists but how the
+heap algorithm really works was not
+clear to me and I never really spent
+time reading about it so what are fast
+bins free chunks are stored in various
+lists based on size and history so that
+the library can quickly find suitable
+junks to satisfy allocation requests
+this is already very different from the
+old-school heap as now the size of the
+allocated area decides what kind of
+strategy is used to manage the heap you
+can imagine that there are different
+optimized algorithms depending on how
+you use the heap the lists called bins
+and they are for example fast bins these
+are small chunks stored in size specific
+bins chunks added to a fast bin are not
+combined with a J's and chunks the logic
+is minimal to keep access fast hence the
+name chunks in the fast bins may be
+moved to other bins as needed fast burn
+chunks are stored in a single linked
+list
+AHA another page says about fast bins
+there are ten fast bins each of these
+bins maintain a single linked list
+addition and deletion happen from the
+front of this list last in first out
+each bin has chunks of the same size the
+10mins have chunks of size 16 24 32 40
+48 56 size mentioned here include
+metadata as well to store chunks for
+fewer bytes will be available on a
+platform of pointers all four bytes only
+the preface size and size field of the
+chunk will hold metadata for allocate
+chunks bref size of the next con
+Chung's will hold user data no to
+continuous free junks coalesce together
+so what this means is that the player
+structure which contains the stats and
+the name pointer is so small that it
+will be organized by such a bin and the
+use after free issue here is that we
+have a pointer into such a freed bin
+that's why our strategy is actually to
+make sure that we allocate data that
+goes into the same bin as a player
+struct was before basically we want to
+make sure that our name we enter ends up
+in the place of the player struct so the
+name has to have the same size or the
+size to displace in the same bin like
+the player struct so what is actually
+happening with the exploit is this we
+add two players with 32 byte names now
+the player structs are placed in the
+same bins with their size of 24 bytes
+but the names are larger and go in
+another bin now we select the second
+player so we have the reference to the
+spin then we free the two players and
+now we allocate a new player with a name
+of length 19 which means I chose a name
+that goes into the same bin as a player
+struct
+so the first malloc allocates a player
+struct and it's placed where the first
+player struct used to be and the name
+because it is put in the same bin it's
+now get placed here which used to be the
+player struct of the second player thus
+we can control the name pointer now I
+think that makes so much sense I'm glad
+I understood it now
+I wanted to mention one more thing after
+the qualification round was over I went
+on IRC and talked to the other players
+and that's when some really awesome
+people explained to me what was going on
+after that I felt kinda embarrassed on
+how wrong I was in the original video
+that I have already edited but
+ultimately decided not to change it and
+instead make this additional video
+because yes I didn't understand what was
+going on with the fast bins and my
+mental picture of the heap was wrong I
+still ended up solving it and I want to
+share my CTF experience with you in my
+experience include having these wrong
+assumptions but still solving it I think
+this is now a good example of what is
+always happening in IT security research
+because not everything is known and you
+don't have to know everything before
+doing stuff the more experience you have
+the better you are with educated guesses
+and based on my experience with the old
+school the old mellow keep but knowing
+that the modern heap implementations are
+a bit more complex I had a rough plan
+and worked out but in the end it wasn't
+exactly what was going on but now I
+learned and for the next heap challenge
+I will have a much better idea
+[Music]
+you
+[Music]

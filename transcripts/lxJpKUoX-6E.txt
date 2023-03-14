@@ -1,0 +1,267 @@
+Capture the Flag, hacking competitions, are
+really useless to get the skills needed for
+a job in IT security.
+Look for example at this challenge.
+You get this barcode image that is not a normal
+barcode, and you have to read it.
+What’s the solution?
+We have here a writeup by Roman H, where he
+first extracted the color values for each
+channel, Red, Green, Blue and then interpreted
+each color value as ascii, and then it turns
+out the blue color values encoded the flag.
+Great.
+What did we learn now?
+Let’s explore why CTFs are terrible.
+Let’s checkout another challenge.
+On the CTF dashboard you would see this here
+“Your first challenge is in the image below”.
+Now when you read the writeup by George, you
+can see that he first downloaded the image
+and got stuck.
+And later he noticed that on the website itself
+there was a single character with a link overlaid
+over the image.
+And clicking on that led to another website.
+Which contained a file to download which was
+a pcap network packet capture.
+He opened it up in wireshark and in some TCP
+packets you could find the transmission of
+a .zip file, which you had to extract, open
+and then you got the flag.
+Another example.
+A file that contains a long string “dah
+dah-di-di-dah”.
+Amazing.
+Turns out it’s morse code.
+And when decoding it you get a long character
+which starts with 0x.
+Indicating it’s a hex string.
+So you decode the hex values, and inside of
+a lot of garbage, you find the flag.
+What’s the purpose of this?
+This has nothing to do with the real world
+or with IT security.
+This is just pure guessing.
+A puzzle.
+Like a crossword in a newspaper.
+It basically comes down to being able to THINK
+like the author.
+And not having any hacking skills.
+So many challenges are just this kind of bullshit
+obfuscation.
+This goes even SO FAR that the GCHQ, the UK
+intelligence organization has released one
+of the most used CTF tools, called cyberchef.
+The Cyber Swiss Army Knife - a web app for
+encryption, encoding, compression and data
+analysis.
+And it just highlights how ridiculous this
+is.
+If you get a stupid code like this, and you
+have to find the flag, you simply open CyberChef,
+put in the input.
+And try out all the different possible decodings.
+Maybe it’s multiple encodings, like first
+base64, and then decompress.
+Luckily CyberChef also has a “Magic” function,
+which figures out it’s base58.
+I have learned nothing.
+There is also another class of CTF challenges,
+sometimes known as boot to root.
+Basically a whole server or even network with
+challenges.
+So let’s look at one of those.
+Blue, by tryhackme.
+And here is a writeup of it by unicornsec.
+You start out with nmap and run all the checks,
+and it tells you it might be vulnerable to
+ms17-010.
+So now you open metasploit, look for the matching
+exploit, configure the exploit, run it, and
+get a shell.
+Great.
+If we read further, we can find the challenge
+continues, requiring you to find flags scattered
+around the system.
+For what?
+what did you learn now?
+I understand that for a complete beginner
+practicing nmap and using metasploit can be
+interesting.
+At least I thought so when I did OSCP a long
+time ago.
+But this is not professional level stuff.
+You didn’t actually learn anything.
+You learned how to use a tool, and that’s
+it.
+There is no great value in that.
+You quickly have to move on from that level
+in order to develop any professional experience.
+One thing you might notice when you play a
+lot of CTFs.
+Over time, you basically do the same challenges
+over and over again.
+If you have experience with many CTFs, you
+have a “typical CTF solutions checklist”
+that you just run through.
+This can be seen well the on the fellow YouTube
+channel by John hammond.
+He has so much CTF experience that he is even
+developing an automatic CTF challenge solver
+called katana which abuses this fact, and
+implements heuristics and solutions for many
+many typical challenges.
+Isn’t this the best example to see that
+there is no educational value in CTF?
+Another problem is the mindset.
+When you face a CTF challenge, you KNOW there
+is a solution.
+It’s not like the real world where you don’t
+know if there is something or not.
+You know there must be something, and just
+have to sit on this challenge for a few hours
+and you might figure it out.
+But on real applications you don’t know
+if there is anything, and you need experience
+to guide your efforts so you don’t waste
+time.
+There are many more differences to the real
+world.
+For example CTFs are short.
+They run over a weekend, and you spend only
+a few hours on a challenge.
+Sometimes in easy CTFs even less.
+What do you learn there?
+In the real world you might work on a target
+for a week or even a month.
+The quick rewards from CTFs are not reflected
+in reality and can give you a completely wrong
+idea what it means to do security testing.
+A very false sense of accomplishment.
+Because it’s rewarding to hand in a flag,
+people tend to optimize for that.
+So people just want to solve it.
+Doesn’t even matter how.
+Ideally they just find the solution online,
+or copy and paste a tool, or even share flags
+or steal it from somewhere.
+They see the competition and don’t actually
+care about any possible educational value.
+CTFs have a completely wrong incentive.
+In contrast, exams or certificates force people
+to learn something and test it.
+Another huge part is the topics covered in
+CTFs.
+CTF challenges are often web, crypto, pwn….
+Mostly on linux.
+Maybe even some obscure architecture.
+But a big chunk of IT security work is looking
+at misconfigured windows environments.
+Shitty passwords and getting domain admin.
+Exposed network shares and scanning IP ranges.
+This is rarely covered in CTFs.
+The problem is not that CTFs forget about
+that, they would just be terrible CTF challenges.
+Unfortunately this kind of real world work
+is kinda boring, there are tools and checklists.
+Maybe you have a challenge that shows this,
+once.
+But that’s it.
+CTF authors constantly have to come up with
+different stuff, which means the issues that
+are very common in reality, are never shown
+in CTFs.
+And that’s a problem inherent to CTF and
+will always be the case.
+Let’s look beyond the technical aspects
+of CTFs.
+Competitions cause a lot of stress and pressure.
+Working 15h straight on challenges over a
+weekend.
+No sleep.
+No breaks.
+Very unhealthy.
+It’s not something we want to teach people
+that this is a requirement to work in this
+field.
+People should learn about work life balances,
+the importance of breaks and not feel terrible
+about themselves when they need a break or
+when they get stuck.
+If you know there is a solution, but can’t
+find it.
+That can be pretty bad for your mental health.
+It can make you feel really stupid and thus
+it might be very counter productive.
+Okay, so far, we only looked at basic challenges
+for beginners.let’s look at the more advanced
+stuff.
+A big category in CTFs is pwnable.
+Exploitation challenges.
+Most of these are Linux ELF binaries written
+in C. Sometimes C++.
+And this has been the state for MANY years.
+Easily over a decade.
+Maybe two?
+You can imagine the first CTF had a basic
+buffer overflow.
+The next one had to make it a bit harder.
+And then the next one had to add more twists.
+Over the time CTF authors have uncovered the
+craziest weirdnesses in libc, oftentimes with
+the heap implementation.
+And they only occur in very weird constellations.
+But you have to go for that, in order to create
+a challenge that is still challenging.
+If you want to compete on the highest CTF
+level, you need to catch up on decades of
+libc research.
+And then you become a master in libc and nothing
+else.
+Who cares about libc.
+Who cares about weird heap exploitation techniques.
+You spend years of learning something, that
+has zero to none use in the real world.
+And eventually you know most tricks, and then
+you are also not learning much either.
+You just need to figure out, which tricks
+were used in this challenge.
+Very overly specialized.
+In the real world, memory corruption bugs
+come rarely alone.
+And often, the much more complex targets,
+provide a lot more gadgets to use.
+Exploitation is rarely as weird as in hardcore
+CTF challenges.
+There are also these playful pwnable CTF challenges.
+For example some shellcoding where you need
+to create shellcode assembly based on sha1
+hashes.
+Why?
+What skill are you supposed to learn here
+for the real world?
+Designing CTF challenges is hard, and unfortunately
+most people are bad at it.
+There is a table in this CTF guidelines document,
+which shows how quickly a challenge can become
+bad.
+If it’s too much work or too esoteric, it’s
+gonna just be frustrating.
+Or it’s very easy, thus boring, or uninteresting
+and disappointing.
+And so why bother playing CTFs if most challenges
+are bad.
+Why waste your time?
+And when you are already a professional researcher?
+Why would spend 20h on a CTF challenge, if
+you could also spend 20h researching a real
+world application possibly finding a real
+bug?
+Why not do bugbounty instead and maybe get
+1000$ as a reward?
+CTFs are Terrible.
+Thanks to the people who responded on twitter,
+I tried to include all the major arguments.
+But if you want to hear the other side, checkout
+the second video “CTFs are AWESOME”.

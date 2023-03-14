@@ -1,0 +1,283 @@
+When I first started with Pwn Adventure 3
+I thought I would have to implement a network
+proxy and reverse engineer the protocol much
+earlier. I didn’t think that debugging the
+non-stripped binary would be this powerful.
+But we are slowly heading to the more complex
+challenges and I wanted to do a network proxy
+eventually. So now is the time.
+According to wikipedia, in computer networks,
+a proxy server is a server that acts as an
+intermediary for requests from clients seeking
+resources from other servers.
+So we want to sit between the client and server
+to inspect the traffic and maybe even manipulate
+it. Like a MITM attack basically. So from
+our very early wireshark investigation we
+know the game communicates over TCP, and is
+contacting a master server on port 3333 and
+then a game server on some port between 3000
+and 3005. If you don’t know how TCP works,
+I recommend you to watch my TCP introduction
+video from a long time ago which should make
+a lot of stuff clear.
+We also know, that we can control where the
+game tries to connect to by manipulating the
+IP of the servers in the /etc/hosts file.
+So let’s start by pointing the client to
+a different IP, our Proxy server and for me
+that is my MacBook. I wanna develop the proxy
+server on my day-to-day machine as that’s
+most comfortable to me. So when we now try
+to login in the game, the client would try
+to connect to the master server, which is
+now pointing to my MacBook. But of course
+there is no server listening on port 3333
+on my laptop yet, so that will fail.
+But what is our high level plan? To create
+a TCP proxy we want to essentially open a
+port on our machine so the game client can
+connect to us, but then we also want to connect
+to the real server and forward any packets.
+But forwarding might be a misleading term
+here, because we are not really forwarding
+the packets, we are actually opening a socket
+to listen here, and fully receive the data.
+So now we just have the content of the TCP
+packet in our hand. And then have another
+socket open with the real server, where we
+then take the data and send it out. So we
+fully unwrap the packet, look at the content,
+and repackage it again for the real server.
+And of course we also want to handle answers
+from the server, which we unwrap, look at
+the content, and then repackage it by sending
+it over the socket to the game client.
+And we basically have to do this twice, for
+the master server and game server as these
+are two separate connections.
+Okay, high level plan done.
+Next, let’s plan our program that does that.
+I’m not a networking expert so my engineering
+solution is probably not the best way to do
+it, but as long as it somewhat works, it’s
+an ok prototype and proof of concept, to see
+if what we want to do is even working.
+So essentially we want to open a listening
+socket for the game client to connect to,
+as well as establishing a connection to the
+real server. Thes are two different connections
+that could receive date at any time, so these
+components would have to be placed into their
+own thread.
+I call one the Game2Proxy thread, and the
+other one Proxy2Server thread. And then we
+also want to connect them somehow, because
+when the game wants to send something to the
+server, it arrives in the Game2Proxy thread,
+which then has to send it out to the server
+socket that is used in the proxy2server thread.
+So we have to exchange references to each
+other’s socket as well.
+And that’s basically it, in each of the
+function that receive the data we can then
+program anything we want to do with it, before
+forwarding it to the other socket.
+But because we have to deal with not only
+one server, but we have a master server, as
+well as up to 5 game servers, we could bundle
+the creation of the two components into another
+general Proxy thread, so we can easily create
+multiple instances of that.
+Cool, so we have a little bit more detailed
+technical plan. So now we can go another layer
+deeper and start looking at the actual implementation.
+Because I’m most comfortable with python
+I decide to write my proxy in python. And
+so we can use the threading module to create
+Thread classes for our general Proxy as well
+as the Game2Proxy and Proxy2Server thread.
+And we can use just low level sockets to implement
+the network communication.
+Let’s start with the Proxy2Server. That
+is supposed to be the thread that handles
+the connection to the real game server. So
+we start by creating a class Game2Proxy which
+inherits from Thread. This allows us to define
+a run() method that will run in the thread.
+So in here we would create a while true loop
+that handles the data and network connection.
+But before we continue in here, we should
+setup the server connection first which I
+do in the __init__ method. This is the constructor.
+Because we overwrite it, we have to make sure
+to still call the original init function.
+And then we can create a new socket, which
+is just a basic socket example taken from
+the python docs and connect it to the host
+and port passed into the constructor. So later
+we will give it the real server IP and port
+here. We keep a reference to this server connection
+in the object variable or attribute server.
+And then in the run method, which will keep
+looping forever in a thread, we will attempt
+to receive up to 4k of data from the real
+server. Which means if we get some data back,
+we want to forward it to the game client.
+So we don’t have a game client connection
+yet, but if we have one we can then call sendall
+to forward this data. So self.game will later
+be set to the socket that is the connection
+to the game client. But that socket is created
+by the Game2Proxy thread.
+So let’s create that thread class next.
+Class Game2Proxy and also base class Thread.
+In that init function things are a bit different.
+We also get a host and port, but this is where
+we want to listen. This is the proxy part
+where the game tries to connect to. So the
+socket we create we will then bind to the
+host and port given by the parameters.
+This again is just a basic python socket server
+example taken from the official docs.
+And then we call accept(), which will wait
+for a client to connect.
+Once a client connects, we get the socket
+to communicate with that client and we assign
+it to self.game. Then in the thread run method
+we loop forever and see if we have data from
+the game client. If we did receive something,
+we would try to forward this data to the server
+socket. That’s the socket created by the
+other class.
+So now we have to hook them up both. We have
+to create both threads and give each of them
+a reference to the other’s socket.
+For that I created a third more general class
+called Proxy.
+Which is also just a general thread setup
+but then in the run method we create the Game2Proxy
+thread object which will wait for a client
+to connect to the port specified and if we
+get a connection the the Proxy2Server will
+establish a forwarding connection to the server.
+Now both threads created their respetive socket
+and now we jsut have to exchange them. So
+the one that talks to the game client has
+the socket to forward data to the real server,
+and that the server has a socket to the client,
+to forward back answers.
+That was just the setup of the threads, and
+then we actually start them. This will kick
+start executing their run methods.
+Now, the only thing that is missing is to
+create that Proxy thread. Or actually multiple
+proxy threads.
+Let’s start with the masterserver, which
+will listen on all interfaces on port 3333
+and forward them to the real server IP. This
+is where my real server is located. And then
+we start that thread.
+And then we launch multiple Proxies for all
+possible game servers that the client might
+want to connect to. So 5 additional proxies
+for port 3000 to 3005.
+And this should already work!
+Let’s add a small debug output into the
+threads and see if we can see the traffic.
+To identify the where data was coming from
+I include the port as well as an arrow to
+indicate the direction. So one is stuff the
+client sends and the other is what the server
+answers.
+Then let’s start it.
+This looks good, all of our proxy servers
+are waiting for a client to connect.
+And when we now login to the game, we can
+see that data with the master server is exchanged.
+Keep in mind that I cut the output after 100
+bytes, so the actual data might be longer
+and it’s hex encoded because it’s binary
+data.
+And when we now join the game, we can see
+a lot of messages on port 3002. So that’s
+the game server. If we pause it for a second
+we can see that the client sent a lot of similar
+stuff, and the server responded with I guess
+empty data. Just 0000, two zero bytes. Probably
+indicating “yep I’m still here, but I
+don’t have anything new for you”.
+The whole engineering challenge we have here
+is not to build the most performant and resource
+saving proxy to handle thousands of conenctions
+or whatever, our goal is to build something
+that allows us to explore, analyse and play
+with the network connection. And to do that
+I add two more things.
+Btw if you want to exit the proxy, you will
+have to kill the process. But we will take
+care of that now.
+After the creation of the threads I add a
+simple while true loop that constantly waits
+for input from us, and then takes that as
+a command. So if we find a “quit” command,
+then we just tear down the whole thing with
+exit.
+And here we can expand the commands later,
+for example if we want to inject our own packets.
+We could easily do that here.
+The other thing I want to do is the parsing
+and analysis of the data that is exchanged.
+And that is supposed to be an explorative
+playful part. So it would suck if we always
+have to kill the proxy, restart it, log back
+into the game and check something, just to
+do it all over again. So I decided to place
+the parsing into a second file. Here we simply
+define a “parse” function. This fuction
+will take the data, as well as the port of
+the connection so we can identify if it’s
+game server or mater server data, as well
+as a n origin parameter to indicate if this
+is data originating from the client or from
+the server.
+So we can import that parser module now and
+in the loop where we handle the data we receive
+we call the parse function with the corresponding
+parameters. So this is data coming from the
+server, and this is data coming from the client.
+Though to get a really interactive playful
+experience we have to reload the module. Because
+otherwise the function is loaded once when
+it’s imported and then when we make changes
+it does nothing. So when we reload here the
+module we always have our latest changes.
+Because our changes could be terrible, we
+have to wrap that in a try and except block,
+to catch any exceptions caused by this.
+Let’s try it. Going in game and we see all
+the messages. So this is the message that
+is coming from our parse function here.
+And let’s see if we can modify it and see
+the changes. How about we only want to see
+data for the game server, and only data sent
+from the client to the server. So we check
+if this is a message from a server, and then
+return.
+Now we only see client messages.
+Amazing, right? So we can start playing here
+and interpreting and parsing this data and
+we don’t have to restart the game or proxy.
+And when we made a dumb error, we see the
+exceptions here and can quickly fix it.
+Before I send you off, let’s just show you
+really quick what we can do with that now.
+So for example we see here a message that
+never changes sent from the client to the
+server. But if we move ingame, we walk around
+a bit, we can see a change.
+But not everything changes. Only in this area.
+If we stand still and jump up, then besides
+the other new packet we see, only this value
+here changes. Sooo… do you have a guess
+what this data might show us?

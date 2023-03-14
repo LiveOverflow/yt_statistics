@@ -1,0 +1,548 @@
+I’m really excited about this video, because
+Google wanted to sponsor a video talking about
+a security vulnerability that somebody found
+in one of their products
+Think about this: They want to pay money,
+so that I very publicly share “Google had
+a security issue”.
+That might sound CRAZY for most other companies,
+but we know Google has always had a great
+Vulnerability Rewards Program.
+They have always been very open and inviting
+when it comes to bug bounty.
+But still, this kind of exposure to a much
+wider audience is an experiment.
+So yeah, they basically said to me: “look.
+We connect you to some bug bounty hunter,
+so they can tell you about a vulnerability
+they found.
+And just make a LiveOverflow video like you
+always do.”
+I couldn’t imagine anything more perfect
+than this.
+They didn’t give me any talking points,
+didn’t say what I can’t say, just “make
+a LiveOverflow video”...
+Alright then!
+So because of regulations it says “advertisement”
+up there, but believe me, all they did was:
+asking a couple of researchers if anybody
+would be up for making a video with me,
+and so here is Wouter.
+Also known as wtm.
+He is from the Netherlands and is a full-time
+bug bounty hunter, and spends a LOT of time
+researching and finding bugs in Google products
+“Basically Eduardo got in touch with me
+and asked me to demonstrate a bug to you.
+I think it should give you an idea of what
+kind of bugs google is looking for.
+And it also should provide some background
+information on how you can start finding bugs
+in google products.
+Anyway, this is my approach.
+Other people might be doing it differently.
+But I will show you a bug and you can do with
+it what you want.”
+
+So the bug Wouter found was in the Google
+Cloud Console, specifically in the Cloud Shell.
+As you can see, this looks like a regular
+IDE.
+A text editor to write programs.
+But there is more to it, because when you
+look here at the bottom, you can see a shell.
+Here is how Google describes this app :
+“Your Google Curated Admin Machine
+Google Cloud Shell provides you with command-line
+access to your cloud resources directly from
+your browser.
+You can easily manage your projects and resources
+without having to install [...] tools on your
+system.
+With Cloud Shell, the [...] gcloud command-line
+tool and other utilities you need are always
+available, up to date and fully authenticated
+when you need them.”
+While this sounds like a sales pitch for potential
+Google Cloud customers, it’s equally a sales
+pitch for bug bounty hunters:
+“Everything you can do on the cloud platform,
+you can do from this box.”
+In other words: “TARGET ME!
+I’M VERY CRITICAL!
+FIND BUGS HERE AND IT GIVES YOU LOTS OF MONEY!”
+“I’m opening my project by default.
+But this can be any project.
+I can create a new project and open it the
+same way.
+And the only thing this thing does at the
+top, it configures the gcloud client.
+So it’s already configured, and you can
+start working immediately.
+Let me show you.
+So now you see my session is configured for
+the dev-shell project.
+And when I issue this command, you will see
+some instances I created for this demo.
+So you can imagine if you can compromise or
+gain access to another user’s cloud shell,
+it would mean you can get access to all resources.”
+Awesome.
+I guess everybody understood the purpose of
+this web application: You can manage all your
+cloud services, and because of that, it’s
+very critical - so it’s a great target to
+hunt for bugs.
+But it’s also a complex system, which means
+you first have to get familiar with it.
+And one particular feature seemed intriguing:
+“If you look at the documentation, you can
+see Google is stimulating people to open GitHub
+repositories into your cloud shell.
+Because it’s a place meant for development.
+So you are likely to pull in some code from
+github to do some development.
+You can see they provide you with an API.
+you can create buttons in your github repo
+like this with markdown.
+So what this basically does is you open a
+cloudshell URL.
+And then you pass in the github parameter.
+And when you open this URL it will download
+code from github.
+It will do a git clone and will appear on
+this side.
+I will show you with a repository I prepared
+for this.
+If you click on this button, you will see
+it switches over to cloud shell and it will
+ask me if I want to clone this stuff into
+my shell.
+There is nothing special about it.
+It’s just a git clone.
+So I assume it’s safe and I clone this.
+Okay, here you can see it’s starting to
+clone.
+And that’s basically the readme from my
+github repository.
+Why is this feature so intriguing?
+He looks at it this way:
+So my initial thought was: You can easily
+download content into your home folder on
+the cloudshell.
+That’s what it’s meant for.
+You download github content into the cloudshell.
+But is this content really safe?”
+Okay, that’s a great research question,
+right?
+That’s a good direction to look for.
+But how do you figure out if downloaded content
+can do anything bad?
+You have to be sure, that no other processes
+are interfering with the content we’ve just
+downloaded.
+So I started looking into the inner workings
+of cloudshell to see if any other processes
+are looking at the contents I run in my home
+directory.
+To see if there are vulnerabilities there.
+That makes sense!
+You download files into your home directory,
+but it’s just a git clone.
+So in order for something bad to happen you
+either find a bug in git clone itself, or
+something else has to access the files and
+do something bad.
+And “something else” is, of course, another
+process.
+So he had to figure out if some process reacts
+to the files being downloaded.
+Which means he has to dig into the inner workings.
+Now let me show you a bit about the shell
+itself.
+If you look at the processes running inside,
+you can see there is not much going on.
+Because what I was expecting at first when
+I saw this.
+I was expecting to see some IDE related processes.
+As you can see there are no IDE related processes
+here.
+So this must be a containerized application.
+So I wanted to start finding bugs in the IDE.
+it’s called theia btw, the IDE.
+It’s open source you can download it to
+play with it.
+There is a lot of stuff going on, but you
+can only see part of it.
+You only see the ssh connections coming in.
+and you see some scripts used for monitoring,
+to make sure google knows you are alive.
+But other than that, there is not much going
+on inside your shell itself.
+Looking for bugs in this open source project
+theia makes sense.
+You could for example look for XSS issues
+triggered by files that you open in it.
+Or maybe the markdown rendering has bugs.
+But he was wondering why you can’t see the
+theia IDE when looking at the processes.
+This means the shell and the IDE run in different
+parts.
+One thing that I noticed is that there are
+two docker sockets available.
+This one is the default docker socket.
+As we check this socket out, we can see there
+are no containers running.
+So this infact is a docker inside docker.
+My container, my cloudshell is running inside
+a docker container, but within docker container
+we also have a docker socket.
+But one that is really interesting I thought
+is this one.
+That is, as you can see in the pathname, it’s
+a docker socket running on the host.
+And that in itself is not a security vulnerability
+but it allows you to escape from this containerized
+environment.
+Since we are allowed to connect to the host
+itself.
+Wait what?
+Escaping the container is not a vulnerability?
+Let’s checkout the docker documentation.
+So docker works essentially by having a docker
+deamon process, which waits for commands by
+a docker client.
+So the docker command line tool simply interacts
+with the daemon via a socket, and you can
+say “please start or stop this container”.
+Throughout the docker documentation you can
+find several traces about what this means.
+By default, a unix domain socket is created
+at /var/run/docker.sock, requiring either
+root permission, or docker group membership.
+So there is a “file” that is a so called
+UNIX socket, and it basically can be used
+to talk to the daemon.
+And only root can talk to it, or any user
+in the docker group.
+And on another article there is a big warning
+about this:
+Warning!
+The docker group grants privileges equivalent
+to the root user.
+For details on how this impacts security in
+your system, see Docker Daemon Attack Surface.
+And on there they write:
+Only trusted users should be allowed to control
+your Docker daemon.
+Docker [...] uses a UNIX socket.
+You can then use traditional UNIX permission
+checks to limit access to the control socket.
+And the reason why it’s so critical is because
+containers are not really isolated like a
+VM from the system.
+If you can create arbitrary containers, you
+can just mount anything into a container.
+So you just gain access to the whole host
+system.
+That’s why access to this socket is like
+giving somebody access to root.
+So yeah?
+Why is this not a vulnerability here?
+And I think this is a great lesson: Context
+matters.
+Yes you can escape that one container, but
+is the host system here really critical?
+Some people would consider this a vulnerability,
+but I know people at Google do not consider
+this a vulnerability.
+Because it all depends on what you do on the
+host.
+If the host doesn’t contain sensitive information,
+it’s not a problem to look around on the
+host and see what’s underneath.
+And funnily enough, some time later, somebody
+else shared this finding on Twitter:
+One-liner Docker escape from Google Cloud
+Platform’s Cloud Shell to the host OS.
+And they added:
+Reported to Google and it was determined to
+not be a security risk.
+So always keep that in mind.
+Every target might have a different threat
+model and sometimes it can be very weird.
+I made a video once about a few interesting
+edge-cases for vulnerabilities, I link it
+up here, in case you are interested in seeing
+some discussion about it.
+But anyway.
+Let’s see how the escape works and what
+insight it gives us.
+You can see here that he executes docker,
+but specify a different socket.
+Not the default socket of the docker daemon
+inside the container, but the socket from
+the underlying host.
+The host’s docker daemon.
+Secondly we start that container and give
+it some extra priviledges.
+So we mount the proc filesystem, sys and the
+root folder of the host.
+And then we attach host-based networking.
+You can see at the moment we don’t have
+the host based networks available.
+These are internal IPs reserved for container
+networking.
+And then we give it all privileges and all
+capabilities.then we start it and execute
+a shell.
+And As you can see, it allows us to look a
+bit deeper into the internals of what google
+is actually doing.
+Over here you saw we have mounted the rootfs
+inside the liveoverflow container.
+And I will just change the root into that.
+So we are now still inside the container,
+but this container has a lot of privileges.
+And when we now list the containers inside,
+you suddenly see what’s underneath the surface.
+And I will not go into detail of all of these
+containers, but it should provide other reasearchers
+a way to get started on cloudshell, or perhaps
+other google products.
+Because I’ve noticed other google services
+have similar architecture.
+Now the two most important containers.
+Are this one.
+This is our shell.
+And this is theia, it’s the editor we see
+at the top.
+Awesome!
+Now we really get some deep insight into the
+environment.
+And that’s also where he spent a lot of
+time on.
+For example, he tried to visualize all the
+different containers and how they interact
+with each other.
+Yeah, it takes a bit of time.
+And of course this is not the entire picture,
+because this is just what I am seeing.
+I’m obviously not sure if this [is correct].
+There are mistakes in my overview.
+But it works for me.
+According to this overview I managed to find
+a few bugs.
+And if I find new information I add it here.
+In case you wonder how exactly Wouter figured
+that out.
+It basically just comes down to having a good
+broad understanding how software is built
+and how you can debug stuff.
+Let’s do an example investigation.
+Here he used his new privileged container
+to get into the theia container, the IDE.
+And as you can see it’s a stripped down
+container.
+So you will have to install some additional
+software to start debugging.
+So he installs procps and strace.
+Procps package contains tools like “ps”,
+so you can list processes and strace can be
+used to trace systemcalls.
+I have used it many times before on this channel,
+it’s a great dynamic debugging tool.
+BUT he has a problem, because this container
+runs without the capabilities to use strace.
+Or to be more precise, the container is not
+allowed to use the syscalls that strace would
+want to use for tracing.
+But from understanding the architecture of
+the system, he found out how to modify this
+container.
+It’s actually orchestrated by kubernetes,
+and so he knows how kubernetes works and simply
+modifies the kubernetes config yaml file,
+and adds those security capablities to this
+container.
+Cloudshell will reboot, and that’s because
+kubelet picks up the changes and wants to
+make sure the pod keeps running in the state
+as described in the yaml file.
+I was actually surprised that with these container
+changes the website just refreshes and reconnects
+to the IDE again.
+Hahaha, It surprised me too.
+But it took a few tries.
+Because I think I’ve lost connection like
+50 times and then you have to wait and reboot
+the machine.
+But now it works.
+And I have posted this on github so everyone
+can download it and give it a try if they
+like.
+When telling you the story of how he did this
+research, it sounds always so easy and straight
+forward.
+But I hope this comment by him gives you some
+insight how frustrating, slow and tedious
+this kind of research actually is.
+We are just summarizing into a few minutes
+probably hundreds of hours of work.
+So now we can enter the theia container again
+and start debugging some of it’s processes.
+Okay now you see the main process of theia.
+And we will be able to attach to it.
+We will write the output to a temporary file.
+But then suddenly everything broke again.
+It rebooted.
+Sorry.
+I don’t know what happened.
+I just wanted to keep that in, because I need
+to keep reminding you, this is tedious frustrating
+work.
+Annoying stuff like this always happens.
+In a video it can look smooth, but real-life
+is not.
+Anway… let’s fast forward to tracing the
+theia main process.
+This is setup.
+And now I will connect strace to the ssh daemon
+on the shell environment.
+Okay now let’s say we create a new folder
+java code as you can see some processes are
+running.
+I will close strace.
+And see what happened.
+This is the theia container.
+The IDE container.And it connects to the actual
+cloud shell to start basically this jar.
+On this end we see the same systemcalls.
+Here we see the jar files firing up the language
+server.
+But what I’m interested in is the behaviour
+of the language server itself.
+Okay.
+Now you saw one example how he is able to
+trace and see what is happening.
+And he found out that when creating a java
+project, it starts this java language server
+by using ssh to execute this jar on the other
+machine.
+There are language servers for any programming
+language.
+Such a program is used by something like this
+editor, to provide information for auto completion,
+it can check for syntax errors or can also
+help with syntax highlighting.
+And so here he discovers an attack surface
+with the language servers:
+This file we just created.
+But this can be any file I just cloned from
+Github.
+So it’s important that anything from GitHub
+is secure.
+And that the language server is treating it
+the way it should.
+If he can find an issue in the language server
+that is started when you open a certain file,
+maybe that could be an issue.
+And that’s what he found.
+So this is just a regular repository.
+We have a java file we are trying to compile.
+Well we are not trying to compile it, but
+it’s happening anyway.
+Let’s see what happens.
+Okay it’s in dutch and asks us if we want
+to clone this repository.
+Yes we want.
+You see the new directory popping up.
+My repository is being cloned.
+Yeah the language server is being fired up.
+Inside this workspace I created a build.gradle
+file.
+And inside this gradle file.
+Oh yeah, it just happened.
+Our code was executed.
+And this is the vulnerability.
+Wouter found out, that for whatever reason
+the java language server just automatically
+starts compiling any java project.
+And gradle build files allow to specify shell
+scripts to execute during compilation.
+So without the user hitting build or executing
+a file, it just did it in the background.
+And as we mentioned in the beginning of the
+video, anything running in this shell can
+access all your other cloud stuff.
+So this is kinda bad.
+But here you can also see a very specific
+security boundary that google has defined.
+It should be safe to clone any repository.
+Of course if you clone an evil script and
+actively execute it yourself, that’s your
+own fault.
+But a user does not expect a git clone to
+lead to arbitrary code execution.
+And Google didn’t know about this behaviour
+either, this was not intended and that’s
+why this is a vulnerability.
+And I know you are curious, he got 5000$ for
+this.
+That was really interesting.
+I personally learned a lot from this.
+At the end of our conversation I had the chance
+to ask him a few questions and got some great
+responses I want to share with you.
+Do you report every small odd thing you see,
+because it could be a vulnerability?
+No I try not to send in everything.
+I believe my acceptance ratio is around 97%.
+Because you don’t want to waste google's
+time.
+These are highly skilled and expensive engineers,
+so you should think about everything twice
+before you send it in.
+You don’t want to put them into the position
+where they need to decide on the quality of
+the bug.
+And most of the case you just need to send
+in quality and wait what happens.
+How much time do you think is spent on researching
+new targets and how something works, versus
+actually looking for bugs?
+70% of my time just doing reconnaissance and
+finding something that’s interesting enough
+to give a close look at.
+But when you find something as for example
+like this target, then things start to shift
+and suddenly you can spend 100% of your time
+looking into these bugs.
+But overall I would say 70% of my time is
+just spent on finding the next thing to look
+at.
+Did you have any notable dead-ends when looking
+into this target?
+That’s hard to say.
+I wouldn’t have one specific dead-end in
+mind.
+But of course when you are doing bug hunting
+you have dead-ends everyday.
+Because you have an idea, you try it out and
+9/10 times they don’t work how you think
+they were working.
+So I would say dead-ends are just daily business
+to me.
+I hope you enjoyed this deepdive into the
+bug hunting process.
+Maybe it even inspired you to head out now
+and research an application and possibly even
+find some bugs.
+I have linked the resources about this bug
+in the description, checkout the google vulnerability
+rewards program And please let me know: isn’t
+this kind of sponsored video the best match
+that could ever happen for this type of video?
+What do you think about it?
+So thanks Google for supporting this.

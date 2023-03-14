@@ -1,0 +1,237 @@
+“Stop wasting your time playing games, and do 
+something useful! Learn more about hacking,
+learn a new programming language, practice 
+with CTF challenges, write a blog post,
+watch those talks you missed, read the papers 
+you have bookmarked, or finally learn radare,
+what is wrong with you? You are wasting your 
+time!” - is what my brain tells me a lot.
+I think everybody can relate to this. 
+Especially in security and IT in general
+you always play catch-up and the industry is 
+constantly moving forward. In my talk from fsec,
+where I make an argument for why I think CTFs 
+are so great to learn hacking, I told you that I
+always try to improve myself because I know there 
+are people that are better than me, that are a
+step ahead and I could do a much better job if I 
+would know more. And that is motivating me a lot,
+but it can also be very stressful at times. 
+So let me tell you how I try to deal with it.
+It’s terrible when you feel like 
+you have to keep pushing and forcing
+yourself to learn new things.
+And usually that doesn’t work,
+what ends up happening is that you 
+feel terrible and depressed about this.
+It’s weird, you are wondering where your 
+motivation went - a couple of months
+ago you remember sitting there solving 
+rhme2 challenges day and night and now
+the new board is laying here, not even soldered.
+And instead, you play games like Guild Wars 2,
+or Fortnite or these awwwful manipulative mobile 
+clicker and idle games. And sure, they can be fun,
+but you also end up in a miserable spiral thinking 
+“why am i keep wasting my time? I wanna find cool
+vulnerabilities, why am I not pursuing that?”.
+So I wanted to tell you how I deal with this.
+Because I’m not some kind of machine that 
+can just solve CTF challenges every day
+and work through tutorials, I also waste 
+a lot of my time doing other stuff.
+So… First of all... I try to allow myself 
+to play games. Or do whatever seems fun and
+relaxing. I know that sometimes I’m just not 
+feeling like doing research or playing CTFs.
+And that phase can be a day, or can be weeks, 
+or even months. But the problem starts when I
+get these negative thoughts that, what I do is a 
+waste of time. Because then I get nothing from it.
+I’m not learning anything new and more 
+importantly, I can’t even relax and recharge,
+which these games are supposed to help with. I 
+need the break, but I’m not benefitting from that
+break. So while It’s hard keeping these negative 
+thoughts out, it’s something I very consciously
+try to change by telling myself: “no, it’s 
+ok, I’m just enjoying this game now. Shut up.”
+Mental health is very important to me, especially 
+since so many people in our community suffer from
+depression or other issues that, I’m sure, are 
+intensified from our very competitive, elitist
+and stressful industry. So just allow yourself 
+to relax and take that break that you need.
+It’s absolutely ok! That is important to me.
+But I still have these negative thoughts a lot.
+And so while I try to actively manipulate 
+my own brain into accepting playing games,
+or whatever other activity, so I can actually 
+enjoy it and relax, I have one other trick.
+What I try to do is, if I “waste” my time with a 
+game, and I can’t get out of that negative thought
+spiral, why not do a project with that game? 
+And so you can learn something along the way.
+For example. For the past week I have 
+been playing Clicker Heroes on my phone.
+You have to click a lot and then buy heroes 
+that will help you, you advance in the stages
+and I felt sooo awful playing this game. It 
+also has microtransactions and so forth, it’s
+just your basic manipulative mobile game. However 
+I noticed they have an export function, where you
+can export and backup your game. And it also has 
+an import function. Mhmh! That’s interesting. So
+let’s export the current save and transfer it 
+onto my laptop. It’s clearly base64 encoded, so
+how does it look if you decode it? Mhmhm… that’s 
+just binary data. And also the file utility
+doesn’t recognize a filetype. So what to do next?
+In the meantime I played for a little bit
+more and so I can get a different save that I can 
+export a. And now we can compare the two saves.
+So first we can base64 decode and at the same 
+time generate a hexdump of the binary data.
+If we do this for both files, we can 
+then easily look at the data in a diff,
+I’m using vimdiff for this now.
+So as you can see, the first 27(?)
+bytes are constant. But the 
+remaining bytes changed a lot.
+This could indicate that it’s maybe 
+encrypted, but even if it’s encrypted it is
+likely that we could reverse engineer 
+the method how its done from the app.
+However I decided to run binwalk on one of the 
+base64 decoded binary blobs and it turns out,
+that binwalk recognized possibly zlib compressed 
+data at position 24, or 0x18. So if we look again
+at our hexdump, we can see that byte 24 is here. 
+So I quickly looked up these values for zlib
+and it turns out that 78 is the magic number for 
+zlib and the next byte indicates the compression
+method. 0x01 would be no compression, 0x9C is 
+default compression and 0xDA is best compression.
+So we can use the dd utility to cut out that 
+part. So dd, read input from this binary file,
+set the block size to 1 byte, 
+and skip the first 24 blocks,
+so the first 24 bytes. This will simply output all 
+bytes after the 24th byte. And when written to a
+file it is also now recognized by the file utility 
+as zlib compressed data. Which we can now pipe
+into something that decompresses it, for example 
+openssl zlib. And the result is some json data.
+goldMultiplier, totalHeroSoulsFromAscensions,
+baseClickDamage, debug(?), totalGold, and 
+so forth. You can see it’s all the settings.
+So rubies is the currency that you have to 
+pay for with real money. And there it is,
+rubies. Let’s change it to something 
+high. Oh and let’s also enable debug.
+Now we have to do everything in reverse. We first 
+pipe the modified json data into openssl zlib and
+store it into a new binary file. But what about 
+the 24 bytes data before the zlib compressed data?
+Well I have no clue what it is used for, 
+but it’s constant for both my savefiles, so
+let’s just keep it. We can use dd again, with the 
+original binary as input file, block size 1 byte,
+and this time we just want the first 24 bytes, 
+which we indicate with count. And now we combine
+this output, with the zlib compressed data, and we 
+pack it together in parentheses. And then pipe the
+combined output into base64. Now that should 
+be our new save game. Let’s try to import it.
+Seems to have worked and when we check the ruby 
+store we can see we have over 99 thousand rubies.
+Oh and I noticed a console button has appeared 
+in the menu which opens up this here. It’s a
+tiny tiny console and I typed “help” into it 
+and got a list of available commands. Awesome!
+And so now I learned new stuff. I analysed and 
+reverse engineered a custom save-game structure
+and was able to modify it. I practiced using dd 
+and improved my analytical skills - I hope next
+time I will just recognize the zlib magic 
+header right away. And so I turned feeling
+terrible about playing this game into something 
+positive. And I’m happy that I played this game.
+AND, most importantly, I just ruined the game 
+for me. Because now with all those rubies,
+there is no fun anymore, no challenge 
+left as you can just buy everything.
+Let’s take a quick detour, because I 
+just want to mention that I would have
+not published this cheat or hack about 
+this game because I don’t want to screw
+over a small developer studio just for some 
+10min internet fame. But when I did a quick
+google search I already found a prominent save 
+game editor for it out there. So the potential
+financial damage is already done. However I 
+would like point out, that even the developers
+don’t like this manipulative microtransaction 
+system. They have announced a Clicker Heroes 2
+and in their blog about “Why Clicker Heroes 2 
+is abandoning free-to-play” they write, that:
+“we found that some number of players 
+spent many thousands of dollars on rubies.
+I can only hope that these people could afford 
+it, and that they were doing it to support us,
+and not to feed an addiction. But I 
+strongly suspect that this is not the case.
+[...]
+We really don't like making money off players who
+are in denial of their addiction. And that's what 
+a large part of free-to-play gaming is all about.
+[...]
+That said,
+we're not going to change how we monetize Clicker 
+Heroes 1. It would destroy our studio if we did.“
+And so they announced a clicker heroes 2, that is 
+going to be a standalone game without the abusive
+microtransaction. And look at this epic trailer.
+[traile]
+You can preorder it now for 30 dollars 
+and it will hopefully be released in 2018.
+And I appreciate their honesty and I really 
+really hope that their game will be a success
+and they can survive as a small game studio. And 
+I understand the controversy about pre-ordering
+games, but for me I preordered it because I can 
+afford it and I want to support them. And their
+Pre-orders qualify for full refunds for up to 
+a year after we launch anyway, which is crazy.
+Aaaanyway, just wanted to get 
+that off my chest, because
+ethics in research and reverse 
+engineering is important too.
+So now that I lost the motivation in the game,
+I found again the motivation to do some 
+more useful stuff, like making this video.
+And there are many more examples like that. For 
+example I play guild wars a lot and I was there
+early on reverse engineering the trading-post API,
+writing my own trading tools. Totally 
+overengineered that, including a deep
+research into Coherent UI, the framework they 
+are using to implement the ingame web-browser,
+but that’s a story for another time. And now they 
+have a real open json API that you can access
+with an API key. And there are many other games 
+that offer APIs, for example league of legends.
+Or if you don’t play games, you can checkout 
+the reddit APIs. And that’s so awesome because
+you can use it to practice some basic 
+programming, how to interact with an API,
+learn how to do HTTP requests and handle the 
+response. I think that’s perfect to learn a new
+language. And write some small tools, that just 
+query your user’s information with. They don’t
+have to be fancy, it’s just to learn something 
+while also at the same time doing what you enjoy,
+so browsing reddit or playing games doesn’t 
+feel too bad. And then you can actually relax
+with them, allow yourself to unwind, and you 
+even benefit from it by learning something new.

@@ -1,0 +1,265 @@
+This will be the last video covering the BruCON
+CTF 2016.
+I didn’t cover every challenge, but I think
+they were quite diverse.
+But let’s not waste any time and checkout
+the last 3.
+The first challenge is called Breaking the
+crypto.
+There is also a hint about flickr, which might
+help you in researching what it is about.
+But in general, you either know how it works
+and solve it in a matter of minutes, or your
+mind gets blown.
+To be honest with you, I didn’t know about
+this kind of attack until I participated in
+the Breaking Bad Crypto Workshop by Filippo
+at the Chaos Communication Congress in 2014.
+He did a walkthrough of a vimeo crypto vulnerability
+and explaining it in great detail how it works.
+And I just sat there in awe.
+I’m not going into all details right now,
+because I do want to cover this properly in
+a full episode at some point.
+But if you are interested in it, go research
+it yourself.
+I will just explain the abstract idea and
+show you an easy tool.
+The challenge itself is not that cool, the
+crypto attack is just so beautiful.
+But now that I completely overhyped the attack,
+this challenge is based on, let’s have a
+look at it.
+I kinda forgot to record most of the challenge,
+so I gotta describe it to you.
+So the initial URL you are given points to
+a login field.
+And somewhere was a hint, that the secret
+key is 18 characters long.
+Besides that there is not much.
+Looking at how the login, or session stuff,
+is implemented we learn, that there are two
+get parameters.
+One is user, and the other one is called mac.
+user is a base64 string and decoding it shows,
+that in my case the user was number 68.
+We can see that the user number is between
+two pipes.
+Our goal is to login or authenticate as admin,
+which has user id 1.
+So our first attempt would be to simply change
+the base64 string to contain |1|.
+But this doesn’t work.
+The reason for that is, the mac parameter.
+Mac stands for message authentication code.
+Like the name says, this code makes sure that
+a certain message is authenticated, meaning
+trusted.
+The question is how the mac is implemented.
+We have two kind of information about it.
+First of all, the hint said, that the secret
+key is 18 characters long.
+A secret key is necessary, because this way
+the server can verify that the message is
+trusted, you could almost say, it got signed
+by that key, but that’s not 100% correct.
+The second thing we can assume is that the
+MAC is implemented with md5, just based on
+the length of that hash here.
+Now a very weak mac implementation would simply
+do the following.
+It would take the secret key and append the
+message it wants to authenticate.
+And then creates an md5 hash of that whole
+string.
+Next time it will receive a message and this
+mac, it can then take the secret key again,
+append the message, calculate the hash and
+compare it to the mac.
+If it’s the same, the message is trusted.
+This way, only somebody who knows the secret
+key can calculate a correct hash, and thus
+can create a user parameter with id 1, right?
+Well… here comes the mindblowing part.
+Md5 is vulnerable to a Length extension attack.
+What does that mean?
+A md5 length extension attack basically means,
+that we can add more characters to a string
+and update the hash so that it stays valid.
+In this case we have an unknown secret key
+with some characters we control afterwards
+and we know the hash of one valid message.
+You would think you need the secret key to
+calculate a new hash, but we can simply take
+the already computed hash and the valid message
+we know, and extend it, and update the hash.
+So when the server verifies the message, it
+uses the secret key and the message, calculates
+the hash and will get to the same result as
+we do.
+Obviously it’s not as simple, there are
+a few pitfalls if you would completely implement
+yourself, like padding and you have to understand
+how md5 is computed.
+But we will now just use a tool to do it for
+us.
+The tool is called hashpump.
+We simply pass the md5 signature we know,
+the part of the message we know, which is
+the |68|, the secret key length we know with
+18, and the data we want to append.
+In this case the |1|.
+So the result will be the new md5 hash and
+the new extended message, with some annoiying
+things in it - like padding, but I was just
+hoping that the application will be forgiving
+when it comes this stuff.
+I was hoping it will ignore it and just take
+the last number.
+So now you just get the base64 encoding of
+that new message, copy it together with the
+new mac md5 hash into the url, send the request,
+the application seems to accept and read the
+|1| and we authenticate as admin and get the
+flag.
+Very easy, but a lot of points.
+The next challenge was my favourite of the
+whole CTF.
+Not that it was a particular difficult or
+a crazy challenge, just because I haven’t
+done it before and it was somehow interesting
+for me.
+The challenge is called “Log Analisis BSQLi”.
+The description says: “You are good at hacking!
+So what are you tracking?
+Find everything you need and make the flag.”
+The Hint also said that the flag will be the
+password of the administrator or something.
+So the challenge was actually less vague than
+the description makes it sound.
+Anyway, the title is already basically telling
+you what it is about.
+You have to analyse a log of a blind SQL injections
+- short BSQLi.
+And you are given a typical webserver access.log.
+The log contains a lot of information such
+as IP address, request method, the accessed
+path, as well as the HTTP response code - for
+example 200 means everything is ok.
+And some more info like the size of the response
+and the user agent.
+So as a first step I just tried to get an
+overview of what the log contains.
+Scrolling around a bit and with searching
+for interesting keyword you can quickly find
+all the SQL injection attempts.
+But it’s a bit hard to see whats going on.
+So I started to write simple python scirpts
+to explore the content more.
+For example I urldecoded each line, to make
+it easier to read, and I stripped away what
+I considered unimportant information.
+Later it will turn out that I stripped away
+too much and it took me a while to realize
+how valuable some of the information was.
+But I keep exploring the dataset by changing
+scripts, filtering for certain lines, searching
+for interesting keywords, cleaning up lines,
+and so forth.
+Just trying to figure out what I might be
+looking for.
+The challenge was clear that we should analyse
+the blind SQL injection attempts, and it’s
+not hard to find these.
+So when you look at all these requests you
+notice that at the end it always does a comparison
+with a number.
+For example is something bigger than 64.
+And this is basically what the blind SQL injection
+does.
+In a blind SQL injection you wont get data
+from the database directly as output, but
+you create a query such that you can leak
+small pieces of information by for example
+causing an error if your question is wrong.
+Let me extract one of those sequences and
+explain it with that.
+So basically the automated tool uses LIMIT
+to access only one character, in this case
+the 42 caharacter of whatever it wants to
+leak and then ask:
+is the character’s ascii value bigger than
+64?
+And if we look at the line afterwards we can
+see that next question is if the character
+is bigger than 32, this means that with the
+previous question it probably got a different
+response and was able to conclude, that the
+character value must be smaller than 64.
+So it does a binary search for the correct
+character.
+Next it is checking if the character is bigger
+than 48, this means that the response of the
+bigger than 32 was probably correct.
+And once you follow that, you get closer and
+closer to the correct character and at the
+end is one last question, and basically now
+we know the character must have ascii value
+49 or 50.
+Now I just write some code to extract those
+rules from the log file.
+The code is super ugly and just very quickly
+written, so don’t judge me.
+But here is where I got stuck at first.
+Because I was left with two choices for each
+character.
+So I didn’t know which of those two is the
+correct one.
+And bruteforcing all combinations is too much.
+So I put the challenge aside and went out
+for dinner.
+I had sushi.
+While I was walking with my friends I had
+a revelation that the access log also included
+the response code and size.
+This might be the missing information I was
+looking for.
+We probably are able to see a difference if
+a certain question returned true or false,
+based on different size or return code.
+And that’s why I said earlier I got rid
+of important information.
+Anyhow, once I included that info I was able
+to correctly identify the real character,
+which allowed me to dump all the extracted
+information from the blind SQL injection.
+And here is my script in action.
+And one of the blind SQL injections did load
+the /etc/shadows file that contained the hash
+of the root user.
+Then I took the hash and bruteforced it with
+john the ripper.
+Took a couple of minutes but then I successfully
+found the correct password, which is webmaster.
+That was kinda fun.
+The last challenge was weird.
+Not really a meaningful security or hacking
+challenge.
+Anyhow, the description says, is it encrypted
+or obfuscated?
+Here is the content of the file and I you
+can immediately see that this is not random,
+so it can’t be really encrypted.
+And some strings look awful lot like meanignful
+strings, especially the first line reminded
+me of hashbang, env, for environment.
+And that kinda told me that all lines are
+reversed.
+So first I reverse all lines and then I notice
+that there are things in there that look like
+the flag.
+I know that the flag starts with BRUCON and
+then uses curly braces.
+And when you start looking for these pieces
+you can just slowly assemble the flag and
+you are done.

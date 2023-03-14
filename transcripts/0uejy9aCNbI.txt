@@ -1,0 +1,365 @@
+Look at this URL.
+If you have a little bit of experience with
+the Internet you know it’s super simple
+to understand, right?
+You have first the protocol, then comes the
+domain then a path and then parameters.
+But we are of course a bit more advanced so
+we are aware of the RFC 1738 or the more modern
+3986 which actually defines the Uniform Resource
+Identifier.
+Here you see a few typical examples of URIs.
+URLs, "Uniform Resource Locator" refers to
+a subset of URIs.
+Let’s check the syntax components.
+first we have the scheme, followed by a colon
+and then an hier part and optionally a query
+and frahment.
+So we have https as the scheme here and then
+we have //www.youtube.com as hier=-part and
+we also have a query.
+v=.
+And an hier-part starting with a double slash
+means it’s an authority and path-abempty.
+If you haven’t studied computer science
+then this kind of writing might look a bit
+confusing, but I think this video is an excellent
+example of why computer science, or specifically
+formal languages and how you define grammars
+and parsers and stuff like that is important.
+This is a grammar definition here, explaining
+you how to parse a URL.
+Further down we find that the
+authority must contain a host, but can have
+an optional userinfo with an @ or a colon
+port.
+Userinfo can be for example a username and
+password.
+And in our case we don’t appear to have
+an @ and thus no username or password part.
+And we can also look up what the path-abempty
+can be.
+This could be a slash followed by a segment,
+and as indicated by the star, similar to regex,
+0 to many repetitions of that pattern.
+And a segment can be 0 to many pcharacters.
+And a pcharacter is this.
+You get the point.
+So this sounds all super well defined and
+easy, right.
+It’s all explained in detail here with countless
+of examples to test if you do it correctly.
+So what’s the problem.
+HOW FRCKN HARD CAN IT BE TO UNDERSTAND A URL!?!?
+The title of the video and my short angry
+outburst might sound condescending.
+But I really don’t mean it like that.
+I wanted to emphasize that URLs appear simple.
+We often hear that they are just string that
+everybody should understand and they are well
+defined, right?
+Everybody should be able to distinguish between
+a phishing URL and a real one, right?
+And of course it also should be super easy
+to write programs to understand and handle
+URLs.
+But it’s not.
+In practice we see a lot of issues because
+of URLs.
+And so I hope at the end of the video you
+understand that URLs are maybe a bit more
+complex than they appear.
+So let’s get started with a bug that recently
+was made public on the chrome bug tracker
+from Tomasz Bojarski in May 2018.
+The title of the bug is “uXSS (Universal
+XSS) in Chrome on iOS”.
+Let me quickly explain what a uXSS is.
+So typically a XSS means that you can somehow
+inject your own malicious javascript into
+a website.
+And that javascript can then basically impersonate
+the user viewing the site.
+So let’s say you want to steal somebodies
+emails from mail.google.com.
+javascript can only access stuff on the domain
+it currently is running on.
+So this means you have to find a XSS vulnerability
+in the website mail.google.com.
+So this means you can’t write javascript
+on YOUR website to access another persons
+email.
+You can easily test and simulate that with
+the console.
+Here I’m on liveoverflow.com and try to
+execute a javascript payload to get data from
+mail.google.com.
+But we get the following error.
+Failed to load https://mail.google.com.
+Origin 'http://liveoverflow.com' is therefore
+not allowed access.
+This shows that you need a XSS vulnerability
+on the mail.google.com domain.
+HOWEVER.
+A universal XSS is typically abusing a bug
+in the browser and bypasses somehow this origin
+check.
+The browser is the one that prevented us from
+accessing mail.google.com cross domain from
+liveoverflow.com.
+So if we somehow can fool the browser into
+allowing us to do that request and read the
+response, we have a so called universal XSS.
+because then, we can place javascript on ANY
+domain and access ANY data on ANY other site.
+So if there were a uXSS in Chrome, basically
+if Chrome failed to properly check the domain
+and prevent cross origin access, any malicious
+site can steal data from any other site you
+are currently logged into.
+That’s like apocalyptically bad.
+And now Tomasz claims to have found a uXSS
+bug in Chrome on iOS.
+So what does this have to do with URLs in
+the intro of the video?
+The VULNERABILITY DETAILS say:
+Universal XSS by using "..;@" within the url.
+WAT?
+Basically if we run this javascript code " history.replaceState(‘’,’’,’..;@www.google.com:%3443/')
+" our URL domain is being replaced to that
+one..
+What is history.replaceState?
+HTML5 introduced the history.pushState() and
+history.replaceState() methods, which allow
+you to add and modify history entries, respectively.
+replaceState() modifies the current history
+entry instead of creating a new one.
+replaceState() is particularly useful when
+you want to update the state object or URL
+of the current history entry in response to
+some user action.
+Here you see it in action.
+It updates the URL above.
+As the description said, these functions are
+used to modify the history states of your
+web page so you can implemented a fancy modern
+single page website that doesn’t actually
+load each time but just modifies the url when
+you move around.
+Here you see a real example.
+When you click on the tweet, the tweet pops
+out and the URL changes.
+But you didn’t actually navigate away.
+And when you load that URL directly, a different
+page will appear.
+Anyway.
+Tomasz writes.
+if this code is run on my site https://web-safety.net/
+the the url is being replaced to https://www.google.com
+yet the contents remain under my control..
+Therefore etc. we can run unrestricted XHR
+requests.
+So if his website is web-safety.net and he
+does the history replace with the ..;@www.google.com
+then the URL that the browser would now internally
+see would look like this web-safety.net/..;@www.google.com
+And somehow this fooled the browser into thinking
+the current site is google.com yet the javascript
+is still running from his site.
+This means now his javascript has the permissions
+to access pages as if it were running on google.com.
+The browser won’t block it.
+A universal XSS is born.
+Let’s have a look at the bug discussion.
+Eugene from Chromium asks Thomasz: “is this
+bug reproducible in Safari or Firefox?”
+And he had trouble to reproduce the bug.
+And Thomasz emphasized again that this affects
+Chrome on iOS.
+But he adds that there are different ways
+to achieve that on other browsers on iOS or
+Safari in Mac.
+But I think it is irrelevant as this subject
+only focuses on Chrome…
+Right?
+But elwarence clarifies:
+(We are interested in understanding whether
+this reproduces in Safari and Firefox on iOS
+to better understand whether the root cause
+of the bug is in WebKit, or in WKWebView,
+or in Chrome code, which will help speed up
+the triage process).
+Maybe you didn’t know.
+But on iOS, browsers actually have no control
+over the web browser engine.
+Chrome on Desktop uses a fork of webkit since
+version 28 called Blink.
+But iOS doesn’t allow other engines.
+So your firefox, safari and Chrome on iOS
+must use webkit or the wkwebview.
+So yeah, there appears to be a uXSS in chrome
+here, but maybe the root cause is actually
+not google’s fault in their chrome code,
+but rather an issue of the underlying webkit
+included in iOS.
+Eugene then reported: Firefox crashes and
+I can reproduce this bug in stock WKWebView.
+And asks: Pink, could you please escalate
+this bug with Apple.
+I will think if we can workaround the issue.
+Okay so looks like apple has to fix this bug,
+not google.
+However google would like to protect Chrome
+users and implement a workaround.
+And here is the idea they have.
+It looks like some time is needed for XSS
+attack to steal cookie from iframe.
+As a workaround we could crash the browser
+once we detect the attack.
+In your previous comment you mentioned that
+the vulnerability also allows to perform unrestricted
+XHR.
+Do you think it would be possible to execute
+XHR-based attack faster than iframe-based
+attack?
+Crashing the browser will limit the time available
+for the attack to succeed.
+And that’s exactly what they did:
+The workaround is to crash only if URL's password
+or username contains the origin of the previous
+URL.
+The crash is targeted specifically for this
+vulnerability and should not affect legitimate
+web sites.
+Thanks Tomasz!
+I don't think Chrome can do better than crashing.
+The real fix should be done in WebKit.
+It’s like this facepalm fix, why does chrome
+have to crash here instead of webkit fixing
+it faster.
+but whatever.
+That’s just the reality.
+I want you to remember this sentence: “crash
+only if URL's password or username contains
+the origin of the previous URL”.
+Here you can also see some code they reference.
+“Crash on unexpected URL change”.
+If the new URL is different from the current
+document URL AND if the username or password
+part of the newURL contains the current document
+host name, CHECK(false); is executed, which
+causes the browser to crash.
+So Tmoasz’s bug somehow caused a mismatch
+between the current documentURL and the newUrl.
+Somehow the host of the current documentURL
+became the password part of the new URL.
+You already can get a feeling for why the
+@ is there.
+The @ indicates the username and password
+part.
+Abd danyao has a few more interesting details
+to offer:
+CC a couple of Apple security folks.
+The bug is seems to be an error in URL parsing.
+Within WebKit, web-safety.net ..; @mobile.twitter.com
+is parsed correctly into the following parts:
+the host or domain is "web-safety.net"
+The path of the url, the stuff after the slash
+is "/..; @mobile.twitter.com/robots.txt
+And the user and password are empty, because
+there is none.
+However, when this URL is sent to the network
+layer, the data returned is from https://mobile.twitter.com/robots.txt.
+So I suspect the error happens when the URL
+is serialized in the WebKit and given to the
+NetworkProcess IPC (inter-process communication),
+and when reparsed, it is interpreted differently.
+The first URL parser in webkit understands
+the URL differently than the NetworkProcess
+layer.
+Wow!
+A bit later it turned out that The workaround
+had non-trivial amount of false positive crashes.
+We will disable the workaround in M67.
+But then Congratulations thomasz!
+The Chrome VRP panel decided to award $7,500
+for this report.
+So first of all the award is so high, because
+a uXSS is extremly dangerous.
+Like explained earlier, a malicious page could
+steal all your facebook or gmail data.
+But more interesting is that google rewards
+this money even though the bug was actually
+an Apple bug.
+But Apple has a TERRIBLE Bug bounty program
+and such a bug would have never been rewarded
+by them.
+So thanks google for stepping up here.
+But poor google, maybe this sets a precedence
+and now all the webkit browser exploit hunters
+just report Chrome on iOS exploits to google
+instead of apple to get money.
+So i wonder if Thomasz accidentally submitted
+this to Chrome and not realizing that this
+is a webkit issue, or if he was just super
+smart here.
+Anyway.
+There is a point I want to make.
+So we have here an issue of two different
+components understanding the URL differently.
+For one component this was simply the URL
+path, for the other component this was a username
+and password and this was actually the domain
+and path.
+And these kind of bugs appear a lot, especially
+in the class of Server-Side-Request-Forgery,
+where one compontent tries to check if a URL
+is safe, and then another component interprets
+it differently and the request goes out to
+a bad host.
+These bugs are actually used quite frequently
+in CTF challenges.
+While it’s not a perfect example of a URL
+parser mismatch my list0r CTF writeup shows
+another related issues with URLs.
+Also two components understanding the URL
+differently.
+It provides some context why this is such
+a problem.
+But actually I would rather highlight the
+excellent work by orange tsai.
+URL parsing issues have been discovered before
+orange tsai, but his additional research,
+is just an amazing resource.
+And they have been shared already a lot.
+But just in case you missed it.
+The title is “A New Era of SSRF - Exploiting
+URL Parser in Trending Programming Languages!”
+He starts the talk with this quick fun example.
+He asks the audience, think about using one
+of the typical python libraries to parse a
+URL.
+How would this URL be interpreted?
+So we have a few @ here, so probably we have
+again a username/password part, but I mean
+what is the host, here?
+What IP would be accessed?
+Think about this URL. which address python
+is going to access?
+You have five seconds to put the answer in
+your minds.
+Do you have an answer?
+Okay here is the answer.
+Actually even python built in libraries tread
+the same URL differently.
+Urllib accesses the blue part.
+Urllib2 accesses the orange part.
+But the green is requests.
+Very weird.
+It sounds crazy.
+Python is real real hard.
+I don’t understand python.
+Yes… very crazy.
+What do you think is the correct interpretation
+according to the RFC 3986.
+Let me know in the comments below.

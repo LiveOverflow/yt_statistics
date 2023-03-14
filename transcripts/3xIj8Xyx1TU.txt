@@ -1,0 +1,155 @@
+so today I show you a quick tool that is
+really really cool when you are starting
+to learn about the Linux command line
+[Music]
+this is it explain shell calm it's by
+Ida and camara and you can also find the
+source code on github so let's check it
+out what it does in the recent video
+about the zero day in bash I quickly
+brushed over my solution and because the
+challenge solar was a bit difficult to
+get files over there there's this trick
+you can use for copy and pasting but it
+can look pretty intimidating and weird
+but like all these three directions and
+AOF like what the heck is going on so
+let's see what explained shell tells us
+about it
+so the first line of this command is
+simply this so let's hit explain and
+there we go so explain shell recognizes
+here three parts
+first cat then the TMP escaped and then
+the EOF so here it just shows you the
+main page from cat and cat is the tool
+to concatenate files and print on the
+standard output so while it doesn't
+quite tell you exactly what's like
+special about the way that cat is used
+here it does show you what belongs
+together so there's just the cat command
+so what does the cat command do and if
+you're not sure what a command does the
+easiest thing you can do is just playing
+around with it and see what happens so
+if you execute cut it always seems to
+output whatever you enter hey this is my
+input enter and cut gives us the output
+back AAA so cut without parameters like
+in this case we'll simply take anything
+that it reads as input and sends it to
+the output okay let's look at the second
+component before a command is executed
+its input and output may be redirected
+redirections are processed in the order
+they appear from left to right okay so
+we have here a redirection and we are
+redirecting output languages here very
+confusing but it says here okay so the
+sentence is a bit convoluted but we can
+break it up redirection of output causes
+the file whose name here word is open
+for writing and we can see the redirect
+and then word so in our case we have
+three direct and then a file name so
+this file name will be
+opened for writing and what will be
+written here specified by the second
+part here now we don't have an end here
+we don't have a number before there's
+nothing because n is not specified
+anything from standard output or the
+file descriptor want to be more precise
+it's written to that file probably most
+of you know this redirection right you
+know when you use this redirect into a
+file you just take the output from the
+one command and put it into the file so
+you probably even knew this but it just
+looks weird in the setup with the cat
+and also this EOF then here at the end
+but explain shell just shows you what
+belongs together so here we just have a
+redirection of the output so whatever
+the output from cat is is redirected
+into this file okay now let's go to this
+weird double redirection and the EOF
+thing okay so this is again about
+redirection before command is executed
+its input and output may be redirected
+it's exactly the same explanation
+as with the other redirection but this
+time we have a different redirection but
+this time it's not an output redirection
+it's this here documents so let's check
+out what that means
+this type of redirection instructs the
+shell to read input from the current
+source until a line containing only the
+delimiter with no trailing blanks is
+seen so check this out you have to -
+like redirect brackets thing and then
+word in our case it's a Oh F it will
+read anything from the input until it
+finds an e o f as a single line you can
+place some document some text here and
+then the same delimiter word has to
+appear as a single line at the end and
+so this explains how this works any
+input that cut receives is redirected
+into the file TMP escaped at C and then
+with this redirection here at the end we
+define that we will read any input the
+whole document until it receives a line
+containing this delimiter this word here
+and so it will put all this text as the
+input to cut and write it into the file
+until yo F is found an end will stop and
+so that's why you can copy this whole
+text here and just paste it into a shell
+and that will write all this output into
+the file but I mean it was still kind of
+a condom
+little thing but let's try something
+else so let's see what here this fine
+command does so find searches for files
+in a directory here you can see the
+parameters or find so this corresponds
+to Lu the path and then it has the type
+minus F and type minus F means it looks
+for regular files and then print 0 means
+print the full file name on the standard
+output following by a null character
+let's look at this one here
+true ok so do nothing but do it
+successfully all right and then we see
+it highlight these two here so these are
+and and or and and all lists are
+sequences of one or more pipelines
+separated by and and or control
+operators this one here means command to
+is only executed and only if command one
+returns an exit status of zero which is
+kind of like defined as the it ran
+successfully in an error case program
+should return something nonzero and the
+oldest I guess is also kind of
+interesting command to is executed if
+and only if command run returns and
+nonzero exit status then we have these
+brackets so what do they mean they
+define our list list is simply executed
+in the current shell environments all
+right ok so we have here a list of
+commands and in the first list we have
+one command and in the second list here
+we also have just one command and then
+we have here echo echo displays a line
+of text and then we have here the
+parameters for echo which are success or
+failed I think this is a really cool and
+small tool oh there was also a dark
+theme that might have been nicer on the
+ice sorry
+[Music]

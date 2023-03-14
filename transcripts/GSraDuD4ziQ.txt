@@ -1,0 +1,115 @@
+Hey, so in the past weeks I have been working 
+on a really cool pentest project that I want
+to tell you about. For this I even got 
+a 12 core server with 128 GB of RAM.
+I want to share each step along the way, so 
+you can follow along and learn too. Though,
+maybe some experienced viewers could 
+already guess what this is about. Of
+course this is going to be another Pentesting 
+video, like every year! So let’s spin it!
+Guys I’m in, we’re live, go on go for it!
+Hello. We are sick of this 
+LiveOverflow getting all the
+views. So we decided to take it over. Our 
+YouTube channels are much better anyway.
+Uh oh, I think we’re losing it!
+ZetaTwo has made some great Pwny Racing 
+videos, where multiple hackers try to
+exploit the same binary. So you can all watch 
+and learn from their different approaches.
+InsiderPhD makes lectures about web security 
+that she has tricked people to watch as
+“entertainment”. Get out your notebook, and a 
+pen, and make sure you’re sitting near the front.
+Codingo teaches you how to use various 
+security tools and do bug bounties well,
+so you may have reports worthy enough of 
+a boom signoff. Has a giveaway addiction.
+Hacksplained serves you easy to 
+digest web app security slices of cake
+directly to your table! #bugbountytips included
+PinkDraconian makes walkthroughs of good 
+challenges, the ones that are actually
+useful in real life scenarios or that teach you 
+the skills needed to go hunting in the wild!
+Who would’ve guessed 
+LiveOverflow’s security question to
+“What is your maiden name” is “‘ OR 
+1=1 -- -”, SQL injections are so 2017…
+Rana Khalil mainly makes videos about 
+web security related topics but will
+occasionally cover topics related 
+to infosec certs she’s pursuing.
+Farah Hawa makes videos explaining 
+some complex web hacking techniques
+with a beginner friendly approach.
+Superhero1 loves CTFs, hardware hacking and
+the cool stuff that is hard to 
+find or to learn on your own.
+Pwnfunction creates videos on Binary Exploitation 
+and Web Security but with better drawings than
+Liveoverflow. Pwnfunction is also a level 1337 
+Hacker, unlike liveoverflow who's level noob.
+When I got into LiveOverflow's system, I 
+had a look at his files. Why does he have
+so many pictures of pens? He really is 
+just obsessed with pentesting, isn’t he?
+The XSS Rat goes in depth on all 
+those “cheesy” bug bounty topics
+AshF0x learns Binary Exploitation 
+and Coding while on stream. Fun fact:
+Every second one of his Hardware 
+projects bursts into flames.
+John Hammond showcases capture 
+the flag videos, wargames,
+security conferences, malware analysis and more.
+BlindHacker Does career and resume workshops,
+while still bringing hacking AMA’s 
+to the table for education and fun.
+Sometimes when pwning something, it can feel 
+like they laid out a welcome mat for you,
+but for LiveOverflow, it felt like he hang out a 
+banner saying: Welcome, please pwn me. So easy!
+Cybersecurity Meg says “I’m stoked” way too much 
+while she creates videos about getting into the
+Cybersecurity field, and provides guides 
+on passing popular security certifications.
+Reconless does reconnaissance. 
+Just kidding it’s reconlESS!
+247CTF combines beginner security topics 
+with CTF's, crypto and game hacking.
+Hey guys it’s DC Cybersec here 
+and I want to help encourage YOU
+to grow in cybersec. Much more 
+than mr overflow has, anyway :P
+Who would've known that I would be following 
+a LiveOverflow tutorial to pwn LiveOverflow...
+Lupin mostly streams on 
+Twitch but in the near future,
+some good content will be released 
+on the Youtube channel. Stay tuned ;)
+Stacksmashing creates in-depth 
+videos on embedded-security,
+reverse engineering & hardware hacking
+CryptoCat produces CTF challenge walkthroughs 
+aimed at beginners. Although they focus on
+Binary Exploitation, Reverse Engineering and 
+Offensive Security.. No topics are off limits :)
+Tib3rius mostly creates videos about 
+web application penetration testing,
+and uploads edited versions of his Twitch streams
+which usually cover TryHackMe rooms 
+and Portswigger Web Academy content.
+Hey, thanks for checking out this video. This 
+video was actually edited by codingo. So huge
+thanks to him. And of course a huge thanks to 
+all the other security creators who participated
+in this project. Thanks to them we have now a 
+large list of YouTube channels you should put
+on your blocklist in the description. Of 
+course this was only an aprilfools video,
+I would never recommend to you to watch these 
+terrible channels with really bad hacking
+videos - they are awful. Of course I want you 
+to only watch quality, so just watch my videos.

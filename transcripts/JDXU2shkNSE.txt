@@ -1,0 +1,394 @@
+Let’s continue with our work on the keygen
+for the last Pwn Adventure 3 challenge.
+Pirate’s treasure.
+Last video we found the key verification implementation
+in the shared libGameLogic library and started
+to reverseengineer it.
+We were able to understand the first two loops.
+Just as a quick reminder, the first loop ignore
+spaces and dashes, as well as counts the amount
+of valid characters.
+And valid characters were defined by this
+alphabet.
+It also creates a new array mapping each input
+character to a number, basically the index
+in the alphabet.
+So the string input “123ABC” would be
+encoded as the raw numbers 1, 2, 3, 10, 11,
+12.
+We also looked at that with gdb and printed
+that array, so we know it’s stored as a
+local variable on the stack at `rbp-0x30`.
+I call this new array now `key24`. key
+After that a checksum is calculated by simply
+summing up the values of the first 24 characters
+and compare it to the 25th character.
+Which means we can ignore the last character
+from now on, and work with the actual important
+remaining 24 values.
+So let’s look at the next loop.
+Before we head into the next loop we can see
+another obfuscated function call.
+lrKmtLet.
+It appears to take three parameters.
+I assume this, because this is a 64bit program
+and the typical intel 64bit calling convention
+on linux is, to start using registers for
+parameters, and only if there are too many
+parameters, start pushing them on the stack.
+That’s different to 32bit because there
+parameters are always pushed onto the stack.
+So this function takes an address to a buffer
+on the stack, you can see that because it
+uses `lea` load effective address of rbp-0x5f.
+So it basically just puts the result of `rbp-0x5f`
+into rdi.
+You could have also moved rbp into rdi, and
+then subtract 0x5f from it, but using `lea`
+that is shorter and more expressive.
+So let’s go into that function and we immediately
+see that it’s a super simple loop.
+Here are our parameters coming in via the
+registres and stored in local variables on
+the stack.
+So rdi was our pointer to a buffer, esi was
+set to 0, but then moved here into al, so
+al is just a single null byte in this case.
+And edx was the 0xf.
+And that is moved into here, which is then
+used in a comparison down here.
+And that is obviously the loop condition.
+If the tested value in eax is greater or equal
+than that 0xf we exit the loop.
+And eax is coming from this variable, which
+was set to 0 initially and incremented down
+here.
+So this is clearly a for loop.
+And our 0xf was obviously a length.
+So we have for, i=0, loop condition is i < length
+and increment i.
+And in each loop iteration we load the single
+byte, in our case the nullbyte into al, then
+load the current i iteration value into rcx
+and the address of our target buffer into
+rdx.
+Then we move the null-byte into our buffer
+at offset rcx.
+So basically we have this for loop here.
+Loop over the whole length and always set
+the i-th element of the buffer to the single-byte,
+in our case null.
+So can you guess the well known function that
+is implemented here?
+This is memset.
+It will write the single value into the buffer
+with the given length.
+So it just makes sure that the buffer is completely
+erased set to 0.
+Next we have another very obvious for-loop.
+Here we set i to 0, here we check if i is
+above or equal to 0x18, that’s 24 in decimal,
+so this loop will most likely loop over our
+new key24 array.
+And a quick peek into the loop, yep there
+it is referenced.
+But it also references our new buffer that
+we just made sure to be empty with memset
+before.
+And from the memset parameter we also know
+the size of this buffer, which is 0xf, so
+15.
+So how does the 24 large key24 array relate
+to the new 15 byte large buffer?
+Well, we are about to find out.
+If we look a bit more careful at the call
+flow, we can see that we have an outer loop
+that is using i, but there is a nested for
+loop as well.
+A super clear for-loop again, initialise to
+0, the condition is smaller than 5 and down
+here is the increment.
+So I call this inner iteration variable j.
+So i of the outer loop will walk over the
+24 entries in the array and the inner loop
+will always loop 5 times.
+So what does it do 5 times for every entry
+in key24?
+Well… we have to understand this part now,
+but assembler instructions are so limited
+that it’s not super easy to read and understand.
+At least I’m certainly not looking at this
+and can read it like I can read a well written
+python program.
+So I have to read over this multiple times
+with different approaches until “I get it”.
+So let me walk you through how I do it here.
+When I read this for the first time, I start
+by reading out loud each line and see what
+it does.
+Of course I’m narrating now this video,
+but I would actually whisper this or just
+say it in my head.
+So let’s go.
+We move a 1 into eax.
+Then we load the outer loop iterator i into
+rcx, then we load a byte from the key24 array
+with the offset of rcx, so it get’s the
+i-th character of key24.
+Then we load the inner loop iterator j.
+We move j into esi, then move it back into
+ecx.
+No sure yet why it does that, but it means
+esi AND ecx contain now the iterator j.
+Then we shift left eax, which is 1 by cl,
+which is the inner loop j.
+So for each loop iteration we shift the 1
+either by 0, by 1, by 2, by 3 or by 4.
+And then we do a logical AND with the current
+key24 value.
+The result is then compared to 0.
+What it does here is basically check each
+bit of the key24 value.
+For example in the third iteration, eax with
+the 1 would be bit shifted by 2.
+So this byte in raw bits is now 0000 0100.
+The one got shifted by 2.
+And then when we do a logical AND with the
+key24 value, the result is only 1 where both
+were one.
+So for example the key24 value 3 wuld be 0000
+0011 in binary, thus the result would cancel
+out all bits and it is 0.
+But if it was a 12, or in hex 0xC, then its
+0000 1100, which means the 3rd bit is now
+1 in both.
+The result will be non zero, in fact it will
+be 4.
+So now we know that the outer loop loops over
+each entry in the key24 array and then for
+each entry we go through the 5 possible bits.
+As you know our alphabet has only 32 symbols,
+and the key24 array will only contain the
+index into that alphabet, so we only can have
+numbers from 0 to 31, and 31 fits into 5 bits.
+That’s why we only go over 5 bits in this
+inner loop.
+Anyway.
+So this if checks a bit and see if it’s
+set or not.
+If it’s not set we just skip this part and
+go to the next bit.
+But if the bit was set, then it goes into
+this part.
+eax is loaded again with a 1 and then i is
+multiplied by 5 and the result stored in rcx.
+And then j is added to it.
+So (i*5 + j).
+And then a logical AND is performed with 0x7.
+7 in bits is 0000 0111, so it basically erases
+all the higher bits and just keeps the lower
+3.
+The result is then in rcx and also copied
+into edx.
+THEN eax, the 1 is shifted by this result.
+Because we just did the logical and with 0x7,
+the result can never be larger than 7.
+So we basically set one bit in a byte.
+Then we calculate again (i*5 + j), but this
+time shift it TO THE RIGHT by 3.
+This means it will kind of delete the last
+3 bits because it pushes them them out to
+the right.
+And the result is then used as an offset into
+the 15 byte buffer to load a value from it
+into edx.
+The result from earlier is then combined with
+this value, through a logical OR.
+So this means it will make sure the bits for
+this value are set from the previous result.
+And then this byte is moved back into the
+buffer.
+Done.
+That maybe sounds very weird.
+Like, how does this even make sense.
+But it will make total sense in a minute.
+Let’s reimplement this in python where we
+can print it in a pretty way to make it very
+clear.
+So here I’m just transcribing the assembler
+code 1-to-1.
+You don’t even have to think much to transform
+this into working python code.
+But of course it’s not that pretty.
+But it works.
+Let’s try it.
+Oh… somehow this doesn’t look quite right.
+Why is it 0 at the end?
+Shouldn’t the buffer be filled completly?
+AHHHH the outer loop is only looping for 15.
+I mixed it up.
+Of course the outer loop has to loop over
+all 24 characters of the key input.
+Now the output looks better.
+Okay…
+This works, but let’s clean up the code
+and make it more readable.
+Now that we write python we have a bit more
+freedom than with assembler instructions.
+For example the index for si we could combine
+that and call it buf_index.
+We also don;t have to load, modify and write
+back the value, we can just write it like
+that.
+And we can also condense the ax calculation
+with the shift.
+For example use 1 directly instead of via
+the register.
+This looks much better already, so let’s
+continue doing that.
+When we addressed everything we can run it
+again to verify that it produces the same
+output.
+Okay looks like we didn’t make a mistake.
+So now you would say, this still doesn’t
+look better.
+This is still crazy code.
+Weird caclulations, logical ands and ors.
+Bit shifts.
+That’s not easier.
+Well, sure.
+If you haven’t seen this kind of code a
+lot then it looks complicated.
+But this is very typical code when you work
+on the bit level.
+And we can use python now to visualize a bit
+more the steps that it’s doing.
+Then it becomes very intuitive.
+So I have added here a bit of debug output.
+We print the current key24 index and the key
+input value of it in decimal, hex and binary.
+And then inside the smaller loop we print
+the logical AND operation.
+So first the key value as binary, then the
+shifted by j 1 and then the result.
+Let’s check it out.
+So you see here, the first entry in our key
+was just 0, which is a bit boring but look
+at the shifted 1.
+With each loop iteration it just has the 1
+in a different place.
+It just moves the 1.
+Let’s go to the A, so 10.
+Here our key input has two bits set.
+1010.
+So now we move again through every bit and
+perform a logical AND.
+The first one is 0 and 1 is 0, 1 and 0 is
+0, 0 and 0 is 0 and so forth.
+But in the second iteration the bit is in
+the second position and now we have two bits
+set, so the result also has a 1 here.
+So this time it would enter the if case.
+So we can already understand what this means.
+We are looping over each bit of the key input
+array.
+And perform a certain action if a bit is set,
+and do nothing if it was 0.
+Okay…
+So the real magic happens when a bit is set
+and we enter this if case.
+I remove part of the output again and print
+instead the buf_index that indicates which
+entry in the 15byte array is modified if the
+input key had the bit set.
+We ignore that for now, and just want to see
+how the buf_index is iterating over the 15
+byte buffer while the outer loop loops over
+the 24 long key.
+Look at this for a second.
+If you ignore the key24 iteration you see
+that the buf always increments after 8 steps.
+Let me make a small modification to our code.
+The shift right by 3 is equivalent to division
+by 8.
+And obviously keeping it an integer and ignore
+the fractions.
+Now let’s add the bit_shift to the output
+as well.
+We print the binary representation of the
+bitshift, and the value of how much it was
+shifted.
+We run it.
+And see that beautiful line pattern?
+Eh, I remove the key24 output for a second.
+Now look.
+We are looping over all bits of the 15 bytes
+buffer.
+Now this logical OR here will set bits.
+Right?
+For example if we have the value 0000 and
+we do OR with 0010, then the result will be
+0010.
+And when we then OR again 1000, the result
+will be 1010.
+So OR can be used to set bits.
+And this loops over all bits in the buffer
+array, right?
+So it would set all bits, if it weren’t
+for the if-case before.
+And this if case depends on bits set in key24.
+While working on a nicer output I realized,
+“wait, I said we do this if when the bit
+is set, but I wrote here equal to 0.
+Oooops!”.
+That has to be not equal to 0.
+If you paid attention this much that you saw
+this error earlier, good job, you are crazy.
+Anyway, now look at this correct output.
+The first key input was all 0, so no bit is
+set.
+But then the second key input has one bit
+set.
+Which means we enter the IF case and set the
+6th bit in the first buffer byte.
+So you see we iterate over all bits in the
+buffer, but only set it when the key value
+bit was also set.
+You can see that the key value bits exactly
+match when we set the bit in the buffer.
+Loooong story short.
+This is a custom encoding.
+This is like base64.
+But not with 64 symbols but with only 32.
+So it’s like base32.
+But not like the real base32 because it assembles
+the bits slightly differently but basically
+this is how encoding works.
+The input key we give, the array has only
+values from 0 to 31.
+So it maps this 24 large array with values
+between 0-31 into tightly packed 15 byte buffer.
+So we are basically doing here a custom base32
+decode.
+Our input key is 24 characters long and is
+then decoded into 15 raw bytes.
+And those 15 raw bytes will be the new buffer
+we will work with.
+Oh… one last thing I just remembered.
+Here, the logical AND with 7, in binary 111,
+is actually equivalent to a modulo 8.
+So maybe that makes it a bit easier for you
+to understand.
+The the divide by 8 covers the large increments
+to the next byte, and the modulo picks up
+the 8 remainders in each iteration to get
+to each bit in that byte.
+Awesome.
+So this is a simple step that we can reverse.
+We just have to implement the base32 encode
+to reverse this.
+So we still haven’t seen where this key
+verification get’s actually difficult but
+let’s see.
+We are moving to this crazy looking block,
+next time.

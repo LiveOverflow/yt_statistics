@@ -1,0 +1,198 @@
+The fact that we were able to get super fast
+walking speed and were able to fly, is an
+indication that the server doesn’t really
+check the position sent by the client. SO
+I think we should try to teleport!
+So how can we get teleporting to work? When
+you look at the methods of the player class,
+or to be more specific the Actor class which
+the player inherits from, then you can see
+a SetPosition method. It takes a 3 dimensional
+vector as parameter, and vector3 has x, y
+and z values. That looks like a really good
+candidate to try. But… how to make teleporting
+usable and fun in game?
+So my first plan was to implement a small
+command and control server. I wanted to use
+the tick function, which is called multiple
+times a second, to check if a command arrived.
+And then I could write a neat control panel
+to teleport around wherever I want. But…
+there is a much cooler idea.
+So as you know, I try to solve these challenges
+on my own, which means I haven’t looked
+up any writeups or solutions from other people.
+But, of course, because these writeups exist,
+you sometimes get accidentally spoiled. And
+I got a glimpse at one of them when looking
+into some issues I was having. I try to be
+careful not to spoil any solutions, and I
+didn’t in this case. It’s just a really
+neat idea I’m stealing now from somebody
+else. Unfortunately I can’t properly credit
+where I got it from now, because I don’t
+remember, and I’m scared to look it up again,
+not that I spoil anything serious.
+The awesome idea was using chat messages.
+So the player class has a Chat method which
+takes a string as parameter. So when we overwrite
+this method, and add a printf that simply
+prints the string passed as parameter, we
+can see anything we type into the chat.
+And now we can use it to handle commands.
+How about a teleport command?
+To do that we do a strncmp on the incoming
+message to check if it starts with “tp”.
+Next we want to read in some coordinates,
+which we can do with sscanf. So we create
+a new 3d vector, and then use sscanf, to scan
+the input chat message for 3 float values
+and assign them to the vector’s x y and
+z attribute.
+Now we simply have to set the position of
+the player. But you know what’s cool? Because
+we are inside the player class, we can now
+use this, which is the instance of the player
+object where this method is called on. So
+we can simply do this->SetPosition to the
+new position.
+So let’s try this out. We compile it again
+as a shared library. Then LD_PRELOAD it into
+the game process. Login. And here we go. “tp
+0 0 0”. Holy crap it worked! We teleported
+to 0 0 0. And we are somewhere underground!
+Mhhm… these blocks here look like corridors.
+I think this is the blocky dungeon challenge.
+Remember the crazy big room with all the logical
+gates that have to be set correctly to open
+this door, to reach the chest? Maybe we can
+just teleport into it!
+Let’s add another convenient command to
+our chat control. “tpz” to only teleport
+on the vertical z axis. Essentially we do
+the same, we check that the message starts
+with the “tpz” command, take a 3d vector,
+but this time we can get the current player
+position, because we only want to change the
+z coordinate, and then use sscanf to only
+scan for one float value that is assigned
+to z.
+So let’s teleport back to 0 0 0. And then
+walk to where the chest could be. It should
+be at the end of the big room, so maybe here.
+Then let’s try. Tpz 1000. Ah not high enough.
+Tpz 2000? Tpz 3000? Ah. not quite there, but
+we made it into the big room. So let’s just
+walk to the window. Teleport back under the
+map. Walk a small step forward, and teleport
+back up. Boom there we go! But meh… we can’t
+open the chest. Would have been too easy for
+400 points. But it was worth a try, right?
+Maybe let’s checkout that bear quest again.
+During the let’s play we learned that when
+we try to open the chest, a 5 minute timer
+starts and we get swarmed by bears that attack
+us. But now we can teleport and fly! So let’s
+try that again. Let’s trigger the chest
+and teleport onto this conveniently placed
+tree!. So now we are out of reach for the
+bears. Look at the hordes of bears that can’t
+do anything. Now we just have to wait! ………..
+Oh some big bears are joining, but they can’t
+climb trees…. WTF? Achievement, the right
+to arm bears and we got killed by a bear with
+an AK47? What the heck?
+Are the bears supposed to have assault rifles?
+Well that didn’t work out… The bullets
+can reach us in the tree. And first I didn’t
+know what to do. But then I remembered that
+we could also port under the map. Can we trigger
+the chest and hide from the bullets?
+Let’s try that. Activate. Teleport down.
+And we are falling… ah darn. We fell too
+far and the timer was deactivated. Hmhmh…
+but if we could somehow hover right under
+the surface, we could still not be seen and
+stay in the circle!
+So let’s program that. I create a new command,
+exclamation mark, which I use to trigger a
+position freeze. For that I define two global
+variables, a boolean freeze and a freeze position.
+So if we are not frozen, we set a frozen position
+to the current one and set the frozen flag.
+But if we were already frozen, we simply set
+frozen back to false.
+Then we can use the tick function that is
+called multiple times a second to check for
+the frozen variable, and if it’s turned
+on, we set the player position to the frozen
+position. Pretty simple, but hopefully effective.
+Let’s try it… We jump into the air, and
+then trigger the freeze.
+Oh damn, that’s jerking around… mmhmh…
+how could we make that smoother.
+Let’s look over the methods again.
+Ah… maybe it’s the velocity that pulls
+us down. So how about we also set the velocity
+to 0 when we freeze. That should resolve that.
+Oh, and so that we can teleport while being
+frozen, we have to update the freeze position
+upon a teleport as well.
+Now let’s go back to the bears and try it.
+We activate the chest. Quickly freeze. And
+teleport right below the surface. Awesome…
+now we are just chillin here until the time
+runs out.
+Oh man? We somehow fell out of the circle
+again? Why?
+I was really confused at first, but when I
+looked at my hovering character from another
+perspective, I understood why. The server
+obviously still thinks I’m falling. It will
+reset constantly to our hover position, but
+sometimes I will just have bad luck and the
+server dropped me too low before the new update
+came. We can also see that when we checkout
+the velocity before we reset it to 0. It will
+always have the negative value for the gravity
+that is pulling us down. And sometimes that
+is already too far. So what if we set a positive
+velocity in our freeze section. Then whatever
+the server will apply to it, it won’t pull
+us down too far.
+While it seems like a good idea, it also didn’t
+do the trick. Though I found a way to make
+it work, but it’s not very elegant... I
+noticed that when I keep jumping constantly,
+then the character hovers pretty perfectly.
+So I was trying to invoke the jump programmatically,
+which I thought is done via the SetJumpState
+command, which triggers a server update, but
+apparently it’s not enough. Also SetRemotePositionAndRotation
+didn’t do it.
+So if anybody has a good easy idea, that doesn’t
+involve a space pressing macro, let me know!
+But I really want this flag now, so I suck
+it up and go to the chest again, activate
+it, teleport under the chest, and then get
+carpal tunnel syndrome. Stupid, but it works!
+We are not falling out of the circle and so
+now we just have to wait. …..
+There we go! Quest complete. We made it! Now
+we just have to get to the chest. Let’s
+try to drop down and spam the E key to pickup
+the content of the chest. Holy shit. What
+just happened. Probably all these objects
+pushing into that tight space just launched
+me off. Oh and it launched me right to the
+island with the cows. There you have a new
+speedrun strategy! Let’s logout to make
+sure all bears are despawned, go to the chest
+again, and then we finally get our flag!
+Flag of the bear. They couldn’t bear the
+sight of you.
+And we got a new weapon. The Remote Exploit.
+A 1337 Sniper Rifle. Reach out and exploit
+your enemy's vulnerability to large caliber
+bullets.
+Awesome!

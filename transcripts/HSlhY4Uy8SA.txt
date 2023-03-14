@@ -1,0 +1,328 @@
+Let’s move on to exploit-exercises stack
+level 5.
+You should have watched the previous videos
+to understand how we got here.
+The challenge description says
+Stack5 is a standard buffer overflow, this
+time introducing shellcode.
+And the hints are:
+that, it might be easier to use someone elses
+shellcode.
+That is also what we will do.
+And
+If debugging the shellcode, use the “int3”
+instruction with the opcode hex CC, to stop
+the program executing and return to the debugger.
+And that is very helpful.
+Ok, let’s have a look at this code.
+It is surprisingly small.
+There is just one function call to gets(),
+which we know allows us to overwrite data
+on the stack.
+So how do we get from no functionality of
+the program, to a root shell?
+So put on your wizard's hat, because we will
+do some magic.
+Let’s open this program in gdb, and let’s
+just throw a long string against it.
+To do that let’s already prepare our exploit
+script.
+So first we want to find the offset that allows
+us to control the instruction pointer.
+I’d like to use a simple pattern like the
+alphabet.
+So I create this exploit variable and assign
+the long string to it, and then print that.
+Now redirect the output of this script into
+a file, which we then can use as input for
+gdb.
+Before we execute the program, let’s create
+a breakpoint at the return of main.
+And let’s define a hook, like we have done
+in a previous video.
+Define hook stop, and we want to display the
+current instruction that will be executed
+next, so examine one instruction at the location
+of eip.
+And then examine 8 words as hex from the stack.
+And end.
+Then execute it, and we hit the breakpoint
+at the return.
+The next line shows us how the stack looks
+like right now.
+And when we execute the ret, we will jump
+to the address that was on the stack before.
+So no execute it again with the alphabet.
+We are at the return again, and we can see
+that we have overwritten stuff on the stack.
+So now we try to return to address hex 54545454.
+Which is obviously invalid, so we get a Segmentation
+Fault.
+And with examine as string, we can see that
+we have overwritten the return pointer with
+T’s.
+So let’s update our exploit script.
+This will be our padding.
+And we create the variable eip, which we can
+use to control the instruction pointer and
+jump anywhere we want.
+And I use struct to create a binary string
+from the address again.
+So struct.pack.
+But where do we want to jump to?
+We don’t have any win() function like in
+previous levels.
+Do you have any idea where we could jump to?
+I think I will give you a second to think
+about this.
+Right, we can just jump to the stack where
+we control data.
+So obviously we could place some assembler
+code there.
+Now let’s find a good address.
+We could just jump right after the instruction
+pointer we control.
+To do that just run again, execute the ret
+and have a look at the stack pointer.
+So that is the address we want to jump to.
+And now we have to append code that we want
+to execute after the return pointer, so why
+not use the opcode CC, the int3, they were
+suggesting in the challenge description.
+Let’s also quickly have a look at the intel
+instruction reference.
+Let’s search for “Int 3”.
+Ok mmhh… call itnerrupt procedure.
+what else do we find.
+In this table about general exceptions it
+calls this instruction breakpoint?
+Huuu, that’s interesting.
+Ok and here is the description of it.
+Interrupt number 3, traps to debugger.
+And down here it reads:
+The INT 3 instruction is a special one byte
+opcode (CC) that is intended for calling the
+debug exception handler.
+(This one byte form is valuable because it
+can be used to replace the first byte of any
+instruction with a breakpoint, including other
+one byte instructions, without over-writing
+other code).
+wooooh.
+What does that mean?
+Well, how do you think gdb works?
+Or any other debugger for that matter?
+How can you just stop the CPU from executing
+something.
+Or just step one instruction?
+Actually a debugger can just use the INT 3
+instruction.
+Let’s make an example.
+We just created a breakpoint at this ret.
+What we actually did was, we replaced this
+return instruction in memory with int 3.
+And when the CPU reached this instruction,
+an exception was raised.
+Or in hardware terms an interrupt got triggered,
+which stopped the CPU from continuing excecuting
+this and called an interrupt handler (similar
+to how a syscall caused an interrupt and execution
+continued somewhere else).
+And we can now decide how we want to handle
+this exception.
+And if we are a debugger we would now replace
+this INT 3 instruction again with the original
+value, the return instruction.
+That can also be used as an anti reversing
+technique.
+Because a regular application will not use
+the CC instruction.
+So a malware might constantly scan itself
+for the CC opcode, and if it finds it, it
+knows that somebody attached a debugger and
+tried to set a breakpoint.
+And now we will use the CC in our payload.
+So let’s append a couple of CCs after the
+overwritten return pointer.
+Don’t forget to write the output of the
+script into the exploit file.
+And then test this in gdb.
+Ok run again.
+We can see that we stopped at the ret and
+we see the address where we would return to.
+And when we continue now, we pop the instruction
+pointer value from the stack, thus continue
+excecuting on the stack, where we have our
+INT 3 instrucitons, and as you can see, gdb
+stopped because it received a signal SIGTRAP,
+a trace/breakpoint trap.
+Cool.
+This way we know that we have code execution,
+because we successfully injected an assembler
+instruction.
+Now does that work without gdb too?
+Let’s try it…
+But we get an illegal instruction?
+That is not what we should see.
+We should get the breakpoint message.
+Let’s open it in gdb here and try it again.
+Still illegal instruction.
+Let’s set the hooks and the breakpoints
+like in the other gdb session.
+Ok run.
+mhmh…
+The addresses on the stack are not the same.
+Why are they different?
+Let’s do something crazy.
+Print the whole stack.
+I just print a thousand strings or something.
+Let’s se what we get.
+Ok first we have some gibebrish.
+Let’s go further.
+UUUh… see.
+Now we get some interesting stuff.
+Let’s do the same in the other gdb session.
+This looks like the environment variables.
+For example here us the USER environment variable
+that we have used in a previous programming
+video.
+Mh and when you look at the addresses, they
+are still diferent.
+So let’s look a bit further down.
+mh!
+down here they are the same.
+So between here and the environemnt variables
+above there mus be something different.
+And when you look closely, you can see that
+the PWD environment variable, the current
+working directory is different.
+They have a different length.
+So obviously the one execution environment
+needs more space on the stack to store this
+path.
+And thus pushing the stack further up.
+No wonder that the stack addresses are not
+the same anymore.
+So how can we cope with that?
+There are a couple of techniques that you
+can use to get a bit more control over the
+stack.
+For example by removing all environment variables
+before executing a binary.
+But there is another very easy but effective
+trick.
+here is a hint:
+nop, nop, nop, nop, nop
+Riiiight… a nop slide…
+Let’s just add a looooot of NOP instructions.
+A Nop instruction performs no operation.
+And it has the opcode hex 90.
+And instead of picking a very specific stack
+address, let’s just pick one that we hope
+hits our nops.
+So run again.
+Now we can see we have a lot of NOPs on the
+stack.
+And the address we will jump to points somewhere
+else further down.
+If we look at more of the stack, we can see
+that it points almost right in the middle
+of the nops.
+So let’s just single step forwards.
+And now we happily slide down the nop slide
+until we reach the bottom with our traps!
+Boom.
+Cool.
+And that also works now outside of gdb.
+Now instead of CC, we want to execute something
+useful.
+So let’s look for some shellcode.
+As the challenge description said, it’s
+best to reuse shellcode from other people.
+I really like the collection of shellcode
+from shellstorm.
+Shellstorm has a lot of different kind of
+shellcode, for a lot of different system.
+So we are looking for a Linux Intel 32bit
+shellcode.
+FreeBSD, Linux on ARM, 64bit, and here we
+have 32bit.
+They all have a short description and do different
+stuff.
+But we are looking for a simple execve that
+will execute a shell.
+So, why not take this one.
+If you look at the assembler code, what it
+does is basically just pushing some values
+on the stack, which are infact just a string
+that is the path /bin/sh.
+And then calls execve.
+Copy the bytes into the python exploit script
+as payload and we can throw it against the
+program.
+mhmh… nothing happens.
+Does it not work?
+Let’s add the CC at the start of the payload
+if we still hit it.
+It should work.
+Remove the CC againa and try it in gdb.
+let’s single step.
+We are sliding down the nop slide.
+All seems fine.
+And now comes the shellcode.
+And it says: “Executing new program, /bin/dash”.
+That first sounds weird, but is correct.
+/bin/sh just points to /bin/dash.
+So why the hell does it not work?
+Also on a side note.
+This gdb session is no broken.
+Because execve, replaces the current program
+with another one.
+So stack5 got replaced by /bin/dash.
+And you can see that when you try to execute
+it again.
+So you would have to load stack5 again with
+file.
+Ok.
+So what’s the issue then?
+This is one of the things I got nuts.
+When I first got stuck like this I spend houuurs
+trying to figure out what is happening.
+As much as I want to see anybody else suffer
+like me, I tell you what the problem is.
+A shell you execute, wants some input, right?
+From standard input.
+But!.
+We used a program and redirected it’s stdoutput
+into the stdinput of this program.
+And when the program was done it closed that
+pipe.
+So now the shell is executed, but doesn’t
+have any input.
+Because it’s closed.
+So it will just exit.
+And there is a neat trick to get basically
+around that.
+When you use cat without parameters, it simply
+redirect it’s stdinput to the standard output.
+See like here.
+You type something in, and it get’s reflected
+out.
+Now you can chain programs together on one
+line, for example with semicolon.
+So we can first print the output of the exploit,
+and afterwards cat is executed, so we can
+enter new input.
+And if we group that now with some brackets,
+and redirect their combined output into the
+stack level, the exploit will first run and
+execute a shell, and then cat will take over
+and we can simply relay input via cat to the
+shell.
+BAM!
+it works.
+We have an ugly shell, and we can verify our
+identity with whoami, or id.
+So now we escalated privileges to root.
+Damn. feels so good.
+It’s just beautiful.

@@ -1,0 +1,379 @@
+So in the first video I introduced SIM cards
+and how we can use SIMtrace by osmocom to
+trace the communication between the phone
+and the SIM card.
+So let’s slowly make our way up into the
+network.
+Before we look at the first phone, I quickly
+want to get everybody on track when it comes
+to the different telecommunications technology.
+So you definitely have heard the terms 2G,
+3G, UMTS, GSM, LTE, GPRS, 4G, EDGE and maybe
+more.
+The Gs stand for generations.
+2nd, 3rd and 4th generation, and basically
+they are the PR names for GSM, UMTS and LTE.
+GPRS and EDGE and loads of other terms are
+extensions that added something to those bigger
+standards.
+Phone connections are generally direct connections.
+That’s very different from the internet
+where we use single packets.
+At least historically phone networks are direct
+connections to enable realtime communication.
+LTE is actually now also packet based.
+Packet based communication has gotten so fast
+nowadays, that you can transmit basically
+realtime communication through packets.
+You know this from skype.
+So in GSM, things like GPRS and EDGE add packet
+based communication to it to the circuit switched
+style GSM network.
+While now in LTE we need an extension to have
+calls, Voice over LTE enables phone calls
+over LTE.
+The packet based internet has become so important.
+And so actually this extension Voice over
+LTE is not very widely deployed yet so typically
+for calls your modern phone will still use
+UMTS or GSM.
+It’s all a huge mess.
+GSM was first deployed in Finland in December
+1991 and as of 2014, it has become the global
+standard for mobile communications – with
+over 90% market share.
+At some point we then got UMTS and nowadays
+we have LTE.
+And as you probably know from the corner on
+your phone, you still see all of those things.
+It’s not like LTE replaced GSM today.
+So you would maybe think we ignore GSM nowadays,
+it’s old and we focus on LTE.
+But the truth is, GSM is still hugely important.
+A lot of things you might not know about use
+GSM.
+So for example a lot of point of sale terminals
+where you can pay by card have a SIM card
+inside, and that’s how it communicates with
+the credit card banking network.
+And so understanding GSM is still super beneficial,
+however it’s difficult to do that.
+I mean nobody has to setup their own phone
+network at home, right?
+But that doesn’t stop people from wanting
+to understand it.
+And so the project OSMOCOM, which stands for
+Open source mobile communications, is trying
+to do just that.
+And here is a small snippet from Harald Welt,
+LaF0rge on twitter, who is the founder of
+osmocom describing the state of the development
+in 2015 at the 32c3 conference.
+By the way they also run a conference GSM
+network during the congress.
+Let’s start with a little bit of the history
+of open source in mobile communication protocols.
+You have to remember that we started about
+16 years after the proprietary implementations.
+The GSM network that we are running here at
+the event, or that we started to run 7 years
+ago, started 16 years after GSM networks were
+run first in the public in europe.
+At public operators.
+So we are really really late.
+And if you like to compare the status of open
+source mobiel communications with open source
+operating systems, then I would say we are
+about where linux was 1994/95.
+So i would say capable but not taken seriously.
+Sort of the general status.
+So I would like to at that maybe the mobile
+operators that built the proprietary technologies
+might not take you seriously, but I think
+we as the wider IT community really appreciates
+the work you and all the other contributors
+have done.
+As you know, I make these videos because Vadim
+Yanitskiy who is an osmocom contributor reached
+out to me.
+Maybe that’s not what you expected.
+“URGH NOT LTE!
+GSM it’s like old crap.
+What do I want with that?”.
+But that’s the reality.
+These things are so complex and require a
+huge amount of work.
+So I hope you can really appreciate the work
+that has been done here and I hope you see
+the incredible value that this still has.
+Long story short.
+What I wanted to say is.
+We look at GSM in these videos.
+Last video I promised you to tell you what
+is so special about the old motorola and nokia
+phone.
+And maybe you remember the TROOPERs badge
+that I have shown in this video.
+I also had a interview with one of the creators
+of it.
+The reason for that was that the Nokia phone
+has some really nice capabilities.
+So let’s Vadim introduce us to it.
+Some old phones from Nokia, like this one,
+do have a well researched debug interface
+_enabled_.
+Well, better to say *not disabled* after manufacturing.
+For example, this interface can be used to
+enable well known Network Monitor.
+BTW: this Nokia 1280 was released later than
+3310, and it has no Network Monitor
+Wikipedia even has an entry for that:
+Nokia network monitor or Monitor Mode was
+a hidden mode on most Nokia cell phones used
+to measure network parameters.
+The mode can only be activated over a special
+FBus, or MBUS cable.
+If you checkout the troopers video you will
+hear a bit about the fbus.
+But yeah, so here the network monitor is running.
+So what can we see here?
+Basically, there are many test displays where
+one can observe some information or even modify
+some parameters.
+For example, here we can see which channel
+this phone is using at the moment.
+On the top right corner we can see the ARFCN,
+which stands for Absolute Radio Frequency
+Number.
+Let’s look up the GSM ARFCN number.
+So we have 2G and the number was once 681
+and once 683, not that important.
+And the frequency is 1743 Mhz up and 1839
+Mhz downlink.
+Just a quick refresher.
+GSM is just like any other radio wave.
+It has a certain wavelength.
+It’s all on the electromagnetic spectrum.
+Visible light is just a small part of it.
+And so 1700Mhz is I think a bit under 20cm
+wavelength, so it would be somewhere here
+on the spectrum.
+From a nokia network monitor manual we can
+also see that if you are transmitting, then
+you would have here the transmit strength.
+But phones are not always transmitting.
+Most of the time they are just listening.
+On the top middle part *of this screen* one
+can see how strong is the signal from current
+base station.
+At the moment this phone is listening to a
+broadcast channel called CCCH, or Common Control
+Channel.
+And this is exactly where the phone expects
+to 'see' Paging Requests.
+Paring Requests are used by the betwork in
+order to notify subscribers about incoming
+calls or SMS messages.
+As soon as Paging Request is received, the
+phone needs to establish a dedicated channel
+with the network.
+So we are currently in CCCH.
+That’s a control channel.
+If we were in a call, we would switch to a
+traffic channel.
+There are two types of Traffic channels:
+- TCH Full Rate
+... and ...
+- TCH Half Rate
+The Full Rate channel provides higher bit
+rate and
+better quality of speech, while the Half Rate
+channel
+allows to increase the network capacity, since
+two
+subscribers can use a single time-slot at
+the same time.
+So as vadim said in the control channel we
+are waiting for for example so called paging
+requests from the network.
+If there is for example a call or sms incoming,
+the base station would send out a paging request,
+asking if this particular phone is in this
+area.
+It’s a broadcast.
+Why that particular basestation thinks the
+phone should be in this area we will talk
+about some other time.
+I mean it’s logical that not all basestations
+in the WHOLE WORLD can send out a paging request
+asking where the phone is, right?
+So in this case a basestation just yells out,
+“hey is this phone here nearby?”.
+And our phones are constantly listening for
+these paging request, and when our phone realizes,
+“OH THAT’S ME” it will respond with
+a channel request.
+And that is done through RACH, the random
+access channel.
+So this is a channel any phone is allowed
+to use and happens on the same frequency that
+we looked up with the ARFCN number.
+And the basestation is listening for those,
+and so if two phones at the same time would
+ask for a dedicated channel at the same time,
+they would collide, like two people talking
+over each other, and they would not get their
+own channel.
+but let’s say it succeeded, the basestation
+received your channel request, now the basestation
+looks at all the currently used channels and
+will assign you a time slot..
+So this is where TDMA comes into play.
+Time-division multiple access.
+You somehow need to divide up the limited
+radio space you have.
+You need to make sure multiple phones can
+talk to a basestation and the other way around.
+So.
+Time division multiple access.
+Let’s deconstruct this name.
+We need multiple phones to access the base
+station.
+To respond.
+And we do that by dividing time.
+Every phone gets a timeslot.
+Vadim suggested I explain that with a cross
+road.
+Imagine you have a crossroad with traffic
+lights and the lights turn red and green in
+a nice pattern.
+If all directions, would be allowed to drive
+at the same time, that would be a problem.
+So the traffic light always assigns a short
+time slot where one phone is allowed to drive
+traffic.
+Pun intended.
+So a traffic light is a good example for a
+time divison multiple access system.
+If we keep using this traffic example we can
+also use it to refer back to the ARFCN numbers
+and the frequencies.
+Earlier we learned that there are two different
+frequencies, up and down.
+So that’s like a road with two lanes.
+Each frequency can be used to transmit data.
+It’s all electromagnetic waves.
+And we can build antennas that can be tuned
+to only recognize and send a particular frequency.
+It’s basically the same way how our eyes
+are tuned to only see a band, so a small slice
+of a certain visible light color frequency.
+Anyway because we have two frequencies we
+can send and receive at the same time.
+If there were only one frequency only the
+basestation or only the phone could send something
+and then you would have to figure out how
+to organize that.
+The same way like a narrow street with two
+cars on it.
+But luckily we have two frequency, one up
+and down.
+So we only need to organize multiple phones,
+whcih we solve with time division like on
+the cross road.
+And instead of a traffic light telling us
+when we can send, we use the random access
+channel, yell at the basestation, CAN YOU
+TELL ME WHEN I CAN SEND?
+And the basestation sees that timeslot 3 is
+free, and tells you to only send in timeslot
+3.
+By the way, here with RACH messages you also
+have the first security issue with GSM.
+Here is a denial of service.
+Of course you could just jam the radio frequencies
+so the phone or basestation couldn’t communicate
+anymore, but you can also flood the basestation
+with RACH messages.
+You request a channel, then the basestation
+will allocate a timeslot for you and there
+are limited timeslots.
+You can’t have infinitely many phones sending
+in the limited radio space.
+Of course the basestation will free up channels
+when they are not used anymore, but if you
+keep requesting new ones, other phones will
+probably not be able to get a connection going.
+Let's reboot this phone in order to see what
+would happen.
+As you can see, it remembers the last ARFCN
+is was tuned to.
+The phone always looks for a channel with
+the best signal quality.
+So, now it's on SDCCH (Stand alone Dedicated
+Control Channel).
+This channel is usually used to perform Location
+Updates.
+Location Update is something like "Hey, I
+am here, at this particular part of the planet
+;)"
+And this answers the question how the network
+knows which basestation to use for the braodcast
+when you get a call.
+When you turn your phone on, or move around,
+your phone will send a location update request
+to a nearby basestation, which will update
+that information on a central server of the
+operator, and when somebody wants to call
+you, the operator can look up your last location,
+or the last basetstaion, and then use that
+particular basestation, or basestations in
+the area to send a paging request out.
+And hopefully your device responds.
+The network monitor has a few different screens
+with information.
+And one interesting one that is kinda related
+to your location are the neighbor basestations.
+The first one here is the current serving
+cell, the one you communicate with and the
+other two are neighbors.
+And they obviously use a different ARFCN number,
+because they need to communicate on a different
+frequency pair, otherwise the two basestations
+would get into the way.
+Makes sense, right?
+This is also super important to know for the
+phone, because imagine when you are in a call
+and walk.
+Or worse drive fast in a car.
+Your phone CONSTANTLY has to switch basestations,
+always trying to talk to the one, with the
+highest signal strength, which is usually
+the closest one.
+Imagine in the middle of a call two basestations
+and your phone have to perform a crazy handover
+so you can keep talking.
+It’s crazy.
+It amazes me that it all works so well.
+The network monitor is already pretty cool
+and we can learn quite some stuff about GSM
+with it.
+But it can actually do a bit more when hooked
+via the fbus to a computer.
+It's also possible to forward L2 messages
+via F-bus interface
+and then inspect them, for example, using
+Wireshark.
+The
+phone would forward both Uplink and Downlink
+packets,
+as well as the SIM card related messages.
+So basically this debug interface allows you
+to see the SIM messages where we last time
+needed the external tool simtrace.
+And it can also show us GSM messages.
+But anyway, this solution is not as powerful
+as Calypso
+based phones, like this one.
+So next time, let’s see what’s up with
+the callypse chip in motorola.

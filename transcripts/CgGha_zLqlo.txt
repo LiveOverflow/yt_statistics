@@ -1,0 +1,342 @@
+so today I want to give you a quick
+introduction how you deal with stripped
+and statically linked binaries because
+this is a little bit annoying to explore
+but let's do this by first comparing a
+regularly compiled binary to a strip
+binary and then the strip binary to also
+additionally aesthetically linked
+[Music]
+the example binaries that we will be
+using were compiled from the source code
+of the format for level from protostar
+there's an exploitation challenge but I
+mainly wanted to use it because it was
+just right there it has a main then it
+calls phone and involve there are then
+three functions that belong to Lib C
+there's F gets printf and exit so it's
+just a nice test if you want to know how
+to exploit this challenge try it
+yourself or you can check out my binary
+exploitation playlist specifically
+episode hex 1-3 this is where I am
+solving the format for challenge just
+FYI in fact when I made this challenge
+it was called exploit exercise calm now
+it's exploit that education anyway so
+here are the three example binaries so
+the first binary is just plain GCC
+compiling that source code and format
+for stripped is just a binary compiled
+with minus s which is the flag to strip
+the binary of its symbols and obviously
+format for stripped and Static has three
+months as flag to enable stripping and
+then also an aesthetic to aesthetic
+vlink
+all the libraries so format for not
+strip dynamically linked and not
+stripped format for is dynamically
+linked but stripped in format for strip
+static is statically linked and stripped
+and of course you should notice the size
+of the binary so the dynamically linked
+binaries can use the functions contained
+in Lib C so they are dynamically linked
+from this location so they are much
+smaller but the statically linked binary
+has to include all the code from Lib C
+inside of this binary and that's why
+it's so much larger for this example I'm
+using the free reversing tool and
+disassembly and V compiler
+deidre so let's have a quick look at the
+nut script binary and then let's go here
+into the functions and we see it
+recognizes all these different Lipsy
+functions like print like printf and
+puts and it also recognized main and we
+see here also because it's not stripped
+it knows the name of the main function
+which is main and it knows the name of
+the other function for an in volatile
+printf and exit now let's compare this
+to the strip binary analyze that as well
+okay so the first thing that is
+noticeable is that there are still all
+these functions recognized exit F gets
+puts printf they are still there but you
+also get these unrecognized functions
+now you also notice you can't find main
+but I made another video about how to
+find the main in a stripped binary so
+let's quickly do this we go to the entry
+function and we know that this is here
+the address of main so let's go there
+and again this is the main function
+you could also rename this with pressing
+L we know this is the von function but
+because it's stripped of all the symbols
+the binary doesn't contain the
+information that this function used to
+be named bone so that's why it's a
+unrecognized name just made of the
+address of where that function is but
+when you look into that function you
+will see that it still recognizes F gets
+printf and exit the reason for that is
+because it's dynamically linked and it
+has to resolve the symbols in the
+library that it's loading F gets printf
+and exit are implemented in Lib C so
+when this program wants to call library
+function it has to resolve these
+functions that's why there can be made
+the connection of what's the actual name
+of these functions so even though it's
+stripped you don't know the internal
+name in this program for this function
+you still get like the API functions the
+Lipsy functions and you can still like
+kind of guess what it's doing so it's
+gets a string and does print an exit
+okay just call it get print exit anyway
+now let's move to the statically linked
+binary let's analyze that as well okay
+so this takes a bit longer you see it's
+still running and doing stuff here in
+the bottom right you can see that still
+doing stuff it's a statically linked
+binary which is pretty large it contains
+all the Lipsy functions so of course
+this will take a moment
+all right it's finally done so let's
+check out the functions and now all the
+functions are unknown it only knows the
+entry point but we know how to recognize
+main so we can go to the entry point and
+we know that this first function should
+be Lipsy start main and then the first
+parameter should be the address of the
+main function this looks exactly the
+same like the stripped binary there is
+no symbol main and there's no symbol
+Vaughn so those names are not given but
+let's go into here and now here it's
+getting a little bit scary because here
+these functions are unknown and when you
+are now reverse engineering this and
+exploring this for the first time you
+might wonder Oh what's maybe in this
+function and you go in here and then it
+starts to look like completely insane
+what the heck is going on here also I
+notice here a little bit of a bug or
+kind of an issue that is quite
+interesting and you should be aware of
+that stuff like this can happen with
+reverse engineering you should maybe not
+fully trust a D compilation or analysis
+like this because notice how here are
+four functions but when we compare this
+to the other binary we only have three
+functions so where's the fourth function
+coming from when we click on the
+functions it will jump in the Assembly
+to where this function is and you see
+here this third function ends here and
+then yes this like a new function starts
+here so this other call is actually in
+this function here and if you pay close
+attention you will notice that this is
+the same address as the Vaughn function
+so the Volm function is calling itself
+and if you again paid a bit more
+attention you will notice that this is
+actually the start of main this this was
+the main function now functions
+typically end when there's a return and
+there's a von funck ssin doesn't have a
+return here it's missing there's just a
+call and then immediately afterwards the
+main function starts so why is there no
+return let's quickly look again at the
+strip binary when you go here to the
+same spot you will find that there is an
+exit an exit always means that the
+program ends here and so I guess Kedron
+knows what exit means so it added here a
+flag in the flow analysis to overwrite
+the standard flow I guess and determine
+that this is the return of this call
+it's a call terminator that's why when
+they show the decomp
+here the function stops here instead of
+running into the next code afterwards
+and because this is a statically linked
+binary that information is missing that
+this is an exit so it thinks that this
+function could maybe return and at some
+point continue executing into main which
+obviously makes no sense so this is a
+bit tricky here and definitely looks a
+bit weird but how do you deal with this
+now so I'm not a professional reverse
+engineer so I don't know exactly what
+the best method is but I see kind of
+like two ways how I would deal with that
+first I see a dynamic approach a lot of
+the Lipsy functions are wrappers around
+syscalls
+a printf will most likely end up in a
+right syscall file openness just as a
+sous call open the exit function will
+result in Issa's call exit so you could
+for example use gdb and set a breakpoint
+here in this function and then always
+execute a single call here and then you
+trace and record which sis calls are
+being called during this execution and
+from that alone you can kind of get an
+idea what this function does it will be
+extremely easy to recognize for example
+the exit here printf and F gets might be
+a little bit more difficult but you can
+also look here at the number of
+parameters now D compilers like this
+might make mistakes with the number of
+arguments here used but it's a very good
+indication and you notice for example
+that it takes here a size and that here
+is a buffer you can see it's used by
+both these functions so the parameters
+are also another puzzle piece that can
+help you to identify what this function
+might be doing now this method one is
+more like a general reverse engineering
+tip because this doesn't only apply to
+aesthetically link libraries like this
+but it generally applies to any reverse
+engineering of any function looking edit
+it in this way are the puzzle pieces
+that you can use to come up with a name
+for the function and idea of what this
+function might be doing now a method
+number two for dealing with something
+like this is using function signatures I
+guess the most widespread or known
+function signature is called flirt Ida
+flirt signatures to assist Ida users we
+attempted to create an algorithm to
+recognize the standard library functions
+so it has this feature to handle these
+flirt signature
+but it's such a widespread thing that
+you can find plug-ins for Diedre as well
+so in github I found this repository
+from NW monster called apply cig and
+here is Python code that can apply
+either flirt signatures so you can you
+can simply download this Python script
+and then in deidre you go to the script
+manager in a script manager you check
+the script directories you can add
+either new directory where there's
+Python script is or you can copy it into
+any of the locations listed here
+okay so let's copy this into the get raw
+scripts folder and then let's refresh it
+list and here just showed up you can
+also search for it down here so let's
+execute apply cig now it's asking for a
+signature file so where do you get these
+signature files from there are a lot of
+people creating signatures and I found
+here this github repository by push EBP
+a signature database so let's try to
+find something fitting I guess we have
+one two lips ee 6 again here's a little
+bit of guessing there are a lot of
+different signatures for all the
+different versions that are available so
+I'm actually actually don't know which
+open to version I have here exactly
+maybe something like that it doesn't
+really matter a lot of them are also
+similar a lot of them different so it
+always berries so I guess maybe let's
+try one of the newer ones here let's
+download this one I don't know so let's
+download that signature and then we can
+select it apply sick now it takes a
+moment it's doing a lot of stuff and
+look at that it recognized this as
+printf now it didn't recognize the F
+gets and it didn't recognize the exit
+most likely the reason for this is that
+the lips e are used for statically
+linking here is not the same for what is
+included in those signatures and so with
+a little bit of experience and educated
+guesses or just trying out all of them
+you might be able to find one that
+matches more but even though I didn't
+directly recognize here to be exit when
+we go into this function we do see that
+it then inside of here calls exit so it
+has the
+function trampolina subroutine here
+whatever so we know that this is simply
+exit and so this other function here
+let's go in there now this looks still
+kind of looks a bit crazy but it does
+recognize some of the internal functions
+here so here's a call - LLL unlock wake
+private and here's an IO gate line info
+so by looking at this you could now
+actually go into the Lipsy source code
+and look for functions that basically
+you see here is heading having like ifs
+and then it calls this function and then
+calls this function somewhere and then
+you might be able to fairly easily
+identify what this function does anyway
+you get the point you can use flirt
+signatures or any other kind of they're
+different concepts of how you can
+recognize functions in binary it's not a
+trivial process there are different
+strategies how this can be done and
+fluid signatures are one way how to do
+this and fluid signatures have the
+advantage that it's very widespread and
+you typically find a lot of scripts and
+tools that already use it and handle it
+for you alright I hope this was helpful
+to you and gives you an idea how to get
+started with statically linked binaries
+but obviously signatures don't only
+apply to statically linked libraries any
+program could include functions for
+various other things where maybe
+signatures exist a very typical
+applications for signatures could also
+be cryptographic functions because maybe
+a program has an md5 routine included
+and so maybe you can find signatures for
+cryptographic functions and applying
+that you would then recognize that stuff
+is just md5 also signatures could also
+give false positives so be careful don't
+just like collect all the signature
+files you can find and then just apply
+them you might get rubbish results but
+if you are kind of careful with applying
+them and also use your brain okay verify
+does this even make sense what the
+signature found here overall it can be
+an extremely helpful tool that really
+cuts down the time that you will need
+for reverse engineering
+[Music]

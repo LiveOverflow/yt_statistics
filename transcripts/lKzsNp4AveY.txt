@@ -1,0 +1,290 @@
+Maybe you have found a “bug” in a bug 
+bounty program before, and they rejected it
+and said it’s not a vulnerability. But then 
+you noticed that they still “fixed” it. And
+now you might be mad and think, “this must have 
+been a vulnerability,because they fixed it”.
+So in this video talk about the difference 
+between Security Vulnerability and Security Risk.
+I think the line can sometimes be blurry, 
+but it’s important to understand, especially
+when you are into bug bounties. A lot of bug 
+bounty programs only pay for vulnerabilities,
+so it’s important to understand the difference. 
+But also in IT security in general, sometimes
+people say something is “insecure” but don’t 
+mean it in the “this is vulnerable” sense,
+but in the “this is risky” 
+sense. Let’s talk about it.
+A while ago I already made a video about “What is 
+a security vulnerability” where I explored a few
+different examples. And if you watched that video, 
+you know that it’s often not easy to identify if
+an observed behaviour is a vulnerability or not. 
+And I told you that I don’t have a good definition
+or checklist for it either. But I do think I know 
+intuitively when something is a vulnerability.
+In another recent video about how to secure a 
+linux server, I went over popular “best practices”
+how to prevent your server from getting hacked, 
+applied my intuition, and basically concluded
+they are all “useless”. But only useless when 
+it comes to “real” security vulnerabilities.
+Some of the best practices are maybe not useless 
+at all, but only when it comes to security risks,
+given a risky environment or context.
+So let’s start with an example from that video.
+Specifically the recommendation to 
+not allow password login for ssh.
+In the linux server video, I argued that for 
+security it doesn’t matter if you use ssh keys
+or ssh password authentication, even though 
+every article about protecting a server from
+hackers recommends that. But it’s important to 
+understand what I mean when I say “it doesn’t
+matter for securtity”. What I really mean is 
+“will you get hacked?” if you don;t do that.
+And in that case ssh keys or 
+passwords make no real difference.
+But I also acknowledged in the video that you 
+still have to follow good password policies,
+meaning you should have a long and unique 
+passwords. But having password authentication
+in general is not a vulnerability. It 
+doesn’t make you magically hackable.
+What makes you hackable is a bad password. So I 
+would argue, when you have a [guessable password],
+that is the vulnerability. THe bad 
+password is. Not the fact your ssh
+server allows password authentication.
+Which means when you do use a strong
+password with ssh password authentication, 
+then there is no vulnerability there. You
+will not be able to hack into this server.
+At least from the ssh angle. That’s why I say,
+from a security perspective it makes 
+no sense to address and change this.
+But I acknowledge that I have a very absolutist 
+opinion. For me “security” means if you get
+hacked or not. Because of a vulnerability.
+But “security” in the real world is a bit more
+fuzzy. Especially when we start to look 
+from the perspective of security risks.
+Risk analysis can get complicated 
+and is often VERY subjective.
+In my server video, I was talking about “best 
+practices” for your personal rented Linux server.
+And in that context I consider 
+the risks introduced from password
+authentication to be very very low.
+But does that apply in all contexts?
+Well, let me paint a different picture 
+and use this server in a not typical way.
+Let’s say you rent a Linux server, and 
+by default you get a root password,
+you can ssh into it. And then you follow 
+along my new sudo security research series.
+For testing you want to create a regular 
+unprivileged user. So you type useradd, you create
+a user, and give it a simple password “user”. It’s 
+just for local tests and you are root anyway, so
+what does it matter if this user password is bad. 
+But suddenly you opened up the door for a hacker.
+Now you have an exposed user with a guessable 
+password. And it’s probably just a matter of time
+that an automated scanner might find this login.
+ssh “user”, password “user”. and they are in.
+Now you can argue, damn, that’s super insecure, 
+if you had disabled password login and just used
+ssh keys, then this would have not happened. AND 
+if you also made ssh listen on a different port,
+those automated scanners might not 
+even find the guessable user password.
+And yes I agree. I’m not dumb. 
+Of course this would be the case.
+BUT! First of all this is not a typical linux 
+server usecase. But much more important,
+I would still argue, the vulnerability you 
+introduced was creating a guessable user password.
+That is the root of the issue. And 
+fixing this, by changing the password
+to a very strong one, is fixing the vulnerability.
+And in the end YOU made a mistake. You introduced
+a vulnerability in your server setup, by creating 
+that user with a bad password. You can think of it
+the same way how a programmer might make a coding 
+mistake and introduce a vulnerability in code.
+We know that the best programmers make 
+mistakes and introduce vulnerabilities.
+So do the best sysadmins, they make 
+mistakes in their server setups.
+So if mistakes can introduce 
+vulnerabilities, maybe we want
+to do certain things to mitigate those risks?
+And yes, disabling password authentication could
+mitigate the risk of mistakes like this.
+But it’s extremely important for me to
+make this difference between risks and 
+actual vulnerabilities. Oftentimes people
+mix those two and you think something is 
+“insecure”, you feel like you could get hacked,
+when in fact you could also manage that risk 
+and be aware, and never cause the actual issue.
+Understanding risks is very important. 
+Understanding risks well, requires a lot
+of knowledge of how computers work. And I 
+think my video about securing linux server
+showcased when those “best practices” are kinda 
+dumb. But of course when you understand how stuff
+really works, then you can make your very own 
+educated decision, based on your personal risk
+assessment, and decide if you disable password 
+authentication makes sense for you or not.
+Now I started this video mentioning bug bounties, 
+and then I drifted away talking about linux
+servers. sorry. So let’s do a very common bug 
+bounty example. Open redirects. And let me say
+it right away. I think Open Redirects are NOT 
+a vulnerability. But they are a security risk.
+When looking for open redirect examples I 
+found this cool blog post by cristian cornea
+“top 25 Open Redirect Bug Bounty Reports”. 
+Exactly what I needed. But what is that?
+Open Redirects paying out thousands of 
+dollars and I am saying they are not a
+vulnerability?!
+WHUAT?!
+Open Redirect ALLOWS FOR ACCOUNT 
+TAKEOVER. 8.000 dollars. But let’s see.
+An error in our OAuth2 flow [..] an 
+attacker could modify the state parameter
+to have a poisoned central.uber.com path [...].
+I don’t want to explain oauth2 flow here. But
+the actual vulnerability was the fact that 
+you could modify the state parameter, which
+resulted in a redirect to an attacker 
+controlled path on central.uber.com,
+which also includes the oauth access token. 
+And now you COMBINE IT with an open redirect
+on this domain, to forward this token to you.
+So the vulnerability here was in the oauth
+implementation specifically how the 
+state parameter was handled. And the
+open redirect issue was only an additional 
+puzzle piece to make the whole attack work.
+Next report is just a comment on 
+an rfc, not really a bug bounty.
+Then we have here 3k open redirect. BUT 
+IT’S ACTUALLY A XSS. not an open redirect.
+Next one, also an XSS.
+XSS.
+Stealing local files and javascript injection.
+XSS.
+XSS.
+As you can see, not really open 
+redirect issues. They are XSS issues.
+But as soon as we drop lower, we 
+start to get the reports that are
+purely open-redirects. And a typical payout 
+seems to be 500$. But also plenty of 0$.
+So as you can see, XSS and account takeovers 
+are pretty clear vulnerabilities, as they really
+allow you to really hack an account.
+And the root cause for open redirect
+sometimes can be used to trigger an XSS as 
+well. For example when it’s implemented with
+a window.location redirect. When you set 
+it to a javascript URI, you have a XSS.
+But there are many ways how the 
+open redirect could be implemented.
+And so many times XSS is not possible.
+So why should a bug bounty program 
+reward a pure open redirect report?
+You could argue that it’s risky. Because if 
+you have some kind of oauth flow issue, an open
+redirect could be combined, to steal the access 
+token. But first of all, the web app in question
+must even use oauth, and if it’s not vulnerable 
+right now, it’s unlikely they will change it so
+drastically that it suddenly is vulnerable.
+Server side request forgeries where the URL
+is validated to have a certain hostname, could 
+also be bypassed with an open redirect. But
+again the actual vulnerability is the SSRF 
+that allowed to connect to an untrusted host.
+And the last argument, and the weakest, but often 
+used, an open redirect could be used for phishing,
+because the URL looks trustworthy. But that is 
+so weak, because in HTML emails you can also
+fake links all the time. And in general we 
+want to train users to look at the domain
+in the browser to determine if a site is safe. 
+And the redirect will redirect to a bad domain.
+So as you can see, there is sometimes a 
+little bit of a risk having an open redirect,
+but this risk is dependent on the context, 
+dependent on the actual functionality of the app.
+So on one side you have a domain with oauth and 
+webhook functionality, maybe it’s more risky,
+and maybe could be fixed there. But then 
+you also have the complete other side,
+like a link shortener, where the open 
+redirect is by design the apps functionality.
+But either way, I hope you agree that open 
+redirect in itself is not a vulnerability.
+But it might be a security risk, because it 
+could make other bugs actually exploitable.
+So for a bug bounty program, such a report is 
+difficult to handle. On one hand they might think,
+we don’t really care about it, it’s not an actual 
+vulnerability, but then they might still put it
+into their issue tracker and eventually fix ist, 
+because often fixes for that are super short.
+And now we come into this awkward 
+place where it's not a vulnerability,
+but it also got fixed. So should the program 
+pay for it? I don’t care, I’m luckily not into
+bug bounties. But I can totally understand why 
+the payout would be 0 for just an open redirect.
+So to summarize,
+For me a vulnerability is really something that
+breaks a security boundary. It’s an access control 
+issue, where the user can do something that only
+an admin can do. Or a XSS where you can perform 
+actions on behalf of another user. Or a SQL
+injection where you can dump the database. And the 
+cool thing about vulnerabilities, most of the time
+it’s easy to proof. You can write an exploit, or 
+describe reproduction steps, that give you access
+to something you should not have access to.
+And so in contrast to that, there are also
+risky things. They are not as clear. Like open 
+redirects, ssh password authentication, compiling
+binaries without ASLR, or even writing something 
+in an insecure language in the first place.
+They do NOT result in your system 
+getting hacked (that’s why I don’t call
+them security vulnerabilities). But they 
+might increase the likelihood of mistakes
+that could lead to actual vulnerabilities.
+And of course, as security conscious people
+we want to minimize risks as well. We have 
+a vested interest in that. But at the same
+time security risks are often talked about as if 
+they are vulnerabilities, people can get really
+heated in debates about them, but in the end they 
+are just risks. And risks depend on the context
+and environment. So for one person a certain 
+risk-minimization best practice can make sense,
+for others they don’t make sense. And not 
+to mention that a certain risk mitigation,
+could introduce new risks somewhere else.
+So if you follow certain best practices,
+but others don’t, don’t preach about it, maybe you 
+just don’t understand their unique risk context.
+Anyway, I hope that you keep thinking about 
+security risks and security vulnerabilities
+in the context of IT security. And when you have 
+findings, I hope you can classify them properly.
+Try to be clear about if you think something 
+is just risky or actually breaking something.

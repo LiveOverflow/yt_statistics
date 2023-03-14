@@ -1,0 +1,227 @@
+Through fuzzing sudo with AFL, we have found 
+a crash that looks very similar to the known
+sudoedit vulnerability. But that crash is actually 
+an abort triggered by malloc, because the heap
+seems to be corrupted. So this abort is just a 
+symptom of a memory corruption that must have
+happened earlier in the program execution. And 
+now we need to find exactly when the heap overflow
+happened. We want to find the actual root cause 
+of this vulnerability. And there is an awesome
+analysis tool that everybody who works with C 
+code should know. It’s extremely helpful for
+debugging many kinds of bugs, not only security 
+bugs. But we use it because we want to learn more
+about this crash. And this tool is actually a 
+compiler feature called “address sanitizer”.
+So let’s create an asan build of sudo to 
+find the root cause of the memory corruption.
+From the fuzzing-project we can find a few tips 
+to find Bugs with Compiler Features. And it
+tells us about CFLAGS like Address Sanitizer 
+(-fsanitize=address). So let’s add this to
+the build configuration from sudo. And because we 
+are not fuzzing with afl anymore, we can just use
+regular clang, instead of afl-clang. Then let’s 
+build sudo with make and in the output you should
+see the usage of fsanitize=address 
+flag. This means it should work.
+argh crap. Build failed. Linker command failed.
+AHH but I think I forgot to set the LD flags
+for the build configuration. So let’s 
+run configure again, followed by make.
+And that seems to have worked. If we execute 
+this new sudo binary normally, we can see that
+asan is working. Because we get this report that 
+there are some memory leaks. But memory leaks are
+not important for security. It just means it 
+allocated memory that hasn’t been freed later.
+But let’s see what happens when we pipe in our 
+malicious input, and let sudo crash with asan!
+Wait…. It didn’t crash?
+See the normal output here?
+Only the unimportant memory 
+leaks again. WAIT WHAT?
+I’m going to run here into a really annoying 
+problem. This killed a lot of hours,
+and I decided to leave it in, just 
+to show you how I was troubleshooting
+the issue. Security research or 
+projects like this are never smooth,
+there are a lot of issues you run into. Often 
+times they stupid mistakes. It’s normal.
+Throwing the input at the normal 
+compiled sudo via our wrapper,
+still works. So what the heck is going on?
+There are a few things that we should consider 
+that could explain the different behaviour. First,
+recompilation: especially with massive 
+changes like the AFL instrumentation.
+Or now adding address sanitizer. This can move 
+around the code in the binary and thus create
+a slightly different environment where the 
+malicious input might just not cause a crash.
+So maybe something with the ASAN build has 
+changed the binary too much. But that’s weird,
+because ASAN builds are usually a lot more fickle. 
+It should immediately report on overflow cases,
+even if it would not lead to an abort 
+later. And because of that I’m suspicious.
+Btw we can also disable the memory leak 
+reporting, then we have a nicer output.
+So where do we go from here?
+I guess we could maybe try the
+original crash, not the minimized one. Or 
+we can increase the overwrite and the data,
+or generally modify the crash input a bit more.
+But when nothing seemed to work while playing
+around, I eventually took a step back and 
+did a sanity check. I wanted to see if the
+argument parsing still works. So I tried to 
+do sudo -l. But I got the password prompt.
+I would have expected to see this 
+output. So it seems like asan has changed
+something important? But also that doesn’t 
+make any sense. It should not affect this.
+What you see here is a typical weird technical 
+issue. Somewhere I MUST have made a mistake.
+So I try to backtrack even more. I wanted to 
+remove the sudo modifications that we have
+done to prepare the fuzzing instrumentation. 
+I want to build normal sudo, but with asan,
+where we can just specify the arguments directly 
+ourselves. In the root folder of the docker
+container there is the unmodified regular 
+sudo version, which I now build with asan.
+Alright. let’s see. Sudo -l works with 
+that version. That is a good sign.
+And now we can create a symlink to 
+0edit and then try to call 0edit
+with the malicious arguments. But now 
+it doesn’t crash either. What the heck?
+Slowly I’m going crazy. So I try more 
+sanity checks. In my desperation I
+decided to install this asan sudo version 
+as the system version, with make install.
+Now I create a symlink from that new asan sudo 
+version as 0edit. tried it. And now it worked!
+AddressSanitzier heap-buffer-overflow 
+on address blahh.
+I was so confused about this. But 
+eventually I realized the mistake. for NO
+F’IN REASON, the file ./src/sudo is not 
+the binary anymore. Previously this was
+the path to the built binary. Now it’s a shell 
+script. And the real sudo binary is in .libs.
+So the whole time I created a symlink to this 
+shell script. And then this won’t properly
+set argv[0] to the sudoedit functionality.
+Are you kidding me. How the f’ did that happen?
+If we symlink the actual binary 
+in .libs, and try it again,
+NOW we get the asan heap-overflow detection.
+I hate computers. All of these hours spent 
+hunting down this issue was kinda a waste of time.
+Anyway…. We have our ASAN output. the overflow 
+appears to happen in a function called set_cmnd().
+But it only shows us the binary offset 
+in the object file. Not the exact source
+code line. Can we maybe get a build 
+where we see proper symbol names?
+So I wanted to try to build sudo with the 
+-g compiler option, to create a debug build.
+To do that I extend the CFLAGS, so the 
+compiler flags for the build configuration step
+and then build sudo again. Let’s see if that 
+helps. Mh. not quite. let’s check with gdb.
+I tried to set a breakpoint to set_cmnd, 
+and then run it. But it doesn’t work?
+And when I looked more closely I noticed 
+the address range of the function.
+This looks like a library address.
+And when we look at the virtual memory
+map of the sudo process, we can see 
+that this address must belong to some
+loaded library. Maybe this lib sudo utils library.
+So, we should probably create a build without
+external libraries, by having everything in 
+the same binary. That would make debugging and
+investigating sudo a lot easier.
+And I think we can do that
+with the --disable-shared flag.
+Maybe you noticed that in previous builds I used
+that flag. I saw that from the fuzzing-project 
+tutorial and figured I just use it too. But when
+building with asan, I didn’t specify it. So adding 
+it again should disable the creation of shared
+libraries and make this nicer to debug.
+Let’s see.
+And you know what? You know what I observed 
+when I recompiled the ASAN version with
+the --disable-shared flag?
+I noticed that disable-shared
+influences if we get a binary in .libs, or 
+if /src/sudo is already the binary. So this
+was the reason why the binary used to be 
+in ./src/sudo, and why earlier asan build
+ended up to be in .libs. This was the 
+small dumb mistake that killed hours…
+So be careful with those build options.
+Now we have the new proper build with asan
+and disabled shared libraries. 
+And when we test the crash,
+LOOK AT THAT! we get clear information about the 
+file AND LINE where the overflow happened. Thank
+you address sanitizer! Let’s look at it!
+At the line we can find a loop that copies
+bytes around. It copies from this `from` 
+pointer, to the location of the `to` pointer.
+Also notice here, that this loop seems 
+to be a bit dependent on this check
+for a backslash. This could explain why the proof 
+of concept crash had a backslash at the end.
+Now we can really start 
+analysing the bug we found.
+Btw, in the meantime of working 
+through all of this, the AFLplusplus
+fuzzer found apparently three more unique 
+vulnerabilities. So let’s quickly triage
+them as well and see their root cause.
+Maybe we did find a 0day afterall!
+We can use afl-tmin again to minimize the 
+two crashes. Goes very quick. And then we
+can look at all three minimized testcases.
+Hah! Looks exactly the same. Minimized they
+are also just variations of the sudoedit 
+call to -s, with a backslash at the end.
+So they are the same crash, even though 
+afl thought they were unique crashes. As
+explained previously, afl looks at the 
+executed edges to determine if you reached
+different functionality, and it’s a unique crash 
+because other edges were executed to get here.
+Anyway. I’m still curious if regular afl will find 
+the bug, because so far only aflplusplus did, and
+of course if the testcases without 
+specifically mentioning sudoedit
+will eventually discover it as well. Let’s 
+keep the fuzzers running for a few episodes.
+Anyway. What could we do next?
+Well, we could try and jump
+right into exploit development, we have a crash.
+But maybe it will be too hard to exploit, without 
+better understanding the root cause of it.
+And having a better understanding should make 
+the exploit development much easier as well.
+Also the original qualys advisory did explain 
+in some detail why this overflow happens.
+So I think it would be beneficial 
+for us to come to the same results.
+How do you figure out this detailed explanation? 
+After all, the theme and the learning methodology
+of this video series is, that we imagine WE 
+ARE the researchers, and we want to create
+a detailed writeup that explains what causes 
+this crash. And this kind of investigation to
+explain the root cause, is an important skill 
+to learn and practice. So let’s do that next.

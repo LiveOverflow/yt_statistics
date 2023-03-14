@@ -1,0 +1,437 @@
+Learning about basic cross-site scripting
+is very simple.
+And I don’t want to explain XSS again in
+this video, I link some stuff here.
+But the question I try to answer today is,
+How to git gud with XSS.
+Because I do think you can take XSS to quite
+a crazy level.
+A lot of people hear and dream about becoming
+a bug bounty hunter making thousands of dollars
+sitting at home looking for vulnerabilities.
+It seems so cool.
+And XSS issues are super typical bugs for
+bug bounty programs, and also fairly easy
+to look for.
+So it’s no surprise that you see a lot of
+people sharing XSS cheat sheets.
+Or XSS vector collections.
+And if you have such a list, then all you
+have to do is, copy and paste line by line
+the vectors into some input field and hope
+you see the magical alert box pop up.
+Now you are a cool hacker and you can tell
+your friends you earned money with hacking.
+And maybe you go even so far to write your
+own scripts and tools to try out all these
+vectors automatically.
+Or maybe you just reuse somebody elses script.
+Because in the end, why should you be a glorified
+copy&paste machine?
+Well, maybe I sounded a bit condescending
+to you if you are kinda at this level.
+So let me clarify, I started same way.
+everybody did.
+And I also think creating a tool to automate
+looking for XSS vulnerabilities is great.
+I think trying to solve this problem of programming
+a good XSS scanner and really thinking about
+it, is a fun challenge - you probably face
+interesting edge cases and issues that you
+will learn a lot from.
+So I don’t want to discourage anybody from
+doing that.
+But please don’t try to sell that as a product.
+Eitherway you will probably find issues in
+bug bounty programs with this method.
+So what’s the problem?
+well, I hope you agree, that this is really
+just the first chapter.
+If I would try to draw a timeline of how much
+time you should spend in each chapter of getting
+gud at XSS, then this is just a small sliver
+of it.
+I’m not judging anybody who just started
+and is passing through that early part, keep
+going, you have an awesome ride ahead, and
+hopefully this video plays a role in it, but
+I maybe judge you if you two years later still
+just copy&paste vectors.
+This is what I meant with this tweet here
+a while ago: Move away from basics as quickly
+as possible and constantly expose yourself
+to stuff you don't understand.
+So let’s have a look at these two XSS vectors,
+which were shared on twitter.
+If you have a little bit of XSS experience,
+on first sight they might look similar.
+You probably can notice some html tag and
+apparently there is a string “javascript”
+there.
+And both are supposed to show some kind of
+javascript execution.
+They are XSS vectors, right?
+Now the first tweet here offers a little explanation.
+Apparently we have an  tag in HTML5
+along with the name attribute now.
+And somehow this is something new for XSS.
+So apparently there is something is special
+about the  tag.
+And when we look at the proof of concept,
+it looks crazy.
+Lower and uppercase letters, a weird newline
+html entity, a weird unicode escape sequence,
+another html entity...
+All of that is the name attribute.
+And then we have an onclick handler which
+executes the javascript eval(name)?.
+Okay.
+before I go further into what is happening
+there, let’s look at the other tweet.
+So here we have three HTML tags.
+A base tag and two anchor tags.
+The base tag has a href with javascript and
+some arbitrary looking /a/-alert(1)/////.
+Wat?
+And then the one anchor tag has a href with
+a relative path going one layer up with ../ and
+lol safari.html.
+The other is just an empty anchor tag… okay
+mhmh...
+Now let’s test them out.
+In the end you want to see the action, right?
+So here is a very simple php script.
+I created a form with a textarea called XSS,
+where we can submit the input.
+and down here we have a div where we will
+just echo whatever we have submitted.
+Oh and I also set this HTTP header here, to
+disable the browser’s XSS auditor.
+We don’t want that to interfere.
+Then I start a local php test server with
+php -S and port 1337.
+And then we can take Chrome and open that
+page.
+Now we can enter something here, press the
+submit button and we can see the echo result.
+“Hello world”.
+Let me also show you the relevant HTML source
+for the output.
+we can also now see what happens when we submit
+html tags.
+Now it’s bold “HELLO WORLD”.
+Cool, so we can easily inject HTML and observe
+the result.
+So let’s copy in the first tweet.
+Submit.
+And here is the X.
+We know it has the onclick handler, which
+means we have to click, and YUP!
+We get an alert(1).
+So this executed javascript on a click.
+Now let’s copy the other tweet.
+Submit.
+And we see both anchors, both links.
+Test and haha.
+But when we click on them, it doesn’t work.
+The one link even redirects to /lol/safari.html…
+I guess it was making a reference here that
+it only works with safari.
+So let me open up the page in safari, and
+try to click now here.
+And YES!
+We get the alert(1).
+So I want you to look at both of them again.
+What is it, you take away from them.
+There are a few different angles here.
+First of all, one has a lot more retweets
+and likes than the other one.
+This could be an indication that people found
+this one a lot more interesting, insightful,
+crazy or just more useful.
+And based on our test we could also make a
+case for it actually being more useful, right?
+I mean the first one appeared to just simply
+work, while the second one just worked in
+safari.
+That seems a lot less useful.
+Now the first one also seems to make use of
+a lot more crazy things.
+Like there is alternating lower and upper
+case characters, there are two different kinds
+of HTML entities, there is a unicode escape
+and apparently something new or special about
+that  tag.
+That is an indication that some crazy stuff
+is happening there.
+It looks really complex.
+While the other tweet just has some more basic
+javascript colon.
+Though then it also has some weird /a/- and
+then the alert.
+But it seems a lot more simple.
+Right?
+(heavy breathing) Well… okay… so… please
+excuse my rage that will follow now.
+I know this anger might seem unnecessary.
+Maybe I’m just taking it way too seriously.
+Maybe this is such a small thing that I should
+just ignore it, or at least not make a video
+about.
+But…
+I think here is actually something very interesting
+that I want to share.
+Something that is very important to me that
+people understand this, and I think it helps
+people to move on from basics and get a much
+deeper understanding of the possible craziness
+that can come with XSS.
+Well… the first tweet here, is preeeeetty
+muuuch useless garbage.
+(well okay, that’s maybe unfair.
+everybody, even I can extract some useful
+thing out of it, but for the sake of the story,
+for the point I want to make in this video,
+this is crap, ok?).
+But let me explain why.
+Reason number one.
+It is misleading and deceptive.
+The author of this XSS vector tries to make
+this look more crazy than it actually is.
+Let me create a clean version of this.
+The capitalisation of this is just distraction.
+Actually the whole javascript colon, is just
+distraction.
+The unicode escape sequence - just distraction.
+The one HTML entity - just distraction.
+Actually the whole name attribute thing and
+eval here is bullshit - just distraction.
+You could also just write onclick alert(1).
+XSS, cross-site scripting is about javascript
+execution.
+We use alert(1) with the popup because it’s
+a very visual proof that you achieved javascript
+execution.
+So the XSS vector, the thing that triggered
+javascript execution here is the onclick event
+handler.
+A very basic, typical beginner level XSS vector.
+I said that the name attribute with the eval
+is bullshit, because it has absolutely no
+value for XSS.
+All that is doing is it places the javascript
+payload, the alert(1) into the name attribute
+of an output tag, and inside of the event
+handler you can access the name as variable
+like this.
+This is just like how the output tag works.
+But like I said, I think this is just distraction,
+it’s just putting the alert somewhere else
+but it’s irrelevant, because it is executed
+because you already execute the eval.
+So basically this minimal example is what
+it boils down to.
+And the second reason why I think it’s garbage,
+is this description: “we now have an
+tag in HTML5 along with name attribute”,
+makes it sound like something crazy, new or
+special.
+But the description, along all these other
+distractions just add to the cloud of confusion
+to hide that this is bullshit.
+And don’t get at me with “it executes
+alert(1).
+this could bypass some filters.
+The output name attribute is in no xss vector
+list”.
+I don’t care.
+I can’t help but think this is all just
+trying to make it more than it actually is.
+I hope I made it clear why I think it’s
+just deceptive and offers zero value for YOUR
+education of learning XSS.
+Studying that example will get you nowhere.
+That being said, I don’t necessarily want
+to attribute malice, if the person just genuinely
+has no clue.
+If you wrap something into a confusing cloud
+of partially-true content you can get quite
+far in any industry.
+Anyway.
+Let’s go to the second tweet.
+At this point you can probably guess that
+this must be something crazy and much more
+interesting.
+So to understand this we have to know two
+things.
+a typical XSS vector that you can find in
+any copy&paste XSS vector list is an anchor
+tag with a javascript URI.
+Something like this.
+If you click that, you execute the javascript.
+The second thing we need to understand here
+is what the base tag does.
+The HTML  element specifies the base
+URL to use for all relative URLs contained
+within a document.
+There can be only one  element in a
+document.
+And we can see here two relative URLs.
+Simply speaking if you define a base tag like
+example.com and you have relative URLs, you
+get a full example.cpm url.
+You see here we are on localhost right now,
+but the base tag basically turns every relative
+URL into an absolute URL using that specified
+base, and so we go to example.com.
+You can also use the javascript console to
+inspect the href of these anchor elements
+and see the full URL.
+Now if you are smart (smarter than me because
+I never thought about that) you might ask
+yourself, could you define a base tag with
+a javascript URI and every relative link on
+a website would be prefixed with javascript:?
+Imagine you just inject one single base tag
+and every link on the site turns into a XSS.
+Well… that would be kinda stupid, it doesn’t
+make sense to have that as a base URL and
+so this doesn’t work in any browser.
+In this case the base is basically ignored
+and the link remains relative.
+That’s good.
+Thanks browsers for being sane here.
+We know the tweet worked in safari, but this
+simpler example doesn’t even work there.
+With the console you see that the base tag
+seems to be ignored.
+So… what’s different in the tweet.
+Let’s try this again.
+javascript:/a/-alert(1).
+If we check now the console we see that it
+will actually prepend the javascript.
+And when we click now, the alert(1) is executed…
+So why does this happen.
+Let’s move back to chrome for a moment.
+Let’s try to come up with a fictional scheme
+asd://liveoverflow.com.
+If we do that as a base, that actually works.
+Now we have an asd URL.
+But if we try javascript, we actually see
+an error.
+Javascript URLs might not be used as a base
+URLs for document.
+However if you try that in safari, nobody
+complains.
+It seems to work.
+You even can see that in the console.
+Though if we try to put there an alert now,
+like this, and click, Nothing happens.
+But look at the URL.
+we run into an annoying issue.
+So if this is a javascript URI.
+Then all of this is just interpreted as javascript
+code.
+I give you a hint.
+Here.
+ding ding.
+Remember what two slashes in javascript or
+some other programming languages mean? // is
+a comment.
+So basically all that javascript payload afterwards
+is just a comment.
+It’s just an empty script now.
+Of course you might think, well then let’s
+remove the // and just have a clean javascript
+URI, but then also safari refuses that - now
+the base tag is simply ignored.
+So we need it to look like a normal URL.
+with ://… or maybe :/
+For whatever crazy reason the author of this
+tweet figured out that safari can be tricked
+into thinking this is a URL with only one
+slash.
+And then you can use a REGEX.
+In javascript you can define a regex with
+/, then the regex and then /.So in here you
+could put anything, any regex stuff.
+Totally fine.
+And then you subtract alert(1) from that regex.cc
+And now the javascript has to be executed,
+that subtraction obviously makes no sense
+but you first have to evaluate alert(1) to
+take the result and subtract it from the regex,
+so this means alert(1) is executed.
+BOOM!
+XSS.
+Playing around with this myself I actually
+also realized you can, instead of the regex
+subtraction, use an empty multiline comment.
+So /* and then close it immediately with */. So
+now the alert(1) is a bit cleaner.
+Small protip, we can add a small thing to
+cause a javascript error, then we get this
+error in the console, and click here to look
+at the script with the error, and then we
+can see how the browser interprets this javascript.
+Here you can see the comment.
+And actually the slashes at the end are also
+there for a reason.
+So the full URL of a link is build by combining
+the base with the anchor href.
+And so if you go a directory up with ../ you
+can simply add a few slashes, or a few folders
+at the end of the base, so this ../ will consume
+one of these slashes.
+Now the author just added a bunch of them
+in case you had more relative links with even
+more ../../../. This is just to be sure the
+XSS works in most cases.
+This is absolutely insane right?
+This really shows a deep understanding of
+the web, browsers and XSS.
+Exploiting a weird quirk in safari…
+Look if you just are interested in the alert(1)
+and you just want bounties, well then maybe
+you don’t care.
+I mean how often really does an injection
+into the base href come up OR how often can
+you not inject anything besides a base tag.
+And then it only affects safari.
+Right?
+Your time is probably then spent better copy
+and pasting a few more XSS vectors into input
+fields.
+But I truly believe being able to figure this
+out, being able to understand why it works,
+and being able to appreciate this as a piece
+of valuable research, this will differentiate
+you from the beginners that work through simple
+lists.
+You should recognize this as the goal where
+you want to get to, if you are interested
+in XSS.
+This is where for me real hacking starts.
+This is what I think deserves to be called
+“art”!
+It’s so damn creative.
+And now let’s compare these tweets again.
+While they both look crazy on first sight.
+This one was using weird entities, and escapes
+and unnecessary capitalisation to deceive
+from how simple and basic it is.
+While this example has weirdness and craziness
+with /a/-alert(1)///// for very good reasons
+and it all matters for this XSS.
+If I would be the head of a university, I
+would love to award this author, for this
+amazing research, a PhD in XSS.
+Thumbs up if you agree!
+And because I think it’s so sad that this
+amazing tweet only got so little likes and
+retweets compared to this one, I would like
+to reveal who it is.
+This is Gareth Heyes, he is an incredible
+client side browser security researcher who
+has done amazing work for many years.
+He deserves every like and retweet.

@@ -1,0 +1,324 @@
+After we reverse engineered some parts of
+the ledger firmware, AND found source code
+of an older ledger firmware version, our next
+goal will be to find, where the ledger handles
+the APDU messages coming from USB.
+And that is actually pretty easy.
+So.
+We know from the debug output that the ledger
+uses APDU messages to communicate.
+application protocol data unit ( APDU ) is
+the communication unit between a smart card
+reader and a smart card.
+It’s just one simple standard that you can
+use to implement messages for communication.
+Anyway.
+When we reverse engineered the button_press
+handler, we found a function that we called
+bootloader_continue.
+Because this is where it continued to, after
+we released the button.
+And we also compared the assembly, with the
+old source code from Ledger’s github.
+And we saw that what we called bootloader_continue
+appears to be the function bootloader_apdu_interp.
+And the name already says a lot.
+In there we see a io_usb_hid_init, followed
+by a while(true) loop.
+In case you didn’t know, having a for-loop
+without any conditions, it is an endless loop,
+like while(true).
+And in this loop we see io_exchange (input/output
+exchange) and a lot of references to APDU.
+CHANNEL_APDU, no apdu received, G_io_apdu_buffer.
+And we can also see switch/case statements,
+that appear to uses one byte of the APDU buffer,
+specifically the second byte - APDU Offset
+for the Instruction.
+And for example this case statement - Instruction
+Get_version shows, that the byte 0x01 is the
+instruction GET_VERSION.
+From the other offset values we can also see
+that the first byte of the APDU commands is
+reffered to as CLA.
+And we can see that before the switch/case
+statement it checks that first byte.
+It compares it to a constant CLA, which has
+to be 0xE0!
+And now remembe the APDU commands we saw in
+the chrome app’s debug output.
+Each APDU command started with 0xe0.
+Which means each second byte here refers to
+the Instruction, or the meaning, of this particular
+apdu message.
+Cool, right?
+Now let’s have a quick look at this function
+in IDA.
+Zooming out we can directly spot the big loop.
+Around everything.
+And right at the start of the function we
+see a compare to 0xe0.
+So this part here is this this!
+And when we follow the call graph we can also
+find that IDA identified this as switch-case
+statements.
+This one has 5 cases.
+If you leave the graph view it’s easier
+to see how this is implemented.
+First there is a compare to R0, to check if
+it’s less or same.
+And then branch, or jump, to the switch jump
+here.
+Which means there are 5 switch cases.
+0,1,2,3 and 4.
+And this switch jump is implemented as a small
+function.
+Here we can find a major difference between
+ARM and other architectures like Intel x86.
+ARM has a so called Link Register.
+A link register is a special-purpose register
+which holds the address to return to when
+a function call completes.
+On ARM the return address is not automatically
+pushed onto the stack like with a call on
+x86.
+Instead it just writes the return address
+into the link register LR.
+If a function has multiple hierarchies down,
+it has to remember the LR on the stack though,
+otherwise the next branch will overwrite the
+register again.
+Thus many functions will Push it to the stack,
+along a lot of other registers, very similar
+to x86.
+And also pop the pushed LR value back into
+the program counter PC to return.
+But you don’t need it if you don’t branch
+further.
+And this small function doesn’t call anything
+else, so it can just branch back to LR when
+it’s done.
+However if you pay attention, it actually
+modifies LR before it jumps there.
+LR would point into the data you see here.
+This is not assembly.
+But IDA already recognized this as a jump
+table for the switch statement.
+So first it moves LR, which points at the
+start of the jump table into R1.
+Then it performs a shift right, and a shift
+left.
+It does that to clear the last bit that is
+set, because we have thump code.
+If that’s new to you, please checkout earlier
+videos in the series.
+So R1 now really points to here at the start.
+And then we load a byte at the offset R0.
+And the offset r0 is the switch value.
+So it will load one of these bytes depending
+on if R0 was 0, 1,2,3 or 4.
+Then it will shift that byte to the left by
+one.
+Which sounds weird but it’s actually super
+smart.
+Like we know, ARM code is always aligned.
+And the last bit 0 or 1 decides if the instruction
+is a thumb instruction or not.
+We have here only thumb code, so the LR register,
+which points to the next code to return to,
+will have the last bit set.
+And with the next instruction we see that
+it adds the offset, it got in R1, onto the
+link register.
+The link register already has the last bit
+set, which means this jump offset will never
+have a bit 1 at the end.
+It will always be 0.
+This means you can safe one bit for your jump
+table.
+For example if you want to jump to offset
+0xc.
+That would be 1100.
+The last bit will always be 0.
+So you can just store 110.
+And then shift left by one.
+That doesn;t make much sense for a small value
+like that.
+But what if you want to jump to 0x14C.
+That doesn’t fit into a byte?
+Or does it?
+Shifting it right by one, will make it 0xA6.
+And then it fits into a byte.
+And when we want to use it, we load that single
+byte.
+Shift it by left by one, and we get the last
+zero back.
+This means this 0xA6 here actually represents
+a jump to the offset 0x14C.
+So 0x14c PLUS 0x806 is 0x952.
+So this case would juuuuump here!
+Because my cursor is still placed on the jump
+table function, IDA highlights the switch-case
+jump targets with a black arrow.
+So we can verify, yep, this is correct.
+It jumps here.
+IDA also added an automatic comment that this
+is one of the cases for the jumptable from
+0x802.
+Cool!
+So this is how you can reverse engineer and
+work through that code.
+Now let’s move away from IDA and the code
+for a moment and look at the communication
+from the HOST side.
+So your computer.
+If you do your research into ledger and the
+provided software well, you will stumble over
+a repository from ledger that contains “Python
+tools for Ledger Blue and Nano S”.
+For example you could find this code when
+you look through ledger’s support article
+describing how to check the hardware integrity.
+And there they install a python module called
+ledgerblue and use the checkGenuine function,
+to verify the software on the chip.
+And the source code for it is linked here.
+When you look into the main function of this
+module you can see how it talks to the ledger
+hardware.
+There is a communication module that exposes
+the functio getDongle, that returns a dongle
+instance.
+This is then passed to getDeployedSecretV2.
+There we immediatly can see that it builds
+an APDU message from raw bytes.
+0xe0, is the CLA.
+And the 0x4 is the instruction.
+Looking into the firmware source code we can
+check what instruction nr 0x4 would be, and
+so that’s Instruction VALIDATE_TARGET_ID.
+And it’s simple what it does.
+It takes a received ID and compares it to
+the constant device’s ID.
+It’s just a function that you can use to
+check that your device you are talking to
+is in fact the device you meant to talk to.
+Here in the python code you can see how the
+ID you can specify is added to the APDU message.
+Anyway.
+Once you have that APDU data, you can then
+call donge.exchange() to send that message
+to the device!
+From other instances of this exchange function
+we can also see that it can return data.
+Cool!
+So let’s test this.
+Let’s get a python virtual environment...
+Then let’s pip install ledgerblue.
+Aaaaand now we can use it.
+To test I open just a python interpreter.
+from ledgerblue.comm import getDongle.
+By the way, python pro-tip.
+There is a builtin function help() which shows
+you information about python functions and
+classes.
+For some stuff the help can be super detailed.
+It’s like a linux man page.
+So we can call help(getDongle) and we get
+some info.
+In this case it’s not amazing, but we will
+see that the first parameter turns Debug on
+and off.
+So let’s get a dongle with getDongle and
+set debug to true.
+Next we can call dongle.exchange with a bytearray.
+The bytearray starts with 0xe0, and then the
+instruction, in this case 0x01, which stands
+for Get_version.
+Now before we hit enter we have to make sure
+that the ledger is connected in bootloader
+mode.
+So pressing the button and connecting it.
+Then let’s issue the command!
+And it worked!
+We see an outgoing APDU message which was
+our get_version.
+And we see an incoming message.
+Now what these values exactly mean, I don’t
+know.
+I guess somehow they contain the current version
+of the device firmware.
+And we can probably look through more of the
+code to see how ledger parses these value
+in their own software, but it’s not that
+important for us right now.
+Before we finish this video.
+One last small thing.
+Of course we can also debug this now easily
+with gdb.
+We know that here it checks the first byte
+of the received APDU command to check if it’s
+0xe0.
+So we could use our GDB setup to set a breakpoint
+there.
+But I wanted to show you something else.
+IDA also can attach to a remote GDB server.
+So we can select the debugger to be Remote
+GDB debugger, and then go into the debugger
+settings and set it to the gdb server port
+exposed by the st-link utility.
+We just have to make sure the utility is running,
+and then we can select “attach to process”
+in IDA. “attach to the process started on
+target”, and IDA switches to the debugger
+view.
+And we are at reset now.
+And debugging like this is maybe a bit nicer,
+because we can also have the graph view.
+So let’s quickly navigate to the place where
+it compares the APDU message and set a breakpoint
+there.
+In this case a regular software breakpoint
+didn’t seem to work for me.
+So I went into the breakpoint list and edited
+the breakpoint.
+Making it a hardware breakpoint.
+This is a feature of the Chip itself.
+The st-utility even has an output telling
+us that it found 4 hw breakpoint registers.
+So hardware breakpoints allow us to tell the
+arm chip to break on certain conditions.
+In this case we say: “when you access this
+address with the intention to execute the
+instruction there, please stop!”.
+Let’s try it out.
+We do the same thing again, we press the button
+of the ledger and hit continue, so the ledger
+starts.
+Okay, we are in bootloader mode and IDA shows
+the process is running.
+Now let’s issue our APDU command again,
+and IDA immediately gets focus because we
+hit the breakpoint.
+So the byte of the APDU command is copied
+from this address, which we know is a RAM
+address.
+So we can use the hex view to navigate to
+this address and look into the RAM of the
+device.
+AND YES!
+Here is our APDU command.
+So this is cool.
+And maybe looks better having this graph view
+and so forth.
+But like I already mentioned with the breakpoint
+behaviour, this is also super janky.
+For example if I try to perform a single step,
+it just breaks.
+Maybe there is somewhere a setting to configure
+single stepping to also use hardware breakpoints
+or something, but I don’t know.
+Also I’m kinda used to normal GDB at this
+point.
+Anyway... now we have everything in place
+to look into the firmware update next video.

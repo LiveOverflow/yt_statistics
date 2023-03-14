@@ -1,0 +1,615 @@
+EVERYBODY.
+GRAB YOUR BLACK HOODIES.
+PUT YOUR GUY FAWKES MASK ON.
+ALL HACKERS OF THE WORLD UNITE AGAINST THE
+INCREDIBLE INJUSTICE BY … youtube…
+I cannot stand the constant drama and complaints
+by youtubers and their audiences.
+I was hoping to never make such a video, but
+well… here we are.
+we just experience some drama in our infosec,
+hacking, it security YouTube realms.
+And people are feaking out.
+So let me share my views as one of the biggeer
+hacking channels on YouTube.
+So YouTube updated their support page regarding
+“Harmful or dangerous content”, which
+basically explains what kind of videos are
+not allowed on the plattform.
+For example
+Dangerous or threatening pranks, which means,
+Pranks that lead victims to fear imminent
+serious physical danger, or that create serious
+emotional distress in minors.
+or
+Instructional theft: Showing users how to
+steal money or tangible goods.
+Stuff like that sounds reasonable
+And now the big controversy.
+Instructional hacking and phishing: Showing
+users how to bypass secure computer systems
+or steal user credentials and personal data.
+This controversy was specifically triggered
+and amplified by the YouTube channel Null-byte,
+because they had three of their videos taken
+down, and received a strike.
+That means their ability to upload videos
+was taken away.
+Absolute nightmare for a YouTuber.
+I totally understand their emotional reaction
+to that.
+They work incredibly hard on creating content,
+and having it so easily taken away, is scary.
+But I also think there is no need to panic.
+And so please just chill, and let’s look
+at this rationally.
+Let’s look at some objective data and the
+experience we had with YouTube so far.
+First we need to clarify something.
+A lot of the YouTube drama we generally see,
+not in IT security, just generally, and that
+is perpetrated by popular YouTubers, are often
+shrouded in some cloud of confusion, and they
+are not really clear about what exactly is
+going on.
+So the biggest “issue” (in quotation marks)
+is about the algorithm and video recommendations.
+And hand in hand with that, monetization.
+I don’t really care about that, you should
+not care either, and let me quickly explain
+why.
+YouTubers can earn money through adsense that
+automatically places ads for them on their
+videos.
+They get a share.
+That is super nice and chill.
+In the early days of YouTube this didnt even
+exist.
+So it’s quite a luxury nowadays.
+Many YouTubers now depend on this income.
+Also Ad revenue is directly affected by your
+view numbers.
+So your income under normal circumstances
+already varies 50% up and down every month
+- which is crazy to think about.
+Super stressful to see your income fluctuate
+constantly.
+Worst workplace ever.
+And now on top of that you have sometimes
+videos only getting limited or no ads (the
+yellow icon) or completely demonetized.
+Or copyright claimed...
+Along with that also can come, that videos
+are not recommended as much anymore.
+I can tell you from my own statistics, that
+most of the views are coming from recommendations.
+From non-subscribers.
+So any changes to the algorithm or monetization
+policies, directly impact the YouTubers income,
+thus directly impacts stress levels and emotions.
+But, you are still free to run your own ads
+in your videos.
+I think we have just been pretty lazy and
+spoiled with automatic ads via adsense.
+But I also have empathy, I understand that
+it’s scary when that falls away, but come
+on - do some basic business risk analysis.
+I feel for you.
+But I disagree that you then mobilize your
+audience as an army to complain to youtube
+about that.
+In general I think the ad system is great
+because it’s lazy, rather than wasting time
+talking to potential advertising partners,
+it lets you focus on creating.
+I find this empowering and great by YouTube.
+But I think you have zero right to force or
+demand advertisers to advertise on your video.
+And just as a reminder, even if there were
+much stronger monetization policies, that
+block most videos from earning money, YouTube
+still provide you more services than you get
+on other plattforms like Facebook or Instagram.
+On other platforms you don’t demand and
+expect to get money.
+And don’t forget, you are free to host our
+videos anywhere else, like on vimeo or our
+own websites.
+This is not censorship.
+Please stop conflating government enforced
+censorship with a ad policy of a for-profit
+company.
+But ads is one thing.
+We are also freaking out, because loosing
+YouTube would mean loosing this amazing algorithm
+recommending our videos to other people.
+We would loose the free advertising for our
+own videos.
+Remember, this is a feature not a right.
+On facebook you have to PAY that your videos
+get shared and seen by more people.
+YT gives you free advertisement for videos
+they think are worth sharing.
+That’s the youtube recommendation algorithm.
+And if you have monetization, they even get
+advertisements for you.
+You don’t have to do shit.
+I see that as a bonus, a feature, that only
+YouTube gives us.
+So for me this is a typical psychological
+case where people don’t care for something
+they don’t have, but freak out when a free
+bonus is taken away.
+Feeling entitled to that what was given for
+free.
+Okay got that out of the way.
+Monetization, I don’t care.
+Message to my fellow YouTubers, I don’t
+mean you to stop complaining about algorithm
+and your demonetized videos, I know it really
+hurts, and talking about it is good too, but
+I think it’s not fair to mobilize a mob
+for it.
+But let’s get to what I do care about.
+I care about awesome educational channels
+and videos that are take down from them.
+let’s explore that scary policy update Instructional
+hacking and phishing.
+I would like to start by going back a few
+months.
+In october 2018 three hacking related channels
+were terminated.
+Stephen Chapman, Guided Hacking and Cheat
+The Game.
+All of these channels were creating technical
+videos about reverse engineering and hacking
+games.
+And they got taken down because of the policy
+regarding a “Circumvention of Technologies
+complaint”.
+Which violates YouTube's Terms of Service.
+everybody was panicking.
+Everybody was freaking out.
+So what happened.
+Well… all three channels are back.
+You can subscribe to them right now.
+Did they get it back because of a public outcry?
+Of course I don’t work at Google, I don’t
+know.
+But I would say no.
+That’s not how I see this to work.
+What does work is “Contacting the YouTube
+Creator Support team” or in the worst case
+google employees directly.
+They happen to be watching our videos too,
+they sometimes are able to escalate or re-open
+a cases internally.
+So shortly after, the channels were back.
+However I have heard of other hacking related
+channels, for example the security podcast
+ThugCrowd, their channel was deleted around
+the similar time.
+And didn’t get it back.
+And apparently other channels too.
+Unfortunately I don’t know exactly the kind
+of videos that were on there.
+I cannot speak for the type and STYLE how
+it was presented.
+So I cannot judge those cases.
+But there is the example we see right now.
+The three videos from Nul-byte were flagged
+and they got a strike.
+Well…
+A couple of hours later, the videos are back
+up and the strike removed.
+And again, I don’t really think that a public
+outcry and media attention was necessary.
+I think what helped was appealing the strike
+and again google employees that are in the
+audience raising this issue internally.
+And besides those cases I have only ever heard
+of monetization issues.
+But it’s very likely that I miss many cases
+of other deleted videos.
+It’s not like I know all the hacking videos
+on YouTube.
+So yes, we had some issues.
+But don’t forget the context, you must look
+at the cases that never triggered anything.
+I have over 230 videos uploaded since 2015
+about hacking.
+Gynvael does hacking livestreams for a long
+time now.
+And when you look through my featured channels,
+you can discover plenty of YouTubers doing
+hacking and security videos.
+Combined we have thousands of videos.
+I don’t think they had any issues.
+Besides maybe monetization, but as I said,
+I don’t care about that.
+And even null-byte has over 100 videos that
+were apparently no problem.
+But of course, It’s about a new policy,
+right?
+It’s a policy change that NOW triggers the
+deletion and flagging of all our videos.
+Well hold on a minute.
+as far as I know these policies are in effect
+already for a long time.
+Hak5, probably the oldest running hacking
+YouTube channel with over 1500 videos also
+seems to agree:
+Likewise dealt with any issues on a case by
+case basis.
+The sky isn’t falling and these policies
+have been in effect for as long as we’ve
+been publishing on YouTube.
+The instructional hacking policy has been
+in effect for years.
+Let’s approach this policy thing with a
+bit more brain.
+Hacking is a term that can mean maaaany things.
+I don’t want to discuss meanings and interpretations
+now.
+But you know that hacking can be criminal.
+Every country has slightly different laws
+on what is legal and what is illegal.
+I’m not saying these laws are done with
+much insight.
+For YouTube to follow exactly those laws and
+interpret them correctly, is impossible for
+an international company, so they have to
+come up with their own sensible policies,
+based on some idea of ethics.
+Ideally we want these policies to follow a
+good ethics argument.
+An argument we can follow and undersatnd.
+The frustration with policies comes when they
+diverge from your own ethics.
+When you believe something is ethical, and
+somebody else says it’s not, then that causes
+friction.
+This is where I think the frustration lays.
+So now we open up this huge bucket of what
+it means to do hacking videos ethically.
+And I could ramble about that for hours.
+I see this to be a VERY fine and blurry line.
+Very small nuances that make me flip between
+ethical and unethical.
+Let me give you some examples how I see this,
+and what I’m thinking when I make videos.
+I see game hacking and cheating as unethical...
+when done for competitive multiplayer games.
+Not when doing it alone at home.
+When you write your own hacks I think that’s
+cool.
+Have some fun.
+But in the context of sharing it with hundreds,
+thousand maybe tens of thousands of people
+via a YouTube video, I think that can be bad.
+So I have a sense of responsibility based
+on the audience sice and possible reach.
+I think a talk given at a security meetup
+or a hackerspace is different from a video
+seen by thousands of possibly impressionable
+young teenagers.
+And of course it is even worse when you advertise,
+sell or distribute those hacks to be used.
+In the best case it just ruins the game experience
+for some players, in the worst case cheaters
+cause a decline in the player base and thus
+losses for the game developer.
+However generally developing a cheat, or a
+trainer or mods for a normal single-player
+game.
+That’s awesome.
+That’s creative and fun and harmless.
+And so if you want to make game hacking videos
+for the masses, focus on those kind of games.
+Now if you put this into a policy, and you
+need non-technical underpaid support staff
+to be able make decisions, it’s really hard
+to see if a game hacking channel like guided
+hacking or stephen chapman do it ethically,
+or not.
+To be able to notice that difference does
+require quite some experience.
+So I totally understand that mistakes happen
+and those channels got nuked.
+BUT!
+It then is important, and it worked out, that
+once the context is explained and you were
+able to appeal, that everything is reinstantiated.
+It definitely sucks, but I think in a world
+with humans that make mistakes, something
+like this seems reasonable and forgivable
+to me.
+Another example is phishing.
+There is no goddam reason for me to make a
+video tutorial on how to make a facebook,
+google or instagram phishing page.
+I think eudcation is totally misdirected there.
+If you would care about education you would
+just make a web development tutorial.
+Or if aimed at normal users, you would make
+a video on how to detect a phishing page.
+But you don’t need a step by step guide
+to make a phishing site for facebook.
+I think that’s somewhat unethical and maybe
+can be considered inciting illegal behavior?
+Especially considering this.
+According to the paper “Data Breaches, Phishing,
+or Malware?
+Understanding the Risks of Stolen Credentials”,
+millions of accounts get compromised because
+of phishing.
+Phishing is a real problem that Google fights
+with every day, so being google, why would
+want a tutorial outright showing how to do
+that on your own platform.
+I know it might sound silly, but most serious
+hacks you hear about are phishing.
+The political DNC hacks?
+Phishing.
+Phishing is lame, but it’s criminally serious.
+And I think as a participant in a human society,
+you should think about the context and effects
+of your tutorials.
+So I think a video on how to make a facebook
+phishing page is unnecessary, and eduactionally
+misdirected.
+It’s just web development..
+I believe the correct way to teach this topic
+is just to show basics of PHP… ah wait…
+teaching PHP might be unethical too…
+I think YouTUbe should ban that.
+I think that would have positive impact for
+the future… just kidding.
+There is of course a way to make ethical PHP
+tutorials too…
+You get my point.
+Any web developer can make a phishing page
+in the first week of learning web development.
+And just to make this clear.
+I don’t see deleting a phishing tutorial
+as censoring important technical information.
+And keeping it secrent Because a basic web
+development tutorial teaches the SAME SKILL.
+This knowledge is not hidden.
+You just put it into an illegal or unethical
+context.
+Instead of showing step by step tutorial to
+do phishing, just tell people to learn programming,
+this is how they actually acquire skill and
+knowledge.
+That’s at least the motivation for many
+of my videos.
+If a person comes to my videos to learn “cool
+hacking” I try to be the person that carefully
+redirects them to where to actually get the
+knowledge, and that is for example programming,
+reading specifications, looking at research
+papers, and so forth.
+I don’t see any value in a Kali linux step
+by step command instruction tutorial.
+I also somewhat covered this in my “how
+to learn hacking” video.
+Very similar to that I see the topic of WiFi
+hacking.
+Maybe you didn’t know, but one reason for
+starting my channel was because I was annoyed
+as hell about all the Kali Wifi Hacking videos.
+I think they are soooo damn boring and they
+are not really what I think is educational.
+And I think it’s clear that people like
+to watch and make these videos, because you
+can actually apply and do this in real life.
+Hacking neighbors wifi for example.
+But in many countries, this could be already
+illegal.
+I personally find step by step guides for
+that stuff unnecessary to spread to masses
+over YouTube.
+I made one video about WiFi hacking and that
+was about KRACK.
+Not how to use a specific tool, but we look
+at the paper and try to understand the underlaying
+issue.
+Do you see the difference here?
+Just showing step by step how to use a tool,
+versus looking at the underlaying research.
+I think latter is the educational thing to
+do, that’s why I do it.
+The former is just a cheap cash grab for attention
+with something that is much closer to the
+border of legality and can be interpreted
+as inciting illegal behaviour.
+That’s generally my principle that I use
+for my channel.
+I think the educational content is explaining
+the underlaying concept, not the step by step
+copy&paste tutorial on how to use aircrack.
+Maybe you disagree with me saying that a wifi
+hacking tutorial is shit, but if youtube is
+actually thinking the same way, that still
+means you don’t need to worry that my videos
+are being taken down.
+Because I don’t make videos like that.
+Another similar example would be trojan or
+malware.
+If you truly care about how that stuff works
+you would checkout some malware reverse engineering
+or you learn programming, or some code golfing
+and file format tricks.
+Because trojans are nothing else than just
+programs.
+With maybe some creative obfuscation and file
+tricks.
+So if you show people how to make trojans,
+maybe even worse, just use a tool that generates
+a RAT, then I don’t see the value.
+I mean you can show such things exist, but
+you don’t need a step by step guide on how
+to use it, and you can hide the name, because
+nobody should care about where to get that
+tool.
+It’s not useful knowledge to me.
+For example there is a big trend of remote
+admin tools, for mobile phones, that are primarily
+used in abusive relationships to control the
+partner.
+Also called stalkerware.
+If you show somebody how to install or get
+such a thing, and youtubers have even advertised
+such products before.
+You suck.
+Unnecessary.
+Unethical.
+In many cases illegal and criminal and causing
+direct harm to people.
+And no, a disclaimer at the start “for educational
+purposes only”, is bullshit.
+If I would want to make a video about it,
+I would show how to detect stalkerware, the
+capabilities so you understand how to deal
+with it, or how to reverse engineer and analyse
+them.
+That would be a good video I think.
+Those are just some nuanced cases.
+it would be great to organize and gather more
+data on that.
+If we look closely at the videos and channels
+that get taken down by YouTube, I’m sure
+we can reason about what was risky, and we
+can also talk about, how could you have made
+the video move further away from possibly
+motivating illegal behaviour, more towards
+actual education.
+So I believe, when YouTube writes a policy
+like this, they are thinking about it in a
+similar way.
+Instructional hacking and phishing: Showing
+users how to bypass secure computer systems
+or steal user credentials and personal data.
+I think Google is not dumb and I would hope
+they see it somehwat similar like me, which
+means my videos shouldn’t cause issues.
+I mean there are humans sitting in offices
+on a whiteboard trying to come up with sensible
+rules.
+I think they try to decide what is unethical
+and what is a ethical hacking video.
+And I also feel like the data we have shows
+that that’s the case.
+because all our ethical channels never had
+issues.
+Or if an issue appeared we were able to resolve
+it quickly.
+To me that’s proof that the system works.
+Anyway.
+YouTube constantly works on their policies.
+Hacking is just one SMALL area of concern
+for them.
+And hacking is such a difficult topic for
+an outsider to judge.
+To be honest I’m mostly surprised we don’t
+have more issues.
+If you are realistic how much the average
+person knows about it, it’s almost a miracle
+that we run so smooth.
+I actually expect something much worse must
+happen at some point.
+Some bigger mistake should happen.
+Somebody will always misunderstand or misjudge
+our hacking videos.
+But I know that we have Google employees in
+our audience that care about us, and they
+have raised internally some concern in the
+past.
+And have been part of internal discussions
+around those policies.
+I believe the reason why I and many others
+had no real issues, is because of proactive
+policy discussions internally.
+If that was you, thanks!
+And while I kinda hate this drama stirring
+up on twitter about it, it did get the attention
+of even more Google employees.
+So for example laparisa got notice of it - she
+is a pretty important figure in security at
+google.
+So if she adds an opinion to some kind of
+internal discussion about this hacking policy,
+I’m sure it carries weight.
+So long story short.
+I don’t think you need to panic.
+Next time a YouTuber complaints about something,
+express your empathy to them, it sucks, but
+then maybe just give it one or two days before
+jumping on the drama bandwagon to see if things
+get resolved.
+I think if a couple of our hundreds or thousands
+of videos here and there have issues.
+Or some channel as a whole has some problems,
+I think that’s forgivable as long as we
+can resolve it.
+What we need is that the escalation process
+at YouTube works and we are able to talk to
+humans.
+BUT, that’s my view in July 2019, based
+on the evidence I have seen so far.
+Things could always change.
+So if we would see actual widespread strikes
+and account terminations, then we can always
+get our black hoodies and guy fawkes masks
+out to stir up some drama.
+Let’s not paint the devil on the wall.
+Let’s wait until the system actually fails
+us.
+When the attempts of contacting support and
+appealing fails.
+Then I will be more than happy to march with
+you
+That being said.
+It would be kinda awkward if I make this video,
+then my channel is taken down, and I would
+look like fool.
+Please don’t do this to me YouTube!
+But if it happens.
+*Clap* *clap*.
+That will be funny as hell.
+I can see the “didn’t age well” memes
+already.
+I will make sure to retweet it too.
+And as a last tip.
+If you are a YouTuber, or just interested
+in the YouTube behind-the scenes world, checkout
+the official Creator Insider YouTube channel.
+This is where you always get informed about
+policyx clarifications, experiments and changes
+coming to YouTube.
+They also interview engineers and go over
+policy examples.
+Maybe you can ask them to make a video about
+clarifying the hacking policy.
+I would love to see barbara sit down with
+some engineers, maybe even have somebody from
+Security at Google join them.
+If they go over a few examples regarding this
+policy, that would be awesome for us to better
+understand this.
+By the way, I have asked a few people to give
+their opinion on various fictional hacking
+YouTube videos.
+If they deem it ethical, unethical or neutral.
+It’s by no means a good scientific survey.
+But I just wanted to get a sense about it
+and see how it aligns or clashes with my views
+and opinion.
+I have made a casual talking video about the
+results.
+You can find it in the corner, description
+or directly on LiveOverflow2.
+Now after running around in your black hoodie
+all day, put it into the wash, and store it
+in the closet for the next drama.

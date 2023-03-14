@@ -1,0 +1,363 @@
+Now that we played the game to learn more
+about the game mechanics in the first episode,
+and that we have set up our own server in
+the second episode, we can finally start gathering
+technical information about the game and start
+reverse engineering the client.
+The very first lead that we get is provided
+on the official website “Our hackable components
+all live in their own sandbox, (the net code
+and game logic are completely custom), so
+you won't have to hack the engine (Unreal
+4) itself!”.
+That is already very good information and
+we will keep that in mind.
+So my plan right now is, not immediately to
+try to hack anything.
+That’s stupid.
+I have no clue what to do.
+So first I want to get a good overview of
+the whole thing.
+And then that will lead to information I can
+probably use to dig even deeper.
+I’m essentially doing information gathering
+or reconnaissance.
+And sure I will poke certain parts that I
+find intriguing and have a quick deeper look.
+But it makes no sense wanting to jump into
+a hole right away, if you don’t even know
+where the holes are.
+We also have 3 different clients, a windows,
+linux and mac client.
+And obviously the code had to be compiled
+for each one of them differently.
+But also probably not every file is different.
+So I thought it might be interesting to look
+at the differences and similarities.
+To do that I wrote a simple python script
+that simply walks the directory tree to get
+all files, and then creates hashes of all
+of them in order to figure out which files
+are identical and which files are unique.
+So let’s try this out on the clean client
+files downloaded from pwnadventure.com.
+And we can see quite a lot of files are identical.
+Some .dlls, some config files.
+Nothing sounds too interesting.
+Maybe you wonder why there are .dlls in the
+linux and mac clients, because dlls are for
+windows, that’s because this game is based
+on mono.
+And mono is a Cross platform, open source
+.NET framework.
+So this allows you basically to write windows
+.net applications and compile them to run
+on mac and linux.
+The unique files are also not that interesting,
+you can see different binaries for the different
+systems.
+So dylib is a dynamic library for mac, while
+on linux it’s an .so file a shared object.
+But the clients we just compared are essentially
+just the launcher.
+The actual game is downloaded during the update
+process.
+So here I have gathered all three updated
+game directories, and so let’s run the script
+on it as well.
+Each fully updated client is around 2gb of
+files each, so this will take a little bit
+to run.
+Hashing those big files takes a few seconds.
+Ok so now we have a lot more files to compare.
+But they are all pretty boring.
+A lot of .ini files, so these are mostly config
+files and then also a lot of .pak files, these
+are, based on the name, I assume, the actual
+3D files and stuff like that.
+Though it’s a bit weird to me that other
+resource files, such as MapTerrain.pak are
+different on each system.
+I would have assumed all of them are the same.
+But whatever.
+Nothing really looks that interesting here.
+Though this way you might discover a file
+that is called “GameLogic”.
+A GameLogic.ddl for windows, a GameLogic.dylib
+for mac and a shared object libGameLogic for
+linux.
+Mhmhm…
+But let’s have a bit more dynamic approach.
+Like I said in the first video, I will mostly
+do this on Linux, so let’s start with that
+and execute the Launcher.
+But the Launcher is not the real game, so
+let’s just hit play and wait for the actual
+game to have started.
+Once it’s on the main menu, we look at the
+process tree with pstree and some flags to
+get more details.
+Here it is.
+PwnAdventure3 has this process ID.
+The children of this process here are threads,
+ondicated by the curly braces.
+And each thread was also given a meaningful
+name, whichs quite awesome.
+So we have an async I/O thread, some message
+passing stuff, the main thread I guess, RT,
+remote,(?) or real time(?) heart beat, a render
+thread, SDL Timer, and SDL is a framework
+often used for games, so no suprise here,
+a TaskGraph and I don’t know.
+Okay.
+Let’s take the process ID and look for it
+in the regular process list.
+So this binary that was executed lies in the
+launcher directory, but then PwnAdventure3_Data,
+PwnAdventure3, PwnAdventure3, Binaries, Linux,
+and then the file is called PwnAdventure3-Linux_shipping.
+Let’s exit the game and see what happens
+when we call it directly.
+We see some kind of debug or log output, and
+the game is actually starting!
+So we have just bypassed, so to say, the launcher
+or updater and figured out how to directly
+start the game.
+Next let’s look at the /proc file system.
+That’s magical linux stuff, it looks like
+folders and files, it feels like folders and
+files, but is actually a bit more magic than
+that.
+However we can explore it like files.
+So we go to /proc and the process ID of our
+currently executed game.
+And with ls we can see the available folders
+and files.
+For example here you can check all the environment
+variables, the commandlines on how the program
+was executed, but also the memory map of the
+virtual memory of this process.
+The output is huge for this game, so let’s
+pipe it into `less` so we can scroll more
+nicely.
+So up here we have our game binary mapped
+into memory.
+Then some memory areas that are used for something
+else, probably a lot of different heaps and
+mapped memory of the game files and stuff
+like that.
+Oh damn there are a LOT.
+Let’s just skipt o the end with SHIFT+G.
+Ok so here are the addresses of our stack,
+the linux dynamic loader and linker and if
+we scroll up a bit we find some other dynamic
+libraries used by the game.
+Lib thread, libdl, and the libGameLogic again.
+Interesting!
+lib rt, libm, and libstdc++.
+Oh so we might actually have a game written
+in C++ here.
+Libcrypto, mhmh.
+We can also search for “mono” in here
+with / mono Enter.
+And then with n and SHIFT+n we can search
+for it.
+Though it doesn’t appear in this process.
+So it looks like only the launcher is written
+in .net using the mono framework, the game
+itself is not.
+Let’s have a quick look at the binaries
+themselves.
+Let’s start with the “file” command.
+So the main game binary here is a 64bit executable,
+it’s dynamically linked and stripped.
+So no debugging information available.
+With ldd we can see which dynamic libraries
+it requires.
+And here we can also find the libGameLogic.so
+again.
+Most of the other libraries are system libraries,
+so these just offer basic functionality like
+threading and crypto functions, but the gameLibrary
+most certainly is something that has to do
+with the game itself.
+Obviously.
+If we check the file output for that binary,
+we see that it’s a shared object, so not
+a standalone executable, it’s also dynamically
+linked and is NOT STRIPPED.
+Damn.
+So that means we get a lot of debug information.
+Before we leave the proc filesystem, let’s
+quickly check the fd folder.
+That folder contains a list of all the currently
+opened file descriptors and to which file
+they point.
+Which means this is a list of all the files
+currently accessed by the game.
+0,1 and 2 are obviously stdin, stdout and
+stderr, so pretty standard, but all the other
+ones are other files.
+As you can see most of them are the .pak resource
+files.
+Let’s try to head into the game.
+Connection Error.
+Failed to load master server certificate.
+Oh oh.
+I guess it wasn’t that easy to bypass the
+updater and make it work?
+Let’s see if we can fix that.
+We execute the launcher again, head into the
+game.
+And then verify that now we can connect and
+find that server certificate.
+Yup.
+ok… so let’s find the process id of this
+process now, by listing all processes and
+grepping for pwn, and then we go to cd /proc/
+the process id.
+Now let’s see if the process was executed
+with any special command line arguments.
+We can do that by reading the cmdline file.
+But nope, it’s just the binary path, which
+is always the first command line argument.
+No additional ones used.
+Then let’s check the environment variables.
+You can also cat that file, but the file is
+not pretty, the variables are null byte seperated.
+But we can pipe the file into sed and use
+a simple replace rule to match all null-bytes
+and replace them with newlines.
+Now we get a nice formatted output.
+But I didn’t see any special environment
+variables either.
+Also the current working directory is the
+same as from where we launched it previously.
+So I just played around with it a bit and
+simply went into the folder of the binary
+and executed it from there.
+And then it worked.
+Oh well.
+There is me trying to be smart.
+Anyway.
+Let’s do one last thing, and that is investigating
+the networking side.
+To do that I drop into the game and start
+by checking netstat.
+With netstat and -a for Showing both listening
+and non-listening sockets, as well as -c to
+continiously print connections, then grepping
+the output for pwn, we see that the game periodically
+connects to master.pwn3 on port 3333 and 3002.
+Port 3333 is the master server, as specified
+in the server.ini file, but port 3002 is actually
+the game server, but master and game server
+are on the same IP, so instead of showing
+game.pwn3 it shows master.pwn3.
+Cool.
+Next let’s exit the game again and open
+wireshark.
+Then monitor any interface and filter for
+all tcp packets to port 3333 and filter for
+only packets that contain a payload.
+So where the tcp length is larger than 0.
+Then launch the game again.
+And I also log in with an account.
+If we peak into the content of the packets,
+it looks like binary and we can’t immediatly
+see what it stands for.
+It’s certainly not like HTTP human readable
+json data or sth like that.
+Howeve ther are a few ascii strings in there,
+which is an indication that it might not be
+encrypted?
+“Ghost in the shellcode”.
+That was the name of the CTF this was part
+of.
+However these packets going from the client
+to the server, with all the same size, change
+a lot.
+So that looks more like encrypted content,
+or maybe just compressed.
+But we did see some libcrypto earlier, so
+yeah, we don’t know yet.
+Now let’s switch to port 3002, which we
+saw in netstat to be assigned as our game
+server.
+There is a lot more action here.
+The game constantly sends updates to the server
+and receives updates.
+Of course it’s an MMO so we expect a flood
+of packets.
+Let’s go back to the start.
+Wireshark tells us that these are some weird
+packets.
+However that doesn’t look right to me at
+all.
+Wireshark tries to guess and decode certain
+protocols, but it looks like it might be something
+custom.
+Of course layers below, the ethernet, TCP
+and IP layer are ok, just the payload of TCP
+is probably something custom.
+So in order to not get wrong decrypted protcols
+I go into the settings and disable all enabled
+protocols, and just enable ethernet, ipv4,
+and TCP.
+Ok that looks less awful now.
+So these packets are much smaller, which also
+makes sense.
+With every little change you want to inform
+the server and vice-versa.
+All these packets with size 70, are actually
+just 2 bytes of data of actual TCP payload.
+The values changing here belong to the ethernet,
+IP and TCP protocol layer.
+For example that part here is a timestamp.
+So that probably doesn’t interest us.
+We probably want to focus on the data.
+And the server just sent us a lot of zeroes.
+OK here we have the first time I think, the
+client sending something to the server.
+Actual ascii data, so that doesn’t look
+encrypted either.
+But I don’t know what it stands for yet.
+\After that it sends a huge bunch of packets
+with the same data.
+Mhmmh..
+Maybe we see nothing happen because nothing
+happens in the game?
+Let’s go down where there is more action.
+Let’s try to do some stuff.
+Then we observe the traffic while playing
+the game.
+Walking around doesn’t immediately show
+a change, however jumping triggers a slightly
+larger packet.
+And actually it seems to trigger two.
+One for initiating the jump, and one for getting
+back onto the ground.
+Because of walking and looking around, we
+can also see some slight changes in the previous
+packets.
+So this is an indication that it’s not encrypted
+and it might be simply our position in the
+game world.
+And jumping added something to it, but a lot
+of it stays the same, so it might be something
+like “I jumped at this position”.
+And “I landed on this position”.
+I think we already learned a lot about the
+game today.
+No worries, I won’t show every little detail
+I play around with, but it was important to
+me to show you that it’s important to investigate,
+and that you can slowly and incrementally
+learning more about the game, how it works
+and that can be fun too.
+Also btw.
+Make notes of these things.
+While doing this I was writing down what i
+did and what I found, because this way I don’t
+forget a week later what I already discovered.
+Next week, we will open the disassembler.

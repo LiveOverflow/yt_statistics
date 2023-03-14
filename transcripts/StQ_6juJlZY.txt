@@ -1,0 +1,370 @@
+Browser Exploits are very scary. If somebody has 
+a working exploit, simply visiting a website would
+compromise your machine by installing malware. 
+About a decade ago this was very common and often
+referred to as drive-by-downloads. Luckily 
+browsers have gotten a lot more secure,
+so your typical low-skilled blackhat criminal 
+hacker doesn’t have this ability anymore. But
+browser exploits are far from being a thing 
+of the past. They just have gotten a lot more
+complex and thus expensive. And this can be seen 
+for example in hacking competitions like Pwn2Own
+where researchers year after year showcase 
+0day vulnerabilities they found in browsers,
+and get awarded tens or hundreds of thousands 
+of dollars. Which some say is even low, because
+selling exploits to for example to governments 
+would get you 3, 5 or even more times the money.
+But why is it so difficult nowadays? I have 
+actually made a short series about the basics
+of browser exploitation, specifically looking 
+at webkit or more precisely JavaScriptCore,
+the javascript engine of webkit. So there you 
+can get an idea how that can look like. But
+while finding a bug in a Javascript engine that 
+gives you arbitrary code execution is already
+crazy and fascinating, nowadays that’s only 
+half the battle. Because after that, you are
+facing the browser sandbox. And in this video I 
+want to have a look at the sandbox from Firefox.
+This video is based on a cool article by freddy 
+from mozilla, so definitely check that one out.
+But let’s start with the questiol: “what is 
+a browser sandbox anyway?”. When you write a
+simple program and you execute it, it will create 
+a process. And your code can do anything right?
+You can write code to open files, write 
+files, you can even start new programs.
+So imagine you implement a browser and you 
+have a vulnerability in the HTML renderer
+or the javascript engine. Now an attacker would 
+have arbitrary code execution in your process,
+and they can do anything your program could do. 
+They culd open files, write files or execute
+malware. This is bad. And this is how it used to 
+be for Browsers. But the architecture of browsers
+changed over the years - that is the case 
+for every browser. Speaking from a highlevel
+perspective, you can imagine most browsers now 
+to have a privileged parent process, that is
+like your regular process that can do anything, 
+but the actual website rendering, maybe your tab,
+is another process. And the idea is to restrict 
+this process. Websites with HTML and Javascript
+cannot read or write local files, and they cannot 
+execute other programs. So why should this process
+have this capability? Let’s sandbox this process 
+and take away all those features. Then this
+process can just read HTML, render a page, and 
+execute javascript that makes the website fancy.
+And how these restrictions are implemented depends 
+on the operating system. You need kernel features
+for that. So each operating system does it 
+differently. For example on linux you have
+seccomp. A process can use seccompt to tell the 
+kernel, please never let me open new files again,
+and when then an attacker takes over this process, 
+they cannot open files. And when you look at the
+mozilla wiki about the sandbox, you can find here 
+a config setting to whitelist which syscalls are
+allowed to be called by the content process - 
+so the sandboxed process handling a website.
+And of course there are similar 
+features like this on windows and macOS.
+This is cool because we can restrict the render, 
+when handling the potentially malicious website
+content. BUT in practice it’s not THAT easy. 
+For example the opening, reading and writing
+of files. Think about it. The browser wants to 
+cache files and images, cookie information has
+to be stored somewhere permanently, when you 
+want to use the file dialog to upload a file
+the browser needs access to that. Suddenly you 
+realize, “SHIT!, we need to solve this problem”.
+And this is where IPC, Inter process communication 
+is introduced. So instead of giving the content
+process the ability to read and write files, we 
+implement a communication protocol between the
+content process and the parent browser process, 
+where the content process can only perform
+well defined actions. We could for example create 
+a message that says “please write this cookie to
+permanent storage”. And then the parent process 
+implements how that is done, the parent process
+actually opens the file and writes to it. And 
+this is the whole sandbox architecture idea.
+You have low-privileged render or content 
+processes. And they use IPC to communicate
+with the parent if they want to do 
+anything that would require higher
+privilege, and let the parent now deal with it.
+So this brings us back to exploitation again.
+If you find a vulnerability in HTML or JavaScript, 
+you can take over this process, but you are very
+restricted. Now you need to find a second 
+vulnerability in the sandbox implementation.
+Cool. now we solved one practical problem, 
+but there is another concern you might run
+into when you want to have an effective 
+sandbox. Let’s say all your websites are
+rendered in this content process, and it’s 
+properly isolated from the underlying system
+thanks to secure IPC protocol. Well many people 
+have their critical data loaded in the browser.
+Imagine you want to steal a users emails. You 
+don’t need malware anymore on the machine.
+You can simply go to Gmail in the browser. 
+So when you compromise the render process,
+and all websites are loaded in the same process, 
+you can now still steal all the emails. So it’s
+still a critical issue when the sandbox process 
+is owned. And this is where we get into more
+modern sandbox designs and here you see this 
+visualized in this image on the blog post.
+Current firefox, or maybe old firefox 
+depending on when you watch this,
+had a process per tab. And websites can embed 
+other websites through for example iframes.
+So this is exactly the issue we just talked about. 
+But the Fission project for firefox tries to solve
+that by implementing site isolation. Now each 
+site gets their own process. And this is awesome,
+because now exploiting the process running 
+this ad, cannot access the main page anymore.
+Your emails on gmail.com would be safe.
+Of course this adds more complexity to
+the sandbox. Because iframes need to 
+be able to interact with each other.
+For example you want to use the postMessage API in 
+javascript to send messages between iframes. So of
+course now you need to implement more IPC features 
+to enable communication between those two as well.
+So as you can probably guess, this 
+complexity introduced from process isolation,
+can still introduce lots of new vulnerabilities. 
+But the effort is still worth it, because now
+there is an additional barrier, 
+where earlier there was none.
+And as mentioned before, these kind of security 
+features are not unique to firefox. For example
+chrome also implements process site isolation. 
+But in this video we want to focus on Firefox.
+Now given that Firefox has a sandbox, a full 
+exploit to compromise the machine and install
+malware, requires a renderer exploit for example 
+in javascript, and additionally a sandbox escape.
+And these two tasks can be perfectly separated. 
+So if you have a team one person can look for
+sandbox escape and the other person can look 
+for the initial javascript vulnerability.
+So as a security researcher we can choose to hunt 
+exclusively for sandbox bypasses. It will still
+be useful, even if you haven’t found a renderer 
+vulnerability yet. And this is also reflected
+in the mozilla bug bounty. Mozilla considers 
+a sandbox escape a High Impact vulnerability.
+“Sandbox escapes that assume arbitrary code 
+execution in the content process - such as
+invoking an IPC method with attacker-controlled 
+parameters - do qualify for Highest Impact.”
+It is currently even paid better than the 
+code execution in the content process.
+Which also makes sense. If the sandbox 
+would be perfect you could maybe even
+ignore memory corruptions in javascript. Because 
+the sandbox implementation protects your system.
+Ok so now that we know that 
+sandbox escapes are interesting
+how can we attack them. I’m not an expert, but 
+I think there are three strategies. Attacking
+the operating system implementation. Attacking 
+the IPC layer. Or logic bugs from using IPC.
+So maybe you could try to find a bypass or 
+weakness in the sandboxing features of the
+operating system. For example if the sandbox is 
+configured to allow unrestricted open and write
+syscall, well then you can write local files 
+and maybe this means you bypassed the sandbox.
+Another research angle could be the IPC 
+implementation, which is written in C++.
+So maybe there are memory corruptions within the 
+IPC protocol layer. And in January mozilla even
+shared a blog post about fuzzing the IPC layer in 
+firefox. Here mozilla even gives tips to hackers.
+“One potential approach to fuzz such scenarios 
+effectively could be to start Firefox with a
+new tab, navigate to a dummy page, then 
+perform a snapshot of the parent process
+and then replace the regular child 
+messages with coverage-guided fuzzing.”
+Mozilla wants to share tips like this, 
+because if they can help researchers
+to understand Firefox IPC better, maybe 
+more people can find vulnerabilities and
+report them. And that makes firefox 
+ultimately more secure over time.
+So fuzzing the C++ implementation 
+is another attack possibility.
+And now we come to a third option. And this 
+is very highlevel. You will be surprised
+because you don’t really need to have any 
+low-level knowledge to hunt for bugs there.
+I’m talking about logic bugs in the IPC messages. 
+And this is what this article that motivated
+this video is about. “Examining JavaScript 
+Inter-Process Communication in Firefox”.
+Maybe you didn’t know this, but not everything 
+in firefox is written in C++. Actually many parts
+are written in Javascript. Have you ever thought 
+about why the settings page is not some kind of
+native window with settings, but it’s shown here 
+inside the browser. Well this is a web page that
+controls the browser settings. Btw it’s the same 
+in Chrome as well. You can even open the developer
+tools and explore the HTML of this page. You 
+can even see here Javascript that is loaded from
+internal resources. By the way, don’t get confused 
+by the prefix chrome://. I asked freddy about it
+and he pointed me to this glossary.
+“In a browser, the chrome is any
+visible aspect of a browser aside from the 
+webpages themselves (so chrome is e.g.,
+toolbars, menu bar, tabs). This is not to 
+be confused with the Google Chrome browser.”
+Okay. But in terms of functionality, obviously 
+the settings page needs a lot more privileged
+than your normal website - you have to be 
+able to change the firefox settings. And so
+I believe this page is actually part of the parent 
+process. It’s not in an isolated content process.
+Anyway. This article introduces the IPC message 
+sender and receivers implemented in javascript.
+They are called JSActors and they can be 
+used to send messages back and forth. And
+so let’s look at an example. When you 
+execute alert(1). This overlay window
+is opened. And this is actually implemented in 
+the parent process. When you execute alert(1),
+internally an IPC message is sent from the 
+content process, to the parent “please open an
+alert box”. And this alert box has a title with 
+the url, the text we entered and an OK button.
+So now let’s investigate this. I’m using here 
+Firefox Nightly and any of the steps we are
+doing are could change anytime. But i’m sure it 
+will be similar, or there will be updated guides.
+To prepare the browser for research now, in the 
+devtools we have to go to the settings and enable
+browser chrome debuggin toolboxes. And we enable 
+remote debugging. And then you have to restart
+firefox nightly. Once restarted you can now go 
+into the menu, tools and open the browser toolbox.
+This opens the multiprocess browser toolbox and 
+it’s basically an attached debugger for firefox.
+For the parts that are implemented in HTML 
+and javascript. And we right now are in the
+main parent thread. And you can see here 
+other processes, for example a process for
+browser extensions which are isolated as well 
+having the process id 35016. And as I said,
+many parts in firefox are implemented in HTML 
+and javascript, so is the interface. See this?!
+We can explore the browser interface. We can even 
+look closely at the implementation of the tabs.
+Here is the liveoverflow tab and I can even modify 
+the interface. It works the same way how you can
+use the devtools to modify websites. I mean 
+this literally is the familiar developer tool.
+Anyway. We are interested in the IPC mechanism, 
+so we can now look for the message handler
+for the alert box. We can search for the 
+message “Prompt:Open” and we can find this
+receiveMessage function. So let’s set a breakpoint 
+here and call alert again. alert(“test”).
+Browser freezes. And in the toolbox we can 
+see “Paused on breakpoint”. We are in the
+main thread in this function. So let’s look at 
+this IPC message coming in. It for example has an
+args.title, with the url. Or an args.text with the 
+“test” string. There is also a modalType which is
+currently set to 1. And it seems to control what 
+kind of alert box you get. Pretty interesting,
+right? You could now change here values and see 
+what happens. But this is just the receiver site.
+Let’s look at the sender now - the content process 
+sending this IPC to the parent. To do this we
+open another debug toolbox, this time the content 
+toolbox. As you can see, it is running in another
+process, process 25072, the web process. And this 
+basically has the capabilities you have when you
+would compromise the content process. Here we can 
+for example access the tabs, and get the first
+tab pointing to liveoverflow. And now we just need 
+to follow basic instructions how the IPC protocol
+works. First we want to get an actor for the 
+prompt and then send a query asking for the parent
+to please Open a prompt with these parameters.
+And we can play now with these parameters.
+For example we can specify a different 
+title. Or change the modalType to 3 and even
+fake this remoteID. Let’s see what happens. 
+Okay breakpoint hit in the parent and here you
+can see the fake data coming in. We were really 
+able to control this data. Let’s run it and see
+if this modalType 3 looks different from the 
+regular alert. Look at this!!! modalType 3 is
+a weird native window not this fancy overlay 
+window. Kinda looks like an oldschool alert.
+And you just witnessed what a 
+compromised content process could do,
+You cannot do this from regular javascript on a 
+website. But if you find a vulnerability in the
+content process, you could send arbitrary IPC 
+messages like we did with the debugger toolbox.
+So you can now hunt for logic bugs. For example 
+you can look for IPC message receivers that handle
+files for example, and you can try to send 
+evil arguments that maybe break something.
+We could for example instead of a string, send 
+a javascript object and try prototype pollution.
+So I create an evil object with just some messy 
+stuff, and send that. We get an error that it’s
+an unknown dialog type object, but nothing else 
+seems to have broken. But you get the idea,
+you can use the browser toolbox to 
+explore the IPC and look for logic bugs.
+The article also shows an example of 
+such a sandbox escape CVE-2019-11708.
+This vulnerability was used in a 0day 
+attack against coinbase in 2019. Read this:
+“Insufficient vetting of parameters passed with 
+the Prompt:Open IPC message between child and
+parent processes can result in the non-sandboxed 
+parent process opening web content chosen by
+a compromised child process.”. So as we just 
+learned, webpages are opened in this isolated
+sandboxed process. And only privileged and trusted 
+internal sites like the settings page is opened in
+the unsandboxed parent. But the vulnerability 
+here was, that the prompt IPC handler could be
+abused to open a prompt as a new tab loading 
+an attacker controlled website in the parent
+process. And this attacker controlled website 
+is now not restricted by the sandbox anymore
+and can thus do much more privileged actions. 
+Eventually gaining code execution on the machine.
+Sandbox escapes can sound really 
+complicated and magical, but I think
+this blog post was just excellent to show how 
+easy researching the firefox sandbox could be.
+Really cool.
+I hope this overview
+and a short dive into the firefox sandbox 
+implementation was interesting to you,
+if you want to learn more about browser 
+exploitation, checkout my playlist that I
+mentioned before and of course check the 
+description for links to the articles.
+I’d also appreciate if you checkout 
+liveoverflow.com/support. thanks.

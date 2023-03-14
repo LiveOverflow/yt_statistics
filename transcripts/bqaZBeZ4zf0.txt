@@ -1,0 +1,175 @@
+During the BruCON conference 2016 I participated
+in the local CTF, where I won 3rd place.
+Because it was a CTF for individuals, the
+difficulty was not high, so I was able to
+solve many challenges alone.
+I didn’t record all challenges, but let’s
+have a look at some of them.
+I started with the easy challenge, which I
+really didn’t like.
+The description says, that we have to identify
+unusual traffic in this package capture and
+count them.
+The flag will be the sha256 hash of that number.
+So let’s download and open up that capture.
+While doing that I try to think what could
+“unusual packets” mean?
+That is not really clear.
+It highly depends on the context of this network.
+Let’s say if I have captured traffic from
+a phone, it could be weird to see ssh traffic.
+But when I have a capture from a computer,
+I that would be normal.
+Are unusual packets maybe corrupted ones?
+Or packets out of order?
+The hint also says that those packets were
+sent by the source.
+So I try to figure out what the heck they
+mean.
+I start with some filters for what I think
+is the source IP, and start looking for packets
+that are not typical packets like port 80,
+443 or 53 for DNS.
+At this point I give up on the challenge and
+move on to something else.
+I wasted too much time not knowing what to
+look for.
+This is very frustrating because the challenge
+description is just not clear to me.
+It feels more like guessing, rather than showing
+knowledge or skill.
+I feel like the challenge should have required
+more information, a story what exactly we
+are expected to find in there.
+Anyhow, I will later get that flag, but on
+another way.
+But first let’s move on to another challenge.
+I don’t like these forensic challenges a
+lot.
+So I was very happy to see a reversing challenge.
+Reverse Beer.
+Apparently also pretty easy, find the key
+- but the flag is not in the standard format.
+First criticism here, can you then please
+tell me what format the flag will have, because
+if you don’t provide a flag format I might
+have to start guessing and that can be frustrating.
+But let’s see.
+So I donwload the file and check the file
+format.
+Looks like a 32bit linux binary.
+That sounds great.
+So I continue and open the binary in binary
+ninja and in parallel I try to run the binary
+on a linux system.
+So here I have a 64bit Linux machine on digital
+ocean, but I can’t execute the binary.
+I was a bit puzzled by that, but then I remembered
+I didn’t install the 32bit libraries.
+While they are installing I have a first real
+look at the assembler code.
+So when I follow main I immediately notice
+a function call to ptrace, and afterwards
+a jump not equal,
+so that is a simple anti-debugging check,
+that can be simply bypassed by always jumping
+to the code that continues.
+You can save that binary and continue to work
+with that one on the linux machine.
+In case you want to debug it.
+But let’s continue here.
+Next we notice a call “string to unsigned
+long”, which will convert a string to a
+number.
+Afterwards we see these suspiciously similar
+blocks in a row - that looks very interesting.
+But first I want to run the program and see
+what it does.
+Ok so we have to provide a number as parameter.
+I didn’t immediatly go for the interesting
+blocks because I felt I didn’t understand
+the binary yet and wanted to get a better
+overview before chasing something down.
+So for example this f function, which seems
+to print something.
+And there are also these huge ascii art pictures
+that have a symbol name, but in a different
+language.
+So I translated those.
+Now I understand better what I try to get
+to.
+I don’t want this bad ascii output, I want
+this good output.
+So now I look at the blocks in the row and
+see the compares, which probably check the
+number we enter.
+Each block takes the input number, extracts
+a byte from it with masking and shifting,
+and then comparing it.
+So the first block doesn’t shift, so that’s
+the lowest byte.
+The third block shifts by 8 bit, so one byte
+and uses test eax,eax, which means it’s
+checking if the second byte is zero.
+then comes the second block which verifies
+the third byte to be 6b,
+and the last block checks the last byte with
+b1.
+Ok now we have the correct input number, which
+we can use as a key.
+It works, we have a different output.
+And it tells us that the key we found is the
+flag.
+By the way, it’s not BruCON’s fault, because
+the CTF was organized by a third party, but
+stupid sexual jokes like that drives women
+out of this field and it’s not cool.
+Ok, so despite the flag format not being clear
+at first, the challenge was telling you exactly
+what the flag is.
+Though, in my opinion, this information that
+the input key is the flag, could have been
+already disclosed in the description and it
+would have been completely unambiguous.
+Next up, virtual lockpicking for 350.
+I have no idea why this challenge is worth
+350 points and what exactly it is supposed
+to teach you, or what kind of skill is required,
+but here is how I did it.
+So I follow the provided link and find this
+weird, game website?
+Looks like a small flash game or something
+wher eyou have to lockpick?
+I immediatly notice the “DRAFT” tag and
+the “create” and “see inside” button,
+which sounds like this website is actually
+for developing games.
+And you can look into the code.
+So I look inside and get presented these logical
+code blocks.
+You can drag’n’drop these blocks and create
+a program that way.
+So I’m just clicking around and try to see
+if something looks like logic that hides the
+flag or whatever.
+And eventually I find this weird lonely block
+with a base64 string.
+At this moment it was clear that I got the
+solution.
+Behind it is a url to an image, which contains
+the flag.
+Very easy, didn’t require any hacking skills.
+Worth more than reversing a linux binary.
+Oh and before I forget it, here is how I solved
+the first challenge.
+I just wrote a simple python script that bruteforces
+the flag.
+I use a for loop to count up the number of
+packets, hash the number with sha256, and
+send the request to the CTF page.
+And eventually my script stopped, because
+it I found the correct flag.
+So, I was gaming the game.
+Still no idea what the unusual packets are,
+but as a hacker you sometimes have to think
+around the corner.

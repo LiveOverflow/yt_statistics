@@ -1,0 +1,310 @@
+While I was in Las Vegas for the DEF CON CTF,
+niklas from eat sleep pwn repeat asked me
+about the Real World CTF Qualification but
+I had no clue.
+Apparently my team qualified for the finals,
+and I didn’t even know.
+You can see we are well organized.
+This Real World CTF seemed a bit weird, it
+kinda came out of nowhere, it promised 100.000
+dollars for the first place in the finals,
+but the price was also in USDT, a crypto currency
+which is basically bound to the US dollar.
+It was a Chinese CTF by this company Chaitin
+Tech.
+But the challenges were actually really cool,
+and they were based on real world applications.
+Most notable was probably the P90_RUSH_B challenge
+where a CS:GO map parsing bug had to be exploited.
+So for a while it was unclear if the finals
+will still happen as we didn’t hear much
+about it anymore.
+But then suddenly we got the invitation to
+come to Zhengzhou, china to participate in
+the Real World CTF Finals 2018 on the 1. and
+2.
+December.
+We booked our flight, got our visas and had
+no idea what to expect.
+Our team met up in Frankfurt Germany to fly
+together to Hong Kong and then continue to
+Zhengzhou.
+On the first flight one team-mate figured
+out a crazy combination of steps to crash
+the inflight system which is based on android.
+It leads to crashing the QT5PacLauncher.
+Screen goes black.
+And eventually it restarts.
+On iMacs at the HongKong airport where you
+can surf the internet.
+You are supposed to only use this tool here.
+But again a team-mate found a way to escape
+the program and gain access to the underlaying
+operating system.
+You can tell I was traveling with hackers.
+Anyway… we arrived later in the day in Zhengzhou
+and unfortunately the weather was not great.
+Organizers actually warned us of the air quality.
+While it looked kinda sad and grey during
+the day.
+The fog or the pollution(?) looked actually
+really awesome at night.
+It really had a cyberpunk flair.
+We were staying in this huuge skyscraper hotel
+on floor 40-something next to a lake and a
+convention center where the CTF was going
+to be.
+So once we got settled we decided to walked
+around and see some stuff.
+And we couldn’t believe our eyes.
+There were these big posters about the Real
+World CTF and pointing into the direction
+where it would be.
+Oh wow this seemed a bit more serious than
+we thought it would be.
+We walked a bit further and then we saw this.
+At the convention building there was a HUUUGE
+banner with Real World CTF and all the team
+names.
+And a crazy looking entrance.
+What is going on??
+What is this crazy event?
+Because I only had a crappy phone, here are
+some pics from the next day.
+This is crazy….
+There is our name!
+This is NOT what we expected.
+Who the f’ would be watching us?
+This is just a CTF!
+We are not like esport fun to watch?
+So the next day was the start of the CTF and
+this was the first time we walked into the
+CTF area.
+
+WHAT THE F’ IS THIS!?
+
+Well… yeah… so this looked crazy.
+Each team had a cool table with our team names
+and logos on it.
+We felt not at all prepared for this level
+of professionalism.
+You would think we would prepare A LOT for
+the huge prices,... but be real….
+We have NO CHANCE against these other teams,
+we were just here to have fun.
+But if there is a next time I will still prepare
+more.
+This is insane.
+Around the CTF areas a few sponsors had setup
+some marketing booths, like Pangu Team, Qihoo
+360 and many more.
+But I never interacted with them.
+So we had about 1h to setup before the CTF
+starts and after we resolved all our networking
+issues we were waiting for it to start.
+Countdown.
+19 minutes.
+The CTF would go for two days.
+1.
+And 2.
+Of december.
+And
+Also the rules of the CTF were introduced
+to us.
+It’s a jeopardy style ctf, so very typical,
+but several challenges required demoing it
+on stage.
+For example there was a challenge called station
+escape where you were given a minimally modified
+vmware binary, they patched something in it
+to introduce a vulnerability, and then you
+had to exploit it and pop the calculator on
+the stage.
+For example here RPISEC exploited the host
+and executed the calculator.
+And got FIRST BLOOD.
+There was some browser exploitation, some
+web challenges, even doing some car hacking
+on stage.
+Oh and each team got a camera as well as a
+router and both of them were challenges.
+You had to hack into the router and you also
+had to find a way to access and control the
+camera without authentication.
+So there were really cool challenges.
+If you want to know what I did during the
+CTF, well I can tell you I didn’t solve
+anything.
+Infact I spent BOTH DAYS.
+INCLUDING THE NIGHT TIME on the blockchain
+challenge Acoraida Monica.
+I have done quite a bit of smart contract
+stuff this year and I thought: “F’ YEAH!
+This is my challenge.
+No problemo.
+Ezy pointz”... gosh was I wrong.
+This challenge was crazy hard.
+And I did make progress.
+Slow.
+But progress.
+And thus I never gave up.
+Of course in retrospect I should have spent
+my time on something else for points, but
+I actually learned SOOO much more about ethereum
+smart contract internals.
+It was so useful to me.
+I’m so blown away by this challenge and
+I definitely want to make a video talking
+about.
+However our team did solve a challenge.
+And that was the router.
+They were actually rushing it.
+Because demos on stage take time and the end
+of the CTF was nearing each team had to register
+for a spot for demoing it.
+So we registered without having a working
+exploit.
+And literally 5 minutes before the end the
+exploit worked, a super quick test run was
+done to see if it works, and they rushed onto
+the stage.
+With 3 minutes left on the clock, team ALLES!
+Was the last team to win a flag.
+Our only flag.
+But we were so damn proud.
+Overall the CTF was super hard.
+We were 5 people and I was sucked into a single
+challenge, so kinda only 4 people.
+Other teams, especially the ones that were
+in the top had actually more people helping
+offsite, over the internet, which is totally
+fine and allowed.
+Our team just doesn’t have that many dedicated
+players.
+So I feel like this CTF would have been perfect
+for a team of like 8-10 people.
+I think that would have been sweet spot.
+5 was too low, and 20 or so would too much.
+On average 1 day per challenge would have
+been nice.
+Oh and just in case you wonder, solving a
+single challenge was still pretty good.
+The final scorebored looked like this.
+Actually a team asked me to censor their cero
+points because they felt so embarassed, so
+I hide it here.
+But they shouldn’t be embarassed.
+It was a really hard CTF and everybody should
+be proud to even have qualified.
+While the stage and light effects and demos
+was awesome, it was a bit of a bummer that
+almost nobody celebrated it.
+Very rarely people would clap or cheer for
+successful popped calcs on stage.
+LCBC was probably the happiest on stage for
+pwning a challenge.
+But with every demo we saw I was hoping that
+the room would burst out into claps and cheers.
+So this is a call to my fellow CTFers, comeon!
+Let’s celebrate this awesome hacks more.
+Let us show people that this awesome!
+One other thing I’d like to mention was
+how weird it was to have all those guards
+there.
+And at the entrance there were x-ray machines
+for the bags and pat down.
+I don’t know if these guards were police
+or just security, but there were not just
+a few at the entrance, they were standing
+just meters apart, and they were standing
+there for HOURS, I felt so bad for them.
+That must have been sooo boring.
+There was even a large group patrolling with
+riot shields and sticks and stuff every few
+hours or so.
+I think they were supposed to protect us and
+make us feel safe and make sure nothing bad
+happens, but to be honest, I felt more threatened
+by it.
+It was really weird.
+One other interesting cultural observation
+I had was smoking.
+So apparently smoking was banned inside of
+places or so just a few years ago, but people
+just kinda ignore it.
+Or well… they hide.
+In the toilet.
+So everytime you go to the bathroom there
+are people and employees just hanging out
+and smoking.
+I’m somebody who really likes a clean, quiet,
+empty bathroom, this was a bit irritating.
+Other than that nothing weird happened.
+Everybody was super nice to us and we were
+put in a nice hotel, and breakfast was awesome,
+they even apologized constantly when small
+things went not quite right and the organizers
+in general made us feel very welcome.
+It was a really well organized and great event.
+Kudos for that.
+On the day after the CTF, when the winner
+was clear there was a small conference with
+an award ceremony.
+This is where we got a small glimpse into
+day-to-day chinese politics.
+They even had live translators for us.
+I don’t remember who exactly spoke, but
+there were several important people there
+and I think it was like the mayor and some
+misters or so, just talking about the importance
+of security, and that the government has to
+invest more into this, and support IT security
+education and this Real World CTF was part
+of this.
+This was a competition in IT security on a
+high level, in order to motivate young people
+to go into this field and also position China
+as being cutting-edge in IT security.
+Or actually it was less about China as a whole
+and more about the region itself, you know
+China is huuuge and they were often just talking
+about the Henan province which has even a
+bigger population than Germany.
+And the city Zhengzouh where we were, is almost
+3 times bigger than german’s capital city
+Berlin.
+So of course for local politicians it’s
+more about positioning Zhengzouh as a hub
+for IT companies.
+This is where talent is, and where the REAL
+WORLD CTF Finals happened.
+They want their economy to prosper.
+So of course this is all about marketing and
+economics, but it was just really fascinating
+to not just hear about global political news,
+but to get a small glimpse into this day-to-day
+boring local politics.
+And the marketing was really crazy.
+After the CTF they even got multiple pages
+in a local newspaper ready for the next day.
+And so thanks china.
+Now I have to own a picture of Trump in order
+to keep this piece of memory of the Real World
+CTF.
+I used google translate on my phone to read
+some lines in the newspaper, but it was a
+bit rough.
+“The Most powerful brain idle sports network
+offensive and defensive surgery”.
+We also got some stickers which of course
+have to go onto my laptop.
+And we got this metal challenge coin.
+You can tell I had a lot of fun there and
+I was so glad that I went.
+I’m really looking forward to next year
+and hope we can qualify again.
+Thanks also to my team-mates, I really enjoyed
+traveling and playing with you and congratulations
+to LC:BC, 217 and ESPR for rocking this CTF.
+And nice to meet so many new people and see
+familiar faces again.

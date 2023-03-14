@@ -1,0 +1,74 @@
+Fuzzing is a technique to automatically test
+input to some software to see what happens.
+This could be a crash or just general errors
+or interesting behaviour.
+Whatever you are looking for.
+Now fuzzing is not easy.
+There are a lot of different challenges like
+speed, scalability, detecting errors or whatever
+you look for, but also how do you even generate
+these interesting input test cases in the
+first place?
+that’s basically the whole art of fuzzing.
+For example if a software wants an integer
+as input.
+What kind of fuzzy tests would you like to
+do.
+Other numbers, leading spaces, small numbers,
+large numbers, larger numbers, leading zeroes,
+negative numbers, floats, text, long text,
+arbitrary bytes?
+There are so many options.
+Now if you need a simple but fairly powerful
+general-purpose fuzzer, then check out radamsa.
+Radamsa is a test case generator for robustness
+testing, a.k.a. a fuzzer.
+It is typically used to test how well a program
+can withstand malformed and potentially malicious
+inputs.
+It works by reading sample files of valid
+data and generating interestringly different
+outputs from them.
+The main selling points of radamsa are that
+it has already found a slew of bugs in programs
+that actually matter, it is easily scriptable
+and easy to get up and running.
+Let’s revisit our example about this fictional
+program that wants an integer.
+And then we use radamsa by giving it one example
+number, by piping it into the standard input
+of radamsa.
+And radamsa then prints a potential fuzzing
+test case.
+Now here it returned a huuuuge number.
+Next it actually returned nothing.
+So you would test an empty input
+Then it returned a small number 2.
+Then 256.
+Now echo also adds a newline after the number
+we pass in, so for this testcase radamsa simply
+decided to remove this newline.
+A few test cases later radamsa even introduced
+some unprintable characters.
+You see radamsa is pretty smart in generating
+good fuzzing input.
+It tries really hard to create useful input
+that is not just random bytes but actually
+has hopefully some meaning for the targeted.
+Let’s even try it with a simple HTML string.
+An svg tag with an onload javascript alert
+attribute.
+You can for example see here a testcase where
+radamsa seems to be aware that that’s a
+number and changed it, and here added some
+arbitrary bytes before the equal sign, it
+also constructs invalid HTML by repeating
+opening or closing tags.
+Now see we never gave it an empty opening
+tag, but for some reason it still used one.
+If you have an XML parsers this is really
+good test input that stresses the hierarchical
+structure of XML or HTML.
+Radamsa is pretty smart and powerful but it’s
+also so easy to use that you can rapidly prototype
+a fuzzer for some software you want to test.

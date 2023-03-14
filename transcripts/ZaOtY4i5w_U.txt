@@ -1,0 +1,207 @@
+Sources and sinks describe a very simple concept
+for security code reviews or finding vulnerabilities
+in general.
+Those terms are also often used in the field
+of taint analysis and that’s basically what
+we will talk about.
+I think it’s one of these things that are
+super obvious and many of you have already
+developed this intuitively without having
+a name for it.
+At least that was true for me, but also once
+I learned about the concept this intuition
+transformed into an actual technique for me.
+So I figured there must be others that might
+be at a similar point and it could help.
+Source and sinks.
+What does that mean?
+Sources are where data is coming from.
+Attacker or untrustworthy sources of data.
+And sinks are places where untrustworthy data
+could do something bad.
+Let’s do a very simple example.
+You have maybe seen my video “Let’s play
+a game: what is the deadly bug here?”, where
+we look at a very short php program and I
+explain to you my thought process in finding
+the security issue.
+So I think it’s a very good example of this
+concept being applied.
+I didn’t explicitly use the terms sources
+and sinks in the video, but that is essentially
+what I did.
+So let’s quickly identify the sources here.
+Sources are where data is coming from, and
+in this case there are three $_POST request
+variables.
+These are fully user controlled.
+But data is also coming from the SECRET environment
+variable, so in terms of security we have
+to think now, is that particular source relevant
+to us.
+And in the video I was contemplating about
+that but determined an attacker has probably
+no control over it, so I excluded it from
+my mental list of attacker controlled inputs.
+The sink in this case is pretty obvious, it’s
+this dangerous exec function.
+And now we have to figure how or if sources
+are connected to the sinks.
+If we find a connection between attacker controlled
+input, the sources, to the dangerous function,
+the sink, then we probably have a security
+issue.
+Makes sense, right?
+To figure out if this is the case, can be
+super easy, but in this example it was not
+straight forward.
+I mean the post variable, so one of the sources,
+is directly passed to the exec function, and
+that’s bad, right?
+But it’s not that simple.
+Because before it we have a lot of conditions
+that try to protect exec.
+In this case the idea was to use hmac to authenticate
+the command passed to exec, which means only
+the admin who knows the secret could do it.
+And the admin could also just login to the
+server with ssh and execute any command anyway,
+right?
+So it’s not inherently a security issue.
+We have to proof now that an untrusted person,
+and in this case this means sb.
+who doesn’t know the secret could pass malicious
+code to exec.
+And how we figured that out you either know
+already, or I recommend you to watch that
+video.
+Anyway.
+There are a few methods how you can work with
+sources and sinks.
+For example when you want to review some code,
+you could start by looking for all the dangerous
+functions.
+Let’s stay with the php example.
+You could then look for every function considered
+dangerous.
+There is this really nice stack overflow question
+that collects many of them.
+So there are a lot of dangerous functions
+that are obvious such as exec, and system
+and eval, but the issue is, not every function
+is clearly dangerous.
+For example there is really obscure stuff,
+like the old php preg_replace function which
+is used, to “Perform a regular expression
+search and replace”, but it has this /e
+modifier which can lead to php code execution
+through one of the parameters.
+Another example is that a developer could
+create construct a dangerous setup themselves.
+For example a function that creates a file
+and stores user data in it, but the file is
+also accessible from a php webserver and so
+if a user enters php code into that file,
+it could be executed by visiting that file.
+So you see it’s not that easy to find all
+the sinks in a program.
+But the concept is clear, you try to find
+places that could be dangerous, if user controlled
+input gets there.
+The other side, the sources are also not that
+easy.
+I mean it’s pretty obvious that the GET
+and POST parameters are user controlled, but
+some inputs are not clear.
+For example my wifi name is a simple XSS test,
+and in one video where a device was listing
+my wifis, it caused an XSS.
+The developer did not anticipate that the
+wifi name could be malicious input.
+And especially with frameworks that abstract
+away a lot of stuff, it’s sometimes really
+not clear what exactly is user controlled.
+Which means it’s like the sinks, not something
+you can always just search for, but the concept
+is clear, we want to find all the sources
+of untrustworthy data.
+And then we try to put sources and sinks together.
+You can either do it forwards, backwards or
+a combination of both.
+Forwards means you take one of your sources
+and just follow where this data is going to.
+Essentially you are doing taint analysis by
+hand.
+“Okay this input is then split at the comma,
+the first element is passed to this function,
+the second element is passed to this function.”
+and then you continue to look at both functions.
+Along the way you remember all the transformations
+of the input or sanitization, like if certain
+character is removed, or what kind of checks
+exists and you hope it eventually it leads
+to a dangerous sink.
+The backwards path means you take a dangerous
+sink, and try to follow the path back up,
+where is this data coming from, what kind
+of checks have to be true in order to lead
+down here, and you try to figure out if it
+leads to a source of untrusted data.
+And which method to use totally depends on
+the target.
+For example if you have code with a looot
+of command executions or SQl queries, then
+looking backwards from all these sinks could
+be too much and it would be easier to just
+follow the 5 inputs.
+But maybe it’s easy to find all the dangerous
+sinks, but just the input is not very clear,
+so you try to track back.
+So deciding what to do is very much just a
+bit of experience and a lot of GUT feeling.
+So the concept of sources and sinks is very
+easy, and I think using this terminology when
+talking about vulnerabilities is very useful.
+So next time you have to find vulnerabilities
+in some code for a class assignment or CTF,
+try to use methods like this here.
+One other thing I want to mention is that,
+it appears to me that the concept of sources
+and sinks is used a lot more in the client
+side web security community, than in other
+areas.
+Especially in the area of DOM XSS.
+So you have like classic XSS where the server
+code places untrusted data into the generated
+HTML sent to the browser, but in DOM XSS,
+it’s not like that.
+Some untrusted input is passed to some javascript
+function and that leads to JS code execution.
+For example if an attacker can control the
+content passed to the javascript function
+innerHTML, which will write HTML, then of
+course you can write a script tag as well
+which is executed.
+And because there are so many javascript frameworks
+being used, with weird stuff, it’s a typical
+thing for researchers to share sinks with
+each other.
+So you find a lot of lists of sources and
+sinks for various frameworks.
+I like this kind of sharing, and would love
+to see it more adapted to other languages
+as well.
+Documenting dangerous functions, especially
+when they are more obscure is a really helpful
+thing.
+So if you are a developer, and work with some
+kind of framework in any language, and you
+come across some functions that do something
+really fishy, can be easily misused or are
+more powerful than people think, document
+it.
+Tweet about it with #sink and hashtag the
+name of the framework.
+Or write a blog or something, that is just
+basic everyday research that can be really
+helpful.

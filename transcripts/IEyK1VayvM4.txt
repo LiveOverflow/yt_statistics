@@ -1,0 +1,245 @@
+We developed a first almost working exploit for 
+sudo. And it worked! Kinda… it turns out it only
+worked for the root user. But when we tried 
+it as an unprivileged user it didn’t work.
+We ran into a segfault… So 
+let’s try to investigate this.
+So we have to investigate what goes wrong 
+when we run the exploit as the user.
+As opposed to running it as root. And when you 
+want to debug a crash, you obviously would want
+to run it in gdb. But gdb changes some 
+environments and sudo is also a setuid binary.
+So we cannot run this in gdb as the user.
+But there is another way to get the crash
+information, and that is with core files.
+Here is a simple C program that accesses an
+array out of bounds. When executing this, it 
+will create a core file, and this core file could
+be loaded into gdb to look at the crash reason.
+As you can see, I configured the system to create
+core files and it works. Even for a setuid 
+process. The test program was running with
+setuid.I’m showing you this, because for whatever 
+reason I would not get a core file for sudoedit.
+I have tried to figure out why, for HOURS and 
+didn’t figure it out. Only indication I had
+was in the syslog, that the crash of the test 
+program, and sudoedit were different. And maybe
+this case doesn’t lead to a core dump?
+But I have a feeling that it has to do
+with using docker desktop on mac. Coredumps 
+are a kernel thing, and docker uses namespaces,
+so the same kernel from an underlying system. And 
+maybe the linux VM that docker desktop is using is
+weird? I don’t know. If anybody 
+knows the issue. PLEASE TELL ME.
+Anyway… I had another idea.
+Before we execve in the sudoenv wrapper,
+I added a getchar() function call, which 
+is waiting for a key entry from the user.
+This way we can execute our exploit as the 
+user, look at the pid of the wrapper and use
+a root shell to attach gdb to it. Then we 
+continue in gdb, and also hit enter for the
+sudoenv wrapper. Now we see the backtrace in gdb.
+we crashed in strcmp. From the backtrace we can
+see we are coming from nss_database_lookup2. From 
+the code we see it references this service_table,
+and in gdb we can see that it was SMASHED.
+Mh…
+What is the difference between 
+running sudoedit as user and as root?
+Yes we ran the whole heap fuzzing as root, BUT 
+we did try to account for that and we patched
+sudo to kinda execute like a regular user, 
+by hardcoding the userids. But evidently it
+seems like that executing it as root still 
+lead to some differences In execution.
+Which, I guess, resulted in a different 
+heap layout. Thus we do not overwrite
+the correct object.
+That sucks…. Okay...
+I thought about this for a bit and I guess 
+there are three options that come to mind now.
+First.
+We could try
+to bruteforce different padding lengths in our 
+exploit again. Different lengths in argvs and
+the environment variables. And maybe we get lucky, 
+and we find an offset that just works perfectly.
+Pretty easy to implement, but the chance of it 
+working, probably low? Depends on how different
+the heap layout looks like as the user… And it’s 
+a game of probability. If we assume there is a
+correct offset value, it will be a chance in 
+millions to hit it. With only a few executions
+per second it will take ages statistically.
+Second. We could write a crash analysis
+enumeration tool like we did in a 
+previous episode. The fengshui scripts.
+Where we bruteforce the argvs and environment 
+variables and look at the general backtrace,
+and not just hope for the perfect condition where 
+the exploit works. The difference to the original
+fengshui script would be, that this time we 
+let the user execute it, and attach gdb from
+another root shell to gather the information.
+This means we could then specifically look
+for crashes that happen in t_search coming 
+from nss_lookup_function. If we find that
+we do what we did last episode. we just adjust 
+the offsets to overflow the struct properly.
+And third option. We analyse the crash we have, I 
+mean we are very close to the actual exploit. We
+didn’t crash in a super random place, right? We 
+crashed in nss_database_lookup. So maybe we can
+work with this crash and adjust the values 
+so that we reach again nss_load_functions?
+Mh… what would you do?
+I thought about option 3,
+but quickly threw it out. The calltrace 
+was very different and the struct we
+overwrote and smashed doesn’t seem to 
+lead to dlopen or something similar.
+Option 2 is kinda similar to option 1. Option 2 
+is just less random, because it’s guided by us the
+user. First we are trying to find the right crash 
+condition which can happen for a range of lengths,
+and then figuring out the exact offsets for 
+the exploit. While option 1 requires to get
+lucky with the precise values by chance.
+Unfortunately a script for option 2 would
+be a bit of engineering, because we have to 
+implement logic to run the fuzzer as user,
+and having then a second script as a root helper, 
+which is allowed with gdb to dump the crashing
+callstack. By the way this would also be easier 
+if corefiles would work, because then we can just
+parse the core file from the user and don’t 
+need a parallel root script. Anyway, it’s not
+hard to program, just a bit of engineering, 
+and it’s annoying and would take some time….
+So I go for option 1. I hope I get 
+lucky and the exploit just works.
+To do this I copied the current asd3.py script 
+and created asd4.py. I wrapped the execution in
+a function where we can pass in the args. And I 
+replaced the basic os.exec with a subproces call,
+because os.exec would replace the current 
+process and we want to execute in a loop.
+And then here is a while true loop constructing 
+random arguments passed to the sudoenv wrapper.
+And here is another trick I did. Do you 
+see that the first arg is called ARGV_1?
+Checkout the sudoenv2 wrapper.
+Here I use the first argument for
+the length of the string passed to sudoedit -s.
+And then I only use argv starting from the SECOND
+argument to be environment variables.
+So here the fuzzer is fuzzing the -s
+argv input and the environment vars.
+Then I dump the arguments used in a
+file and if we find the /tmp/hax file, we know 
+that we succeeded with the exploit. The shared
+library we placed would have been executed,
+So let’s run it as the regular user and hope
+we find the perfect overflow 
+offsets to trigger the exploit.
+In the background you can see here 
+the different args generated by the
+fuzzer. So that seems to work.
+In the syslog we can also see
+messages that sudoedit crashed. Which is good.
+And in the process list we can see that
+sudoedit is always called with 
+different argument -s. Great.
+This looks really good. So 
+now let’s just hope it works.
+I have been running this for 
+a while, and so far no luck…
+So I changed the script and added more 
+environment variables back to the bruteforcing.
+Basically bruteforcing the same values as 
+the fengshui scripts from some episodes ago…
+Remember, unlike the fengshui script, we are now 
+trying to hit the perfect offsets to exactly hit
+the struct and overwrite the values for the 
+exploit to work. That is a lot less likely,
+then just collecting crash information and 
+looking for conditions that crash in the
+spot we are interested in. So my hopes are low.
+Anyway… Here you can see the kind of arguments
+the script is creating. And we are 
+running this now again for a while.
+But I can already spoil you. It didn’t work. 
+So I decided to go for option 2 afterall….
+I wrote two scripts. A gdb watcher which is 
+executed as root, and asd5 executed as user.
+Asd5 is similar to the bruteforce scripts 
+we had previously. You can find some similar
+parts from the fenghsui scripts. And then there 
+is the gdb_watcher running as root can, which
+can launch gdb to attach to the setuid sudo 
+process and then dump the backtrace. This
+is similar to the fengshui script as well.
+As you can see we just separated the feng
+shui script into two parts because 
+we want sudoedit to run from a user,
+but we need the gdb watcher to be able to attach 
+to the root process, so has to run as root.
+To sync the two scripts I use file locking 
+and a state file, that can be used to exchange
+information. For example when the user script 
+launches sudoedit, or rather the sudoenv wrapper,
+it waits for user input. So the process id 
+can be written to the state file. And the
+gdb watcher sees this, attaches gdb to the pid, 
+continues the process and informs the user script,
+Now the user script will basically hit enter 
+to continue execve sudoedit, and then we
+crash and we get the stacktrace from gdb.
+Anyway. Here it’s running. You can always
+see the asd5.py script finding a segfault, then 
+telling the gdb_watcher script the process id,
+now asd5 is waiting for the continue 
+signal from the gdb watcher. Continues.
+Then gdb tells us the backtrace. And 
+the information can be stored in files.
+And here you can see the results. We immediately 
+find interesting segfaults. Letting this run
+for a while we can find a few nss cases. So 
+this is looking fairly good and I ran this
+for many hours. Unfortunately. They 
+are not the right ones. Basically we
+are looking for a crash in t_search. Because 
+then we overwrote the service_user struct ni…
+Mh…
+I have to tell you something. When I did 
+the original research, at this point my
+fuzzing worked and I did find the crash case 
+we wanted. The difference to now is, that I
+did the original research directly on ubuntu in 
+a VM, and I didn’t do it in a docker container
+with Docker Desktop on my mac. These recordings 
+are from my original research and you can see,
+I found the crash case we wanted. Also coredumps 
+worked on there, so I was working with core dumps
+instead, and my script was a bit simpler. Anyway, 
+here you can see me confirming a crash testcase
+where we overwrote the ni struct. Now I could just 
+do exactly the same what we did last episode. Just
+adjust the offsets, set the name, and that was the 
+end of it. I had a working exploit for the user.
+But for the YouTube series I wanted 
+to do everything in docker containers,
+so it’s much easier for people to 
+follow along. And now it doesn’t work.
+I think I will try a real Ubuntu VM next video.
+This video was another example of how 
+frustrating work like this can be,
+and how explorative it all is. And I think it’s 
+important to show dead ends as well. Anyway.
+Thanks to all the patreons and YouTube Members who
+make a series like this possible. 
+The frustration will end soon.

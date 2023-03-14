@@ -1,0 +1,345 @@
+In this video, I want to explore a game from
+my childhood.
+Now that I’m older and have experience with
+computers, I can have a very different perspective
+on it.
+So I want to look at Pokemon red.
+As a child I was obsessed with this game and
+I loved exploring it.
+And of course the glitches, or cheats, were
+fascinating.
+And I might now be able to understand how
+they actually work.
+And for this I’m teaming up with my friend
+over at the YouTube channel stacksmashing,
+or formerly known as Ghidra Ninja.
+He had to change his name.
+Excellent hacking channel.
+Go subscribe.
+Anyway, in this video I wanted to start by
+exploring the savegame of Pokemon red.
+And see if we can hack some stuff.
+The cool thing about a console as old as the
+game boy is, you have very advanced emulators
+which you can use to look into the memory
+of games.
+Even debug them.
+I’m using the emulator SameBoy for this.
+So here I have my personal backup ROM of pokemon
+red, which we can open in the emulator.
+Of course I own the physical game.
+I do not condone piracy.
+Anyway.
+Here is the game running in the emulator.
+Ohhhh..
+My nostalgia is kicking in.
+This emulator has developer features, where
+you can open a memory view.
+And it displays here the whole memory area.
+But this entire memory is split up into multiple
+areas, and they are shown here in the drop
+down menu.
+You have the ROM, so this is the code of the
+game stored on the cartridge.
+You have video RAM, the memory to drive the
+display.
+Very important obviously.
+Your graphics card in your computer also has
+vram.
+And of course the regular CPU of the gameboy
+also uses normal RAM, used during the execution
+of the game.
+But what is the Cartridge RAM?
+Obviously I also don’t know all this stuff,
+so I have done a bit of research.
+And there is this excellent website gameboydev,
+documenting everything you could imagine about
+the gameboy system.
+And even the pokemon wiki bulbapedia has a
+lot of technical resources about the games
+as well.
+So most of the stuff I’m telling you now,
+I know from there.
+Anyway, you might know that GameBoy cartridges
+contain a battery.
+Or most of them contain a battery.
+There are a few games that don’t have it.
+And you might know that the battery is connected
+to your save data.
+When the battery runs out you lose your savegame.
+A lot of people have cried the past few years,
+because now we reach the end-of-life of these
+batteries.
+They were holding for like 15 years.
+And the game is obviously older.
+Nowadays we are very spoiled with flash memory
+that can just store data without electricity.
+But back then I guess this was too expensive?
+Anyway.
+If you want to store savegame data, or anything
+like settings or highscores, you need to include
+this as a feature in your cartridge.
+And the gameboy architecture planned for this
+and dedicated a memory area of the memory
+map to external RAM.
+So the cartridges, like the pokemon games,
+included RAM.
+Because RAM is volatile and loses the data
+without being powered, it had to include a
+battery.
+So basically the Cartridge was never actually
+like turned off.
+The memory map maps the external RAM from
+address 0xA000 to 0xBFFF.
+So only 0x2000 bytes, that’s 8 KB of RAM.
+However for example for the Pokemon Games,
+you had to store TONS of data about the game.
+Think about it.
+You need to store which pokemon you have seen
+and caught.
+Each pokemon might have a nickname and their
+own set of stats, level, and attacks, which
+trainers you fought against.
+So much stuff.
+And that doesn’t fit into only 8KB.
+So the Memory Bank Controller of the gameboy
+supports memory banks.
+You can imagine banks as simple boxes.
+Addresses are used to access whatever is in
+the current box in front of you.
+Let’s say at address 0xA010 is something
+stored.
+And now you can ask the memory bank controller
+to switch to a different box.
+And then the same addresses 0xA010 would now
+return whatever is stored in this new box.
+And so here in the memory view, when selecting
+the cartridge ram, you can switch between
+the different banks.
+Bank 0, bank 1, bank 2 and bank 3.
+Looks like at the start of the game only bank
+0 contains some data.
+Now this is how we can look at the memory
+with the emulator.
+But how does the game itself switch between
+which bank it wants to access.
+In the gameboydev wiki we can learn how this
+works.
+Memory addresses from 0x4000-5FFF addresses
+the RAM Bank Number.
+And you can write to it.
+You can write 2 bits to this, and This 2bit
+register can be used to select a RAM Bank
+in range from 00-03h.
+And I find this so fascinating, because this
+memory area is actually part of the ROM.
+The game code is at this address area.
+So how does this make sense?
+Well ROM is read only memory.
+The game code cannot be modified.
+It’s burned into the ROM, so it never makes
+sense to write to it.
+It wouldn’t work.
+Only reading from it makes sense, because
+the CPU reads the instructions from there,
+or any other kind of data, like the sprites.
+So why not reuse the same address area for
+some hardware configuration stuff.
+Basically the Memory Bank Controller is built
+in a way, that when a write is attempted to
+this specific area from 0x4000-5fff, it actually
+controls which memory bank is currently selected.
+Very clever, right?
+Anyway, let’s get back to the game.
+Now we know this Cartidge Memory should contain
+the savegame data.
+So let’s start a new game, and click through
+the starting conversation until we enter our
+name.
+Here let’s use some easily recognizable
+characters.
+Like in exploit development.
+Just a bunch of As.
+Continue and give the rival also a name, I
+use a couple of As and then BCD.
+Alright.
+When you look into the folder of your Game
+ROM, you might notice a .sav file.
+I specifically trigger a write of it by saving
+the state.
+This also creates a s1 file.
+But it’s unimportant.
+I only want to have the .sav file.
+Let’s open the .sav file in a hexeditor,
+I’m using Hex Fiend here.
+And then also open up the Cartrige Ram memory.
+As you can see when you carefully compare
+the content, they are the same.
+So this .sav file is actually a dump of the
+cartridge ram.
+Basically storing the RAM over longer time,
+like the battery in the cartridge would.
+So when we work with the savegame data, we
+can simply work with this .sav file.
+Cool.
+I actually create a copy of this RAM dump
+now and name it AAAAAA, to indicate this was
+the savegame with the player name AAAAAA.
+Now let’s close the game, delete this savegame
+and restart.
+Now start a new game and I name the player
+BBBBBB and I name my rival BBBBCDE.
+We go into the game again, and save the game.
+Trigger a state save.
+And copy the new .sav file as BBBBB.sav
+So now we have two savegames, from right at
+the start of the game, with only the names
+of me and my rival being different.
+let’s open both files in Hex Fiend and then
+compare them.
+This puts them side by side and we can easily
+find the differences.
+And here is the first one.
+Look closely.
+We have here 7 bytes that are different.
+The player name was 7 characters long.
+And all of them were the same, AAAAAAA.
+And all of those bytes are the same.
+And coincidenntally, the bytes for BBBB are
+0x81, so exactly +1 from the AAAAAA bytes.
+Could this be our Player name?
+I mean it’s not ascii, a capital A in ascii
+would be 0x41, but maybe this game uses a
+different encoding for characters.
+So… if we assume that 0x80 is an A and 0x81
+is a B, and a name is 7 characters long, we
+should also be able to find the rivals name.
+And it looks like this change here could be
+it.
+In both cases we started with the same characters
+AAA or BBB. and then increment up the characters.
+7 chars long.
+So yeah, this should be the rivals name.
+Some other data in there also changed, but
+no clue what that is.
+And the last difference is this one single
+byte at the end of that area.
+Just before the FFs start.
+So how about we do a small test.
+We could try to change our name!
+Let’s open the real .sav file in HexFiend
+and convert all the Bs, which were 0x81, into
+Cs.
+So 0x82s.
+Let’s save it.
+And start the game again.
+Did it work?
+Huh?
+Ohw man.
+The file data is destroyed.
+Somehow our change didn’t work.
+Well obviously people have figured out all
+the details already.
+It turns out that there is a checksum to make
+sure the data is not corrupted.
+This is nicely described on the bulbapedia.
+Article about the save data structure.
+Used to validate the integrity of saved data.
+The checksum in Generation I is only 8 bits
+and has a single copy of it.
+(guess which 8 bits, so which byte could be
+the checksum.
+It’s of course this byte all the way at
+the end).
+If this value is incorrect, the error message
+"The file data is destroyed!" will appear.
+Now even if you did not now the actual checksum
+algorithm, you only have 256 options.
+So if you are really dedicated, you could
+just try different values until the file is
+valid.
+But let’s see how the checksum calculation
+works.
+The algorithm used to calculate the checksum
+is as follows:
+Initialize the checksum to 255, (so 0xff).
+And then
+For every byte from 0x2598 to 0x3522, inclusive,
+subtract its value from the checksum
+So let’s actually implement this in python.
+A fix_checksum.py script.
+First I open the file passed in via the arguments
+for reading and writing in binary mode.
+Then I read the whole content into a bytearray.
+We initialize the checksum with 0xff and then
+loop over each byte from 0x2598 to 0x3522.
+And we subtract the current bytevalue from
+the checksum.
+In the end we write this checksum to address
+0x3523, this is where the checksum is located.
+Now we need to write the changes to the file,
+so we seek back to the start of it, and write
+the new fixed RAM in the bytearray back to
+the file.
+Let’s execute it, and pass in the .sav file.
+Awesome.
+That should have worked.
+Let’s open up the Emulator again and see
+what happens.
+AH!
+No error, and we can continue our saved game.
+AND LOOK AT THAT. our name is CCCCCC.
+Now.
+It worked!
+Of course you could now use similar diffing
+strategies to for example find the player
+coordinates or the level of pokemons, or the
+items you hold, and so forth.
+Always save the game, do an action, save again,
+and compare the two.
+It’s fun and can be used to somewhat reverse
+engineer the savegame structured.
+Of course people have already done that, and
+it’s all documented on bulbapedia.
+And so here we could have also learned that
+the player name is at this offset.
+And the rival name is at this offset.
+And from that we also learn, that the data
+which was different between our saves was
+the time and frames, which was slightly different.
+Also I noticed that when you have the Cartridge
+view open while playing the game, the RAM
+is not always visible.
+Sometimes it’s gone.
+And at first I thought it’s a bug, but then
+I asked stacksmashing and he figrued out from
+the gameboydev documents, that the external
+RAM can be enabled and disabled.
+Very similar to how switching the banks works,
+writing to this memory area a 0 or 1 will
+disable or enable the RAM.
+You can kinda see that when saving the game.
+As soon as you hit yes, you see briefly the
+RAM memory being enabled, and then quickly
+after writing the savegame getting disabled
+again.
+I also noticed that when you open the player
+profile, it will enable the ram and keep it
+enabled.
+So that’s very convenient.
+Also in the debugger of the emulator you can
+type in CA, for cartridge to get some info.
+And you can see for example that this particular
+game Cartrdige includes battery-backed RAM
+of size 8000 bytes.
+And RAM is curently disabled.
+But when you open the profile and check again,
+now the RAM is enabled.
+Cool!
+It’s so much fun playing around with it.
+You should try if you can make your pokemon
+level higher or make yourself rich!
+As I said, I’m collaborating here with stacksmashing,
+so checkout his recent video about the gameboy
+copy protection and how he tricked the gameboy
+using an FPGA.

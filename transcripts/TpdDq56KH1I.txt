@@ -1,0 +1,270 @@
+So recently I was invited to give a talk at
+fsec in croatia.
+And I met some of you and that was awesome.
+During the conference there was also a CTF,
+I think all challenges were actually created
+by Miroslav Stampar, the author of sqlmap.
+Also let’s try something new for this video.
+Let’s see if we can mix challenge write-up
+and story telling.
+Let me know if it sucks or makes it more fun
+to watch.
+Web150.
+Hard times.
+Javascript + Form = Challenge.
+Let’s have a look at it.
+So there is a simple form for a password and
+a button to check it.
+But when you enter anything nothing happens.
+And when you open the developer tools you
+immediately trigger a debugger breakpoint.
+It looks very similar to the anti debugging
+mechanism of the popunder stuff we had a look
+at.
+We can also go one up in the callstack and
+see that the javascript code is obfuscated.
+Those functions return the actual identifier,
+for example “debugger”.
+By the way it was my first time in croatia
+and I really liked it.
+Fsec was held in Varaždin, and the town was
+really pretty and especially the building
+of the conference was this old theatre and
+it was just a gorgeous location.
+Look at these rooms.
+Tonimir, the main organiser, also wanted to
+take a picture of me.
+As much as I enjoy conferences, I do need
+my alone time and so I looked for a quiet
+place and worked on the challenge.
+As a next step we can download the html and
+look at it locally.
+So the code is obviously not formatted.
+Actually I spent quite some time making it
+pretty and defeating the anti debugging statement,
+but I skip all of that because at some point
+I realised there is a much easier way.
+So for the form button there is an onclick
+handler defined, the btn_click function.
+So this chunk here is the function.
+So whatever we are looking for, it should
+be here.
+Let’s beautify that part.
+So immediately you can find some functions
+that implement simple operations to obfuscate
+more of the code.
+This can be easily reversed.
+We can use the developer toolbar to evaluate
+those other functions for us.
+The debugger statement paused the script,
+but we can still use the console.
+So this first string for example was 3,2,0,1,4.
+And this function down here results in the
+congratulation string.
+Then we have this big while loop with different
+cases inside.
+The switch case depends on g, and g comes
+from here.
+Let’s check what this here stands for.
+This is the function split.
+And this was our first string from up there.
+So this just splits the string in 3,2,0,1,4.
+Ok so we have a loop that executes these operations
+in sequence.
+So it was just obfuscating the order a little
+bit.
+Case 0,2 and 3 just initialize local variables
+with 0.
+We can also clean up case 1 a little bit in
+the same way we did before.
+Just evaluate those functions with the developer
+console.And so this function is a for loop
+over the length of a.
+And a is the password input.
+So this loops over each character of our password.
+It sums up all ascii values in e, and xors
+every value in f.
+Also d is set based on some calculations of
+the char values.
+So this is definitely part of the password
+check.
+Some values are calculated based on the input
+string and probably later checked.
+Like I said, I was invited to fsec to give
+a talk.
+I spoke about some CTF stuff.
+The talk got recorded so I will share it once
+it’s edited.
+I also used the opportunity during lightning
+talks and threw together a few slides to promote
+the streaming and video community.
+Sorry if I forgot somebody, I literally only
+had a few minutes to prepare.
+The main part of the challenge is this big
+if case here.
+So we should probably clean that one up next.
+It’s a bit tedious but fairly straight-forward.
+Just always look up what something evaluates
+to and make some notes or replace it.
+Let me fast forward that.
+So you can see how slowly the rules for the
+password check appear.
+And I also rename the password charCodeAt
+into pw with brackets, because that’s python
+syntax and I’m more comfortable to read
+it.
+You know the goal for me right now is not
+to have running javascript code, but just
+to understand the algorithm.
+And I want to get rid of anything that I find
+distracting so I can focus on what’s important.
+Ok cool.
+So first of all you can see here e, f and
+d compared to a constant.
+Those were calculated based on our input characters.
+Then we compare a lot of different characters
+in the password with each other.
+So for example the first character ascii value,
+minus the second one, has to be 4.
+.
+And if all those cases are true, we have here
+an alert and everything is correct.
+Ok!
+That’s it.
+We just have to find a password now that fits
+those conditions.
+Let’s do an example.
+We just had this one case where the first
+character ascii value minus the second character
+has to be 4.
+And the first check here with the regex makes
+sure that only those characters are allowed
+for the password.
+So we can quickly check all options we have.
+We just write two loops over the alphabet,
+subtract the ascii values and if it’s 4
+we print the two.
+And it turns out, there is only ONE valid
+case.
+So we already know, our password must start
+with PL.
+We can also see that character at offset d
+and e have to be the same, or 2 and 8 and
+7 and b.
+We also know that the character at position
+c has to be equal to the length shifted by
+two.
+That could be useful to figure out what are
+valid lengths for the password.
+We can again write a loop.
+So the password can be 12, 17, 19 or 20 characters
+long and depending on which length we assume,
+we already know the value of the 12th character.
+When you keep doing that and lower the search
+space, you still end up with a huuuge amount
+of possible password combinations.
+And actually the d variable is the hardest
+one to reverse in such a way.
+So you can write a brute force algorithm that
+takes these restrictions into account.
+And you can really optimise that.
+But I didn’t want to do that and was hoping
+I could use z3 for that.
+Z3 or any other SAT solver are the go to tools
+for problems like that.
+And a lot of challenges are really easy with
+it.
+So with z3 you can just specify a few conditions
+and rules like we just found and then ask
+“what input satisfies those rules”.
+And then there are fancy algorithms that can
+solve such an equation system and provide
+possible inputs.
+But the larger the rules are, the longer it
+takes and might even become impossible to
+do in a short time.
+So for example obviously you can’t use it
+to reverse a SHA hash with it.
+And the d variable is such a condition which
+quickly explodes into a huge equation.
+Actually the challenge author told me afterwards
+that he tried to make it such that it’s
+infeasible to do with z3 and that you have
+to create your own custom optimised brute
+force algorithm.
+But I thought I try a combination.
+Mostly because I was lazy.
+So I thought I could let z3 generate valid
+password that fulfil some conditions, at least
+the easy ones, and then bruteforce the difficult
+condition like d.
+So here is my z3 code.
+Let’s jump right to the rules.
+As you can see not much is different, the
+rules are like we saw them in javascript.
+But for example the rule we looked at earlier
+with first minus second character equal to
+4, I remove, because only one combination
+P,L is valid, thus the rule is unnecessary
+and we can already make those fixed.
+Here I have a helper function that takes in
+a character and tells z3 that the character
+has to be one of those values.
+And we apply that to each character of the
+password.
+The main function itself also takes in the
+length of the password and generate the z3
+bit vectors dynamically with this length.
+And at the bottom we have a typical z3 snippet
+to check if it’s even solvable and then
+we generate some valid passwords.
+We print the password we found and also calculate
+d for it and check if it’s what we expect.
+That’s basically the bruteforce part because
+z3 can’t easily solve that for us.
+And then we add the password we just found
+as a rule to not appear again, then z3 will
+find another valid password that is not one
+of the previous ones.
+And we check again if it satisfies the d constant.
+So when we run it we get a lot of valid passwords
+but none fit d.
+But we can already see that the password could
+start with PLAY.
+That would be a valid word, so we can take
+a guess and add more constraints, saying that
+the password starts with PLAY.
+And then it could be PLAY underscore, or PLAYing.
+And so forth and I just start playing around
+with this and see if I can generate meaningful
+valid passwords.
+And after a little bit I have narrowed it
+down so much, that actually one password is
+found that matches d.
+And this is the valid password.
+Playing and Loosing.
+Also Tonimir told me that I think some of
+his students asked him if I’m playing the
+conference CTF and suspected me of hoarding
+flags?
+Because I was not winning?
+What?
+I thought they watch my videos and see how
+much I struggle.
+Wtf I’m not some CTF machine.
+I don’t know how to solve all of these challenges
+either.
+I know a 10minute video writeup looks impressive
+but obviously it takes me hours when I actually
+look at it the first time.
+Though, I hope I make that clear in my videos.
+I really don’t want to pretend I’m some
+kind of hacking god.
+You should checkout the recent popunder livestream
+because there you can see how terrible and
+slow I really am.
+Just wanted to mention that.
+Anyway, thanks again for having me Fsec, it
+was great.
+Food was good.
+And hopefully we meet again another time.

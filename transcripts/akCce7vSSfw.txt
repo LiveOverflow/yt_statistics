@@ -1,0 +1,308 @@
+We have already come a long way in trying
+to understand how we can exploit programs
+through memory corruption.
+We have covered a wide variety of examples,
+including basic buffer overflows, format string
+exploits and even heap exploits.
+And a lot of you might already find it quite
+complex.
+But if you put it into the context of history
+we are still like 16 years behind.
+The last examples we have explored from exploit-exercises.com
+introduced techniques that were state-of-the-art
+in like 2001.
+While it still directly applicable to shitty
+cheap embedded devices, like some IoT stuff,
+it’s very important to lay a foundation.
+But before we start talking about all these
+modern exploit mitigations and how we can
+bypass them, I think it would be a good idea
+to try putting what we have learned in more
+abstract terms.
+And try to get a feeling or an intuition about
+exploiting binaries.
+Let’s try to create a mental model of exploitation.
+But let’s first introduce some constraints,
+otherwise it will be too abstract.
+Let’s focus on programs like we have interacted
+before.
+this means intel architecture and on linux.
+Ok.
+Let’s start at the beginning.
+We want programs to execute on our CPU.
+That’s why a program contains assembler
+code - machine code.
+And machine code is just like any other data
+in our computers.
+It’s basically just bits.
+0 and 1s.
+A lot of times we combine them into bytes.
+And a CPU can interpret a byte as an instruction.
+Or multiple bytes can be interpreted as an
+instruction.
+And some crazy digital hardware magic in the
+CPU knows that this particular value stands
+for “add the values stored in two registers
+and put the result in the first register.
+And registers are just like small memory cells
+in the CPU, which fullfil different purposes.
+And different architectures might have different
+registers for different purposes.
+But on intel we have for example the general
+purpose registers like eax, and ebx, that
+a programmer is free to use however he wants
+to.
+But there are also special registers, like
+EIP, the instruction pointer.
+That one simply contains the address, which
+points to memory, where the next instruction
+will be.
+And there is also this stack pointer ESP,
+which points to the top of the stack, and
+the base pointer EBP, which together with
+the stack pointer define a stack frame.
+And for beginners this might already feel
+complicated.
+There is code, there is data, there is a stack,
+there is a heap.
+There are functions you can call.
+Functions can return.
+Somehow there is like a return pointer on
+the stack you can overwrite with a buffer
+overflow.
+There are a lot of different terms that we
+use.
+But it’s a lot less complex as it may sound.
+Because essentially there are just two parts
+that are important
+we have memory, which is just a huuuuuuge
+space of bits that can be 1 or 0.
+Usually we group them in bytes or words.
+And there is a CPU, which has a well defined
+deterministic behaviour that operates on this
+memory.
+It’s really that simple.
+Well.
+The devil is in the practical details, but
+essentially, when the CPU is turned on, it
+will start at some defined address.
+This could be 0, but could also be defined
+to be something else.
+It request that memory content from some RAM,
+looks at the value stored at that address,
+and performs the action according to whatever
+that value represents.
+Now when we want to execute a program, you
+can’t just write your code directly into
+RAM, and restart the CPU at address 0.
+Because if your program would cause an endless
+loop, the whole system would stop working.
+But when you program an arduino, a little
+microcontroller, that’s basically what you
+do.
+But that’s why some people developed something
+like the Linux kernel.
+Which abstracts away the direct hardware for
+you and makes sure, that if your program sucks,
+you don’t kill the whole system.
+That’s why a program is not just plain assembler
+code, but it’s a fairly complex file format.
+An ELF file.
+Which does contain your raw code, but also
+a lot of other information.
+And when you execute this program, the linux
+system will actually open the ELF file, read
+and interpret all the necessary metadata and
+setup the execution environment for you, and
+then jumps to the start of your actual code.
+So how does the execution environment look
+like?
+That’s important to picture, because in
+that environment, you try to exploit a program,
+you need to understand it.
+And in some way it’s actyually very simple.
+Again, the devil is in the practical details,
+but it will make sense.
+Let’s say the CPU is just about to execute
+your first instruction.
+This means the kernel and the hardware magic
+has already set up everything.
+And this is how it looks like.
+You have a big blob of memory.
+It ranges from 0, to ffffff.
+In reality you don’t really have that much
+memory, that’s why we call it virtual memory.
+It looks like you own all this memory, but
+hardware magic only makes you think you have
+it.
+But in anyway, the CPU now executes your program
+which is somewhere in that huge memory.
+Let’s have a look at how this memory is
+divided up in a real program.
+So for example here, we see that from this
+starting address, to this end address, your
+program is mapped.
+We say mapped, because it’s not really physically
+at this address, but it’s there if you would
+read the value from that address, in your
+assembler code.
+So ignore the underlaying physical reality,
+and just acccept that there is this huge range
+of memory you can work with.
+And infact the stack is also just here.
+It’s also just defined as starting from
+this address and ends at this address.
+So the stack is not really growing or shrinking,
+that’s just the computer theoretical model
+of a stack.
+But how is the stack actually defined?
+Well the CPU has the stack register, ESP,
+and it would contain an address pointing into
+this area here.
+So could you just point the stack pointer
+somewhere else.
+Like into your code?
+Yeah!
+You absolutely could.
+The stack pointer is nothing really special,
+it’s just a register that contains an address,
+and it could contain any address.
+What makes ESP actually special is just that
+it does some fancy stuff based on instructions.
+So for example a pop eax instruction, would
+look up what value is stored at the location
+where ESP points to, usually that’s the
+stack, but doesn’t have to.
+And then writes the value from that location
+into the eax register.
+And you can absolutely abuse that in an exploit.
+For example if you find a bug that allows
+you to set the stack pointer to a different
+value, you could create a fake stack on the
+heap, and just point ESP there.
+Often times referred to as a stack pivot.
+So lose the mental image of a stack that grows
+and shrinks that you learned in computer science,
+and just think of it what it really is.
+It’s just some memory where the ESP register
+points to.
+And instructions cause interesting effects
+based on that register.
+And in the same sense the instruction pointer
+is not special.
+Usually it points into your code, but it doesn’t
+have to.
+If you manage to control EIP somehow, you
+can just point it to other memory.
+For example the stack, which we have used
+in previous exploits.
+Because we placed data that is actually valid
+assembler code onto the stack.
+You know it as shellcode.
+The CPU doesn’t care.
+The EIP register points into some memory,
+and the CPU just happily does what those values
+say.
+And well, that is just half true.
+Because as you may know, on modern systems
+the stack is not executeable anymore, so the
+CPU does kinda care, but also not really.
+It just means that certain areas in this memory
+can have different permissions.
+Certain areas have the executable flag which
+means the CPU allows EIP to point there and
+is happy to interpret the values as instructions,
+but other areas like the stack don’t have
+it.
+And then the CPU refuses to interpret it as
+instructions.
+Now when we look a bit closer to what kind
+of data is included in all those different
+memory areas, we can try to come up with creative
+ways of how to abuse the.
+One example is the typical stack structure.
+When the CPU executes a call instruction it
+places the current instruction pointer value
+at the address where the stack pointer points
+to.
+It places it ontop of the stack.
+And when the function returns it takes the
+value where the stack pointer points to and
+sets the instruction pointer to it.
+So if you somehow manage to modify this value
+on the stack, you can control to what EIP
+will be set to when the function returns,
+and thus you can decide what will be execute
+next.
+That’s a classical buffer overflow.
+Another interesting data structure is the
+global offset table, which is basically just
+an area in memory containing pointers to functions,
+if you overwrite an entry there, you can also
+control what will be executed if a function
+is called that references an address from
+this table.
+I mean oftentimes you cannot directly overwrite
+these values, but that just means you have
+to become creative.
+For example think of two objects on the heap.
+A user object and a name object, and the user
+object has a pointer to the name object.
+And when you want to change the name of this
+user, the code would follow the pointer and
+write the new name to that location, which
+means if you can somehow overwrite that pointer,
+you can control where it would write the name
+to.
+So we could overwrite the name pointer with
+an address on the stack, and when we write
+the new name for the user, we will actually
+overwrite the stored instruction pointer on
+the stack.
+See what I try to get at?
+There is memory that contains data.
+Some restrictions apply, like certain memory
+areas are not writeable, others are not executable.
+And there is a CPU that is very dumb and just
+executes whatever EIP points to.
+And there is a program in the memory, which
+the CPU executes.
+And this code uses the memory to do whatever
+it is supposed to do.
+And it trusts in a certain integrity of the
+data in memory.
+But if there is a bug, that allows you to
+change a value in memory, which the program
+did not intend to be modifiable, amazing things
+could happen.
+And what can happen, that’s just limited
+by your creativity and imagination.
+One changed byte here in memory, might cause
+a certain piece of code to write to an unintended
+location, which overwrites a function pointer
+of an object, which another part of the code
+wanted to use, and suddenly executes something
+very different.
+And all these techniques we assigned names
+to, like stack buffer overflow, heap fengshui,
+ROP, use-after-free, are all just creative
+ways to screw with data in memory and how
+the program executed by the CPU reacts to
+it.
+I understand that this episode might not have
+contained actual useful information to you.
+But I kinda wanted to get it out there, because
+maybe somebody didn’t quite picture programs
+and exploits in this way.
+But I hope you can see the value in this way
+of thinking about it.
+I think it takes some away some of the fear
+that it all looks so complicated.
+I’m really interested to hear your critical
+opinion about this.
+So comment here on youtube or on the reddit
+thread linked below.
+But nevermind if you liked this or not, we
+will continue soon our path to learn about
+more advanced memory corruption techniques.
+So, stay curious, and see you next time.

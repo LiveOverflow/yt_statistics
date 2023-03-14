@@ -1,0 +1,327 @@
+let's quickly talk about AP ie a
+position independent executable so
+executables that can placed anywhere in
+memory and are affected by a SLR it used
+to be that when you compiled binaries
+then Lipsy and other libraries were
+using a SLR but the binary itself was
+always loaded at a fixed address for you
+to recognize them was easy to work with
+now when the full binary has position
+independent code so it can be moved
+anywhere in memory it gets a little bit
+more tricky so I could want to show some
+issue that you might run into when you
+try to do this and then how you can get
+around it
+[Music]
+so here I am using just a compiled
+example from format for of Exploited
+Education protostar challenges whatever
+it doesn't matter what this program is
+I'm just here trying to show you how to
+debug this so when you load this in gdb
+and it's an odd scrub binary it still
+has the symbols you can simply break in
+main so this works fine it says it set a
+breakpoint at this address
+8:07 and when we now run the program we
+get a breakpoint but notice that the
+breakpoint address is different we hit
+the breakpoint at five five five five
+five five five four eight zero seven now
+the offset is the same it's 8 0 7 8 0 7
+and these offset will always be the same
+so when you know the base address and
+you know where it's like placed in
+memory you can always go by this offset
+and with info prop mappings you can also
+when the process is running like in this
+case we just hit the breakpoint so the
+process is still running you can look at
+the memory map and so here you can see
+that the binary was loaded at this start
+address 5 5 4 and so the whole binary is
+just placed in memory and so the binary
+itself when you were setting the
+breakpoint you saw the internal offset
+so from 0 8 0 7 and now obviously it's
+like loaded at this address so now you
+just have to add this and that's how you
+can get to the the actual real address
+so basically lesson number one when you
+see very very small addresses like this
+that basically on the range from 0 to a
+bit something and it's not an address
+like 8 0 0 0 or 4 0 0 something but it's
+these small addresses and it's very
+likely that you have position
+independent executable and it and it's
+affected by a SLR and then the second
+lesson is that these are just offsets
+from inside the binary and so you can
+figure out where the binary is loaded
+and so the main function will be at the
+respective offset now you should be
+aware that gdb basically disables a SLR
+when debugging like this so even when
+you rerun the binary now you will notice
+that the breakpoint is again at the same
+address but you must not use this for
+you exploit because this is because you
+have to imagine that this is
+all ASL are all these upper bits or
+these bytes here are completely
+randomized when you are actually running
+this in a regular system not with gdb so
+don't use this to hard code addresses in
+your exploit basically only at run time
+you will know where it is then placed in
+memory and like I said gdb kind of like
+disables a SLR in this case and so you
+will know from there where this same
+goes for the stick and all these other
+libraries here outside of gdb in reality
+they will be somewhere completely else
+you can easily see this now let me
+quickly open a new tab and just execute
+the binary now I know this has a call to
+gets so it's waiting for input right now
+and so let's get the PID and then let's
+attach to this process our Pietra is not
+permitted let's sudo this and now you
+can see that all the addresses are
+widely different and you and these are
+here randomized and when you now do
+break main it will find obviously the
+main function again and you can see here
+it's still at the offset 8:07
+but this time it's from this base
+address anyway I just want to show you
+that a SLR is actually affecting the
+stuff and you have to go of these
+offsets now when you said break two main
+like this it says that the breakpoint is
+set at eight zero B and when you execute
+it it somehow magically set it at the
+correct address and was breaking
+actually when the process loaded at this
+random address basically now here's a
+little bit of magic happening internally
+from gdb I don't know exactly but I
+guess it knows that you want to set a
+breakpoint at the symbol main and once
+the binary is loaded it knows where this
+symbol is and can then probably set a
+breakpoint there but let's actually try
+a strip binary that doesn't have the
+main symbol so here's the same program
+compiled but strip if you try to set a
+breakpoint to main it doesn't work it
+says function main is not defined now I
+showed you how to find mean regardless
+info files we find the entry point let's
+print 10 instructions from this entry
+point o this
+was close I guess the xi instruction is
+actually the call which we know is Lipsy
+start main so this actually should be
+the address of our main function
+so it's disassemble ten instructions at
+this address here this is our main
+function for sure we can also see it's
+actually at the same offset as the strip
+compiled binary so that's also
+consistent in this case so you know this
+is main so let's try to set a breakpoint
+there and it says the same thing
+breakpoint 1 at 8:07 this is exactly the
+same output like the not strip binary
+when we did the breakpoint at main and
+now let's execute this warning cannot
+insert breakpoint one cannot access
+memory at address 8:07
+and this makes sense because the program
+is loaded somewhere else in memory it's
+not loaded at zero zero zero eight zero
+seven it's loaded at 5:05 four five
+eight zero seven but this basically
+immediately happened when you try to
+start so we get in on opportunity to
+look actually at the memory map and you
+can see it's so early in the process
+that we do have the dynamic library that
+the loader here but we haven't even
+loaded Lib C yet anyway now we can
+basically do our calculation and then
+set the proper
+breakpoint here at the start address
+plus the offset that we know where - and
+you can't continue it will just abort
+the command so let's delete that first
+breakpoint and now let's continue and
+now we have a breakpoint in main and now
+we can sing a step through our program
+and now when you rerun because GB
+disables aslr and will always be at the
+same address you can also just rerun the
+binary as often as you want it will
+successfully now set the main break
+point it maybe feels a little bit dirty
+so there's another way you can do this
+so let's say the break point at start
+function start notified but gdb offers
+to make a pending break point that in
+case a shared library is loaded that has
+this function defined it will set a
+break point there and you will break
+there so let's do this break point one
+start is pending and now let's run the
+binary and it works we hit the break
+point and start and this is
+actually a function contained in the
+Linux loader LD and this works obviously
+because the binary itself is stripped
+but it uses dynamic libraries that that
+still have the symbols included and in
+this case it's a Linux loader and so
+there's this function let's go start and
+again this gives us the ability to then
+look up where in memory all the stuff is
+and from your reverse engineering with
+Deidre or Ida or binary ninja or
+whatever you know it what offset the
+main function is and then you just have
+to add this offset to the base address
+8:07 separate from there continue so now
+we also hit a breakpoint in main so yeah
+it gets a little bit ugly with a SLR
+it's not the nicest to work with but I
+hope now you have somewhat of an idea
+how to deal with it it might be a bit
+tedious but it works out I guess Oh
+before we enters let me just quickly
+show you the offset thing again so
+here's the format for stripped binary
+open and get raw and from our known
+method how to identify mine we find our
+here the main function and let's say we
+want to set a breakpoint here in gdb
+it's a bit small but in ditra here it
+says the main function is at 1 0 0 8 0 7
+obviously we know it should just be 8 0
+7 so I just want to make sure you are
+aware of this and why this is the case
+and so you can properly identify what
+the offset is so obviously if you would
+add 1 0 0 8 0 7 to the base address that
+you find in the memory mappings it would
+be the wrong address but the reason for
+this is where gira just like assumes
+where it's loaded and so let's check out
+the memory map that gira assumes and
+when you open that you will see that it
+starts loading the binary at 1 0 0 0
+everything is at this offset and so the
+text section where our code lifts also
+starts at 1 0 0 6 9 0 so you can see
+that but in deidre everything is at this
+offset in other disassemblers it this
+might be a different value so you need
+to be aware of where your disassembler
+is assuming the code starts you can
+basically figure this out if you have a
+view like this just scroll all the way
+to the top and you can see here this
+file here this elf binary l
+starts at 1 0-0 in here
+so when you identify a function you want
+to set a breakpoint in gdb be sure to
+only take the actual offset here ok so
+this was really everything I wanted to
+show see you tomorrow
+oh wait I have another thing I could
+show you so when you execute the binary
+again it's waiting for input so it's
+running right now you can actually find
+this memory map in the prop file system
+so the process ID of this process right
+now is 2 2 7 8 3 in proc you can find a
+folder with that process ID and there
+are a lot of files included and we are
+interested in the Maps file so if you
+cut the Maps file you will now get a
+very similar output to what you saw in
+gdb with the memory map and so you can
+see here again where the binary is
+loaded and because of a SLR you also see
+that the start address is now again very
+different so right now this process is
+at 5 5 7 C D 9 9 1 e and then the main
+would be at 8:07 added on on top of this
+base address ok that was really it ok I
+have one other idea for debugging and
+just to make things easier you could
+also just disable a SLR so you can check
+if a SLR is enabled also in the profile
+system with randomized CreateSpace and
+yes it's it's currently turned on so
+let's make sure that pseudo works so
+that you don't have to enter a password
+and then we can just write a zero into
+the file that's verify so now it's zero
+now there shouldn't be a SLR so now
+let's test this we execute our process
+and then let's use the proc file system
+to look at the memory map of this
+process I'm getting now dynamically the
+number with PID off so this will be
+evaluated and replaced with the PID and
+look at that ILR looks disabled now the
+address looks exactly like in gdb so
+let's kill that process and execute it
+again a different PID let's check again
+the memory maps and it stays the same so
+now when you take notes with addresses
+and you said breakpoints you can be
+really really sure that it's always at
+the same address this makes things
+easier at least during the early kind of
+like debugging and
+exploration phase just be aware that the
+challenge server in the end or the
+challenge should also work under a SLR
+so always be aware that you can't rely
+on hard-coded addresses like this at
+least when you when you're interested in
+doing that can exploit okay that that
+was really it see you tomorrow
+just kidding one last thing there's one
+thing you can do to jump between Deidre
+and gdb better back and forth so you
+don't have to do the offset calculations
+all the time so let's see that our
+binary is loaded at the start address so
+we can copy that and then in G drop we
+go to the memory map and then the top
+right you can find this house symbol
+which stands for set image base now we
+can see here that the base address where
+kitra assumes this image this binary to
+be places at 1 0 0 and so we can replace
+that with the address that we got from
+the memory map okay ok these arrows were
+weird but it seemed to have worked now
+you can see that the function that we
+assumed to be main is at this address
+here so we can copy that address and in
+gdb we could set now a breakpoint there
+and we can also disassemble the
+instruction there to verify yeah this
+looks like the short lane all right that
+was really it see you tomorrow
+just one more thing just kidding it was
+really that was it that was it
+[Music]
+you
+[Music]

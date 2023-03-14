@@ -1,0 +1,277 @@
+Nadim Kobeissi has written a paper called
+“An Analysis of the ProtonMail Cryptographic
+Architecture” where he says that “no end-to-end
+encryption guarantees have ever been
+provided by the ProtonMail service”.
+This is quite a big and serious claim.
+End-To-End encryption is the first feature
+they list in their security details, along
+Zero Access to User data, which means:
+“[...] we don't have the technical ability
+to decrypt your messages, and as a result,
+we are unable to hand your data over to third
+parties.
+With ProtonMail, privacy isn't just a promise,
+it is mathematically ensured”.
+Protonmail has been around for quite some
+time now, if something so fundamentally seems
+wrong, it must be some kind of crazy complicated
+crypto attack, right?
+But if you read the paper, you will realise
+it’s something fairly basic.
+So in this video I want to explore one specific
+thing from this paper.
+This whole topic has caused quite some controversy
+and before we head into this I think it’s
+just fair to disclose that I have worked,
+with nadim, many times professionally.
+So you can accuse me of bias, but I don’t
+think that this actually affects the content
+of this video.
+It was merely the reason why I paid attention
+to this paper in the first place.
+But let’s not waste more time, let’s head
+into the paper.
+Nadim first introduces some entities.
+We need to know about a ProtonMail user A
+and a ProtonMail user B.
+We also consider a ProtonMail webmail server
+P.
+So we have two protonmail users A and B, and
+they want to send an email to each other by
+using protonmail webmail sever P. Because
+Protonmail offers End-to-end encryption this
+email will actually be encrypted with PGP.
+And there is nothing wrong with PGP.
+The only challenge with PGP here is the secure
+exchange of the public key.
+But we just assume keys were exchanged securely,
+for example A and B met in person before.
+So if user A encrypts the mail with the public
+key from user B, and uses Protonmail to transfer
+the mail to B, there is no security issue.
+End-to-end encryption is working fine.
+But then how can nadim claim that “no end-to-end
+encryption guarantees have ever been
+provided by the ProtonMail service”.
+It looks all perfectly fine, right?
+Well, the devil is in the real-world implementation
+details.
+You see this graph that describes the email
+exchange assumes that User A and User B just
+have trusted implementations of PGP.
+The code that will do the encryption for them.
+However in the web, just as matter of fact
+how the web works, the program, the code that
+implements the encryption, the webapp you
+use, protonmail, is also delivered by the
+protonmail server P.
+And this can be seen here in Figure 2.a.
+Before user A can PGP encrypt the email message
+m, for the public key from user B, it has
+to receive the code to do that in the browser.
+This is indicated here by J. J refers to the
+Javascript implementation of PGP that is served
+by Protonmail.
+And, we are done, that’s for me the important
+part of the paper, so the conclusion is simple.
+When Protonmail says:
+“[...] we don't have the technical ability
+to decrypt your messages”.
+It’s kinda wrong, right?
+Technically they can just deliver a malicious
+javascript J-evil, that will just steal your
+plaintext message before encryption, or just
+straight up steal your private key…
+The technical ability is absolutely there.
+And so the claim that this “end-to-end encryption”
+is not just a promise but “mathematically
+ensured”.
+seems objectively, false.
+No?
+So let’s have a look what Protonmail has
+to say about that.
+The key question being debated is whether
+or not web applications can constitute end
+to end encryption.
+Nadim's opinion is that, as he writes, "no
+webmail-style application could".
+His viewpoint is that E2EE is not possible
+with web clients, period, end of discussion.
+This is a rather extreme position to take
+as it would also apply to the web versions
+of Whatsapp or Wire, for instance.
+Like Whatsapp and Wire, we also offer a web
+app.
+The major opinion Nadim is expressing here
+is that [...], you can't do end-to-end encryption
+in a webapp.
+Obviously Whatspp and Wire do not share this
+opinion.
+Signal coincidentally does share this opinion.
+We do understand Nadim's arguments, and agree
+that web-apps are less secure than say a native
+iOS app.
+Okay… so they do somewhat agree, however
+they think it’s not that significant.
+They use the fact that Whatsapp and Wire also
+offer webapps, as an argument for their side
+- but of course these are also other commercial
+applications, that like protonmail have a
+user demand and an economic incentive, to
+offer web-app versions.
+But for a moment, let’s go back to this
+figure.
+We say we have here a problem because Protonmail
+Server P provides the javascript code, for
+the browser and could thus provide malicious
+code as well.
+But then how is this different from a mobile
+app.
+Protonmail also provides the mobile app and
+the automatic updates for it.
+So protonmail could also just deliver an evil
+app-update that steals the cleartext emails.
+And you can now actually continue with this
+rabbithole.
+Apple offers iOS updates, which means they
+push the code you run on your phone - they
+could create an operating-system update that
+specifically extracts the decrypted emails
+from the protonmail app and sends it away.
+And wait, you run this all on hardware that
+you bought from somewhere and the CPU could
+just once in a while jump to some secret malicious
+code that could take the decrypted messages
+out of the memory and steal it.
+You see you can extend these circles quite
+far.
+However at some point it gets silly.
+While technically your hardware could be backdoored,
+that’s very unlikely.
+Like the recent bullshit bloomberg story.
+And yes, technically apple could push a malicious
+operating system update, but that is also
+super unrealistic…
+But what about “protonmail creating a malicious
+mobile-app update”?
+Here we start to get into a bit more realistic
+realms.
+build servers or webservers that offer the
+final softwares for download have been comproised
+before and replaced with a trojanized version.
+This is something we could be concerned about.
+However we also know these compromised versions
+are caught fairly quickly, because this attack
+has quite some hurdles.
+And Nadim shares an example about the delivery
+process of android apps.
+Simply speaking, in case of a mobile-app,
+it’s not as simple as saying that Protonmail
+server P delivers it, there are developers,
+signing keys, app-stores, and everybody gets
+the same new version.
+So overall this is very unlikely.
+So this leads us to typical web applications,
+which are delivered from the server everytime
+when you access protonmail.
+We know for a fact that a lot of websites
+get compromised and for example a cryptocurrency
+coinhive miners get included in the javascript.
+So we can already see that this is a more
+realistic threat.
+And the big danger here is also, that you
+could carefully control which user gets delivered
+which version.
+You could only target a specific IP, a region,
+a user.
+And only deliver a malicious javascript J-evil
+once.
+And after that, all future requests are safe
+again.
+You see that is VERY different from a malicious
+mobile app.
+And so protonmail questions if the line that
+nadim draws here reasonable.
+Can we, for the current state of our technology
+say, that webapps cannot implement End-To-End
+encryption because the code is also always
+delivered with HTTP requests?
+Well, PotonMail’s argument against the paper
+is saying, that this is just an opinion - saying
+that nadim draws the line here arbitrarily.
+Nadim's opinion is that, as he writes, "no
+webmail-style application could".
+But this is a bit unfair.
+This quote is not the root of nadim’s argument
+- it is quite an extreme positon to take.
+But he takes this position as a result of
+his argument, this is nadim’s conclusion.
+And while I agree with conclusion, let’s
+not get distracted by this.
+Conclusions are more likely subjective and
+thus Protonmail uses it to discredit him.
+But nadim wrote a paper specifically about
+Protonmail and we have to look at his actual
+arguments regarding protonmail.
+And more specifically the claims that protonmail
+makes, and nadim uses to construct his argument.
+So Protonmail attacks nadim’s general conclusion
+but seems to ignore, and sidestep, the claims
+that lead nadim there.
+But I know why, because ProtonMail is in a
+predicament.
+They themselves acknowledge nadim’s threat
+in their business paper “ProtonMail Security
+Features and Infrastructure”, they write:
+ProtonMail conservatively assumes that all
+mail servers may eventually be compromised.
+And even further into the paper where they
+talk about how they want to protect passwords
+(different story) they again refer to this
+threat.
+“If the server is compromised, whether from
+malicious code injected onto the server or
+due to a [blah blah unimportant]”
+you can see Protonmail themselves claim that
+the Protonmail Server P is untrustworthy.
+And based on this claim nadim succesfully
+makes the argument, well if Protonmail can
+be compromised (which they say shouldn’t
+be a problem), the javascript code delivered
+is also compromised.
+Protonmail does not make such claims about
+the mobile app.
+They don’t advertise a security model where
+a compromised build queue including developer
+signing keys is not a problem.
+But they do say a compromised server P is
+supposed to be safe.
+So as it stands, ProtonMail does not meet
+its self-professed security goals.
+Which means, ProtonMail must overhaul its
+existing specifications, documentation and
+product presentation materials.
+To reflect this matter of fact.
+So It doesn’t mean that Protonmail is less
+secure than alternatives, it simply means
+Protonmail’s very high security-goals and
+public marketing claims, specifically about
+a compromised server, have been refuted.
+Nothing more.
+Nothing less.
+And of course if for YOU personally a compromised
+protonmail server is not in your threat model,
+because you trust them, then you are also
+fine.
+So I hope that Protonmail can properly address
+these very specific claims and admit that
+in this case their claims fall a bit short.
+It doesn’t have to be such a big deal.
+But I personally would like to move away from
+Protonmail now and rather generally ask, what
+conclusion do you draw from this.
+Do you agree with nadim’s radical(?) or
+reasonable(?) view that end-to-end encryption
+is simply not possible in this strong mathematical
+sense as a web app?

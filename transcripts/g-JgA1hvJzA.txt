@@ -1,0 +1,583 @@
+About a year ago I told you about the 100.000$ 
+GCP Prize from the google bug bounty program,
+awarded for the best vulnerability 
+found in the Google Cloud Platform.
+Now a year later, it’s time again! And 
+the prize was higher too - $133,337.
+In this video I will tell you the 
+story and technical details of a new
+amazing winning bug. It’s basically a Server Side 
+Request Forgery attack, but with the impact of a
+remote code execution inside of Google. So 
+let’s meet this year’s winner from Uruguay!
+“So my name is Ezequiel Pereira.”
+This is him on our call when we 
+talked about his bug, but at the time,
+he didn’t know that he won the 133.000$ yet. I 
+pretended to just be curious about his blog post:
+“This sounds really insane and I was 
+wondering if you would be interested in
+making a video together.”. He said yes, 
+and so he started explaining his bug.
+“They classified it as RCE, because 
+an attacker could potentially
+execute code by calling some 
+internal google endpoints.
+And those internal google endpoints, seeing 
+that the request comes from the cloud deployment
+manager, might allow the attacker to do actions 
+that an external user shouldn’t be allowed to
+do. So it is equivalent of RCE. I never got to 
+the point of actually executing code on google,
+especially because they cut me off. Because 
+they were treating this as an incident”
+So his bug allowed him to basically perform 
+arbitrary requests inside of the trusted Google
+network. And he could potentially reach critical 
+endpoints. We will soon talk about this internal
+network, because it’s really fascinating - this 
+bug combines so much knowledge about google
+internals. But as he said, he never got so far 
+to exploit it further. Google knows what impact
+this special server side request forgery has, and 
+classified it as a critical remote code execution.
+“If you get into the internal network, and 
+are able to issue requests, it’s like RCE”
+It’s not true in any SSRF case. Because 
+internally in Google, requests between
+services have to be authenticated. But 
+in this case the source of the request
+was authenticated with apparently 
+high privileges, thus in this case,
+being able to issue requests, is like RCE
+That’s why they also treated it as an incident.
+This is a bug that needs to be 
+investigated because maybe somebody
+else, an actual attacker used this.
+Of course Ezequiel also got awarded the
+regular bug bounty awarded when he 
+reported it, so how much was it?
+“You have a rewards table, and 
+you can see they always pay 31k
+for RCE issues in their main google products.”
+What Ezequiel didn’t know was, that I had the 
+Google VRP team on standby, to join the call
+at any moment. I acted surprised why somebody 
+would want to join the call. I accepted them all.
+“We concluded that you won the top prize. Which is 
+a $133,337. We wanted to surprise you in person.”
+“Woohoo.”
+“Thank you. Thank you very much.”
+Congratulations!
+“Well I didn’t really expect
+to win. I thought like maybe the firebase bug, 
+that like sent tons of notifications would win”
+So I guess Ezquiel needs to update his blog 
+post with the facts! It’s not just 31k. It’s
+a total of 164.674$. Damn!!!! But now I hope 
+you are ready to hear the story about this bug.
+
+First of all, there are soooo many 
+Google Cloud Platform Products
+and as a bug hunter you might get 
+overwhelmed not knowing which target
+to pickwhere to look into. So I’m curious how 
+he ended up researching this particular area.
+“Google Cloud is huge. I can assure 
+you that I haven’t even touched like
+70% of it. 70% of google cloud is completely 
+unknown for me. I’m no google cloud expert.
+I just go through the documentation. 
+And if I kinda understand something I
+begin looking into it.
+I researched App Engine
+a lot, because it’s easy to use, easy to 
+understand. And it is really interesting”
+App Engine is one of the big 
+main products of Google Cloud.
+Basically it allows you to host web applications.
+“So while looking at App Engine flexible 
+environment, I stumbled upon Deployment Manager.
+So here for instance I deployed something 
+on App Engine flexible environment,
+and you can see calls to the Deployment 
+Manager API. And you can see like the user is
+gae api prod.google.com service accounts.
+Well, I decided to look into it because
+if it was being used by App Engine, it will 
+probably be used by other GCP products. And
+when something is used internally at Google, even 
+if it is a public issue like deployment manager,
+they sometimes hide internal settings, internal 
+stuff, that if they are not well protected
+they could be exploited by an attacker. 
+And that’s what happened here.”
+So the “Cloud Deployment Manager” is one 
+of those many products that he didn’t know.
+But then saw in the logs, that App Engine 
+uses it internally to manage the servers.
+And I think it’s very clever how he thinks about 
+google products that they also use internally.
+“For instance I think every, or almost every, 
+withgoogle.com website is really an app engine
+application. And sometimes you can see that 
+the website is integrated with the other
+google services. So you begin to wonder, if it 
+is running on App Engine, how is it connected to
+internal google stuff. Or for instance they 
+use GCE, Compute Engine a lot too. So while
+using them, sometimes they need to do internal 
+stuff. So sometimes they build into the public
+tool internal stuff, that they just 
+hide somehow from the public. Because
+they are only meant for internal users.
+If you pay attention sometimes documentation
+also references internal stuff. And you say, 
+what does this mean in the documentation?!
+And it doesn’t make sense, because 
+well, it is intended only for googlers.”
+I think this is a very valuable tip for aspiring 
+google bug hunters and probably the most important
+takeaway of this video. Approaching the target 
+with the mindset, that if a product is also used
+internally by google, maybe there are undocumented 
+internal features exposed that could be exploited.
+And he saw that the Deployment Manager was used by 
+App Engine. So he decided to hunt for bugs there.
+“So I knew nothing about Deployment Manager. 
+I didn’t understand what it was for.
+Even right now I am not pretty sure why it 
+exist or how it is useful for a developer.
+But yeah, I had to read the deployment manager 
+documentation like 4-5 times until I kind of
+got the idea what it was for.”
+ 
+Let me try to give you a brief summary
+of what the Deployment Manager is. It all starts 
+with a configuration or template describing some
+resource. Here for example a compute-instance, so 
+a basic server, being deployed in a US datacenter.
+It also has a harddrive attached, with 
+a debian image on it, and it also has
+an external network interface with external 
+NAT. So this is a whole machine description.
+Now you can take that, and send 
+this to the Deployment Manager,
+and it will then setup this server for you. So you 
+can kinda imagine this like a docker-compose file,
+or maybe a Kubernetes Deployment object. This is 
+just a Google Cloud Deployment Manager config.
+Now let’s think about App Engine, 
+which is used to host web applications.
+When you deploy an app, it seems like that 
+App Engine uses the Deployment Manager,
+to describe the server where 
+that app will be running.
+“I began playing like creating my own templates. 
+And creating resources. And Looking how it works.
+Looking at the different features. For 
+instance you know there are two public
+versions of deployment manager. 
+You have the V2 version and v2beta
+version. So I looked at the 
+difference of the two versions.”
+And one of those differences are TypeProviders. 
+It’s a very confusing name, but it’s important
+to understand. So in a Deployment Manager config 
+file you have a type field, and that describes
+what kind of resource or server you want. 
+In this case it’s a compute.v1.instance. But
+that’s something Google Cloud specific. What 
+if your company uses, besides Google Cloud,
+also your own datacenter with machines you want 
+to manage too? TypeProviders can be used for that.
+“A type provider exposes all of 
+the resources of a third-party API
+to Deployment Manager that you can use in 
+your configurations. These types must be
+directly served by a RESTful API that supports 
+Create, Read, Update, and Delete (CRUD).”
+So as long as you can provide a simple HTTP 
+REST API for your datacenter, that implements
+Create a Server or delete a Server, then you 
+can define a TypeProvider describing your API,
+and then you can use Deployment 
+Manager, referencing your own type,
+to talk to your datacenter’s API. This way you 
+can manage all your cloud resources in one place.
+Anyway. Here is an example API request to create 
+your own type provider with the v2beta version.
+And most important is here the descriptorURL. It 
+points to a JSON file. And this JSON file is like
+a swagger API definition. This is what actually 
+describes your API endpoints where you implement
+your create or delete resources stuff. The options 
+field is also interesting. You can see here that
+it defines an Authorization header. It’s obviously 
+important that when you implement your own API to
+manage your servers, that the API has some form 
+of authentication. And in this example you send a
+google oauth token along, that you can then check.
+But now let’s send this request.
+“So you can see the operation was completed. So 
+the type provider was created. And if I go to
+my server I can see that this IP connected to my 
+HTTP server and retrieved the descriptor document
+for my fake API. and it provided the 
+access token, I told it should provide.”
+And now maybe you can already 
+see where this is going.
+The bug Ezequiel found is a 
+server-side-request-forgery attack.
+And here we control a URL that the Deployment 
+Manager sends a request to. So is it as simple
+as for example pointing this at localhost, 
+or some other internal IPs or hostnames?
+“If I try to create a type provider that talks 
+to an internal server, like server side request
+forgery, it will try at first to create the 
+type provider. But it will fail. It will say
+error processing request. Error fetching 
+URL localhost. Error excluded ip. It won’t
+let me do internal requests just like that.
+I tried like setting my own domain that will like
+point to an internal service. You see that here 
+it failed on the creation of the type provider,
+so I also tried like setting my own domain 
+that at first points to a valid service,
+and once the type provider got created It tried 
+changing my domain to an internal server to see
+Maybe I could bypass it that way. I’m not an 
+expert on all of this. So maybe someone looks
+at this, tries something and finds a way to 
+get SSRF through here. But I was not able to.”
+Huh. That would have been too easy, right?! 
+There is more to come. As a mental exercise,
+try to think about what you would try next. 
+Or just try to guess where this is going.
+This is what I do trying to figure out 
+if I could have found this bug too.
+“then I moved on, and some days later I decided. 
+Ok. Maybe I can find an internal method used
+by the Deployment Manager. Because remember. 
+Google when using this public tools internally,
+sometimes they hide internal stuff 
+inside. And sometimes they are internal
+hidden methods in the api. So I know a way to 
+list all the API methods, even undocumented ones.
+And it is through the metrics page here in the 
+cloud console. And funnily enough it doesn’t
+only show the public methods. But also some 
+internal ones. If there are. So here you can see
+for instance the GET operation method in the v2 
+version. But looking at this, I noticed that you
+have v2 and v2 beta. But also here for instance 
+here you have dogfood and you have alpha version.
+And those versions are not documented publicly. 
+And I said, Ok I’m going to look into them.”
+Mindblowing. Like a detective 
+finding small puzzle pieces.
+So let’s see what happens when you try to 
+send requests to those different versions.
+Btw. look at my face during the 
+call. I’m in total awe right now.
+“I can get an operation on the v2beta version. 
+I can also do it on the v2 version. Let’s see
+what happens on the alpha version. Can I call 
+a method on the alpha version? Yes I can. Can
+I call a method on the dogfood version. Yes 
+I can. If I try a version that doesn’t exist.
+No it doesn’t default to a 
+public version. It just says
+not found. Now I know alpha 
+and dogfood are real versions”.
+And every google bughunter 
+should get excited when they read
+dogfood. Here is a googleblog about testing from 
+2014 describing their concept of Dogfooding:
+“Google makes heavy use of its own products. 
+Because we use them on a daily basis,
+we can dogfood releases company-wide before 
+launching to the public. These dogfood
+versions often have features unavailable 
+to the public but may be less stable.”
+Now it’s not necessarily a security issue that 
+you can access a dogfood version publicly,
+but if it’s a less stable test version, with maybe 
+bugs, there is a higher chance for it to have
+security relevant bugs too. So it totally makes 
+sense to now go after this dogfood version of the
+API and see if there are new features that are not 
+in the public release, that could be exploited.
+“So I begin looking into the requests. This method 
+is called list types. it tells you the built
+in type providers of deployment manager. So for 
+instance here at first you can see that deployment
+manager is able to manage spanner instances . I 
+was looking into this. I scrolled here. Said okay,
+all of this sounds like stuff that is already 
+documented. Until I got here! I was looking at
+the builtin types and suddenly I found with 
+the dogfood version there is something with
+googleOptions. This is not documented. 
+This is not in the public versions.
+So I was wondering what is it doing here. There I 
+found one difference. There I found one difference
+with the public api. yah I looked into 
+it and said, if it is on the builtin type
+providers of deployment managers, maybe I 
+can set it also on my own type providers”
+Ezequiel maybe just found an undocumented 
+internal googleOptions field and was wondering
+if he can set it on his own Type Provider, 
+and maybe it does something interesting.
+“As soon as I found this, I was really interested 
+in it. Especially because I saw this. GSLB target.
+And I know that GSLB is the internal 
+Global Service Load Balancer of Google.
+And if you read the SRE book you can see that it 
+might let you send requests to internal servers.”
+The Google SRE book he mentioned is really 
+cool. It has been on my reading list for
+MANY MANY years. But I cannot read books, so I 
+never did. Though even though I haven’t read it,
+I know it’s amazing. Because as Ezequiel just 
+said, you can learn about some cool internal
+Google stuff. And in this case, the Global 
+Service Load Balancer (GSLB) is important.
+In the chapter about “The Production 
+Environment at Google” you can read
+“Our Global Software Load Balancer (GSLB) performs 
+load balancing on three levels. Frontend, services
+and internal remote procedure calls.
+The frontend handles your typical DNS
+queries for domains like google.com. But 
+internally Google uses their own system.
+Service owners (so basically developers) 
+specify a symbolic name for a service,
+a list of BNS addresses of servers [...]. GSLB 
+then directs traffic to the BNS addresses.”
+So internally google uses BNS 
+addresses to identify servers.
+Further down we get an example of how an 
+HTTP request to a google service is handled.
+“first, the user points their 
+browser to shakespeare.google.com.
+To obtain the corresponding IP address, the user’s 
+device resolves the address with its DNS server.
+This request ultimately ends up at Google’s 
+DNS server, which talks (internally) to GSLB.
+As GSLB keeps track of traffic load 
+among frontend servers across regions,
+it picks which server IP 
+address to send to this user.
+The browser connects to the HTTP server on this 
+IP. This server (named the Google Frontend,
+or GFE) is a reverse proxy that terminates 
+the TCP connection. The GFE looks up which
+service is required (web search, 
+maps, or—in this case—Shakespeare).
+Again using GSLB, the server finds an available 
+Shakespeare frontend server, and sends that server
+an RPC containing the HTTP request.
+[...] the frontend server contacts
+GSLB to obtain the BNS address of a 
+suitable and unloaded backend server.”
+So as you can see the Global 
+Software Load Balancer is
+inside the google network. That means, if 
+you somehow can send requests to a service
+with their BNS address, you are 
+really deep inside of Google.
+And you might be able to send really critical 
+requests to very important internal servers.
+And now coming back, here you have a 
+GslbTarget field which sounds like you
+can maybe specify a BNS address. Those 
+addresses are not necessarily secret,
+but they are also not really public. Though 
+sometimes they “leak” out. You can find some
+of them appear in logs or API responses. But 
+Ezequiel also had this funny story to share.
+“There is this screenshot that I wanted to 
+show you. This screenshot is from a website.
+An internal google website. Not internal. Uhm. 
+it was a webpage that was exposed publicly
+by mistake. Until yesterday. Yesterday they 
+blocked access to it. But here you can see that
+you have GSLB addresses. This is an example of how 
+someone might find GSLB addresses just by luck.”
+So fascinating right? All those puzzle 
+pieces slowly coming together. And we
+are slowly getting to the vulnerability. 
+So we just found this GslbTarget value,
+and there is this idea, maybe the domain you 
+specified here is overwritten by the GslbTarget,
+and so you can use this request from the 
+Deployment Manager to send requests internally.
+“So for instance here I’m trying to breach the 
+corporate issue tracker api. So this is the
+symbolic name for the issue tracker api. the issue 
+tracker api is issuetracker.corp.googleapis.com.
+So usually you don’t have access to that. Okay 
+I’ll try specifying this on the gslbTarget.
+So these values, I set this to true and
+this false. Just because through trial and error 
+I saw those values worked. So I set them to that.
+And Transport again, I saw harpoon being a 
+transport value. So I couldn’t get SSRF this way,
+because as you can see, my server got hit by the 
+deployment manager request. But my server is not
+inside gslb. So the request did not go through 
+the internal load balancer. So I didn't get SSRF.”
+Good idea. But it didn’t work.
+Would you have given up at this point? I 
+might have. But Ezequiel had another idea.
+“I suspect it has to be with Transport here. 
+Because well it doesn’t make sense for the other
+values to have anything with going through 
+GSLB or not. But I didn’t know what values
+to put here. Should I put “internal”? I tried 
+bruteforcing it, but I just didn’t get it right.”
+Okay maybe Eziquel just has to find the correct 
+transport method, and then Deployment Manager
+will honor the gslbTarget address and send a 
+request to this internal service. The problem is,
+this is an enum field. So you need to exactly 
+know the name of the correct transport.
+That’s why he tried to bruteforce it.
+“But at the time I didn't know what value it could 
+be. And I tried bruteforcing it. Like internal, or
+corp, or whatever, And I couldn’t get it working. 
+I couldn't get SSRF. It would always keep my own
+server and not the internal google server that I 
+wanted. And once you know what value goes there
+it’s really obvious. But at the time it wasn’t 
+obvious for me. So I went through like, I spent
+weeks stuck here. And one day finally I got 
+an idea. I wanted to use protocol buffers.”
+Wait for it. This is so smart!
+Protocol buffers, or protobuf,
+is a binary serialization format for data. It’s 
+like JSON, just not readable by humans. It’s
+binary data. JSON is what normal people on the 
+internet use. And protobuf is like what cool
+people use. And it’s from google. Thus tons 
+of google services use, or at least support,
+protobuf instead of JSON. Or to be more precise, 
+many Google APIs do not only support your basic
+boring boomer HTTP/1.1, with your neat easily 
+readable HTTP headers. But they also support
+gRPC. Which is a protocol using protobuf 
+over HTTP/2. And HTTP/2 is also binary. I
+wonder how many of you have actually 
+heard or worked with HTTP/2 before.
+“So if you know protocol buffers, 
+they are a serialization format
+that google uses a lot. And in that format
+enumerations are encoded to binary as numbers. 
+Instead of strings. So for instanced here instead
+of specifying HARPOON or OAUTH or GOOGLE, I would 
+just have to specify their enumeration number.”
+This is so clever! In your human readable JSON, 
+you would have to know exactly the name of the
+enum. But in binary protocol buffers, data is 
+tightly packed, and for an enum with just a few
+options, you don’t want to waste space and store 
+long strings. Because protocol buffer definitions
+are compiled and shared between client and 
+server, you can just encode it as numbers.
+AND THEN YOU WOULDN’T HAVE TO KNOW the exact name 
+for the transport. You can just try out all of
+them. And so Ezequiel tried to interact with this 
+API via gRPC. Or actually he tried to use a trick
+to more easily work with it. Google sometimes 
+supports protobuf over HTTP/1, instead of HTTP/2.
+“One way of looking that, is like for instance 
+specifying alt parameter here I want proto. But
+it says, proto over http is not allowed for this 
+service, in this case deployment manager. So in
+this case google disallows this fallback. 
+So I cannot use protocol buffers on
+deployment manager. Or that’s what I thought 
+at first. Another thing google has, that their
+staging environment are very often accessible. 
+So I said, okay if I cannot use proto over http
+on the production environment of 
+deployment manager. Can I somehow
+maybe access the staging environment? So 
+through experience again I know that in
+some APIs to access the staging environment you 
+just need to prepend staging_ in the version name.
+Just like that. Okay I did this. I called 
+the staging environment, and it worked.
+I invoked a method on the staging environment. 
+It says my type provider does not exist,
+because of course it exists on production 
+not staging. So let’s create it on staging”
+Oh my gosh he found another hidden version!
+“So here, look. In the staging environment of 
+deployment manager, I am able to use proto over
+HTTP. and well this is binary i don’t understand. 
+there is another way to get a protobuf response
+that is through the content type. Content-type 
+application x protobuf. And again, the same.
+But wait, it gets more crazy.
+“Something else I wanted to mention is that 
+Google APIs don’t only serve from googleapis.com,
+they also sometimes serve from client6.google.com. 
+But if you try to get a protocol buffer response
+from google.com, it will freak out. 
+Because it says, request unsafe for
+trusted domain. I mention this because the 
+way google bypasses this when they need to
+use client6.google.com, is through a header 
+X-Goog-encode-response-if-executable=base64.
+So i run this. And I have the response 
+in protocol buffers encoded in base64.
+If you don’t have the protobuf 
+definition of a protocol buffer message,
+luckily the protoc the protocol buffers compiler 
+tool, has an option to decode the raw message
+and just give you the field numbers. And here 
+I have the protocol buffer message decoded.
+And instead of the field names, 
+I have the field numbers here.”
+So what you can do now, is 
+craft a Create-TypeProvider
+gRPC request with this protobuf encoding, 
+and changing the numbers to the different
+transport values you want to try. And once 
+created, you can then use the JSON API
+to list all TypeProviders and get the actual 
+JSON name of it. And this way he figured out,
+the transport name has to be set 
+to GSLB. Who would have guessed.
+And so now he created a TypeProvider, 
+targeting the internal corporate issue tracker,
+specifically the REST API discovery 
+endpoint, just to prove he can reach it.
+“So there is a method in deployment manager to 
+list the types a specific type provider handles.
+And okay. This is what the issue tracker has. And 
+this is live. The deployment manager right now,
+sent a request to the issuetracker API through 
+GSLB and got it’s discovery document and
+processed it, and it’s showing us the 
+results of what it found. this is the bug.
+I’m able to create typeproviders that 
+talk to internal endpoints through GSLB,
+in this case an internal API. 
+But it could be any endpoint.”
+Wow! Of course google has fixed this bug 
+now. But this is such an amazing bug to me,
+because it involved so many small puzzle pieces. 
+So many small tricks that have to come together.
+I learned a lot about Google internals from this, 
+and hopefully it can help future bug hunters too.
+Ezequiel, congratulations again for 
+winning. You really deserved it.
+But of course there were more cool submissions 
+for the GCP Prize. So go head over to the blog
+about this year’s winners, and learn more about 
+the other amazing bug hunters and their findings.

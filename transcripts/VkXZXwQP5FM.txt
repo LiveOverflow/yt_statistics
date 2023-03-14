@@ -1,0 +1,223 @@
+In this episode we want to setup a private
+Pwn Adventure 3 server so we don’t have
+to use the public server that can only handle
+a couple concurrent users.
+The game itself also has an offline mode,
+so you can check out the game a little bit
+without any server, but to really experience
+the MMO game hacking part, you really want
+it to talking to a server.
+In the description of the video you will find
+a couple of links.
+One of them is a github repository that I
+have created listing a few options how to
+run it yourself.
+But let’s talk first about the system requirements.
+From the official README it is recommended
+to at least have 2 GB of RAM and spawn only
+about 2-3 instances per CPU core.
+What that means we will see later.
+And you will also need a couple of GB free
+disk space for the large client files.
+So… if you are interested in more details
+about the server architecture, it’s probably
+most fun and interesting to follow the official
+README or follow the guide by Antonin Beaujeant.
+He has an easy to follow step-by step guide
+on how to install and configure the server
+on Ubuntu 14.04 or Ubuntu 16.04.
+You will do each step by hand and you have
+various options to customize things.
+Or maybe just learn more about linux and setting
+up a server in general.
+It’s a very detailed guide so if you install
+a fresh Ubuntu in a VM, you should have no
+problems!
+The other option is to use the docker files
+from my repository.
+I wanted to learn more about docker, so I
+used this as an opportunity to learn more
+about it and created this Dockerfile and the
+docker-compose file together with a friend.
+I’m not saying it’s a better option.
+But for some it might be a more easy option.
+If you already have a server with docker and
+docker-compose, you would only have to type
+`docker-compose build` and `docker-compose
+up` to get it running.
+But also the steps to install those are just
+simple copy and paste.
+I have tested this on a Ubuntu 14 and Ubuntu
+16 that I installed in a VM, running on VM
+Ware on my Windows host.
+But my actual personal server that I’m now
+playing with is running on this little Intel
+NUC that another friend helped me to setup
+with CentOS and KVM, so I have a docker VM
+with Fedora running on there where I have
+deployed my dockerfiles.
+And that’s running smoot.
+And I also tried it on Digital Ocean.
+And essentially all these options are the
+same.
+You just somehow need a shell, have to get
+docker properly installed, check the versions
+in case your docker throws errors, you need
+enough resources and make sure the machine
+is reachable from your game machine.
+So for example in your VM network settings
+you might want to set it to bridged or whatever
+you need.
+But then you are good to go.
+And then you can simply follow the guide.
+In this example I’m using Digital Ocean,
+where I select one of the cheaper plans.
+In case you don’t know, Digital Ocean is
+like Google or Amazon Cloud, you can just
+click yourself a server for however long you
+want, and only pay the time you used it.
+The reason why i’m a Digital Ocean customer
+is because Amazon requires a Credit Card,
+which I didn’t have for a long time, and
+Digital Ocean works with paypal - that’s
+the only reason.
+Anyway.
+After selecting a server, enabling monitoring
+and giving it a name, I have to wait a few
+seconds until it’s set up and then I get
+an IP that I can connect to with ssh.
+And then I clone the github repository, and
+start the download of the client and server
+files contained in the pwn3.tar.gz archive.
+It’s around 1.8GB.
+While this is running you can open a second
+shell and make sure docker and docker-compose
+is properly setup.
+Which is just essentially following the docker
+community edition installation guide and copy
+and paste commands.
+For future reference, here are the versions
+that were working for me.
+Once the download is done you can quickly
+verify the hashes of the file, to make sure
+it’s complete.
+Then unpack it with tar xvf and after that
+you are ready to build the docker images with
+docker-compose build.
+This will definitely take a little bit and
+then run it with docker-compose up.
+then the server should be running.
+Keep in mind, that when you now CTRL+C here,
+you tear down the docker container again and
+everything is lost.
+It’s great for testing everything, but when
+you want it longer running, use the -d flag
+to run it in detached mode.
+You can then verify with docker ps and netstat
+if everything looks good.
+This means, there are two docker container,
+the master and game container.
+And that you have docker proxy processes listening
+on port 3333, 3000 and maybe more.
+Next you can try to connect with your client
+to it.
+For that you have to do two things.
+First is to edit your /etc/hosts file.
+That file exists on Windows, Mac and Linux.
+For Mac and Linux it’s simply in /etc/hosts,
+for Windows it’s in this path shown here.
+Make sure to edit the file with root or administrator
+privileges.
+Here we enter the IP of our server and assign
+it the name master.pwn3 and game.pwn3.
+Those are the two hostnames of my default
+server configuration.
+The second thing you need to do is to modify
+the server.ini config file located somewhere
+in the client folder.
+You have to replace the official host with
+master.pwn3.
+WARNING, don’t use an IP here, it took me
+half a day to debug why my client wouldn’t
+properly connect and once I used a hostname
+it worked.
+That’s why we have to set the /etc/hosts
+file.
+After that we can launch our client and wait
+for all of the files to be downloaded.
+This takes quite a while.
+But after that we can press Play.
+This will close the Launcher and start the
+actual game.
+Here we can select “Play Game” and if
+it displays the LiveOverflow message, it worked!
+You are connected to the master server now.
+You can then register an account and after
+that create a character.
+When you press join the master server will
+assign you a game server and drop you into
+the game.
+Just so you have a better understanding of
+how the server and client works.
+When you start the Pwn Adventure 3 Launcher,
+then the launcher connects to the official
+server to check for updates to the client
+and download the files.
+After that it kills itself and starts the
+actual game.
+That’s very typical for games.
+Then the actual game will read the server.ini
+config file, tht we modified earlier.
+When you now want to play, the client will
+connect to the master server specified in
+the server.ini file, so master.pwn3 and you
+can register an account, login and create
+a character.
+This all still happens while connected to
+the master.
+Then when you press “join”, the master
+server selects a game server and port for
+you.
+The game server runs several instances on
+different ports.
+In this case the game server is located on
+game.pwn3, so the master server will tell
+the client, “hey, I found a free server
+for you, checkout game.pwn3 on port 3000”.
+If there is no game server or just it’s
+very busy, you will see a message “waiting
+in queue”, or something like that.
+And now that you have the game server you
+connect to it and get dropped into the actual
+game.
+Anyway, the setup is essentially the same
+on any of the hosts hosts.
+So here is my MacBook, my Linux Laptop and
+my PC connected to the same server.
+Say hello!
+Of course the technical details on how you
+hack them is different on each operating system.
+In case you want to customize the server settings
+a bit, checkout the setup scripts in the git
+repository.
+There you can change the welcome message,
+and also the hostname the server will use.
+As well as the amount of instances.
+This is what I briefly mentioned in the beginning.
+This spawns 5 game server instances.
+And it worked ok on the Digital Ocean server.
+However when you look at the monitoring stats,
+it’s really at the limit.
+Anyway… now that we finally have everything
+setup, we will dive into the hacking parts
+next video.
+If you watched a little bit of the let’s
+play in the last video, or played the beginning
+yourself, you know we need a fireball to get
+out of this cave.
+But soon we will be able to do what this guy
+does.
+Just flying out of the hole in the cave.
+It looks a bit laggy from this perspective,
+but whatever.
+Flying is flying.

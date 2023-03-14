@@ -1,0 +1,191 @@
+today I will show you a basic race
+condition scenario and how to exploit it
+and how to prevent it
+it's very inherent to have file paths so
+you will see that in a moment so here's
+a program called red flag it expects one
+argument as a file name or file path
+then we'll use the function authors call
+stat to get information about this file
+and then it checks the file that you
+specified is owned by route and if
+that's the case it will print an arrow
+that this file is owned by root so if
+it's not owned by root it will open the
+file in read-only mode and then it
+simply loops over reading from that file
+and then writing it to output so let's
+compile our red flag binary I also
+created a flag file that is owned by
+root and regular user can't read it if
+we try that we get permission denied and
+I made the reflect binary as set Urd
+binary so it is executed as root so we
+know the rich flag program simply takes
+our file and then it will read it so I
+created this example SD file which
+contains test and then we can pass it in
+to the reflect program and it will read
+that file and print test the flag file
+is owned by root so theoretically red
+flag should be able to read that now but
+we get an error because the flag file is
+owned by root this happened because of
+our check here the red flag file will
+only read non root files but maybe you
+have this idea to use a symlink and the
+zoom link now points to the flag and to
+some link is owned by the user so it's
+tried yeah doesn't work so let's do the
+race condition like I said in the
+beginning I want to show you a race
+condition problem so we have a race
+condition here so when it calls a start
+to get the file information it uses the
+file path and when the check succeeds it
+uses the file path they'll here in the
+open to open that file so basically we
+want to win here a race where when we
+call start for the first time on that
+file it's just a save file but when the
+program then continues to execute we
+switch it out and when it then reaches
+the open it will then actually open the
+file that it shouldn't have opened it's
+a very useful race condition snippet
+that I learned about at the 35 c3 CTF
+from the challenge lock rotate I didn't
+solve that
+but after CTF talk
+Kamath might have been a Class B at the
+time he told me about that there's
+basically a Cisco to swap two files and
+that is really really useful so here's
+the code let's copy that and I explained
+in a moment
+so here we have a while loop this while
+loop just calls a single Cisco in the
+source code that we are calling is
+called rename add to it takes some
+parameters but the most important ones
+are this one and this one these are two
+file paths and we use the option rename
+exchange so basically there's a rename
+system call to rename files and with
+this option to rename exchange you can
+actually switch exchange the names of
+these two files so basically this is
+called with this option is just a race
+condition Cisco it's a really awesome
+Linux feature so let's compile it
+so in this folder TMP hacks we already
+have this assembling to the flag so we
+just need another file so now that we
+have an ast file and we have to swim
+link to flag now remember when I try to
+simply read the flag file we say it's
+owned by root but let's launch our small
+racing program we specifying the
+arguments the two files that we want to
+constantly exchange and switch with each
+other so now it should be executing okay
+so let's check out the folder okay now
+this is switching so fast around that LS
+here even through some arrows ah look
+here this time ast was pointing to the
+flag and the flag was just a valid file
+now LS was kind of so slow that the
+exchange happened so fast
+that it thought that both files are
+something to flag basically we just
+raised LS and here we raced like the
+inverse now both files are not pointing
+to flag anyway now let's try red flag on
+PI root it didn't work there we go
+we won the race that's awesome right so
+basically during the first stud the flag
+fab was just the regular file and then
+while it was executing here a bit more
+code our racing program exchanged the
+files again and when it then opened it
+it actually opened the real route own
+file race conditions are pretty fun it's
+a very typical back pad
+that you can find especially always when
+you are dealing paths so when you are
+auditing code or play CTF challenges
+always pay attention to if this program
+that you're targeting is handling file
+paths and check if it always trusts the
+path and if you have some ability to
+race between the first time it uses the
+path and the second time it uses the
+path just for completeness sake this
+issue is often also referred to as talk
+to time of check time of use during the
+time we check the file it was ok during
+the time we used it it was then bad but
+how can you avoid this now this seems
+like a problem that is almost like
+unavoidable right Stud is essentially a
+Cisco so let's look at the Cisco's so on
+64-bit on Linux the status call is cisco
+number 4 and when we look at the main
+page we see that stud takes a path name
+but there also exists F stead and F stat
+is another source code the source code
+with number 5 and that says call takes a
+file descriptor instead a file
+descriptor is a handle that points to a
+specific file and for example the open
+source call returns a handle to that
+file which means if we want to use F
+stat we need this file descriptor so we
+have to move the open further up before
+the stat and then we reflect the F step
+to take the file descriptor instead you
+can already see that now we only use the
+file path once the file path is used to
+open this file and get a handle and this
+handle just points to that one file
+there's no way to exchange this anymore
+unlike file paths a file descriptor this
+number is a handle for a file that is
+deeply rooted inside of the Linux or
+UNIX operating system at this moment in
+time there is basically no concept of a
+path anymore this is now a thing that
+just represents that one file you can't
+switch that anymore that file descriptor
+just points to that file so let's
+compile this flag and let's try all race
+again and also making it set UID binary
+again so we have the same basic setup so
+here we execute first our race condition
+program again and now let's try to
+execute this ok so there was no error
+which means now
+probably because of the switching we
+pointed to the empty valid normal file
+normal file up there we go
+now this time it was again the actual
+root file and when it now tried to read
+it we get the arrow but as you can see
+no chance for race condition anymore now
+it only depends on which file is there
+at the moment when we open it it was
+either the regular user file which is
+empty and doesn't print anything or it
+is the root own flag file in whichever
+of the two is open during the race will
+either print the empty file or cost than
+the arrow so we have prevented the race
+condition crap I'm sick that's not how I
+plant these 24 hex ember daily videos to
+go so I was out for a couple of days and
+couldn't prepare more videos I guess now
+it's even more likely that I won't be
+able to deliver all 24 videos
+[Music]
+you
+[Music]

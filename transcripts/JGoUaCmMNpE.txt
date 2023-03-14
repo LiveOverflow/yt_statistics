@@ -1,0 +1,248 @@
+To be able to find security issues in software,
+one has to understand how software is written.
+It’s very helpful to explore different programming
+languages to understand their differences
+and similarities and to get into this special
+way of thinking.
+Often when I use a software I imagine how
+a certain piece of it might have been implemented
+- this makes me think about the software architecture
+and potential difficulties the developers
+may have had, which helps to find bugs that
+can be exploited.
+When I was younger I used programming to write
+damage calculators for browser games or simple
+chat programs that we could use at lan parties
+to communicate. Nowadays I use programming
+more as a tool to solve other problems or
+help me with repetitive tasks.
+To get a feeling what programming is like,
+we will have a look at a very simple program
+implemented in the very old and low level
+language C and in the next video we use the
+more modern scripting language python. You
+will notice a lot of similarities in terms
+of structure but also how different their
+syntax looks like.
+Let me first show you what our little program
+will do. To execute it you simply have to
+enter the path. Because we are in the same
+folder we have to start the path with the
+“dot”, which is an alias for the current
+location. Maybe you are wondering why the
+other programs like “LS” don’t require
+a full path to execute them.
+The reason for that is when you enter a command,
+or generally speaking the name of a program,
+the shell will look at the configured PATH
+environment variable, which contains a list
+of directories where to look for programs.
+There are many different environment variables
+that all have their purpose, but because we
+are only interested in the PATH we can use
+the pipe to redirect the output of env, into
+another program called grep, which can filter
+for lines that contain “PATH”.
+I use grep to filter output of other programs
+all the time. It’s one of the most useful
+tools.
+Another way to get the content of PATH is
+to use echo to print the variable.
+Now let’s use “whereis” to find the
+location of the LS program, which shows us
+that it is indeed in a location specified
+by PATH. The paths are separated by the colon.
+If we would want to execute our program from
+every location like LS, we can simply add
+this current directory to the PATH variable
+with export.
+A nice trick if you want to copy something
+in the terminal is just to mark it, and then
+press the mouse wheel. this will automatically
+paste the marked text. Now add the user’s
+home folder to the PATH and then you can execute
+this program like any other.
+Now let’s dive in.
+C is over 40 years old and despite it’s
+age it’s still used a lot. Its strength
+is its simplicity - by that I mean that there
+are not too many language features and thus
+makes it easy to understand - at least once
+you understand how a CPU works. Many beginners
+feel that C is hard, because it feels unintuitive
+and too low level at first, but you will notice
+in later episodes that it is very close to
+assembler, which is ideal to understand and
+imagine how a computer works.
+our goal is to look nerdy. So we obviously
+will use a command line text editor called
+vim. Joke aside, it really makes sense to
+learn vim, because we actually need it a lot.
+vi is already installed. But vim (which stands
+for vi improved) is a little bit nicer and
+is not yet there. But we get this nice little
+suggestion to install it with sudo apt-get.
+The sudo prefix is needed, because only the
+root user can install new software. Enter
+a Y to continue
+Now enter vim and the filename to start editing.
+Before you can type you have to enter the
+“insert” mode by pressing i. Keep an eye
+on the status bar at the bottom, which tells
+you what you are doing. To exit the insert
+mode hit escape. And then you can enter commands
+with a colon such as colon w to save the file
+or colon q to exit. or simply colon w q to
+save and exit.
+We don’t really have to know more features
+than that for now, except maybe we want to
+enable syntax highlighting and display line
+numbers
+:syntax on
+:set number
+First we want to use the include statement
+to add the standard i/o (input output) functionality
+to our program. Next we define the entry function
+which is always called “main”. Every C
+program has this function and this is where
+our program starts to execute. A function
+has a name and encloses code that belongs
+to this function. The parameter variables
+defined here are standardized. The first parameter
+is an integer number called argc (which stands
+for argument count). And the second parameter
+is a list called argv (which stands for argument
+vector). For now we will use array, list and
+vector as synonyms. So those function parameters
+are infact what we can pass to a program on
+the command line. Just think of the “cat”
+command. It takes a filename as first argument.
+And if you would program cat yourself, you
+would access the filename via argv.
+Now let’s print something by using the printf
+function and a string as parameter.
+The backslash n is a special character which
+stands for newline. We have seen it in the
+last video already.
+Let’s save this with ESC, colon, wq, Enter.
+Just a friendly reminder, read the man page
+of printf to learn more about this function.
+To access the manual for the C function printf
+you have to look in the 3rd section of the
+manual. So man 3 printf.
+To create a program from the text we have
+to compile it. The compiler converts the text
+into binary machine code that can be executed
+by the CPU. We can use the gnu c compiler
+gcc for that. “gcc”, filename of the code
+and minus o to specify the output file name.
+Ohh… I made a mistake. There is a conflict
+for argv. So let’s quickly fix that by calling
+this variable properly argc.
+Now you can execute it. Awesome!
+Let’s be a good programmer from the beginning
+and use -Wall to enable all warnings. Now
+we get a warning that at the end of the function
+is no return value, despite having main defined
+to return an integer number. So let’s fix
+that by adding a return 0 at the end, 0 means
+that the program exited without an error.
+You can hit “o” instead of “i” to
+enter the insert mode in vim, which automatically
+creates a new line below. Maybe you start
+to realise now how powerful vim can get when
+you get familiar with the shortcuts.
+And now it compiles just fine!
+To make this program a bit more interesting
+we will add an if-statement. We say that the
+argument count has to be equal to two. And
+if that is the case, we will print the same
+phrase as before, just without a fixed name.
+We can use this format string syntax of percentage
+s to indicate that at this place belongs a
+string. And as first parameter we specify
+this string, which is the second element of
+the arguments vector. Yes it says, 1, but
+it is the second entry in this list, because
+we always start counting at 0.
+If we don’t have exactly two arguments,
+we will print an error message. Good practice
+is to print error messages not to the standard
+output, but to the standard error. May seem
+weird for now, but you will understand it
+in the future. And instead of printing the
+second argument, because in this else case
+we might not have one, we will print the first
+argument instead. We will also add a return
+1 here, and the one indicates that the program
+exited with an error.
+Compile this code and test it. As you can
+see if you don’t specify an argument, it
+will display the usage error message with
+the program name. The shell passes everything
+you typed on the command-line seperated by
+spaces to the program. And this means the
+first argument will be your program name.
+Now if you set the second argument, the personalized
+message is printed. Also notice that when
+you want to have a string with spaces, you
+have to put it in quotes to indicate that
+it belongs together.
+With dollar questionmark you can display the
+exit-code of the previously ran program, which
+is either 0 or 1 depending on if we got an
+error or not.
+Now let’s play a little bit with this program.
+We already scratched the topic of environment
+variables. If you look at them again, you
+can find the $USER variable, which contains
+your username. So when we execute the program
+with dollar USER, it will print liveoverflow.
+But what if we actually want to print dollar
+User?
+To achieve that we have to escape the dollar.
+The dollar has a special meaning on the command
+line. When you enter this text the shell will
+read what you typed and once it reads the
+dollar, it knows that the next characters
+will be the name of a variable. It will then
+look up the value of this variable and replace
+it.
+But if we use a backslash before the dollar,
+the shell will first read the backslash and
+knows, that if a dollar is following, it will
+not treat it as a special character anymore.
+Wouldn’t it be cool to always get greeted
+when you open a terminal? Browse to your homefolder
+again and checkout the dotfiles there. There
+is one file called bashrc, which is a special
+file that will be loaded once you open a terminal,
+and it can contain commands that are executed
+everytime. Open it in vim, and go to the bottom
+of the file with shift G switch to the insert
+mode with “i” or “o”.
+Now we can add the export command from earlier,
+but because we now know about environment
+variables and how they are recognized and
+replaced, we can use this better technique
+to change the PATH.
+And on the next line we add our program with
+the user variable as argument.
+Escape to enter command mode, colon, w save
+it.
+Open another terminal and be excited!
+This obviously could have also been easier,
+by just using echo instead of a compiled C
+program. But it doesn’t matter. We learned
+something. As an exercise you should add an
+alternative version with echo and the environment
+variable to the bashrc. And you can also modify
+the vimrc to always enable syntax highlighting
+for vim.
+I remove the export command again, because
+I don’t want to have the home folder in
+the PATH. Go to the line and press d two times
+- you have to be in command mode, so hit ESC
+if you are still in the insert mode.
+And now I have to use the full path for our
+program.

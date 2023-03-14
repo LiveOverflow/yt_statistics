@@ -1,0 +1,351 @@
+The previous heap exploitation videos were
+about abusing application logic. Basically
+because the program used faulty data from
+the heap. But this time we exploit the heap
+algorithm itself. In this video I want to
+explore heap level 3 from exploit-exercises
+protostar which is about the infamous unlink()
+macro.
+This video is based on the excellent phrack
+article “Once upon a free()”. As you can
+see this article is from 2001. So we are still
+15 years behind the times and have not yet
+caught up with the modern state of exploitation.
+The heap implementation that we will exploit
+changed over the years to prevent this kind
+of attack. But the current versions are still
+based on this old algorithm, so it’s important
+to understand this easy version here.
+So let’s start by looking at the code of
+this level.
+This level introduces the Doug Lea Malloc
+(dlmalloc) and how heap meta data can be modified
+to change program execution.
+The goal is obviously to call the function
+winner.
+First we malloc 3 objects with 32 byte. A.
+B. and C.
+Then we copy the program arguments to A. B.
+and C.
+Obviously strcpy is vulnerable because it
+doesn’t stop us from copying more than 32
+byte. So that is our overflow.
+And then we free again the objects in reverse
+order, C, B and A.
+And we have the printf at the end.
+So as you can see, there is no obvious application
+logic we could exploit. No use-after-free,
+no vulnerable pointer on the heap. But still
+it’s possible to redirect code execution.
+And as the description says, this level is
+about corrupting heap meta data. So there
+is an issue with the heap algorithm, in this
+case in the free() function, that we can use
+to redirect execution to winner().
+Let’s start by looking at the heap in gdb.
+To do this let’s add a couple of breakpoints.
+How about at each library function. So break
+at malloc, strcpy, free and the printf, which
+is actually puts, at the end.
+Let’s quickly run it, don’t forget the
+3 arguments and continue until you arrive
+at the first strcpy. Then check the mapped
+memory for this process and look for the heap.
+So this shows us, that our heap area is from
+804c to 804d. And we can define a hook-stop
+to always print like 56 words of this area
+when we hit a breakpoint.
+When we now rerun the program we can see how
+the heap develops. Let’s do it.
+Before we execute the first malloc we don’t
+have a heap yet. After the malloc we can now
+see the first object on the heap. So remember
+how a heap chunk looks like? This is the size
+of the current chunk. Which is hex 29. The
+last bit indicates if the PREVIOUS chunk is
+in use. And because it’s the special first
+chunk, there is no valid memory before that,
+thus it has the bit set indicating that that
+memory is not avilable, not free. This means
+the true size of the chunk is hex 28, which
+is 40 bytes, so malloc allocated a bit more
+than 32 bytes. But doesn’t matter to us.
+After this chunk we have the wilderness, which
+is like the first chunk - a little bit special.
+But you can just imagien it as a huge free
+block still avilable for allocation and that’s
+it’s size. And it obviously has the last
+bit set, because the previous chunk is in
+use. We malloc the second object. Same size.
+Last bit set because the previous chunk is
+in use. And the wilderness was updated and
+has now less free space, but still the previous
+chunk is in use. And then the last object.
+Another one with the same size. Last bit set,
+because the previous is in use. And less space
+available in the wilderness.
+Next we execute the string copies. So we copy
+the first argument which was the As to the
+first chunk. The Bs to the second chunk and
+the Cs to the third chunk. Obviously we could
+have written a lot more and completly overwrite
+everything. Including the chunk size, which
+is the heap metadata.
+Next we gonna free them again, so the last
+chunk got freed. The Cs got overwritten with
+zero, because these two words here have special
+meaning for a free block. So previously we
+had allocated blocks. Now we have a block
+that is available again. Free. Not much else
+changed. Infact those chunks are very small
+and are considered “fastbins” by malloc.
+They behave a little bit different. We will
+learn about that a little bit later.
+But let’s continue and free the next one,
+so we have two free blocks. This time our
+Bs got overwritten with an address, and it
+points to the other free block. So that’s
+the special meaning of the overwritten word,
+they are pointers, pointing to the next free
+block. A linked list.
+Okay continue and free the next one, and we
+extend that linked list. The first free block
+points to the second one, and that second
+one points to the third one, which is the
+last block before the wilderness.
+You probably ask yourself why the last bit
+of the sizes, which indicate that the previous
+blocks are in-use didn’t get set to 0. It’s
+a bit confusing, but think like an algorithm
+for a second. In this case, they are small
+fast bins and we want to be super fast handling
+them. And how we freed blocks in this reverse
+order, it just doesn’t matter.
+It would be unnecessary wasted time to set
+that bit. Just imagining this pointer somewhere,
+which always points to the first free chunk.
+When I now want to malloc something and look
+for free space, I can then simply follow the
+linked list to find all free chunks and thus
+the information that a previous chunk is free
+is just irrelevant, right? But, It would also
+look a little bit different if the chunk sizes
+were bigger. Then malloc and free would clean
+up a little bit more and use more heap metadata
+for housekpeeing. But let’s not get hung
+up on this. We will walk through some part
+of the algirthm later and clear up some parts.
+So let’s have a look in the code. When you
+look for the dlmalloc algorithm for this case,
+make sure you have a version that is over
+15 years old, otherwise you look at a patched
+version.
+Now before we start reading the code, think
+for a moment what we are looking for. We look
+for a primitive that allows us to perform
+an arbitrary write. That would allow us to
+overwrite an entry in the global offset table.
+One possible way how such code that can be
+abused for that looks like, is following pointers
+that we control, right? If there is some kind
+of code here that performs a write based on
+pointers on the heap we can overflow, we win.
+Let’s keep that in mind when we look at
+the code.
+The function starts with the parameter mem,
+which is the address we want to free. Shortly
+afterwards mem2chunk is called which get the
+address two words ahead of mem, which is the
+true starting address of the chunk.
+The first if we reach contains only a little
+bit of code. And it refers to fastbins. THis
+is exactly what we witnessed when we freed
+our small 32byte chunks. It updated the first
+pointer, the fd pointer. Which created the
+linked list. But otherwise not much happens
+and thus it’s not interesting.
+So this means we just really want to make
+sure, that our size is greater than the maximum
+fastbin chunk size, which is defined as 80.
+Our chunk sizes are 32, so we wanna make sure
+that we overflow the size of the chunk we
+handle.
+If we head into the else if, we arrive at
+an interesting comment:
+“Consolidate other non-mmaped chunks”.
+If we check what is necessary to pass this
+test, we look at the chunk_is_mmaped macro
+which takes the size of p, which is the size
+of the current chunk, and checks the IS_MMAPPPED
+flag. Very similar to the PREV_INUSE bit,
+which is the last one, the IS_MMAPPED flag
+is the second last bit. So when we want to
+reach the code in here, we have to make sure
+that the 2nd last bit is not set.
+Then we get the address of the next chunk,
+which we can calculate based on the size of
+our current chunk. So with an overflow, the
+size is already something we can control,
+this means, that here we have a first opportunity
+to fool free() into thinking some other data
+is the next chunk.
+After that we have a check if the previous
+chunk is in use, if the previous chunk would
+not be in use, which is defined by the lowest
+bit set to 0, we would follow the prev_size,
+which we haven’t introduced yet, but it’s
+this word before our chunk size. And thus
+calculates the address of the previous chunk.
+Again, a value we possibly can control.
+Then we execute an unlink. That’s the magic
+word I mentioned at the beginning. So let’s
+see what that means.
+The first parameter p, is the block before
+our current block, which we got by following
+the prev_size. We take the forward and backward
+pointer of that chunk, which is the first
+and second word after the size and remember
+it in FD and BK.
+For simplicity ignore the ->bk and ->fd, because
+that just references a small offset from the
+address here. We add those offsets afterwards.
+So now we write the address BK, to the address
+where FD is pointing to.
+And then we write FD to the address where
+BK is pointing to.
+Or to be exact at their respective offsets
+where the prev and next pointer is stored.
+Okay stop! BK could be the address of the
+winner function. And FD+12 could be our GoT
+table entry for puts().
+This would overwrite an entry in the global
+offset table with the winner function. This
+sounds perfect!!!
+But we forget the next part, where we would
+take our GOT address in FD and attempt to
+write it to the address of Winner (+8).
+Mhhh… that would segfault. We can’t write
+into the code segment. Damnit…
+But now you just have to get creative. Think
+about. If we have two memory segments. Segment
+A and B. We can write an address from segment
+A into segment B. And we write an address
+from segment B into segment A. The global
+offset table is writeable, so that could be
+one of those segments, just the code segment
+can’t be the other one. But the HEAP could
+be our second one. We can write to the heap.
+This would allow us to write an address from
+the Heap to the global offset table, and some
+unimportant address from the global offset
+table will be written into the heap! This
+means we can redirect code execution via the
+global offset table to shellcode that we can
+place on the Heap. and then this shellcode
+calls winner for us.
+That sounds like an awesome plan.
+Let’s take the state of the heap as we know
+it and think about how we would want to construct
+the case we just explained.
+So we could decide that we want to free the
+last block and make sure the prev in_use bit
+set to 0. So that it attempts to consolidate
+the previous block. Let’s actually make
+those changes right here with gdb, this way
+we can directly test it. Set the chunk size
+to more than 80 and have the prev in use bit
+set to 0. So why not 100. Now we want to set
+the prev_size, to point to the previous block
+we want to merge with. Let’s make that a
+small block. So maybe hex 10.
+This means at -0x10 we have to create a fake
+chunk. Of that size. So set 0x11, because
+we want to indicate that the chunk before
+this fake chunk would be in use. great.
+Now we need the address from puts in the global
+offset table. This will be the forward pointer
+where the 2nd pointer will be written to at
++12. That’s why you have to do puts-12,
+because it will be written to the address
++12. And the other pointer will be the address
+that we write to the global offset table,
+so that one should point somewhere into the
+heap where we can place some shellcode. Why
+not go here.
+Just one other thing to consider, before we
+can test it, the size is used to calculate
+the next chunk and the next size. And after
+the unlink those values are used. So if we
+use the size 100, we point into some unused
+memory and we have to make sure that the values
+there behave nicely. Otherwise we will crash
+somewehere. There is an if-check if the next
+chunk is the top, or what we call wilderness.
+But our size is overshooting that address.
+This means we land in this if-case. And now
+it calculates the next block of that one and
+checks the prev in use bit to figure out if
+the block before it is free or not. So if
+it is not in use we perform another unlink
+to also merge the unused block after the current
+one. Which copies around those pointers.
+Hey, this is LiveOverflow from the future.
+I’m just editing this part and I realized
+that I missread the code here. I thought I
+had the choice between this short unlink if
+case, or the whole else case below. But I
+missed that there are no curly braces, which
+means the else case is just this clear_inuse_bit_at_offset.
+When I was developing this proof of concept
+I thought to myself I don’t want to overcomplicate
+it with the code down here. Infact I made
+it over complicated because we have to construct
+another fake chunk now to deal with this second
+unlink in here. But whatever, I think that
+was a great learning experience. Let’s head
+back into the episode.
+At this point we should have already succeeded
+in writing our heap address to the global
+offset table with the previous unlink, so
+we can just pick two random heap values to
+not crash here.
+So those are two more fake chunks. With the
+forward and backward pointer pointing into
+the heap which we don’t care about.
+This is LiveOverflow from the future. Again.
+I just realized I made another small mistake
+which negates my false assumption about the
+big else case from earlier.
+I actually did set the prev_in_use bit, which
+means it does NOT consolidate this fake chunk.
+Not to mention that I set the fd and bk pointer
+for the wrong chunk anyway. Should have been
+on the other chunk before. I’m sorry guys.
+I’m just a noob.
+So to summarize. We change the size of the
+block we are going to free. We create a fake
+free chunk before our current one to trigger
+an unlink and overwrite the GoT. And we created
+two fake chunk afterwards, where the second
+one says about the previous that it is in
+use. Thus not triggering another unlink. And
+those two values here were unecessary.
+Now if we continue and execute the first free,
+we can check the entry for puts and we see
+the function address was sucsessfully written.
+And when we look at the heap, we can see that
+at the offset +8 we have a GOT address written.
+Awesome. And when we continue to the puts
+and single step forward we jump into the heap.
+AWESOME!
+This works! Now we just have to get these
+values into the heap with the strcpy…
+Oh no. oh nonononono. I’m stupid. Strcpy
+can’t copy nullbytes. A string in C is defined
+to end with NULL. So we can’t write sizes
+like hex 10 into memory. At least not multiple
+times. Oh dammit. The whole plan doesn’t
+work in this case… if it were a read() it
+would work. But not with strcpy.
+I go sit in my corner now and think about
+all the failures in life. See you soon. Maybe.

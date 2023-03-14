@@ -1,0 +1,448 @@
+What does iOS 9.3 and the Nintendo Switch
+have in common?
+They both use the browser engine WebKit with
+a version that is vulnerable to a known memory
+corruption vulnerability.
+Remember the news of the pegasus malware for
+iOS, which was discovered when it was used
+in a targeted attack against the human rights
+activist Ahmed Mansoor?
+That malware used a webkit exploit as the
+first stage, to gain arbitrary code execution.
+Qwerty and the pangu team then used this bug
+in their jailbreakme website.
+And it turns out, the browser of the Nintendo
+Switch is so old, that is also has this bug.
+And this is what a lot of people are using
+right now as a first entry point in hacking
+the switch.
+Obviously the whole jailbreak is extremely
+complex, even just getting code execution
+is insane.
+But I spent now quite some time understanding
+the bug itself and the first crucial part
+which creates an arbitrary read/write primitive.
+So you can overwrite anything in memory, for
+example function pointers or jitted code.
+But let’s start at the beginning.
+First we need to figure out how to access
+the browser in the switch.
+You may have heard that the Nintendo Switch
+doesn’t have a browser, so what the heck
+am I talking about?
+Well there is no good browser implemented,
+but it turns out, that when you connect to
+a wifi, which requires you to login in a captive
+portal, it will use a browser view and load
+that page for you.
+A captive portal is common in hotels and airports
+and stuff.
+So we have to figure out how to load our own
+website here.
+When you look at the network settings, you
+can specify a proxy server, which is great
+because then I can run a proxy server on my
+laptop and intercept all the traffic.
+I use Burp Suite as my proxy server and just
+have to make sure it listens on all interfaces,
+so other devices on the same network can use
+it.
+So now we just have to enter the IP of this
+laptop into the proxy settings of the switch.
+When we now connect to the wifi, the switch
+will establish connections through this laptop.
+And we can see here in the Burp history view,
+that the switch tried to contact conntest.nintendowifi.net
+That site just responds with a simple string
+that the connection works.
+It uses this to check if you have internet
+connection or not.
+So, if this check fails, it will think you
+first need to authenticate from a captive
+portal.
+So next we need to redirect this request to
+a different page, basically our “captive
+portal”.
+We can do that by simply modifying the /etc/hosts
+file, to point the conntest domain to another
+IP.
+For example localhost.
+Then we spawn a simple webserver on our machine,
+for example with php -S.
+We can place a index.html file in here to
+verify that this works.
+And with a browser we can see that we have
+now on localhost a webserver running.
+So, when the switch now connects to the wifi,
+it will try to contact conntest and it will
+go through the proxy on my laptop.
+My laptop sees in the /etc/hosts file what
+the IP for conntest is.
+So the proxy will connect to localhost instead,
+which will access our index.html file.
+Let’s try it.
+We search for the wifi.
+We connect to it.
+It will check if there is access to the internet.
+It didn’t get the expected result for conntest
+back and tells you you have to login.
+When we now press next, it will load what
+it thinks is the captive portal.
+Now we have access to a browser that loads
+our website.
+We can also have a look at the requests in
+burp, which shows us the User Agent the switch
+uses.
+So now that we have that setup, let’s read
+up a bit more on the webkit bug.
+It was assigned CVE-2016-4657 and has the
+description: “WebKit in Apple iOS before
+9.3.5 allows remote attackers to execute arbitrary
+code or cause a denial of service (memory
+corruption) via a crafted web site.”
+The description can be a bit misleading.
+Makes it sound like it’s only an iOS issue,
+but its generally a webkit bug, and would
+affect anything that used that particular
+webkit version.
+In our case the nintendo switch.
+Also this is not an exploit where you just
+type into metasploit `use exploit/nintendoswitch/webkit`.
+This is something where you actually have
+to understand it quite in depth to be able
+to use it.
+Now let’s take qwerty’s jailbreakme code,
+which uses the webkit bug, extract the first
+relevant part and adapt it to the nintendo
+switch.
+I won’t go through all this process because
+that took me ages to understand, but I want
+to show and explain to you what I got now...
+So let’s walk through it.
+First we create a Typed Array of unisgned
+32bit integers.
+And in memory this will create a struct with
+a couple of different values such as a JSCell
+which contains a couple of interesting values
+such as a structure ID that determines kind
+of the type of this object.
+We will look at that later again.
+A butterfly pointer, which is used in a bit
+more complex objects but not quite relevant
+for us right now, a vector which contains
+a pointer to a chunk of memory that represents
+our array.
+And the length of that memory.
+So that array gives us basically access to
+raw bytes in memory.
+Obviously you can’t access beyond it’s
+length.
+Then we create a more flexible array.
+A standard array like you might use it.
+That array is a bit different, as it can contain
+arbitrary types.
+Any kind of objects.
+So instead of just pointing to raw memory,
+it points to more complex objects called JSValues.
+And here is an example of the integer with
+the hex value 41414141, it would store 0xffff0000
+before it, to indicate the value is an integer.
+Look at the amazing phrack paper if you want
+to know more details about these JSValues.
+In the case of the exploit it will set the
+first element of the Array to a big ArrayBuffer
+and the second to some number.
+An Array Buffer is also access to raw bytes.
+Basically different typed arrays can point
+to the same buffer in memory.
+Whatever, read the javascript reference.
+So If I’m not mistaken, the first element
+of the array is now a JSValue with a pointer
+to an array buffer.
+Next we create a simple Javascript Object
+and overwrite its toString() function.
+That function is called whenever you want
+to get a string representation of that object.
+So if I return 1337 object as a string, and
+I would alert this object, it would call to
+string and show me that one.
+But in this case the function does a bit more.
+It first sets the reference to the array we
+just created to null, as well as setting another
+property to null.
+In a second you will see that this “stale”
+property is also a reference to the arr array.
+Theoretically now all references to the array
+are gone, and the garbage collector can free
+that array.
+To force the garbage collector to kick in
+right now, we can use the function which just
+allocates and removes a lot of objects.
+And when you do this a couple of times you
+can be fairly certain that the garbage collector
+did the work.
+After the garbage collection the function
+will now allocate a lot of new Uint32Arrays.
+The reference to those are stored in buf,
+so we can access those arrays.
+And if everything goes well those arrays might
+be allocated where the previous array was.
+But how is this object with that toString
+function used now.
+We define an object that we use as properties.
+And I think we allocate more than just two,
+so the properties are not stored inline, but
+I’m not 100% sure here.
+Anyway, one of these properties is called
+stale, and it is set to the array reference.
+That is the property that the toString function
+will set to null.
+Another property is `length` which is set
+to the not_number object.
+Then we create a new empty array target and
+apply those properties to it with Object.defineProperties.
+This means all those properties we defined
+will be set to the target array.
+During this assignment, the toString() function
+of not_number will be called and causes the
+garbage collection of the array.
+As well as the allocation of a lot of Uint32Arrays.
+And this is where the bug happens.
+Theoretically the stale property was set to
+null, and should not be accessible.
+But somehow the reference is still there.
+Some stuff internally did not properly check
+everything.
+This means that we have a reference into some
+memory where previously the arr array was
+allocated.
+And we also allocated a lot of Uin32Arrays
+and we hope that these now overlap.
+As I mentioned earlier, the Uint32Arrays allow
+direct memory access, they can read and write
+raw bytes.
+While the arr array was a complex object,
+with JSValues.
+Now it’s already clear what you can do with
+this.
+You can use the Uint32Arrays, which are accessible
+via buf.
+To read and write raw bytes at the location
+where the stale property thinks a standard
+Javascript object is.
+So first it has to find if and how the buf
+and the stale array overlap.
+To do this, we can simply add a number to
+the first element of stale.
+But what is the first element of stale now.
+Isn’t that garbage memory?
+well ideally, if everything works, it points
+to where we created the uInt32Arrays, and
+we populated that memory region with 0xffff000041414141,
+which is a JSValue representing an integer.
+In fact the number 0x41414141.
+This means that now we add hex 101 to the
+first element of the stale array, making it
+0x41414242.
+We can then simply search through the whole
+uInt32Array memory looking for this 0x41414242.
+Keep in mind that the buf has access to raw
+bytes, so it will infact see the 0xffff0000
+and the 0x41414141, while the stale array
+things this is a javascript object, and only
+uses the 0xffff0000 internally to determine,
+that we have an integer and the value of it
+is 0x41414141.
+So what can we do with this now.
+This is where exploitation really become creative.
+The phrack article says that once you have
+the ability to craft arbitrary javascript
+objects, you could craft a Float64Array to
+create a read/write primitive, but qwerty
+used a Uint32Array.
+To quote him, here is his reason:
+“Easier than float to do math with.
+Lol.”
+And I guess he has a point.
+Floating point values in raw bytes are really
+annoying.
+So first of all, why do we want to craft a
+Uint32Array.
+If you remember the basic structure of a Uint32Array,
+it uses a vector to point to some raw memory.
+If you control where this pointer points to,
+you can control where you can read data from
+and write data to it.
+Because it thinks it points to the actual
+array.
+There is a super clever way how to craft this
+array now.
+Qwerty creates a new object with four properties.
+A,b,c,d.
+He probably just took that from the phrack
+article, because when you look at how a simple
+object with only four properties is stored,
+it stores the values inline.
+This is very helpful in a second.
+As you see, the values set, like the hex 1337
+are simply placed here in memory after eachother.
+So that’s a very neat way to control a couple
+of consecutive values in memory.
+The two 64bit values are the JSCell and the
+butterfly pointer.
+The JSCell, or more specifically the structure
+ID inside of the JSCell determines, what this
+Javscript Object actually is.
+In the phrack article it looks like, this
+object here has the ID 136.
+So in order to craft a Uint32Array, we would
+have to know the structure ID of that.
+According to the phrack article, this ID can
+change sometimes, maybe at restart or between
+different webkit builds.
+But apparently it’s very common to be 105.
+Nontheless, because my exploit was very unstable
+I tried to see if the value is maybe different
+and the phrack article shows a technique how
+to do that.
+Back to the new object for a second.
+So this will allocate a new object with 4
+properties that looks like this in memory.
+0x69, or in decimal 105, then zero, the pointer
+to the smash array, which we allocated way
+at the beginning and 0x100.
+The function u2d is a clever little helper.
+As every number in javascript is basically
+a float, we can create a new dataview of 16bytes,
+so 64bit, set the high and the low 32bits
+and return the float representation of those
+bytes.
+This new object creation will also overwrite
+stale[0].
+Just a few seconds ago I mentioned that stale[0]
+points to a JSValue representing a number,
+but now it was overwritten with a JSValue
+representing a pointer.
+A pointer to the JSObject that was just created.
+This JSObject it points to is not very interesting
+for us.
+It’s not an arbitrary object we have crafted.
+But remember, that the JSValue with the pointer
+to this object is in the memory that is overlapped
+by the buf.
+This means we can use buf to manipulate the
+pointer.
+And what we do is, we add 0x10 or decimal
+16, which moves the pointer into the properties
+of the JSObject.
+Now suddenly the 0x69 is the JSCell value.
+And the zero here is the butterfly.
+And the smsh address becomes the vector, the
+pointer where the actual array is in memory.
+To be clear this points into the similar struct
+of that array, so this doesn’t point into
+the memory location of that smash array, but
+also into this JSObject struct with its vector
+pointer and its length.
+And 0x100 is the length of that array, which
+is actually just the Object structure of the
+smash array.
+So now you know how we can misalign the pointer
+to this object, which will interpret the properties
+here as the actual object.
+This means we can now try different structureIDs
+in a loop and check with instanceof if we
+have crafted a Uint32Array.
+We remember the original stale[0] pointer
+in stale[1], then missalign stale[0], then
+we can check the type of the stale[0] object,
+if it’s not correct, we increment our structureID
+guess, and assign a new value to the stale[1]
+‘a’ property, which will look like the
+StructureID from the missaligned pointer in
+stale[0].
+What we basically created now is, we have
+two pointers in stale.
+Which slightly overlap in memory.
+We also have somwhere an array called smsh.
+We have also set the memory location for our
+crafted array, the vector pointer, to point
+to smsh.
+To the smash structure, not the actual memory
+location of the smash array.
+This means we have another object that we
+can fully control.
+Stale is an array.
+The first element of stale points to a crafted
+Uint32Array.
+So when we access the elements of that array,
+we obviously access the 32bit values of the
+smsh JSObject structure.
+And as you know, the object contains 64bit
+values, and the fourth 64bit value is the
+length of the smsh array.
+So stale[0] of [0] and [1] would be the first
+64bit, 2,3 would be the second 64 bit, 4,5
+would be the third 64bit and 6,7 would be
+the 4th 64bit.
+So with stale[0][6] we can overwrite the length
+of the smash array.
+And we can now check the length of the smsh
+array.
+Let’s try this on the switch.
+We load the page and it might not immediately
+work, but it will refresh and try again.
+Ok so we triggered the bug and we found overlapping
+memory by looking for the 0x41414242 value.
+Now we check the current length of smash,
+we craft our object, try to find the structure
+id, we actually find it’s 105, so I didn’t
+have to go through this trouble of iterating
+over them, then we change the length of smsh
+and print the smsh length again.
+And it changed.
+Isn’t this crazy!
+So now we can just modify the vector where
+the smash array points to in the exact same
+way, and then simply read the raw data it
+points to from the smsh array.
+or write to the smash array.
+It gives us super simple access to the whole
+memory of the process.
+Next steps could be to find the address of
+the browser binary in memory to dump it.
+Maybe find some function pointers in memory
+you can overwrite, create a ROP chain or maybe
+even shellcode because we should have jitted
+code, I guess?
+This video is already crazy long.
+So let’s stop here for now.
+I really learned a lot working through the
+first part of qwerty’s exploit.
+I hope this this also gives you a sense for
+how frckn complicated these modern memory
+corruption exploits are and what kind of work
+and knowledge is required to do them.
+I only scratched the surface here.
+I hope this also increases your respect for
+the people who do this kind of research.
+At this point I also want to thank Retr0id
+and Ando who I just met on IRC and were in
+the same boat as me and we and we helped eachother
+trying to figure how this works.
+And also a huge thank you to qwerty, who answered
+a lot of my noob questions and shared his
+progress with me.
+I really appreciate you supporting somebody
+who tries to learn this!
+If this sounds like fun to you, make sure
+you read the phrack paper by samuel groß,
+or saelo about “attacking javascript engines”,
+which gives a way more in depth insight into
+how this works.
+There is also another article more specifically
+about firefox, which is different from webkit,
+but also gives you a better idea of how browsers
+w ork.
+Thank you very much, keep on hackin’ in
+the free world, and doot doola doot doo.

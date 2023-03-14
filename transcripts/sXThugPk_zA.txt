@@ -1,0 +1,253 @@
+What is Pentesting, what is bug bounty and
+what is pentesting?
+My professional job is being a “penetration
+tester”, but I’m not really a pentester.
+I don’t like saying I’m a pentester, because
+then people think I do hacking, when in fact
+I just test pens.
+So I need to find another name.
+Just kidding, it’s not april 1st.
+I want to talk a bit about the difference
+of Pentesting and Pentsting, and also how
+bug bounties fit into that.
+
+When I say I do PenTesting, what comes to
+your mind?
+What do you think I do?
+I asked this question on twitter and on the
+YouTube community tab and it confirmed what
+I had guessed.
+Most people see pentesting to do this red-teaming
+kind of work.
+Maybe you go onsite, you try to hack the companies
+wifi, when you got in, you start scanning
+the network with nmap, you find some outdated
+windows servers, so you fire up metasploit
+and try some known exploits, in parallel you
+run responder, grab some hashes, try to crack
+them and pwn the domain admin.
+At least that’s I think how it works.
+Because I have never done this.
+I have of course a bit of experience with
+that stuff, I did get OSCP in like 2013.
+But I have actually never used these kind
+of tools.
+In my job as a “pentester” I actually
+do mostly code audits or blackbox application
+security tests.
+So the job looks more like, a client develops
+a website, a native app or a mobile app, and
+they want to know how they stand in terms
+of security.
+So we go in, read the code, do dynamic testing,
+we use burp and look at the API request, maybe
+do some fuzzing, and we find new vulnerabilities
+that were not known before.
+then we gather all our findings and we write
+a report.
+Including a conclusion how we feel about the
+overall state of security of this particular
+application.
+As you can see, that is VERY different from
+the other “pentesting”.
+I would even say they are on opposite sites.
+This pentesting targets a whole corporation.
+While my “pentesting” only looks at an
+individual application.
+The red-teaming pentesting might also look
+for vulnerabilities in the application of
+the company, but mostly using some automatic
+scanners like nessus, and generally only briefly.
+They have a much larger scope and can’t
+focus on details.
+Their goal is to hack into the company.
+While the other side focuses on the app, so
+it’s a lot more detail oriented and things
+like the security of the customer data is
+much more in focus.
+Often times pwning a web app doesn’t even
+affect the companies own security at all,
+because those webapps run on rented servers
+somewhere.
+So in some way you could say, this protects
+the company.
+While this protects the customers of that
+company.
+And just to make this clear, both sides are
+very important.
+A company should know how they stand with
+their corporate security, while a company
+should also know the security state of their
+own product.
+I personally don’t like the corporate site
+much.
+Mostly because you have such a large scope
+you cannot focus on details.
+You must rely on tools.
+But you have to use those tools well, it’s
+not like you don’t need a lot of skills
+and experience to do that well, it definitely
+requires skill.
+but personally I just like the technical details
+more.
+I like to dig deep into an application and
+uncover weird security issues.
+I think I also noticed a cultural difference
+between Europe and the United States.
+I don’t mean to exclude the rest of the
+world, those are just the people I happen
+to have the most interaction with.
+And I feel like in Europe “pentesting”
+much more means this kind of application security
+focused testing.
+While in the US, this RED-TEAMING is a lot
+more prominent.
+I haven’t conducted a study, so not sure
+if that is true, but that’s my feeling.
+And it would correlate with the polling results,
+as the majority of my audience is from the
+US.
+So calling both sides “pentesting” is
+a bit unfortunate.
+We need a different name, and I asked on twitter
+what name would describe my job better.
+Security tester, security analyst, security
+researcher, but I personally like Application
+Security Tester.
+Or AppSec tester the most.
+So going forward in this video, I will keep
+calling the corporate site pentesting, and
+my job AppSec.
+If you look at my YouTube channel, btw I recently
+made a video giving an overview of all the
+topics you can find on my channel.
+Then you will notice, I very rarely cover
+pentesting.
+I don’t think I have a single video where
+I use metasploit.
+I might have used nmap once.
+And I have never talked about active directory,
+pass the hash, or using wifi hacking tools
+and products.
+It’s just not my world of IT security.
+I also do a lot of CTF stuff, and CTFs is
+where I keep up with the industry and learn
+new stuff.
+But some people say that CTFs are unrealistic.
+And if you have the point of view from red-teaming
+pentesting, then yes.
+I would agree.
+99% of CTF challenges are way too detail oriented
+to be useful for a pentester.
+But for an application security tester.
+This detail orientedness.
+This focus on small errors.
+Reading and analysing code.
+Digging deep into understanding how a certain
+technology works, that is 100% the work of
+an appsec tester.
+SO sometimes I feel like we talk past eachother,
+because when people talk about jobs in IT
+security, they maybe mean this side of security.
+While I mean this side of security.
+But besides offensive jobs like this, there
+is also the opposite side.
+For example for pentesting and red-teaming
+that would be blue-teaming.
+There we have jobs like security analysts
+working in a SOC, a security operation center
+or administrators of active directories and
+so forth.
+They protect the companies own security perimeter.
+While on the opposite of appsec, we have programmers,
+software engineers and devops, that try to
+write secure applications and protect the
+customer’s data.
+And now let’s think about security education.
+Learning tools like metasploit, nessus, responder,
+wifi hacking, RAT implants, all these things
+are important skills for this corporate hacking
+world.
+But I think that job market is a lot more
+limited.
+While on the appsec side, we have tons and
+tons of developers.
+That’s also why I think my channel is bit
+larger, because I think my videos are just
+more applicable to the work of developers.
+Critically thinking of their own code and
+how the technologies that they use all the
+time actually work.
+And I also think CTFs benefit developers the
+most.
+I think you are probably a much more valuable
+developer if you have a little bit of the
+security mindset when writing code.
+And I also feel like being a developer or
+devops is a lot closer to my current job doing
+application security, than the pentesting
+side.
+I think I personally would rather do software
+development (hopefully with a bit of focus
+on security), than doing corporate red-teaming
+pentesting, if I had to choose a job.
+Hopefully it’s clear that I don’t criticise
+pentesting, it’s a really fun job for many,
+it’s just not what I like to do.
+Anyway…
+The title also mentions bug bounty.
+So how does that fit into this picture.
+I think bug bounty sits somewhere in the middle
+of these two worlds.
+In bug bounties you also have a larger scope
+and you come from an external point of view,
+you have to do some scanning and asset discovery.
+Like finding some weird forgotten web app
+on some subdomain.
+Some these applications handle customer data
+like in appsec, but other apps are in the
+internal corporate world, and are only used
+by employees.
+So it covers a bit from both areas.
+So Bug bounties requires some knowledge of
+tools to discover assets, but also require
+the technical intricacies, to dig deep into
+the behaviour of an API and know your way
+around exploiting application specific vulnerabilities.
+I also think the CTF mindset helps for bug
+bounties a lot.
+But you are still coming from the outside.
+Doing pentesting, or appsec, closely with
+a company, you get a lot more information
+and don’t waste much time.
+For example I usually get access to source
+code.
+And instead of wasting time bruteforcing API
+endpoints, I can just look up all the configured
+routes and specifically audit the API endpoints.
+So application security testing sits a bit
+earlier in the software development pipeline.
+You often test on a staging or development
+builds, before the code is released in production.
+hopefully can catch security issues before
+customer data might be affected, or just give
+the company an overview where they stand security
+wise.
+But even when testing with access to code,
+nobody can give you guarantees or certifies
+that every vulnerability was found.
+That’s why bigger companies, like google,
+also run a bug bounty program.
+They have their own internal teams auditing
+code, it’s important to do this application
+security work, ideally before it hits production,
+but bugs will be missed.
+And then maybe bug bounty hunters find that
+stuff later.
+Or not.
+They can also miss stuff.
+Anyway.
+I hope this helped you get a better overview
+of the different areas of IT security work.
+And helps you better focus on what you should
+learn for the job you are interested in.

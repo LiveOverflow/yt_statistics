@@ -1,0 +1,358 @@
+I successfully executed the biggest 
+heist in minecraft hacking history.
+And I’m ready to tell the story. 
+This vault contains no treasure.
+But it allowed me to steal, 
+from those that stole from me.
+Before I can tell you about the vault and 
+my clever heist, let me tell you about what
+made me do it. In a previous Minecraft:HACKED 
+episode I told you about the reach hack. It’s
+a hack to hit players and mobs from very far 
+away. You can basically fly around and just
+snipe them. And I really wanted to figure out how 
+it works. So I spent a lot of time thinking about
+it and eventually I figured it out. Kinda.
+The idea is a magictrick. The look is a bit
+deceiving. You are not actually 
+hitting somebody from far away,
+in reality you send lots of movements packets in 
+a single tick. Basically you move to the target,
+hit it and move back. And the moves are basically 
+small teleports. It’s the maximum distance per
+movement packet you are allowed to move.
+However I also know there is an advanced
+version of that. Where somebody sat in a house and 
+hit others at spawn. And that made no sense to me,
+because teleporting through walls does not work.
+Here is a small test setup. One of my very
+first hacks in my own mod was the 
+teleport one. It’s super simple,
+simply move your player position forward 
+a specific amount. And it works well. BUT
+you cannot teleport through a wall. So how is it 
+possible that the person can hit somebody through
+all these walls? I stared at the code for a 
+long time but I just couldn’t figure it out.
+So I decided to put on my mask and build 
+the vault. The vault is a huge bedrock
+cube with a small room inside. First you 
+have to press a button on the outside,
+and then quickly press the button on the inside. 
+So if you can teleport inside this cube, then the
+arbitrary reach hack is trivial. teleport through 
+any walls, hit somebody, teleport back out.
+And it didn’t take long for the first 
+people to arrive. Maybe if we watch them,
+we can figure out how they did it.
+They press the button, and moments
+later they are inside. Ohhhh. 
+did you see what happened here?
+They did not teleport straight from 
+the button to the inside. If we slow
+down the footage we can see that they first 
+teleport up, and moments later teleport down!
+THIS makes so much sense. Because already in 
+the very first episodes of this whole series we
+figured out that while teleporting through walls 
+doesn't work, teleporting through roofs does work!
+Here is another test setup. We have increasingly 
+thick ceilings and starting easy with short
+heights, we have no problem teleporting through 
+those layers. So is this how it was done?
+Ithink I overcomplicated everything 
+again. Instead of teleporting in a
+line you basically teleport up into the sky, 
+go towards the target and teleport back down.
+This way you seem to be able to go anywhere! 
+is this how the arbitrary reach hack works>
+Well… turns out… not quite. When I try 
+to vertically teleport into the vault,
+it doesn’t work. I mean obviously a 
+part of it is to teleport up and down,
+but it’s not that simple. There must be more.
+Going back to our experiments, we can also see
+when this happens. Starting with a height 
+of 11 we cannot teleport up anymore. And
+the vault has very thick walls. Around 50 blocks.
+So there must be another trick. Let’s investigate.
+I have pulled and setup the the paper server 
+code like I have used in the previous videos,
+so we can browse the minecraft server 
+source and print information we need.
+So how do we do that?
+if you want to bypass anything, it’s generally 
+good to start with the condition that fails.
+In our case it’s the teleport through thick 
+ceilings. When we run our local test server
+and attempt it, we can see in the logs 
+the error message. The server rejected
+our movement attempt because, we moved 
+too quickly. With this message we can now
+find the interesting part in the code. Simply 
+searching for it and here it is. No surprise,
+this is code in the ServerGamePacketListener, in 
+the handleMovePlayer function. So this function
+is executed when a player sends a movement 
+packet to the server. And we apparently got
+into this if case, which told us the movement 
+was bad. And the player was teleported back.
+And this is a good start to find the 
+bypass. Basically we now have to look at
+all the conditions that lead here, and try 
+to figure out ways how we can avoid them.
+Basically how can we avoid these 
+if-conditions to become true
+And if you watched the recent video about 
+the arbitrary velocity exploit, talking
+about bowbomb, this code will look familiar.
+d10 is the player deltaMovement, so the current
+player velocity. And d11 is how far the player 
+moved between the last known position and the
+new position we sent in the movement packet.
+The velocity gets subtracted from that and
+then we go into this if-case, if the 
+result is larger than this value here.
+Which means if we get large velocities, we 
+can move longer distances. If we could get
+deltaMovement to a huge number, we could 
+basically teleport anywhere in the world.
+So to breach the vault, do we need 
+an arbitrary velocity exploit? Mhh…
+To be honest with you, I stared at this movement 
+code for a long time already. I cannot figure it
+out. My brain just doesn’t see it.
+So… what did I do… well… here
+is the real reason for the vault.
+I’m the owner of this server, I can do whatever
+I want. People think this is anarchy? Well, 
+it’s dictatorship. I control and surveillance
+everything. So I implemented a packet logger.
+At the cube, when any of the FILTHY THIEVES hit
+the button on the outside, we start the logging.
+And now everytime when we receive a packet from
+this player, we add it to a list. And when they 
+hit the button on the inside, I stop the logging.
+Which then creates a new packet log file where it 
+just dumps all packets received in text format.
+And here is how such a log looks like. 
+The current timestamp in milliseconds,
+the packet name, for example a position packet, 
+followed by all the values contained in the
+packet. in the case of a position packet it’s the 
+player position. But you can also see all sorts
+of other packets. Like looking around, using 
+an item, or doing an arm animation. anything.
+Now before you get mad at me for spying on 
+everyone, to be fair, I said I would do it.
+When you accessed the vault, I told you: “if you 
+try to steal my secrets, I will steal AND EXPOSE
+yours. I’m serious, you have been warned”.
+So it’s all your fault that this hack is now
+getting exposed. You couldn’t resist and broke 
+into my vault. And now I steal your hacks..
+So let’s have a look at a successful break 
+in. Let’s see if we can figure this out.
+Alright. We have some position packets. But their 
+coordinates are not changing. Just fixed position
+at Y level 124… And then BOOM! Suddenly at y 
+178. This player successfully teleported 54
+blocks upwards?!
+HOW?
+So what exactly happened here? How 
+can somebody just teleport upwards
+from 124 to 178? We tried that, it didn’t work.
+Pause the video and have a look at this. Can you
+notice what is special here? What is the trick?
+I give you a moment. Do you see it?
+Last chance.
+Look here at the timing. These position
+packets were received within one millisecond. 
+ONE MILLISCOND. This is not a coincidence.
+When you stand still, minecraft sends like one 
+position packet every second. So one packet every
+1000 milliseconds. So sending multiple packets 
+per ONE millisecond, This was done on purpose.
+I guess let’s just try this.
+Here is my hack and I extend my teleport
+code now. I use this packethelper function I 
+implemented for the reach hack, which allows
+me to send packets immediately. And so apparently 
+we just have to create a loop to send a couple of
+position packets of the current player position, 
+and then at the end we send the actual teleport
+packet to the target location. This is of course 
+all done immediately, within a few milliseconds.
+Let’s go back into the game and see if it works.
+Let’s checkout the ceiling test again. Set the
+teleport distance. And go. Damn! It worked!
+Why does this work?
+If you just try to change your position it fails. 
+But if you first spam your current position a few
+times and then send the teleport one, it works.
+What?!
+Let’s investigate, we have the local server setup.
+First of all we can see that we do not
+get the message about moving too quickly.
+So this is bypassing this movement check. HOW?
+Let’s add some logging output to see what is 
+happening here. I simply print d11, so the
+distance between old and new position, d10 which 
+is the player velocity, and this other value here.
+When we just stand around now, we don’t move at 
+all. So no difference in movement. But we have
+a small deltaMovement, that’s the velocity, 
+which makes sense, that’s gravity pulling us
+down. Subtract those two, and clearly they are 
+NOT over 100, so we don’t go into this if-case.
+But now lets see what happens if we 
+use the new teleport hack. Select a
+large distance. Like maybe 40, and teleport.
+And wow. This is not what I expected. Do 
+you see that? First we are spamming the
+packet with the non-changing position. 
+Which makes sense, we have no movement
+here. BUT this other value here is suddenly 
+increasing. Rapidly. 400, 900, 1600 going to
+6400 and then we send the packet moving far 
+away, Now we have a HUGE movement. We moved
+a squared distance of 1600. That’s 40 blocks. 
+And obviously that IS larger than the usual 100,
+so under normal circumstances this check would 
+fail. But here somehow this value increased. And
+now 1600 is not larger than 8100. So the movement 
+is ok. The teleport is allowed. We teleported.
+So why did this value suddenly increase?
+How did I never notice this?
+Let’s see. So we select the maximum value between 
+f2 and this term. And f2 looks constant. It’s
+either 100 or 300, depending on if the player 
+is falling or not. Alright. So this cannot be
+it. The other term is a calculation though. 
+It’s squaring, a configured number times i
+times speed. Obviously we cannot control the 
+spigot config. But maybe we control i or speed.
+So let’s add another debug 
+log to print f2, i and speed.
+We go back into the game and when 
+walking around you can see that
+f2 is constant 100, i is 1 and speed is also 1.
+Now let’s do the teleport to see what happens. Pay
+attention to the log. We teleport and there it is.
+Look. The i value is incrementing with every
+movement packet. So here lies 
+the secret. Somehow we control i.
+So what does i represent?
+Again error messages can help us. Here
+i is compared to the allowedPlayerTicks value 
+and if it is too large, we get the error, that
+the player is sending too many movement packets.
+And just above it we can see how i is calculated.
+It’s receivedMovementPacketCount 
+minus knownMovePacketCount.
+And MovementPacketCount is incremented 
+everytime when we receive a movement packet.
+And the other term is set in 
+the tick method, where it is
+set to the receivedMovementPacketCount.
+So it seems that i represents the amount of
+movementPackets received, during the current tick.
+And this number is then used in this calculation,
+which causes the term to become large enough to 
+allow for larger distance teleportations. Huh!...
+I really should have looked at this other term. 
+We looked together at the term here. D10 and d11
+and thought about exploiting it. But of course 
+there are more variables part of this equation,
+and if we had explored the other term, we 
+could have maybe figured it out ourselves.
+So this is a super important moment for reflection 
+to me. I really like to experience failure like
+this. I failed to find this teleport hack, even 
+though I looked at this code for many hours. So
+why did I miss it? This self-reflection, and 
+acceptance of failure, is really important
+for me. First of all it makes me not complacent 
+with my abilities, always trying to get better,
+and second I can analyse what I did 
+wrong and do it better next time.
+I think it’s clear that I don’t lack the coding 
+skills. I can read this java code and understand
+it. So the problem is not a technical skill 
+issue. But then what was it? Well, it’s a bit
+hard to know for sure what I did wrong, it was a 
+while ago, but clearly there is no objective good
+reason to not look at this term more in depth. 
+So I think what happened here is that I was lazy.
+I guess this term just looked annoyingly 
+long. Its counting the movement packets,
+I probably ignored it because I assumed 
+this code would be fine. Whatever it was,
+I failed to recognize the importance of this line 
+and didn’t give it the attention it deserved. This
+line of code, this check, is probably one of the 
+MOST IMPORTANT code lines in all of minecraft.
+It is part of the code that 
+checks whether to allow a
+player to teleport large distances, or not.
+Yeah I failed. But that’s fine. Because on
+the Next problem I tackle I will 
+have more experience and skill!
+Oh man… what a journey this whole 
+minecraft series was. To be honest
+with you, I’m not addicted anymore.Maybe 
+there will be another episode or so,
+but no promises. I want to work on some 
+other stuff again. But I wanted to say,
+I loved doing this minecraft stuff, and I’m sure 
+once in a while I will check in and see what’s
+going on. The server will stay for now of course, 
+so no worries. But don’t expect new features.
+Now speaking of the server, I haven’t really 
+explored spawn in a while. So much has changed
+here. I remember it looking quite griefed, but 
+it kinda looks cleaned up! Somebody really put
+in some work here damn. But what is even 
+more funny is my original base. This area
+is just like. Deleted. It’s like the chunks 
+got reset. Only the herobrine bedrock house
+remains. Do you remember when I stood here 
+for one episode. Damn so much happened.
+Anyway. My deepest thanks to everybody 
+who engaged and was involved in this
+series. It was an honor to play 
+and hack with you all. It made me
+very happy. Don’t worry though, 
+this is not quite the end of it,
+but I just wanted to give you all a heads-up. 
+This project will slowly fade out. Much love.
+Oh and by the way, I have merch 
+now! DIGITAL MERCH. And it’s even
+more useful than NFTs. It’s a shitty font 
+based on my handwriting. You can purchase
+it and create a basic resource pack to add it 
+into your game. It’s super ugly looking but,
+ey… it’s an elite hacker font. What more do you 
+want? Anyway, checkout shop.liveoverflow.com.
+And now the community showcase. First is 
+jorian, just showing off their solution of
+the vault. They have a /vault command. 
+Execute it. Boom they got in. solved.
+And then we have enderkill solving it. Look here 
+I’m standing next to him. And look at the chat.
+Just solved it. I didn’t even see him flinch. The 
+implementation is optimized to be done within a
+single tick. so no other user gets notified 
+of the position change. Looks pretty crazy.
+Like in an anime, moving so fast nobody sees them.
+Also here at the Club Mate challenge. Solving it
+SO FAST they are just standing here spewing out 
+mate bottles. It’s crazy. within a tick or so,
+teleport to the chest, open it, stand here 
+and drop the item, and do it again. Looks
+like somebody at CCC having had too many 
+Tschunks and is now leaning over a sink.
+And lastly we have shrecknt with enderkill 
+showing off an unintended solution to the vault
+challenge. So they will first show that they do 
+it, and then share a few words on how it worked.

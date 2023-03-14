@@ -1,0 +1,322 @@
+Recently a critical sudo vulnerability was 
+published. When I saw the reports about it,
+I thought it could be a great 
+candidate for a series of finding,
+analysing and eventually exploiting this 
+vulnerability. This series will probably have over
+10 episodes, because I will go into, maybe too 
+much detail, but hey, I think this is a kind of
+learning resource that doesn’t really exist. So 
+let’s start with part1, the discovery of the bug!
+
+Sudo is the utility tool you can use as a 
+regular user, to execute commands as root.
+But your user must be part of the sudo 
+group. Any other user on the system of course
+shouldn’t be able to use sudo. And 
+the vulnerability in sudo means an
+unprivileged user can now exploit the 
+sudo program and become root afterall.
+In the big summary video, I already explained 
+that the researchers who found this issue,
+did it through code-review. But I want to try to 
+forget about that. I want to forget about most
+of the information that was shared, because I 
+want to use this sudo vulnerability to learn.
+And I do this by pretending to do the original 
+research. we can try to make up our own story
+about how this bug was found - we can create 
+a discovery fiction around it. I think that’s
+one of the best methods to learn for me.
+This method means, we don’t go in full blind,
+we know the goal, we know there is a bug, and 
+we have the public information as a cheat-sheet,
+so it’s a bit like a CTF challenge where you 
+have writeups available. But we deliberately
+limit ourselves, we ignore these resources as 
+much as we can, so we walk this path of learning
+ourselves. And when it gets frustrating or we 
+get stuck, we can always peek at the solution.
+That’s what I did, and that’s what I 
+want to share with you in this series.
+I encourage you to follow along. I made my 
+steps available on GitHub. You can find most
+of the important files and resources there. I 
+also tried to make individual episode folders
+so you can track the progress through 
+the series, and more easily follow along.
+So let’s get started. The first thing we need 
+is of course a vulnerable system that can be
+used to do the research on. I first tried 
+to setup a ubuntu VM, but the sudo version
+already seemed patched so I decided to do 
+everything in a docker container instead.
+I’d appreciate you checkout 
+liveoverflow.com/support
+and consider my patreon or youtube membership, 
+the button for that is right below this video.
+The base Dockerfile that describes 
+our test system is pretty simple,
+I selected a current ubuntu version, installed 
+important packages like the gcc compiler,
+and then downloaded a vulnerable sudo 
+version from the official sudo website.
+Then just following the install instructions, 
+unpack it, compile it and install it. I also
+created an unprivileged user named user, so we 
+have a user we can later use to attack sudo.
+To easier work with this setup, I 
+created a Makefile. Typing “make all”,
+or executing the individual commands “make build” 
+and “make run”, will execute the docker commands
+to build the container with the vulnerable sudo 
+version and runs it. This will take quite a bit.
+And also the sudo website seems to be down 
+sometimes, then you can’t download sudo.
+For those worst cases I also copied the 
+archive into my github repository for you.
+Anyway, once the container is running, confirmed 
+with docker ps, or sudo docker ps, you can then
+use make attach, to get a shell as user, or 
+make root, to get a root shell in the container.
+Just to make sure everything works, you 
+can try sudoedit -s with the payload,
+to confirm that we have 
+indeed a vulnerable version.
+Okay now we can start for real. Try to forget 
+everything we have done now. Forget that this
+is about sudo. Imagine we have a fresh system 
+in front of us. And we want to do some security
+research. This means we need to start somewhere 
+and pick a target so we can start somewhere.
+There are of course a lot of possibilities,
+so let’s hear from THE actual researchers 
+from Qualys how they picked their target.
+“In our team we used to audit open security source 
+software. Especially the juicy one. As I said,
+the ones that are almost everywhere. 
+As you said earlier, sudo is like a
+tool that is on most unix system. Almost all unix 
+systems. So it’s an interesting target for these
+reasons. And it has some slight differences 
+with the other setuid binaries, in the way
+that its source code is quite big. Which means 
+that, the more you write code, the bigger tends
+to be the attack surface. And finally it changes 
+a lot, compared to other setuid binaries,
+which means that the probability to introduce 
+a new bug during each modification exists.”
+This sounds great. Sudo is open source, 
+it is WIDELY used in most unix systems,
+it has a large code base, and it is actively 
+developed. Code is changing all the time.
+You know how in physics. nobody can 
+break the laws of thermodynamics.
+We kinda have the same in computer science. The 
+more code you write, the more likely is it to
+introduce a security relevant bug. And because 
+it’s a fundamental law of computer science,
+it doesn’t matter how crazy good a developer 
+you are. Eventually the code you write will
+contain a vulnerability. So to summarize.
+sudo seems to be a scary big piece of software,
+but also a great target to look for some 
+local privilege escalation vulnerabilities.
+Alright. Sudo is our target. Now let’s quickly 
+peak at our goal again. We want to find this
+proof of concept crash. It looks simple, but how 
+could we find that? Well, there are different
+creative ways to research a target and find 
+bugs. But one very typical strategy - is fuzzing.
+Quite some time ago I heard about the fuzzing 
+project from Hanno Boeck. Here it says: “A modern
+Linux system ships a large number of basic tools 
+that do some kind of file displaying and parsing”
+and that “we have powerful tools these days 
+that allow us to find and analyze these bugs,
+notably the fuzzing tool american fuzzy lop and 
+the Address Sanitizer feature of gcc and clang”.
+And so the fuzzing project aimed to 
+educate people how to fuzz linux programs,
+to improve the overall system security. So 
+how come that there are projects like this,
+where you would think somebody must have thrown 
+a basic fuzzer at every important linux program,
+yet sudo has such an apparently simple bug?
+That was a curious question for me, so I decided 
+to try to find the bug by fuzzing with american
+fuzzy lop - afl. I have used AFL a few times 
+before, but generally I’m a complete novice
+and don’t know anything else about fuzzing 
+besides afl, except maybe writing my own
+shitty fuzzing python script. But so 
+my weapon of choice is going to be afl.
+You can find tons of easy tutorials for 
+the basic installation and setup of AFL.
+Here is for example the official INSTALL document,
+and it is pretty basic. Just clone the 
+repository and then build it with make,
+and install the binaries with make install.
+I have already added this to the Dockerfile,
+so when you build the episode 1 
+container, you will have AFL installed.
+Now we need to instrument sudo with AFL. 
+As you can see in the makefile, the docker
+containers are launched with the current working 
+directory mounted to /pwd inside the container.
+So whatever you do with files in the current 
+directory, you will have them inside docker.
+To instrument sudo, we can now download sudo into 
+this folder. This will take a bit, but eventually
+you can open the code in an IDE of your choice.
+Then inside of the container, you can find the
+same files in /pwd. And to build sudo inside 
+the container, simply execute ./configure,
+which configures some build stuff, and then 
+execute, make , to actually compile sudo.
+But now let’s look at the QuickStartGuide.txt
+from AFL. In there you can find common 
+ways how to instrument a target.
+BTW, I’m using original AFL here for now, but 
+later in the series I will switch over to AFL++.
+Just wanted to mention that before 
+people spam that in the comments.
+Anyway, as you can see here, AFL wants us to 
+modify those build steps we just saw for sudo.
+We are running ./configure again, but we also 
+set the environment variable CC. Which overwrites
+which C-Compiler is configured for the build. 
+Instead of plain GCC to compile sudo, we want
+to use afl-gcc. This special version of gcc will 
+modify sudo so that it can be fuzzed with afl.
+So let’s try that. As you can see, the various 
+afl- binaries are installed and we can now go
+into the sudo directory and run ./configure, but 
+specify our afl-gcc. This takes a moment and you
+can see here that it uses afl-gcc as the compiler. 
+And once configure is done, we can also do “make
+clean”, in case we did a previous build and want 
+to start fresh, and then we trigger a new build
+with make. If you see a lot of those afl outputs 
+in the compile log, then you know it’s working.
+However we are not done yet.
+The Quick Start Guide says:
+“If the program reads from 
+stdin, run 'afl-fuzz' like so”
+“If the program takes input from a 
+file, you can put @@ in the program's
+command line; AFL will put an 
+auto-generated file name in there for you.”
+Uhm… this is not quite what we want. AFL 
+was designed to fuzz programs that read
+from the standard input, or read a file. But 
+we want to fuzz the arguments of sudo. That’s
+not a huge problem, but it requires a bit of 
+engineering modifications. Though I also did a
+quick google search, because I figured somebody 
+else must have done that before. And you can
+quickly find the experimental argv-fuzzing 
+inline header file. Let’s see. It says here:
+“This file shows a simple way to fuzz command-line 
+parameters with stock afl-fuzz. To use, add: this
+include to the file containing main(). ideally 
+placing it after all the standard includes.
+Next, put AFL_INIT_ARGV(); near 
+the very beginning of main().”
+And that’s what I did. I copied the 
+argv-fuzz-inline.header into the sudo
+sources folder, and then searched for 
+sudo’s main() which I found in sudo.c.
+We can then add the include at the top, and 
+add AFL_INIT_ARGV() at the start of main.
+So what does this header file do? Keep in mind 
+that by default, afl-fuzz wants to send stuff
+to standard input of a program. So our goal is to 
+somehow convert input data, to arguments used by
+sudo. And AFL_INIT_ARGV is a makro, so basically 
+it is replaced with this code. And as you can see
+it calls the afl_init_argv() function, and this 
+OVERWRITES argv. Argv is the array of strings
+passed into main() that contains the arguments. So 
+whatever this function does, it changes where argv
+points to. And this function now calls read(), 
+so it reads from standard input a lot of data.
+Ptr is a pointer into the buffer where we read the 
+data into.Then we have a loop. We check that the
+byte we are pointing to is not zero, and then 
+we increment and move the pointer forward - in
+a loop. This outer loop also has a rc counter 
+that starts at 1, and keeps incrementing, and at
+the start we always remember the current pointer 
+location in that ret array. And then there is the
+inner loop. Which it also checks for nullbytes, 
+and keeps incrementing. So basically we remember
+the first pointer at the start in this array at 
+location one, then we keep reading more bytes,
+once we encounter a nullbyte or a space we break 
+out, move forward. Do it again. And when it findes
+a second nullbyte we are in the outer loop again 
+and write the new location into the next ret array
+element. So basically it expects an input with a 
+lot of data separated by nullbytes. And it creates
+an array of pointers, pointing to those strings. 
+Basically it creates a fake argv[] structure
+from the input we read. And it returns that 
+pointer to that structure. So now any code
+in main after this, that uses argv, will use 
+the fake data instead of the real arguments.
+And this is a very important trick for afl. To 
+summarise. Afl wants to send input to a program.
+But our target program doesn’t read date from 
+input. We want to fuzz arguments. So we add a
+little bit of code at the start of main, that 
+reads data from the input, and transforms it
+into a fake argument structure. Now afl can just 
+throw data at the input of our modified sudo,
+our setup code will create fake arguments 
+from that, and the code that continues to run
+after that takes our fake values, as if you 
+called sudo with those arguments. At least in
+theory. So let’s try to compile and test it.
+Don’t forget to configure using afl-gcc.
+Then make clean and make. To build sudo.
+Alright. Now we should be able to fuzz sudo
+with afl like any other program. But first 
+we need to create a test-case input folder,
+and an output findings folder. As well 
+as create at least one input testcase. I
+thought a simple sudo -l might be okay for now.
+Afl-fuzz, -i, input folder, -o output folder and
+the sudo binary. LET’S GOOOO!!!
+Oh….
+“Whoops, the target binary crashed suddenly, 
+before receiving any input from the fuzzer”
+“PROGRAM ABORT : Fork server 
+crashed with signal 11”
+And it turns out, when I try to run sudo on 
+it’s own, I also get a segfault. This is not
+good. We can quickly investigate with gdb, run 
+it in the debugger, and we see it crashes in
+__afl_setup_first. This is very weird. It crashes 
+in code that afl injected into sudo for the
+fuzzing stuff. So I have no clue how to fix that.
+Well… I thought this would be super simple,
+just throw AFL at sudo, and we find the bug. 
+But it seems like we are in for a longer ride.
+The video is getting quite long already. 
+So let’s investigate this next episode.
+Just FYI, my videos take a lot of preparation, 
+which means I actually solved the problem already,
+so no worries, you don’t need to help me in the 
+comments, but, you can find the container and
+additional resources on GithHub. So why 
+don’t you try to fix the issue yourself,
+and then you can maybe fuzz sudo already. Maybe 
+you can rediscover the bug yourself! And with
+the upcoming video you can then compare my next 
+steps with what you did! I think this is a great
+way to practice this stuff and learn more about 
+it. So do your homework, and see you next video.
+Also maybe checkout the affiliate link 
+in the description again for Linode.
+Or liveoverflow.com/support. thanks.

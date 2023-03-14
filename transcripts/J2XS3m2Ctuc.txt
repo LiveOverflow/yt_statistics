@@ -1,0 +1,136 @@
+So after I posted my video write-up about
+the JS Safe challenge from the Google CTF
+I got a lot of valuable feedback and some
+corrections, that I think deserves a very
+quick update video.
+If you haven’t seen that one, this video
+makes probably not that much sense, so check
+that out first.
+So let’s quickly go through the different
+points that were raised by viewers.
+First: I had this theory that weird JavaScript
+namespacing due to the with statement caused
+the different x values to be passed to the
+function.
+Onetime it was the function itself, onetime
+it is the parameter.
+But it turns out I got FOOLED!
+Those are not the same character.
+The function name x is a regular ascii x,
+it is the same character as the x in the hex
+variable and so forth.
+But the parameter x is actually a different
+unicode, it’s a cyrillic x.
+Visually it looks exactly the same, but for
+the computer it’s like it is a completely
+different letter and this a very different
+variable.
+And by searching for that cyrillic x you see
+that the parameter is used in the inner x,
+but it’s not the x outside.
+What do we learn from that?
+Let’s not always assume JavaScript is f’ed
+up, that’s actually very logical and probably
+works in any language exactly like that.
+The second kind of correction I got was about
+the cause for the crash.
+I couldn’t really make sense of it and theorized
+it had to do with some kind of recursive call
+of toString or something, but it turns out,
+it is in fact triggered by the toString, but
+crashes for a very different, much more logical
+reason.
+So source is a regex, it’s not a string.
+You see it starts and ends in a slash, not
+quotes.
+And the c function takes the length of the
+first parameter a, and a in this case is source
+and a regex doesn’t have a length.
+So if you write the loop like this, loop until
+i is equal to the length of source, then yeah,
+that never happens.
+The length of source is undefined.
+I will never be undefined.
+So you have an endless loop that freezes the
+tab too long and gets killed.
+Now if it was written like you usually see
+a for loop, with a less than, then i would
+not be less than undefined and the loop would
+never run.
+So what do we learn here?
+Read the code more carefully, if I had debugged
+that properly I would have understood that
+better.
+I actually thought about the regex vs a string
+for a bit, but mostly because of toString
+and wondered what kind of effect that could
+have.
+And I was also confused by the weird way the
+for loop is written, but I ignored it as a
+style choice of the author.
+So I saw all the traces, but didn’t get
+to the correct conclusion.
+Shame on me.
+And another feedback I got was about my comment
+on namespacing.Saying that the let statement
+binds variables to a block scope and I should
+use that instead, however in this case a var
+variable would have achieved the same result
+in terms of not influencing eachother, because
+var binds to the function scope and h is it’s
+own function.
+However in principle there is a difference.
+Let binds even stronger to a block.
+So for example inside and outside of a loop.
+Here just a quick example to show that var
+works here as well.
+So this is basically the skeleton of the JS
+safe code to test the variable scoping.
+We have a function that contains another function
+and a for loop.
+The for loop uses a to count up, and the function
+inside here also uses a.
+I added some console log output to see the
+value of a.
+Now in this base example a is counted up to
+a thousand, which makes the global value of
+a 1000 and that is then also still used inside
+the function h.
+And setting a in there also influences the
+a outside.
+If we now add the var statement as I suggested
+in the video then the scoping would change
+slightly, separating the a inside of the function
+h from the other a.
+So a at this point is obviously undefined
+and setting it also doesn’t affect the global
+a.
+The same result is achieved with using let
+here, and sure let is also a good solution,
+however if I’m nitpicky, I’d argue that
+in this case we don’t want block level separation,
+we want to separate a based on the function
+used.
+And in this case I think var is the better
+choice?
+Anyway.
+I’m not a javascript expert.
+Based on how completely wrong I read and interpreted
+the code, it’s actually a surprise that
+I was able to solve it.
+So I guess this is an example that you don’t
+always have to understand everything to solve
+an issue, as long as you identify the core
+and approach it systematically.
+Awesome, now all confusions I had about this
+challenge are cleared up.
+The challenge and the code makes total sense
+now.
+Thanks so much for your input, I always appreciate
+it, even if I get the same comment dozens
+of times, I always learn from it and I can’t
+repeat it often enough.
+I’m so glad that I can put my work out there
+and not only show something cool to others,
+but get feedback that helps me to improve
+as well.

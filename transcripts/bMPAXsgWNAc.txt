@@ -1,0 +1,492 @@
+The other day I came across a tweet by cgvwzq,
+who was happy that finally a bug he report
+to chromium was made public.
+It is about stealing local file contents by
+abusing liberal CSS parsing.
+And when I started reading, I saw the reference
+to a bug 3-4 years ago, which was about a
+same-origin policy Bypass for Data Exfiltration
+with CSS, which itself references an issue
+4 1/2 years prior to that, with cross domain
+thefts via CSS string property injection.
+So I think this will be super interesting
+to look at how these evolved historically
+and relate to eachother.
+It will provide insight into the work of security
+researchers, who built on research before
+them, you will see how engineers working on
+chromium discuss these findings, and generally
+you will understand why the web is such a
+mess and sooo diffcult to secure.
+Of course these are not necessarily issues
+where the general public is interested in,
+they are not super-critical world-ending,
+but they are technically super exciting and
+if you are interested in web security this
+is the stuff you have to care about.
+
+So let’s start in 2009.
+ScaryBeast, Chris Evans, he is a very well
+known security researcher.
+And at the time he was doing security work
+at google.
+Also according to linkedin transitioned to
+the Chrome Security Team shortly afterwards.
+And now he is the Head Of Security at Dropbox.
+I just find this pretty fascinating to look
+back at the historical context of this all.
+So this is a bug report in the official chromium
+bug tracker that everybody can look at.
+It’s not google internal, though security
+bugs are usually private for a while until
+chromium fixed it.
+It’s super interesting if you are a student
+or generally never seen how engineers might
+work.
+Anyway.
+This bug is kind of annoying.
+The hope is that something can be done at
+the browser level.
+We really don’t want to have to make sweeping
+changes to lots of our applications, and generally
+burden web apps with more web browser issues.
+This affects Chrome, Safari, IE, opera and
+Firefox.
+The attack involves cross-domain CSS stylesheet
+loading.
+So this means, your website is hosted on example.com
+and you are including a stylesheet from another
+domain like youtube.com.
+Because the CSS parser is very lax, it will
+skip over any amount of preceding and following
+junk, in its quest to find a valid selector.
+The parser, the thing that interprets CSS
+files, is looking for CSS in the loaded stylesheet.
+For example this is valid CSS loading an image.
+But what would happen if this CSS is included,
+in for example a XML document.
+What would happen if you use that as a stylesheet.
+Then the lax CSS parser will skip the junk,
+junk in this case is XML, the CSS parser has
+no clue what that is, but once it finds the
+CSS stuff it will interpret that.
+As you can see, if the attacker can inject
+a couple of strings into a trusted response,
+there is a useful attack here.
+The data is stolen cross domain with e.g.
+window.getComputedStyle
+This is the crucial part.
+The title of the issue contains “cross domain
+theft”, what does that refer to.
+You know you can perform actions on a website.
+Like submitting forms, interacting with a
+API, loading images, and so forth, and all
+that is used, to implement web applications
+such social networks or mail clients.
+But the big problem is, websites are not really
+isolated from each other, right?
+I can embed an image from another domain,
+I can load javasscript from a CDN.
+So websites are not super strictly isolated,
+there are weak points where they bleed into
+each other.
+Loading an image from another site might not
+sound very problematic, but imagine if a private
+image only loads when you are authenticated,
+and then you visit a malicious website, the
+site embeds that image, the image loads because
+you are authenticated with cookies, and then
+malicious javascript takes the loaded image
+and forwards it to the attacker.
+That would all be horrifying.
+Thus we have the same-origin policy that affects
+a lot of different things.
+A lot of the very obvious and scary ways you
+could imagine to access data across origin
+is protected, but stylesheets were always
+allowed to be loaded.
+And not only that can also use javascript
+with getComputedStyle on an element to get
+the CSS properties.
+So even though a stylesheet was loaded cross
+origin, you can indirectly read the content
+by checking the style on an element it applied.
+But this doesn’t sound too scary, right?
+There is no secret data in CSS files, that
+is always safe… but who said that you would
+always load real CSS files?
+What is a real CSS file anyway, how would
+the browser or the CSS parser know that what
+you embedded is a CSS file?
+And suddenly you open a can of worms.
+You thought it’s all fine and dandy and
+pretty flowers everywhere, but you notice
+the scary beast luring in the field.
+The web is such a mess with different file
+types, formats and stuff that is happening.
+And the scary beast suggests, if you have
+a XML api, in this example you write a comment
+for a photo, the comment happens to include
+partial CSS, and then you embed this xml api
+as a stylesheet an your malicious website,
+then this is how the parser would interpret
+it.
+The CSS parser ignores junk, finds the body
+selector, applies this background image to
+it, which will then trigger a URL load to
+evil.com which happens to include the XML
+data as the URL path.
+Boom. you stole this secret cross origin.
+There are a surprising number of places in
+our products where an attacker can do this.
+It can apply to HTML, XML, JSON, XHTML, etc.
+The main common construct that prevents exploitation
+is newlines.
+You know a newline in CSS would break the
+CSS.
+Obviously, newlines cannot be considered a
+defense!
+The exploitable places in Google include some
+JSON and XML data APIs
+And now chris tries to suggest a way how to
+fix this directly in the browser.
+1) When loading cross-domain CSS, engage a
+stricter parsing mode that stops
+on first syntactic errors.
+So it would see that XML junk, and immediately
+stop and say, “INVALID CSS!”
+SORRY!
+But browser really want to make it easy for
+developers and not complain about “small”
+issues.
+So the second option suggests,
+Let’s do the same as 1), but only engage
+when the MIME type is not CSS.
+Mhmh… okay… so now we introduce the content-type.
+We could use the lax parser if the mime type
+is valid CSS, otherwise we are super strict.
+That could maybe help against CSS embedded
+inside of a XML document.
+You could also do Some variant of 1) or 2)
+but only engage when X-Content-Type-Options:
+nosniff is seen (won't help most of the internet).
+That’s a more active measure a security
+conscious website could do, but might break
+sites that don’t do it.
+Or When loading cross-domain CSS, do not send
+cookies (probably breaks the
+internet :-/ )
+Without cookies the data returned would never
+be authenticated and thus never contain secrets.
+But never is not quite true, you could authenticate
+based on other means such as internal networks,
+basically whitelisted IP addresses.
+But in general that change might break the
+internet anyway.
+And then engineers and security people start
+discussing about solutions.
+Oh wow I just notice what kind of famous people
+are discussing here.
+This is lcamtuf, who just won the pwnie award
+for his Lifetime Achievement and skylined
+who I know from his browser exploitation tweets.
+Option 1) is probably not feasible in the
+sense that when you set Firefox error
+console to log all messages, and browse the
+Web even for a short while, or even just
+use Google services alone, you are going to
+accumulate an obscene number of CSS
+syntax warnings.
+That’s why the CSS parser is so lax in the
+first place.
+People can’t even write error-free CSS.
+Plus, a parser modes that depend on content
+origin would be pretty damn
+counterintuitive and confusing.
+Yeah… load CSS from your domain or with
+that header it is fine, and load it from somewhere
+else it breaks.
+Super weird.
+I can't find it in the archives, but has reading
+of content from other websites not
+been around for ages?
+IIRC you used to be able to detect and read
+local files in MSIE
+if they even slightly resembled css using
+the cssText property.
+Maybe we can put all the object associated
+with the cross domain stylesheet in the
+domain of that stylesheet, preventing JavaScript
+from reading/setting properties
+cross domain?
+You may still be able to leak information
+if it's present in some very
+specific form
+Properties giving raw access to stylesheet
+text are restricted in FireFox, IE and
+Opera.
+Not Chrome; I have a separate old bug open
+for that.
+I don't think this
+capability adds too much to this attack.
+Even with DOM access closed down, there's
+still the getComputedStyle() thingy.
+We
+could restrict that but STILL there would
+be a leak.
+The background-image URL
+property causes a fetch to www.evil.com/blah
+where the path component /blah is the
+sensitive info.
+It’s super fun to read, but I don’t want
+to waste your time.
+Or would that be a good video.
+Dramatic reenactment of bug discussions?
+Of course to mind comes also abusing the same
+techniques for other context.
+Is the only reason this doesn't work for JavaScript
+because the JS parser is much stricter than
+the CSS parser?
+What about other parsers, like the flash parser?
+There are lots of different formats you can
+load cross-origin and interact with.
+Yep. and thet’s why the web is so f’ed
+up.
+Anyway..
+Ultimately they decided to implement this
+fix:
+"Block stylesheet loads if it is a cross-origin
+load where the MIME type is incorrect
+and the resource does not start with a valid
+CSS construct".
+Okay… so let’s move from 2009 to 2014.
+A bug report by my friend and colleague filedescriptor.
+Webkit/Blink allows a page to load any external
+resource as CSS and will interpret it even
+if its MIME type is not correct.
+This allows an attacker to exfiltrate data
+from cross-origin page via CSS string property
+injection with a couple of techniques.
+And filedescriptor, like us now, knew about
+that old discussion.
+The behavior had been discussed before and
+was patched later.
+The fix that has been employed is to engage
+a *stricter parsing mode* when
+loading cross-origin resource with incorrect
+MIME type.
+To summarize the observation:
+- We can still import any type of cross-origin
+resource as CSS, and browsers will
+parse it, but when doing so, a *stricter parsing
+mode* for CSS is engaged to stop
+potential attacks
+But you can already see, well ok, it’s not
+always stopped, though the idea to have fully
+valid CSS when injecting into XML seems pretty
+unlikely., so there might be still cases where
+it is still exploitable.
+Webkit/Blink has adopted the so-called [Minimal
+Enforcement] as defense.
+The idea of it is that the parser will stop
+parsing on the first syntactic error.
+This is effective for most of the cases.
+However, there are still possibilities for
+this attack in extreme cases.
+The
+[attack limitations] are described here:
+Unfortunately, during my investigation, I
+discovered a couple of techniques that
+can make the attack possible in many websites.
+If we can control the charset of the target
+as UTF-16, we can bypass most of the limitations.
+As UTF-16 maps two bytes into one character,
+it wipes out all the ASCII characters in a
+document.
+As a result, quotes and line breaks are eliminated.
+Moreover, [CSS allow Unicode characters in
+range U+00A0 to
+U+10FFFF as identifiers]. which we can abuse
+to force the content of a
+document into valid CSS syntax
+To sum up, there are two requirements to perform
+this attack:
+- The target does not have charset configured
+in header
+Which is very common that it even exists in
+a [Google's service]
+- The injection point allows NUL-byte
+Because you need that to create valid ascii
+characters in utf-16.
+For example the string AB would be null-byte
+A null-byte B
+So if your webserver with some trusted data
+doesn’t force a charset with a HTTP header
+and if you have an injection point in the
+first byte of the response body, we can
+insert a *BOM*, which is byte order mark and
+is FEFF in hex, to force the charset into
+UTF-16 as [it takes the highest precedence]
+when determining charset.
+You know the browser has to guess now what
+the charset of the file is.
+So if the site doesn’t set the encoding
+in the response header, and you include the
+null-bytes to make it look like utf-16, the
+browser will guess that.
+OR if you have an injection at the start,
+you can inject FEFF, the BOM, and the browser
+will ignore the set encoding and you get UTF-16.
+Now the browser thinks it’s utf-16, thus
+the whole file becomes random UTF16 characters,
+except of course the injections you control,
+where you then place valid UTF-16 ascii characters
+to create a leaking CSS structure.
+Super crazy, Browsers are so weird.
+But The fix is fairly simple: browsers should
+refuse to load cross-origin resource as CSS
+if its MIME type is incorrect.
+Lcamtuf comments on the issue and says.
+Well, if others are unconditionally breaking
+cross-origin CSS with bad Content-Type these
+days, no real harm in matching their behavior.
+Although we'd normally advise anyone to always
+specify charset on any responses that contain
+anything interesting or user-controlled (and
+not doing so generally opens you to some other
+attacks), your utf-16 PoC seems reasonably
+convincing.
+And after a while the CluserFuzz bot chimes
+in: Uh oh!
+This issue is still open and hasn't been updated
+in the last 7 days.
+Since this is a serious security vulnerability,
+we want to make sure progress is happening
+And mike west agrees:
+we should simply stop loading `text/html`
+as CSS, and suck up the compatibility impact.
+Given that Firefox already goes this route,
+I'd expect lowish risk.
+Two months after the initial issue, fildescriptor
+reports back with Any update?
+In fact I have found real world scenario where
+this attack is present.
+Then they had some issues with trying to fix
+it becaus tests after build was failing.
+In june 2015, filedescriptor then got $1337
+for his report.
+Nice!
+And then finally after around half a year,
+the issue was finally fixed.
+And this leads us to the bug today by cgvwzq.
+So… what could possibly be still wrong with
+this?
+After around 8 years of the initial report.
+Resources from file:/// (so when you don’t
+load a website via http, but a local html
+file) it does not define a Content-Type.
+Of course there is no server that would set
+expected content type., hence, a malicious
+page can load any local resource as CSS and
+it will be interpreted as such, independently
+of the MIME type.
+This allows to exfiltrate data from cross-origin
+local files via a CSS injection.
+This is a small variation of @filedescriptor's
+Okay, it makes sense right?
+You can load CSS cross origins.
+But the parsers were made stricter and you
+can’t really use it anymore with injections
+to extract data.
+But he noticed that when not loaded over the
+internet, but locally, this does not really
+apply!
+There are two obvious questions now.
+First is about how do you get somebody to
+open a local html file and the other question,
+how to do injections locally.
+What the heck?
+About the first challenge he writes: The attack
+requires a victim to render a local malicious
+HTML page.
+there are many ways to trick a user into it
+(force downloads, redirection from a local
+PDF, mail attachment, etc.,).
+Furthermore, I guess this can become especially
+useful in Android or Electron environments.
+And for the injection parts, there are some
+clever tricks.
+Here are a few examples.
+First, Chrome's SQLite databases which holds
+your cookies.
+So you could create a cookie with CSS, and
+then load the Cookie SQLite databse as a stylesheet
+and when you are lucky, when the injection
+is in a good place and none of the other restrictions
+break it, you can now leak data from that
+database.
+Steal local file contents!
+The code above can work sometimes, but with
+huge files is hard to control the characters
+appearing before and after the injected payload,
+some of them breaking the CSS parsing.
+But there are more examples.
+There is the Current Session file which contains
+information about the current requests.
+And also comes in UTF-16.
+It also includes iframed requests data.
+So you could steal content of framable cross
+domains.
+Then there is the localstorage which is placed
+into the leveldb folder, so you could steam
+some local storage data from other sites or
+extensions
+And the cookiemonster.
+A variation of the first idea.
+But turned to eleven.
+new cookies are most of the time written before
+older ones, which is great to inject early
+in the file.
+We could try again with UTF-16, but cookies
+do not allow NULL bytes.
+BUT that’s when he abusese the encryption
+of the cookie name.
+I won’t go into exactly the details right
+now because of the length of the video, but
+the attack is inspired by padding oracles
+and the more recent EFAIL issue.
+And Gynvael has done an exceleln in-depth
+stream about efail that I link below.
+If you want to really dig deeper, go there.
+And subscribe to his awesome channel in general.
+So he wants to find a cookie name, that when
+encrypted will contain the paylod here.
+As these are just a few bytes to control,
+this can be bruteforced in a few minutes.
+Maybe requires a few billions of AES encryptions.
+That is such a great attack.
+Wow!
+Let’s peek quickly at the dev discussion
+about it.
+The proposal in #1 is unfortunately probably
+not trivial, because the stylesheet code doesn't
+rely upon //networks's Content-Type sniffing
+(which, for the file:// protocol, sets the
+MIME type based on the file's extension).
+The
+|HttpContentType|
+function is literally looking at the
+|Content-Type|
+response header, which isn't set for resources
+from the file:// protocol.
+If we do make a change here, we need to watch
+out for regressions in Android WebView; it
+turns out that some Android applications are
+dropping resources and loading them via extensionless
+file URIs.
+GOD DAMM THE WEB IS A MESS.
+In the end the fix was simple.
+Restrict `file:` stylesheets to `.css` extensions.
+And cgvwzq was awarded $2,000 for this report.
+And that’s how web browser security research
+works.

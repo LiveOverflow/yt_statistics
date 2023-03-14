@@ -1,0 +1,635 @@
+Last episode concluded with me building the
+bee farm behind me.
+But this episode is gonna be wiiiild.
+So much stuff happened on this server.
+And I wanted to tell you about exploiting
+Cross-site scripting issues on Minecraft servers
+and another story about the protocol vulnerability
+I found in march.
+But first let’s see what happened next on
+the server.
+As you can see, more people discovered the
+server and started playing on it.
+Which is super cool.
+But that also meant I started to get scared
+for my life on here, so I went into creative
+mode.
+This way they cannot damage me.
+Simplest cheat I can do on my own server.
+In my defense, I’m lazy…
+AND I kinda have to do it especially when
+I want to stay AFK to record stuff.
+Otherwise players will mess with me.
+For example, see what they did here again.
+Imagine if they could actually kill me.
+This way, it’s just funny.
+Anyway.
+I just wanted to figure out what people have
+been doing on the server so I kept flying
+around.
+The first thing I noticed were all the signs.
+There were so many new signs!
+While a building or destroyed terrain is always
+a sign of life, signs are kinda special because
+they are an actual message somebody typed
+out.
+So awesome to see.
+So while I have seen quite a few players online
+and seen so many signs, I do not see much
+happening at spawn.
+Except this one house!
+Which was actually built somewhat in the style
+of the other houses.
+Pretty empty inside, but I’m happy somebody
+built something here.
+Not so happy I’m about this crappy wall
+up here.
+WHAT IS THIS?
+Hopefully somebody cleans this up.
+I also used the Xray mod we have developed
+in a previous episode to hunt for more secrets
+underground.
+But nothing really jumps out.
+I did however find these signs!
+Somebody didn’t want to explore more because
+the videos are getting released very slowly
+and are like 1-2 months behind the state of
+the server.
+So apparently too many spoilers here to see.
+But…
+I don’t think there are too many spoilers.
+I cannot find new stuff anywhere I’m flying…
+at least I got to meet some players.
+Here we tried to take a selfie!
+Mhh… well this is the state of the server
+end of june.
+And more and more players are going to find
+the server.
+So maybe I just have to give it a bit more
+time.
+Hopefully in the future there will be more
+to see!
+Over two weeks have passed now.
+And oh my god what happened at spawn.
+Remember how I built this bedrock hole with
+lava and campfires.
+It was supposed to be a jail for people to
+only get out with hacks.
+And this spawn cannot be modified by anybody
+besides me.
+So WHERE IS THE LAVA, MY CAMPFILE AND WHY
+IS THERE OBSIDIAN???!
+Uh!
+There is a person!
+CAUGHT IN THE ACT.
+What can you say for yourself?!
+Did you commit these crimes???
+After interrogation and some light torture
+I can conclude they maybe didn’t do this?
+But they did tell me how they found my server.
+Remember how I had leaked the IP in a previous
+video?
+Well this person is running their own personal
+archiving service and they had the original
+video still downloaded.
+The internet never forgets.
+Thanks for the chat but I have a crime to
+solve.
+Let’s investigate more of the area.
+we have a wooden frame around the spawn area.
+That must be the build border.
+Inside this area nobody can build.
+BUT there is some cobblestone.
+We have lots of signs around this area.
+Maybe one of them is the culprit.
+They are all SUSPECTS!
+Was it maybe YOU!
+OTTOMATED???
+After more heavy torture they at least revealed
+to me how they found the server.
+And apparently, I f’ed up again and didn’t
+censor the IP properly.
+Apparently the IP was visible in the terminal
+window title.
+OM MY GOD.
+NO F’N WAY!???
+How can I be so bad at censoring the server
+IP.
+Let’s ignore this fail and come back to
+this here.
+WHAT HAPPENED AT SPAWN?!
+Oh wow look over there, a big wheat field.
+Whoever built this, probably didn’t destroy
+spawn.
+Because this is an actual act of kindness.
+Providing food for all the hackers escaping
+the bedrock hole.
+Thanks for doing that!
+Love it!
+Let’s see.
+Can we find anything else?
+OH MY GOD WHAT IS THAT OVER THERE?!
+IS THAT A ROLLER COASTER?
+Wow that looks amazing!!!
+Exit and entrance.
+Let’s take a ride!
+Sand’s and Syntxd’s roller coaster.
+Here we can get a free cart.
+Place it on the rail and hit the button.
+Okay.
+On the sign it says “Hold “W””.
+let’s do that.
+And off we go!
+wohoooooooooooo ..
+That’s so cool.
+Let;s enjoy some music while we take a ride!
+That was awesome.
+Thanks so much for building this!!!
+I will visit again!
+We also have a small house here.
+With lots of banners.
+And maybe something in the nether?
+Mhhh… nope doesn’t look like it.
+Let’s fly back to base and see if anything
+changed there.
+And indeed.
+Another house appeared!
+Really cool.
+OH… it’s only half finished.
+And what is that.
+That is an ILLEGAL VILLAGER TRADING AREA!
+I DID NOT ISSUE A PERMIT FOR THIS!?
+This is pure ANARCHY.
+Uh another house… or… attempt of a house….
+Ok… cool.
+Also where did my big trees go?
+I always replanted them!
+All gone?
+Also the wall is still not fully built.
+Great…
+BUT OH MY GOD WHAT IS THAT BACK THERE?!
+That is new.
+LOok at that.
+Two bases built into the mountain.
+That is awesome!
+So cool.
+Love to see these builds.
+At the lake where we went fishing early in
+the series also a trolmans skull appeared.
+Mysterious.
+As you can see.
+More and more activity.
+More and more builds.
+More and more signs.
+And nobody lavacasted my base yet!!!
+So that’s incredible and really fun to see
+on a server only playable by minecraft hackers.
+By the way.
+Remember the mysterious player who was on
+the server from the beginning who was also
+able to obtain bedrock to put me in this jail?
+I’m the only admin on this server...
+Or am I?
+Mh.
+So clearly, the bedrock is evidence that somebody
+either found a bug in the game to get arbitrary
+items, or somebody got unauthorized access
+to in-game administrator capabilities, or
+somebody really hacked into the linux server.
+I guess this is like incident response or
+forensics.
+So let’s go over some options?
+Could it be log4shell?
+Probably not, I’m currently running 1.18.2,
+which is safe.
+Is there maybe a known bug in minecraft to
+acquire arbitrary blocks like bedrock in 1.18?
+Of course we don’t know, but probably not?
+There could be, but stuff like that would
+be very powerful on any servers.
+And I feel like if somebody found a bug like
+that it eventually would have spread and we
+would get tons of stories about these crazy
+hackers.
+So I consider the chance of that very low.
+It’s never impossible, just very low.
+So Maybe somebody got access onto the server
+for example through an ssh exploit?
+Also unlikely.
+Same reason.
+If there would be a ssh vulnerability it would
+be so powerful that it’s worth millions
+of dollars and used in state-level hacking.
+It’s just unlikely somebody would use that
+against my minecraft server.
+So the only last option we have is maybe they
+got admin or OP permission in minecraft?
+Oftentimes this is done through malicious
+plugins, but I don’t think I installed anything
+bad.
+But if a player got op permissions, the player
+should be included in the ops.json config
+file.
+So let’s check it, cat ops.json.
+Oof.
+There it is.
+This other player somehow got OP.
+We could also check the logs to see when this
+player joined the first time, and maybe we
+see something in there that explains it to
+us.
+Alright.
+Because I use the docker-minecraft-server
+setup with docker-compose, we can use docker-compose
+logs to print out all the logs.
+And then we can filter for the username with
+grep.
+Let’s look all the way at the top.
+And do you see that?
+tags loading a javascript file?
+What does this script do?
+Without context we can just guess, but it
+looks like somewhere it enters the op command,
+and then it clicks an HTML element with the
+id sendRconCommand.
+Probably a button.
+And this is everything we need to know.
+This is a XSS attack.
+A cross-site-scripting attack.
+So let’s say you rent a server at some kind
+of minecraft server hoster, they usually give
+you a web console for minecraft.
+In there you can do various admin commands
+like making somebody op.
+Of course, this is a website, written in HTML
+and javascript.
+As you can see, when a player writes a chat
+message, it shows up in the console.
+So what happens if a player sends a message
+with an HTML tag.
+For example .
+This tag tells the browser, this text is a
+header.
+And see that?
+The test is written like a header with large
+letters.
+But it would also be obvious ingame.
+Every other player would see a chat message,
+so instead of just a normal message, one could
+also send a fake command.
+So /asd and then a  tag.
+This way it’s not a chat message and doesn’t
+show up for other players.
+But in the console it is still shown.
+And this is a very serious vulnerability.
+As you can see when I try to change the gamemode
+to creative, I cannot do that.
+I’m not an OP right now.
+But if we send the whole payload like Herobrine,
+did, then we become OP.
+Made Liveoverflow a server operator.
+And we can now change the gamemode to creative.
+We can fly.
+We can change the time.
+And we can get access to any block we want,
+including bedrock.
+So let’s investigate the technical details
+further.
+How this attack really works.
+And there is a neat trick for investigating
+XSS like this.
+In the website with the console we open up
+the developer tools.
+And then ingame we inject a script tag with
+a debugger statement.
+So If the site is vulnerable to XSS, cross-site-scripting,
+it basically means instead of our input being
+displayed as literal text, it is interpreted
+as HTML code.
+And in that case the javascript code includes
+a debugger statement which is like a breakpoint.
+This can be used to debug and analyse code.
+When we send this message you can see that
+the developer console is triggered.
+Debugger paused.
+And we see our javascript code here.
+And look here at the callstack.
+These are all the javascript functions that
+were called leading to the execution of our
+malicious code.
+We can look through the various function,
+but the most interesting to us is probably
+`writeToConsole` from the consoleUI script.
+So this is the code of the website implementing
+the browser console, specifically when new
+data has to be written into page. and here
+you can see that the data variable is our
+chat message.
+And it simply concatenates this data with
+other HTML code and appends it to the console-output.
+This is the vulnerability here.
+You must not take malicious user input and
+place it as HTML data onto the site.
+The fix for that is simple though.
+Instead of appending the HTML data, make it
+explicit that this is just text.
+For example by creating this row-stadard div
+element first, and then write the user input
+with innerText.
+This way you tell the browser, THIS IS JUST
+TEXT, this is not HTML code.
+Which means this malicious script is never
+executed.
+I just wanted to make it clear, in case somebody
+is confused.
+This is all a thought experiment, a made up
+example, storytelling, of how somebody could
+have gotten op permission.
+(spoiler alert in reality I’m herobrine,
+WOHA SHOCKING, I know who would have guessed.
+Sorry to ruin the mystery).
+But the point is, even if it’s not real,
+it totally could be real.
+The hack we just talked about is absolutely
+something that could happen because the vulnerability
+is real.
+I just think packaging this vulnerability
+into a fun story makes it a bit more engaging.
+So a few months back when I did the world
+wide minecraft server scanning, and I tested
+for log4shell, I actually also tested for
+exactly this issue.
+I injected a script tag with a payload to
+test if it executes.
+Even though I scanned thousands and thousands
+of servers, I didn’t find a single server
+responding.
+But this is the problem with this vulnerability.
+XSS is an issue where you don’t attack the
+server, you attack another user.
+So Herobrine can only attack me with this
+XSS payload, WHEN I have this website with
+the console open.
+If this website is not open, there is nothing
+to interpret this HTML code.
+And most users never open this browser console.
+So randomly exploiting somebody with it is
+very very very low probability.
+But of course in a targeted attack, somebody
+could ask the server admin “hey can you
+check in the console something for me?”,
+they open the browser and then you send the
+malicious message.
+Boom!
+You got admin on the server.
+So while it cannot be exploited on a big scale,
+it’s still very useful in a targeted attack.
+Now of course not every minecraft browser
+console is vulnerable to this.
+For example, while I haven’t tested pterodactyl
+myself, which is the server hosting solution
+a lot of people use, I did ask on their discord
+and people told me, when they tested this,
+it didn’t trigger.
+So this is not a widespread issue.
+But there is at least one minecraft server
+hoster who is vulnerable to that.
+I know that because I’m a customer and I
+checked it.
+I actually reported it on the 3rd of March.
+Including a fix recommendation.
+I sent two emails and twitter messages but
+didn’t get a response or acknowledgement.
+And over two months later, it was still not
+fixed.
+Also it’s the Same company who didn’t
+mitigated log4shell months after the vulnerability
+was publicly known.
+But I’m getting sidetracked.
+Let’s come back to the original investigation.
+How did somebody remove the lava and add the
+obsidian here?
+More signs and more people.
+Maybe it was one of them?
+Mhmhhh….
+Let’s investigate the crime scene further…
+Uh WHAT AM I SEEING THERE?!
+Is that a dispenser?
+With a water bucket inside?
+Just outside the restricted buildarea?
+Let’s hit the button and see what happens.
+Oh wow the water flows all the way into the
+hole!!!
+That’s what happened!
+They got water over there and it solidified
+the laval.
+Turned it into obsidian.
+Also now non-hackers can escape spawn as well
+by swimming up the water.
+Sneaky.
+The cobblestone then is also probably a lavacast.
+Lava flowed a little bit into the build-restricted
+area and turned into cobblestone with water.
+MYSTERY SOLVED!!!
+I’m so smart…
+But actually there are smarter people than
+me.
+Remember the vulnerability I reported in the
+minecraft protocol in march 2022?
+“known-plaintext attack on aes/cfb8 encrypted
+packets”
+There is more to the story.
+When I submitted this bug some bird whispered
+me that somebody else had reported a related
+issue but a few months earlier.
+And their report was apparently more critical
+than mine.
+What did I miss?
+Is there a more serious bug that I didn’t
+see?
+THIS DROVE ME INSANE?!
+Here are my notes on what I heard about the
+other security bug.
+Trying to figure out what it was:
+1.
+to my understanding an exploit with the same
+vector exists.
+2.
+Their exploit idea is a bit different
+3.
+they do exploit predictable AES packages and
+require the victim to be in the same network
+4.
+BUT it could potentially be escalated into
+sending completely attacker-controlled packages,
+not requiring specific actions from the victim,
+essentially allowing to completely play using
+the victim's account.
+5.
+And their proof of concept also included using
+a proxy server as a way to observe packages.
+But their example merely shows the replay
+attack and getting kicked for invalid packages,
+not actually going further
+Oh my gosh.
+I started to contact lots of different technical
+minecraft players and brainstormed with a
+few of them.
+What could I have missed?
+Luckily.
+After about a week or so I finally got in
+contact with this other person.
+It was “vktec”.
+She is the genius who apparently found a more
+critical issue than mine in the same area
+of the protocol.
+So let’s checkout her report.
+If you haven’t seen the previous episode
+about the minecraft protocol before, or you
+don’t remember it anymore, rewatch that
+episode please to refresh your mind.
+Because we head straight into the technical
+details now.
+So here it is: “Replay attack against encrypted
+sessions”.
+Minecraft’s protocol uses AES-CFB8 encryption
+with no message authentication or nonces.
+This makes it trivially susceptible to replay
+attacks.
+Mhhh… a full replay attack?
+So the public key of the server is probably
+always the same.
+And the CLIENT chooses the secret.
+So if we just record all initial packets,
+including the packet that contains the encrypted
+secret, which is then later used for the AES
+encryption, we can just replay all packets.
+Of course we don’t know what packets were
+sent, and we cannot change the content.
+It’s AES encrypted, BUT we can replay it.
+Because the encryption uses the same secret
+as before!
+Which basically means, if we recorded packets
+of a player joining a server, we can replay
+these packets at a later time, and basically
+join as that user again!
+But of course only replay those packets.
+So we cannot fully take over that account.
+Just perform the same actions again.
+yeah that’s an angle I haven’t thought
+about!
+I love that!
+I love that I stared at this protocol for
+such a long time and this attack idea didn’t
+come to my mind!
+This is so awesome!
+But the report goes even further.
+Additionally, as Minecraft does not kick players
+for sending invalid packets, it is theoretically
+possible to replay actions out-of-order.
+CFB-8 is self-correcting after 16 bytes of
+invalid data.
+Meaning an attacker can send the 16 bytes
+of data preceding the packet they want to
+send in order to replay an arbitrary packet.
+Oh my gosh yes!
+I mean I think some corrupted packets can
+cause you to disconnect.
+But generally speaking, this should work.
+When I explained AES CFB-8 mode in my previous
+video I left out an important part, but this
+way it was a bit simpler.
+That detail didn’t matter for my vulnerability.
+But for the self-synchronization exploited
+here, it does matter.
+In my graphic it looked like we always pass
+in one single byte into the AES decryption
+function.
+And we get a single byte out.
+But that is not the case.
+AES operates always on 16 byte blocks.
+So the trick is,CFB-8 mode works by shifting
+over the encrypted stream of bytes.
+Always in 16 byte blocks.
+So let’s say we have some minecraft packets.
+These are for example two different long chat
+messages.
+This stream of bytes gets encrypted with AES
+CFB8 mode.
+In other AES encryption modes you would divide
+that into 16byte blocks.
+But in CFB8 mode, the byte blocks are shifted
+byte-by-byte, or shifted by 8 bits, that’s
+why it’s called CFB-8.
+So we always apply AES to 16 bytes, but because
+of CFB-8 mode only XOR the first byte and
+keep that as an encrypted byte.
+This way we slowly get a stream of output
+bytes..
+Now on the receiving end, when the server
+decrypts these bytes, we again take a block
+of 16 bytes and start shifting it as well,
+and always XORing one byte to get an output
+byte.
+Now imagine we want to send this minecraft
+packet in a different order.
+Or replay this packet again at a later time.
+So we take the encrypted bytes of our chat
+message.
+And we inject it into some other random packets.
+When decrypting the sliding AES window will
+now start decrypt gibberish for 16 bytes.
+Because these new bytes are not what was expected.
+BUT after these 16 bytes, at the start of
+our actual chat message, the AES CFB-8 mode
+basically self-syncrhonized and recovered
+the state.
+Now everything is getting decrypted correctly
+and we successfully replayed an older chat
+message.
+That is a really really cool attack.
+And comparing this to my issue, this is super
+fascinating.
+I think this attack describes a much more
+severe critical vulnerability.
+BUT it’s also harder to pull off in practice.
+In contrast mine, admittedly still hard to
+exploit in practice, has a clearer attack
+idea, but impact is not that severe.
+On the other hand, this also has effects on
+my attack.
+I didn’t understand the self-syncrhonization
+property of AES CFB-8 before, so I assumed
+after modifying a byte in my attack the decryption
+will produce garbage and the client always
+disconnects.
+But that is not the case!
+The protocol can recover!
+It was so cool to talk to Vktec about this
+issue.
+And it’s a really cool example of security
+research.
+Even though we both looked at the same area,
+and our attacks are both a result of the same
+bad crypto.
+She didn’t think of my attack idea of modifying
+packets, and I didn’t think of her attack
+idea of replaying packets.
+So when we combine our knowledge, combine
+our ideas and learn from each other, we actually
+get a more powerful attack.
+And that is beautiful.
+Collaboration is always better.
+While we were talking about AES, and I stood
+around afk on the server.
+Of course Players started to mess with me
+again.
+First they turned me into a bouncy overflow.
+Then they added a jail around it, played music
+and eventually even SHOT ME INTO SPACE WITH
+A ROCKET!
+You have been sent to Mars by SpaceX.
+No refunds though.
+By the way, that big dirt square down there,
+whoever made it called it ireland.
+It’s a huge potato farm.

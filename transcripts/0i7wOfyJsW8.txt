@@ -1,0 +1,256 @@
+Remember the Network Monitor built into the
+old Nokia phones from last video?
+It allowed us to get some insight into the
+GSM traffic between the phone and the basestation
+and even log messages between the phone processor
+and the SIM card.
+But at the end of that video vadim said that
+it’s not as powerful as the Calypso Chip
+inside the Motorola phones.
+So, what is so special about this?
+On my channel I always try to encourage you
+to go to the source of information.
+So this often means to seek out specifications,
+documentations and even the source code, rather
+than trying to search for the direct solutions
+or even asking on stackoverflow.
+But studying and learning about GSM that way,
+is pretty tough.
+The specifications of GSM are available in
+public access for a long time,
+so one can easily find thousands of *.pdf
+documents, and get some theoretical
+knowledge of, for example, how a single frame
+from the upper layers turns
+into the modulated signal at the physical
+layer.
+The problem is that specifications themself
+can only give you a theoretical
+knowledge, but not the practical experience.
+Fortunately, experimenting with
+such ancient phones, ONE CAN easily get hands
+dirty with practice!
+And so this Motorola phone really helps to
+get some practical experience.
+Unlike NetMonitor-enabled Nokia devices, some
+old Motorola phones can give
+you much more capabilities to play with GSM
+on practice.
+I am talking about
+the phones based on Calypso chipset.
+Some time ago the private (NDAd) documentation
+for the Calypso baseband,
+including both register and hardware definition,
+was leaked onto a public
+forum by some unknown persons.
+This leak has made it easier to reverse
+engineer the firmware of Calypso based phones
+like Motorola C123.
+So what is this calypso chipset.
+Why did you have to reverse engineer the firmware.
+I mean nowadays you have open source android,
+right?
+Why would still be using this old phone with
+a reverse engineered firmware?
+How does this make sense.
+I know a lot of you will already know that
+there is a difference between the baseband
+and the regular processor of the phone.
+But I want to make sure everybody understands
+this, so let me quickly explain.
+In the first video I asked the question, how
+many computers are in your phone.
+And we learned that the SIM card is actual
+it’s own chip running software.
+and The regular processor in phones is sometimes
+referred to as application processor.
+This is what you would consider the main CPU
+that is handling the phone menu, the games,
+showing stuff on the screen and so forth.
+On modern smartphones, you can see it as the
+CPU that is handling the android operating
+system, or the iOS and so forth.
+But even though you view this as the phone,
+this processor doesn’t actually do much
+phone stuff.
+It does not run all the GSM network parts.
+The android operating system does not contain
+the source code for speaking GSM, UMTS or
+LTE.
+This is implemented in another chip inside
+the phone.
+And that is called the baseband.
+This chip is running it’s own operating
+system, usually a RTOS, a real time operating
+system and it has it’s own memory and so
+forth.
+This chip is actually controlling the radio
+part.
+It is implementing all these complex mobile
+protocols.
+And the android operating system contains
+proprietary drivers to communicate with the
+baseband chip.
+Now depending on the baseband chip used, there
+is maybe a debug interface available.
+You have seen one last video, the nokia network
+monitor.
+But for example the interface to some more
+modern Qualcomm basebands has also been reverse
+engineered and there is a project called SnoopSnitch
+which we might check out another time.
+It can also be used to analyse GSM packets.
+And all of that is great, you get the baseband
+to dump GSM packets out for further analysis.
+But really understand GSM and really learn
+about the protocol, you actually want to have
+more control over the baseband.
+And that’s why people tried to reverse engineer
+not only the interface to those chips, but
+to reverse engineer the actual firmware.
+But this kind of firmware is extremely complex
+because of all the signal processing, timings,
+and what not.
+I can’t imagine reverse engineering that.
+So insight is very limited and ssooo time
+intensive.
+But vadim already mentioned what makes the
+Calypso Baseband chipset in the motorola phone
+so special.
+The register-level manuals seem to have leaked
+at some point.
+This document is confidential.
+It was shared under a non disclosure agreement
+in the year 2000.
+With something like this you can easily get
+into legal trouble and I feel a bit hesitant
+to show it.
+But in this case these documents have been
+on the internet for so many years that I guess
+it’s fine now.
+Let’s have a look at the general description:
+CALYPSO is a chip implementing the digital
+base-band processes of a GSM/GPRS mobile phone.
+The application of this circuit is the management
+of the GSM/GPRS base-band processes through
+the GSM layer 1, 2 and 3 protocols.
+CALYPSO architecture is based on two processor
+cores ARM7 and LEAD2.
+So the chip actually includes two processors.
+I think the Motorola didn’t have a separate
+application processor.
+These old feature phones often had these things
+combined in a single chip.
+So the processor that implements some GSM
+protocol layers is also handling the keyboard
+input and the display and so forth.
+I think the ARM processor is doing that.
+And then we also have the LEAD2 which is a
+DSP, a digital signal processing chip.
+That one is doing the real crazy radio stuff.
+Here in the document you can also see the
+features of them.
+For example the arm chip can talk to the SIM
+card, which it has to, for example to get
+the IMSI or doing crypto stuff.
+But you see it’s a pretty complicated chip
+with a lot of features.
+So this documentation is worth gold for anybody
+who wants to reverse engineer the firmware.
+When you reverse engineer firmware of embedded
+devices you often need to know what certain
+addresses and registers are for and what the
+different memory ranges mean.
+So this document tells you about things like
+the Memory maps.
+And I just picked a register that sounded
+interesting, here is the SIM card related
+registers.
+So when you reverse engineer the firmware,
+and something is reading or writing to this
+address, fffe:0000, you wouldn’t know what
+that means.
+But because in the documentation you can see
+that this address is defined readable and
+writeable and it has this name, you know that
+the code wants to for example initiate the
+sim card start procedure I guess.
+Writing the single bit 1 to one of these bits
+will cause an event, so I guess with that
+you can start up the sim card?
+No clue, I don’t know how this works.
+But you see why you really need documentation
+like this to understand the firmware that
+you reverse engineer.
+And now Imagine you could reverse engineer
+the whole firmware so far, that you can reimplement
+it, so that you would have a full open source
+baseband software.
+Wouldn’t that be crazy and super useful?
+Welcome to the OsmocomBB project.
+OsmocomBB is an Free Software / Open Source
+GSM Baseband software implementation.
+It intends to completely replace the need
+for a proprietary GSM baseband software, such
+as:
+drivers for the GSM analog and digital baseband.
+And if you click on the digital baseband,
+it will lead to: Calypso Digital Base Band
+chip is a popular DBB (digital baseband) implementation
+for inexpensive feature phones.
+The wikipedia article of osmocombb also says.
+OsmocomBB implements the GSM protocol stack's
+three lowest OSI Layers of the client side
+GSM protocol and device drivers.
+And it also mentions the motivation for this.
+After developing OpenBSC, a Base Station Controller,
+the authors wanted to create a free client-side
+implementation of the GSM protocol in January
+2010.
+GSM has been in use since 1991, but OsmocomBB
+is still the only free implementation, excluding
+failed projects like TSM30 from THC and MadOS.
+We slowly make our way to the basestation
+side, patience, but what is said here is really
+important.
+Osmocom, or OsmocomBB is not just a research
+project that hacked together a proof of concept
+partial GSM implementation to checkout some
+stuff.
+When you hear about more modern LTE security
+research this is generally the state.
+OsmocomBB is an actual full open source GSM
+implementation and the intention was not security
+research, but to serve as a full client-side
+implementation of the GSM protocol... because
+the authors developed their own base station
+software OpenBSC.
+And just to provide a bit more context now,
+remember the SIM command register from earlier?
+We can checkout the osmocombb source code
+now.
+Here they define the register address for
+the sim command register.
+Including the exact bit for the SIM card start
+procedure.
+And in the sim.c file we can see here a debug
+output that checks the SIM start command register
+value and either prints that the SIM card
+starting procedure is active or not.
+And we can also see where this event, to start
+up the SIM card is initiated.
+In the same file we can find a calypso_sim_powerup
+function.
+The comment says it will apply power to the
+simcard.
+So this will start up the sim card.
+And here we see a write to the SIM_CMD register,
+and more specifically the SIM_CMDSTART bit
+of that register.
+Isn’t that awesome?!
+So now we know why this old Motorola phone
+with the calypso baseband chip is so special.
+Thanks to the leak of those documents, the
+osmocom project was able to implement an open
+source GSM stack which can now be used to
+really interact with the GSM network.

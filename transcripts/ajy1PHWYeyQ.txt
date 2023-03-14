@@ -1,0 +1,223 @@
+In this video we will write the same program
+from the previous part, just in a different
+language.
+The C program got compiled by a compiler in
+machine code that can be executed directly.
+Python on the other hand is an interpreted
+language.
+To understand the difference I try to make
+an abstract example.
+You can imagine a program written in C as
+a machine built for a very specific task.
+And python itself is such a machine written
+in C. But it’s a special machine ... a robot,
+which is built to interpret different language
+of code - python code.
+So in a trivialized sense, somebody wrote
+C code in a file “python.c”.
+Then used gcc like in the previous video to
+compile this sourcecode into a binary with
+the name python.
+You can see that when you use the tool “file”
+to display file information.
+When you use file on our c matrix program,
+it says it’s an ELF executable.
+And when you do the same for the python program
+it also says that it is an ELF executable.
+Now when you execute the “python” program,
+you get an interpreter prompt, where you can
+enter text and python will interpret it for
+you.
+Or just pass it a python script file and it
+will execute it.
+I hope that makes sense.
+So let’s create a new python script called
+matrix.py.
+We will also open our previous code alongside,to
+compare them.
+We can do that with vim by specifying both
+filenames with minus capital O.
+This tells vim to open the files split vertically.
+Now check if the cursor is in the correct
+document.
+If not you can use CTRL+W Left or Right to
+switch between the views.
+Now enter the insert mode by pressing i and
+let’s get started.
+In python we don’t have to specify a main
+function.
+The code will be just executed sequentially
+from the start of the file to the end.
+To access the command-line arguments argv
+we have to import a python module called sys.
+With print sys.argv we can print the content
+of this variable.
+So let’s see how this sys.argv variable
+looks like.
+First save the file with esc, colon, w.
+Then you can use colon ! to execute a command.
+For example ls.
+You will see that the editor disappeared into
+the background and it displays the result
+of the ls command.
+So let’s use that to execute our python
+program.
+Go back by pressing Enter.
+Colon ! python to start python and as first
+argument we specify the script name which
+is matrix.py.
+Instead of writing the name you can also just
+use %. Vim will automatically replace the
+% with the current filename.
+You can now see that the first argument was
+matrix.py.
+And that’s all we got.
+Like I explained in the last video, the arguments
+passed to the program start with the programs
+filename.
+Now let’s add a few arbitrary arguments.
+A normal one, one with quotes and spaces and
+some more words.
+Maybe even with more spaces in between, to
+just see what happens.
+There is the output.
+So the brackets indicate a list in python.
+and the elements are comma separated.
+And the list contains many strings starting
+with the filename and the stuff we placed
+afterwards.
+Hope that makes command-line arguments a bit
+more clearer.
+Ok so to check if we have got two arguments,
+we don’t need a counter of arguments like
+argc.
+We can just check if len(sys.argv)==2.
+Note that python doesn’t use curly braces
+to define context.
+We have to use indentation…
+urgh.
+When I press TAB I get tabs.
+That’s ugly.
+I prefer everything to be filled with simple
+spaces.
+So you can use set expandtab shiftwidth=4
+softtabstop=4.
+Now we get 4 spaces when tab is pressed.
+Now we wan’t to print the first argument.
+So with print and pythons special format string
+syntax we can do exactly the same like in
+C. Inside the string with curley braces we
+can define which following format parameter
+shall be placed here.
+And we start counting with 0, so here will
+be the first format parameter. and obviosuly
+our first format parameter will be sys.argv[1].
+Then we do the else and to print to standard
+error we have to access stderr directly through
+the sys module.
+So sys.stderr.write and the again Usage curley
+braces 0 to indicate here should be the first
+format variable.
+and the first format variable is the first
+element of the argv list.
+Note that the simple print doesn’t need
+the backslash n newline at the end.
+but the write needs it.
+That’s because pythons says that printing
+with a newline at the end is pretty common,
+so it does that automatically for print.
+but if you use a bit more low level access
+function, then we have to add it ourselves.
+Also that fact that we use “write” to
+output text should peak your curiosity.
+Sounds like writing to a file?
+Well.
+Everything is a file as you may remember from
+the linux introduction video.
+So keep that in mind when we talk about this
+more.
+Ok done.
+Let’s test it.
+save it and quit vim.
+Make sure to quit two times for both open
+views.
+python matrix.py works.
+Just like our C program.
+If you don’t want to type python before
+your python script all the time we can do
+something about that.
+Open the script again and create a new line
+above the import.
+Remember how you can press o instead of i
+to enter insert mode, which creates a new
+empty line below your cursor?
+Guess what happens when you use shift O. It
+creates a new empty line above your cursor
+and enters insert mode.
+Now add shebang with the path to the python
+binary.
+#!/usr/bin/python
+There is also a nice wikipedia entry about
+shebang, so check that out.
+This line tells the program loader that this
+is a script that should be executed with python.
+So it basically does python matrix.py for
+us.
+Now we can execute it like our C program,
+by using the path to the python script…
+permission denied?
+Why is that?
+let’s have a look at the permissions.
+ls -la to display all files along with their
+permissions but also use matrix *. This basically
+means that it should display all files that
+start with matrix and anything can then follow.
+When we compare our matrix binary with the
+matrix python script we notice that it has
+a couple of x.
+X stands for executable.
+But our file only has r and w, which stands
+for read and write permissions.
+So to be allowed to execute it, we have to
+add the execute permission to that file.
+We can sue chmod for that, which stands for
+change mode bits of a file.
+Remember to always read the man page to learn
+more about the commands.
+So we can use chmod +x to add execution rights
+and the filename.
+When we now list the files we see that it
+now has execution permissions.
+I mentioned this in the very first video briefly,
+but maybe now is a good moment to talk about
+it a bit more.
+Tab completion is extremely handy.
+For example when I start typing the current
+path with dot slash.
+And hit tab twice, it shows me all possible
+files that could follow.
+So we want matrix.
+Let’s just type one letter m and hit tab
+again.
+Now it will have automatically filled it in
+as matrix.
+Because there are multiple matrix files it
+has stopped at the part where they start to
+differ.
+Double Tab to display all options.
+Now add a . which makes the only option left
+matrix.py.
+Tab again and we got the whole filename.
+I use python a lot.
+Almost anything I program I write in python.
+So most of my examples will be written in
+python and it’s also a language I highly
+recommend to learn in general.
+So maybe checkout codecademy python courses
+or just google yourself.
+Before we finish, let’s keep our system
+updated.
+Type sudo apt-get update, to update the package
+list from the repositories.
+And the apt-get upgrade, to install new versions
+for software you have installed.

@@ -1,0 +1,322 @@
+On June 5th 2018 we heard about Zip Slip:
+We just disclosed a widespread critical vulnerability
+called Zip Slip.
+It may affect you!
+Zip Slip is a widespread arbitrary file overwrite
+critical vulnerability, which typically results
+in remote command execution.
+It was discovered and responsibly disclosed
+by the Snyk Security team
+Coincidentally, a couple of weeks before that
+we heard about Zipper Down
+While auditing iOS Apps from various customers,
+Pangu Lab noticed a common programming error,
+which leads to severe consequences such as
+data overwritten and even code execution in
+the context of affected Apps.
+And then listing almost 16.000 apps that could
+be vulnerable.
+What is going on with ZIP files?
+Why can it lead to remote code execution and
+why is like affecting everything?
+In case of Snyk Security, seveal CVEs were
+assigned.
+It’s like a massacre.
+So first of all, what do these two different
+disclosures have in common - Zip Slip and
+ZipperDown.
+So when ZipperDown was made public, they wrote
+that “To avoid leaking the details of the
+programming error, we named it ZipperDown.”.
+So they didn’t want to disclose what exactly
+the issue was.
+But if you have experience in IT security,
+or maybe played CTFs, then it was pretty obvious
+what was going on.
+My guess at the time was:
+(.zip) archive unpacking with path traversal
+from resources downloaded via insecure connection.
+It allows to overwrite files inside the app's
+sandboxed folder and in some cases even RCE.
+PoC video shows "code exec in js" probably
+overwrote some .html/.js files.
+And yes, that is basically what it is about.
+It’s about having relative paths, more specifically
+with a path traversal .., as files in the
+archive.
+This allows you to to go up in the folder
+hierarchy and write to files and folders outside
+of the intended unpack destination directory.
+And of course, when you have a software that
+takes a zip file and unpacks it, and allows
+path traversal, maybe some important files
+can be overwritten.
+And that could open doors like overwriting
+a script that would be executed later or stuff
+like that.
+And the reason why I was able to guess this,
+is because I play CTFs. and screwing around
+with zip files, or other archives, is a very
+typical challenge.
+A typical beginner challenge.
+But actually this issue with zip files is
+ancient.
+Hackers have exploited this before I even
+existed in the world.
+Checkout this phrack article from 1991.
+That’s over 27 years ago.
+Let’s check it out.
+It’s hacker history.
+The Complete Guide to Hacking WWIV by Inhuman.
+September 1991.
+WWIV is one of the most popular BBS programs
+in the country (that’s like a forum).
+With thousands of boards in WWIVnet and hundreds
+in the spinoff WWIVlink, there is a lot of
+support and community.
+The nice thing about WWIV is that it is very
+easy to set up.
+This makes it popular among the younger crowd
+of sysops who can't comprehend the complexities
+of fossil drivers and batch files.
+In this file, I will discuss four methods
+of hacking WWIV to achieve sysop access and
+steal the user and configuration files.
+I don’t want to read the whole thing but
+let’s jump ahead to this section:
+This technique also plays on the openness
+of WWIV's archive system.
+This
+is another method of getting a file into the
+root BBS directory, or anywhere on
+the hard drive, for that matter.
+And then down here it explains,
+load STUFF.ZIP into a hex editor, like Norton
+Utilities, and search for "AA".
+You could even work backwards,
+by forgetting the WWIV subdirectory, and just
+changing the "AA" to "..". This would be foolproof.
+You could work from there, doing "..\..\DOS\PKZIP.COM"
+or whatever.
+Then upload STUFF.ZIP (or whatever you want
+to call it) to the BBS, and type "E" to extract
+it to a temporary directory.
+So this was done in different times.
+When more servers were running DOS.
+But it’s the same issue.
+Exploiting a path traversal when unpacking
+zip files.
+So maybe now you can understand why it is
+a little bit misleading or disappointing how
+the Snyk Marketing Team advertised this with
+“we just disclosed a widespread critical
+vulnerability called Zip Slip”.
+And they write “It was discovered and responsibly
+disclosed by the Snyk Security team”.
+It’s just not accurate.
+Zip files and many other archive file formats
+just can contain relative paths and thus path
+traversals.
+It’s not forbidden in their specification,
+and like we just learned, it is known since
+forever.
+I mean even the python doc for zipfile has
+a huge red warning saying:
+“Warning Never extract archives from untrusted
+sources without prior inspection.
+It is possible that files are created outside
+of path, e.g. members that have absolute filenames
+starting with "/" or filenames with two dots
+"..".”
+So I hope I made it clear that this is nothing
+new or suprising.
+In their whitepaper they also claim that “The
+contents of this zip file have to be hand
+crafted.
+Archive creation tools don’t typically allow
+users to add files with these paths, despite
+the zip specification allowing it.”.
+I don’t know.
+But the zip utility on most systems will happily
+include files with relative paths and path
+traversals.
+See here.
+Simply creating a zip file with a relative
+path.
+And there it is.
+No problem at all.
+And I understand that this fact about zip
+files might come to a surprise to many developers,
+but the security team of snyk should know
+better.
+They themselves write “despite the zip specification
+allowing it.”.
+They know this is known.
+So phrasing it in this way that THEY DISCOVERED
+this issue.
+And hype it up this much.
+And give it a name.
+Especially because Pangu released basically
+the same thing just more specialized for iOS
+apps a little bit before that.
+With their own name.
+I don’t know what to say.
+I like to believe that the researchers were
+maybe a bit over excited or didn’t have
+much say in it, and the less technical marketing
+department took it a few steps too far.
+But.
+despite the little bit cringy overhype, and
+kinda misleading advertisement, this is probably
+positive work.
+So they reported this to many libraries that
+happily follow the zip specification.
+And changing this in the libraries means,
+violating the specification, right?
+Violating the spec means, you think you know
+that a zip unpack behaves as you expect but
+then it doesn’t.
+And there are a lot of specification purists
+out there that will tell you that you shouldn’t
+never diverge from the specification because
+then what resources can you trust.
+BUT zip is very old and has been created in
+a time where there was probably not that much
+deep understanding of security issues that
+could come from it.
+I mean the computer systems were soooo different
+back then anyway.
+And today we can see so many serious vulnerabilities
+that happen because of that.
+And while refusing to unpack path traversal
+files might violate the spec, and break some
+implementations that relied on that, probably
+the majority of the world will be fine.
+And so not only did they report this to the
+libraries so they change that behaviour, they
+actually did that with pull requests.
+They didn’t just complain, they fixed it
+themselves.
+And I think that deserves credit.
+And so overall this effort will probably have
+some positive effect for security in the future,
+if these libraries stay relevant.
+Though, there is still the issue that maybe
+we should update the zip standard itself so
+that future reference implementations won’t
+allow it by default.
+Maybe we could introduce a flag to optionally
+turn it on.
+And so it’s kind of a shame that they didn’t
+market it this way.
+Instead of making it look like any other hyped
+vulnerability and claiming they discovered
+it, they should have written about the decades
+of issues with zip, and their effort to get
+libraries fixing it, which will then lead
+to software built on these libraries to be
+safe.
+This could have impact.
+That would have been genuine and honorable.
+But unfortunately, the reality is, advertising
+it in this terrible way will probably help
+their business more.
+Who cares what some researchers think, if
+they can use it to fish for the big contracts
+by being mentioned with flashy headlines in
+news, then they got what they wanted.
+And that’s a little bit sad.
+But let’s not stop with video here… because
+zip files and other archive files are f’ed
+up.
+If you are a developer and this was new to
+you.
+Then please research more about zip files.
+I can really recommend the work from ange
+albertini.
+He has done several presentations on file
+formats and zip files, and has done a lot
+of experimentation with them.
+For example crafting a .pdf with an issue
+of PoC||GTFO, which is at the same time a
+bootable image AND also a zip file that can
+be unpacked.
+Funy fileformats.
+Or gynvael who also has a great youtube channel
+and has recently done this greta talk “Ten
+thousand security pitfalls: the ZIP file format”.
+I guess that title says it all!
+So you should definetly look up his slides
+and talk.
+I will list some links below in the description.
+And by the way, I was talking with gynvael
+about this zip slip issue and he had another
+excellent idea.
+You know zip files, or other archive files
+sometimes also support symlinks.
+Not every library implements symlinks, but
+if a library supports symlinks , you could
+maybe bypass those path traversal fixes.
+Again, this is something you could learn from
+playing CTFs.
+Here just a short excerpt from the challenge
+extract0r from the 34c3ctf.
+This writeup is by the challenge author eboda,
+and he writes:
+If you have been playing CTF for a while,
+you know that when you can extract or compress
+ZIP archives, you probably have to do something
+with symlinks ;-)
+So yeah, that’s also pretty common knowledge.
+And I wanted to try gynvaels idea.
+I went down the list of libraries that were
+fixed by the snyk team.
+their patches are supposed to fix the path
+traversal.
+Unfortunately, as expected, a lot of libraries
+don’t implement symlinks.
+Especially for zip files even though the standard
+theoretically supports it.
+But this one go library supports symlinks
+for tar archives.
+Here is the original issue from the snyk team,
+to fix the path traversal, and as an example
+they use tar.
+So let’s see if we can bypass the fix.
+I create a ziptest directory in tmp, and create
+also a file “ohoh” inside tmp.
+Then I create a symlink called root, that
+points to the root of the filesystem.
+Slash.
+Now we create a test.tar file and include
+the symlink root, and reference the file we
+created in tmp, via following the root symlink.
+And when we list the archive we see those
+two files now.
+Here is the simple .go program that uses the
+library that I just mentioned to unpack the
+test.tar into the folder test_out.
+Let’s remove the ohoh file in tmp and then
+go run test.tar.
+This should have now unpacked the files.
+And here is the test_out folder and it does
+contain our symlink.
+And when we now check /tmp/ohoh, then yeah.
+Our file is there.
+We bypassed the fix.
+You see.
+Fixing common issues with archives is not
+that simple.
+Zip files and archives are dangerous.
+And developers should be educated about it.
+And maybe Zip Slip helped raise awarness.
+I hope.
+Otherwise you can share this video with you
+developer friends to give them a little look
+into the world of IT security and why they
+should care about learning more about zip
+files.
+And I leave you with the beautiful summary
+by Gynvael
+Ten thousand security pitfalls: the ZIP file
+format

@@ -1,0 +1,250 @@
+The last Minecraft hacked 
+episode was not well received,
+because apparently I talked about three 
+different hacks that already existed.
+Pretty lame. Well… let’s talk about it. In 
+german we would say: “Ich mach mal ne Ansage”
+So here is part 1. About the reach hack.
+
+I teased the existence of a reach hack without 
+revealing how it works. Because I thought it’s
+somethin new. Well.. Apparently the reach hack is 
+already known and called TP Aura or Infinite aura.
+And several people in the comments were exactly 
+right about how it works. The reach is basically
+a neat trick and it simply involves teleporting 
+to the target, hitting it and teleporting back.
+This is what took me 14h hours to figure out 
+myself. I know I’m an idiot that it took me
+this long. Anyway. Let me walk you through 
+what happens when I hit the sheep here.
+When I click my button to attack this 
+sheep, I first send a PlayerMove packet,
+which contains the coordinates I want to be 
+at. And I place myself close to the sheep. But
+you have to be careful. This distance from my old 
+position to the new one, is the maximum “teleport
+distance” the server allows. Anything further and 
+the PlayerMove packet would be rejected and the
+server sends back a Synchronize Player Position 
+packet to basically reset the position back.
+Alright, we teleport forward. We can increase 
+the reach to hit the sheep even further,
+if we calculate how far we can be away 
+from the sheep to still hit it. And
+then factor that in. So after I send 
+the position update to this position,
+I can send a Player Interact Entity Packet, which 
+says I want to attack this entity, this sheep. And
+right after the attack I send another PlayerMove 
+packet to put myself back to where I came from.
+And because I send these packets directly 
+using a ClientConnection invoker mixin to
+access the sendImmediately packet 
+function, you don’t see anything.
+I send the packets in the background, so in 
+the game it just looks normal. Pretty neat.
+ALSO other players don’t see 
+you teleporting either. That’s
+because of the tick rate of the server.
+While we might send a lot of movement
+packets per tick, the server only updates 
+the position to the other players once per
+tick or so. So while we send, teleport 
+forward, attack and teleport back,
+all the players will see is, the player 
+is here, and oh this sheep got attacked.
+Yeah… it’s really that simple. But it took 
+me a while to figure it out. And even worse,
+I was only able to attack a sheep from this 
+distance. actually It took an embarrassingly
+additional amount of time, to figure out 
+how to attack mobs from even further away.
+The solutions is so obvious that I really don’t 
+know why it took me this long. Take a guess. What
+do need to do to attack from even further away?
+Simply send more movement packets in between.
+I think it took me so long because I completely 
+overcomplicated the issue. I was looking for
+logic bugs and other issues, while I just 
+had to use the packets and movement as it is.
+Anyway.
+To get larger reach
+distance you can send playermove, playermove, 
+playermove , always with the max amount of
+distance that the server allows. You need to 
+research in the code how far that is again,
+I think it’s like something between 8-10 
+blocks per movement packet or so. Anyway.
+Then we hit the mob. And teleport backwards 
+with playermove, playermove and playermove.
+Done. You can basically do this in ONE 
+TICK. so again, other players probably
+don’t see you teleporting at all. And it just 
+looks like you hit somebody from far away.
+Now implementation of this is a bit tricky. The 
+code can get pretty ugly. Your game constantly
+sends these playermove packets, and when you 
+send your teleports for the reach attack,
+and in the middle comes a normal player move 
+packet, the teleport distances are messed
+up and the server resets your position. Also 
+anti-fly kicks are something you need to think
+about. When you execute reach upwards, you might 
+miss your anti-fly bypass packet and get kicked.
+So it takes a lot of programming effort 
+and thinking of all the different cases
+in order to implement something robust. My 
+implementation is not that good and fails a
+lot. But here is in general the code. So when 
+I have a target Entity that I want to attack,
+I call teleportFromTo, which calculates 
+how many packets we need to get there,
+and then sends the position update 
+packets. After that we do the attack,
+followed by another teleportFromTo 
+backwards to the original player position.
+Anyway… all of that took me a lot of time. 
+I’m really not the smartest hacker. I can be
+very slow when it comes to this stuff. 
+BUT I still figured it out myself. And
+that is what really matters to me. So I’m 
+actually glad I didn’t know that this is
+already a technique implemented by hacked 
+clients. And that is what is fun to me,
+and that’s how I learn new stuff. 
+I want to figure it out myself.
+So let me show you the sheep challenge I 
+built.Here for example is 7h3 with a Club
+Mate in their hand. And I‘m very disappointed that 
+they do not use my amazing resource pack. Anyway…
+They sacrifice the mate to the enchantment table, 
+a sheep appears far away, hits it with reach. And
+Completed it.
+Cool.
+But can we talk about something else for a 
+moment. WHY THE F’ IS THIS CALLED TP AURA or
+INFINITE AURA? AND NOT REACH HACK, REMOTE ATTACK 
+OR TELEPORT ATTACK? TP AURA? INFINITE AURA?
+Who comes up with dumb names like that? What’s 
+wrong with all you hacked client script kiddies?
+Anyway… speaking of reach. Maybe what you don’t 
+know is. There is an even more advanced teleport
+reach hack out there. Because the basic method 
+we just talked about, where we teleport in steps
+to the target, breaks when there is an obstacle 
+in the way. When our line of sight for example
+contains a tree, and we try to teleport 
+into that tree, we get our position reset.
+So how is it possible that some player on 
+the server can sit inside a house far away,
+and attack players in the spawn 
+hole? Surrounded by lots of blocks?
+Well… I can tell you this much, 
+it is a variation of the tp based
+reach. But… it uses a few more tricks.
+So for this I created another challenge.
+Come with me. I show you… just behind the trees 
+here. There it’s hidden. This is - The vault.
+This is a BIG cube of bedrock and it contains a 
+small room storing something valuable. There is
+no way to enter it. Any teleport attempts into 
+it will fail. Here I try to change my teleport
+distance attempting to teleport inside. It doesn’t 
+work. You cannot send a position update this far
+into the cube. It’s too far. Or is it?
+Well.. if it’s impossible, how can it
+be that some players can press the button on the 
+outside, and then moments later press the button
+on the inside? Stealing my valuable secrets?
+Well… actually… I don’t know myself. I have
+no clue. Really. I stared at the code for 
+many hours and tried to figure it out. And
+I don’t know. I have no clue.
+But at the vault I told them:
+“If you try to steal my secrets, I will steal and 
+expose yours. I'm serious, you have been warned!”
+So what’s the conclusion.
+Yes, the reach hack was already known.
+You were right. But that doesn’t matter! Who of 
+you actually looked into the code and implemented
+it yourself? This is exactly like downloading a 
+minecraft build, instead of designing something
+yourself. So I ask you. Do you want to do 
+minecraft hacking? Or just minecraft cheating?
+Anyway. Let’s come to the community showcase. 
+Today we have enderkill98. Fun fact,
+He is the player with the most mined 
+cobblestone on the server by far,
+because he was very busy clearing lava 
+casts from some kiddies. So Take it away.
+hello my name is Linus I'm from Germany my ingame 
+name is Enderkill98 and this is a Showcase of my
+very first mods I made to join the server which 
+I miss out as you can see here I have a fabric
+installation with mostly vanilla tweaks this is my 
+modelist notable mods that are not tweaks but more
+like hacks are X-ray and entity outliners as I did 
+do not myself otherwise all hacks are self-made my
+hack interface is mostly just like text in the top 
+left just rendered into the in-game HUD that is my
+layout it's rendered into this class like 
+using the in-game hut into the random
+method and then just I think it accesses like 
+a drawstring with Shadow that's the basic thing
+otherwise those are the hacks I have made for now 
+a clip like detects uh barricade tries to tell
+what behind it mostly useful for v-clip only oh 
+yeah fly free cam stuff free cam for example if I
+first exit fly and then just activate it I can 
+go out below it's basically like a spectator
+mode but I can also like place a block if I 
+select it beforehand I can go here place it
+so that works for the next mod the basic one is 
+fly I did the second iteration it's kinda nice to
+use default speed is 1x I can hold my keyboard 
+and press left to right Mouse button to change
+the speed or I can press print and get like six 
+times the speed useful for traveling perfect
+and first respawn for example yeah that this 
+basic fly no fire for example is pretty simple
+it like cancels my velocity you can see like my 
+foil being a bit janky but it's pretty reliable
+if I am going first water into the ground 
+it usually functions sometimes it fails but
+pretty early for the next more Autoplan is pretty 
+simple if I'm going to just destroy a bunch and
+if if I'm going to get a bit more seats and 
+now press like that key for it it will just
+do it automatically in a certain range then the 
+next mod I have the shortcuts the basic interfaces
+here the text and also I've added keybinds for 
+it it's a simple API you can add for fabric and
+those are basically all my keyboards I have also 
+one thing I have like uh someone short of some
+nice exploit like he could like reach infinity 
+basically I had an idea for the concept mine
+is not as good as this it's not the same but I 
+have a pretty far reach I think like 150 blocks
+and I can just enable it and if I'm now 
+hitting him you can hear I am amplify The
+Sounds it works if I'm now going to debuff 
+still 108 still 126 so it's pretty far range
+I also can focus on someone so if I now use the 
+leg in the top left let's focused on the player
+if I for example now look away it will still hit 
+the person as you can hear my solution for the
+fountain challenge the first attempt was a pretty 
+slow one like it was it was basically this mode
+like super slow going down and then that is how 
+I became hacker however I improved it a bit it's
+not super reliable but it's mostly working 
+depending on the Ping I guess it's sometimes
+not lagging as much or not or more and I can do 
+that pretty quickly also I can speed it up a bit
+it's a bit more risky but it seems to work right 
+now and yeah that looks pretty rare of course
+if I turn it off and move now I'm above again 
+that should be my module case I will include a
+few shots of me killing things if needed and yeah 
+that should be it I guess [Music] foreign [Music]

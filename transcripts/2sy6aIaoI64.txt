@@ -1,0 +1,24 @@
+for example we were looking at you know
+the the patch for Ping and we asked
+about what is the definition for the
+struct IP like let's compare how do I
+find this struct definition in Google
+struct IP definition and then this is
+probably my best guess find this here
+and then I see in here uh okay code so
+where exactly does t where's it now
+exactly distract so I press Ctrl F try
+to find it struct IP ah there it is it's
+in the middle of this file and now oh my
+God it's like depending on the byte
+order now I have to think about like I
+don't know like there's some if defines
+this stuff while I just type it here can
+you show me the struct IP definition and
+it just like told me even where it's
+from it starts explaining it as well
+what is the size of struct Ip it just
+told us it's 20 bytes even with example
+code how you could figure it out if you
+don't trust it you could also copy and
+paste and verify this now

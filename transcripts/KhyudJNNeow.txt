@@ -1,0 +1,310 @@
+I am soft now quite a couple of
+software-based challenges but originally
+I really wanted to gain more Hardware
+experience and there are only like two
+or three weeks left for the competition
+so I decided it's time to check out
+whack-a-mole what I assume is more
+Hardware related
+[Music]
+who doesn't like a classic game of
+Westham all this time the most
+infiltrated deep into the backyard of a
+poor farmers family the moles are
+ruining the crops which the farmer
+desperately needs to provide for his
+wife and two children
+any trembler able to help him extinguish
+the darn thing will be greatly rewarded
+are you up for the task I have never
+played wax and mobile but I've seen it
+get these holes and a hammer and most
+keep peeking out of them for a short
+period of time and you need to whack
+them fast enough and if this is what
+this channel is about then how could you
+simulate or implement a game like this
+on an Arduino I mean you could imagine
+this Arduino sits at the core of this
+arcade machine how could it work
+so let's lash a chump onto the board and
+let's see what the serial console tells
+us welcome adventurer we are glad you
+are here a huge family of moles have
+found their way into our yard we need
+you to get rid of all twenty of them if
+you manage that we will reward you when
+you are ready press Enter ok so let's
+press ENTER ready get set go
+you missed it try again by pressing
+enter hmm so I first I checked this some
+other inputs to something for example
+can I hit enter a very very fast or
+space or maybe a number on the keyboard
+but doesn't do anything so I think we
+have to get out some hardware equipment
+my logic is the following we can
+interact with the sport over a spheric
+connection it looks like there is not
+much going on except starting the game
+by pressing enter
+so what other ways are there for us to
+interact with the board there are not
+many options this thing doesn't have any
+other peripherals except a couple of
+input or output pins so I want to know
+if I see any output on these pins of the
+Otto you know when the game starts
+because that one makes sense if that
+other you know where to sit in an arcade
+machine it would use these I open to
+control motors LEDs or whatnot to do
+this I use my Sailor logic analyzer
+which I've shown in a previous video I
+can basically connect it to all the pins
+I want to observe and then can use the
+software on my left or to record any
+events and these sailor cables can
+conveniently directly plug into the
+solder pins on the board
+so basically when I click start it will
+now in very very short intervals check
+the voltage of these connected pins and
+store the value and it happens millions
+of times and it already uses over two
+gigabytes of frame to store all these
+points so this takes a bit to process
+but look at this you can already see
+that there is at least one pin with some
+action you also see that some other
+channels kind of mirror that pattern
+that's probably just some analog leakage
+I don't know it's somehow interferes
+with each other but we ignored oh and we
+start the game twice in this time period
+so you can see that there was output
+twice awesome to explore this now a bit
+closer I decided to use my oscilloscope
+so I can disconnect the logic analyzer
+and hook up the two channels of the
+oscilloscope you can already see some of
+the pros and cons of an oscilloscope
+where the logic analyzer my Scylla scope
+only has two channels by the logic
+analyzer had eight so it was easier to
+find the interesting pin with the XLE
+but now that we know where it is the
+oscilloscope is a bit faster to proceed
+because we don't have to wait for data
+to be collected and so forth it will
+instantly display the stuff so I hooked
+up channel 1 yellow to the serial TX pin
+which is the zero output of the board so
+here we can observe all the characters
+the board prints I want to see that
+because I want to know how this
+interesting pin reacts when the game
+sends that go to say that the game
+started and it hooked a blue to the
+interesting pin 13 you can also enable
+fear of decoding on the oscilloscope so
+the screen bubbles are actually the
+decoded ASCII characters and I set the
+trigger to trigger when there is some
+serial data send a trigger means that
+the oscilloscope will wait until it sees
+the certain event and then record and
+display what happens after it so it will
+trade on now every time the board sends
+something so when we start the game we
+can see the ready get set go and on the
+last output you see how the interesting
+pin goes hi I think we are a bit too far
+resumed in the serial output this way
+faster than what we see on pin 13 so
+let's adjust the display a bit more and
+start the game again and there we see it
+three spikes if we do it again six
+spikes
+and we start the game again for spikes
+what could that mean I think it's pretty
+clear where this is going
+if you think of the game whack-a-mole
+you first have to see where the mole is
+peeking out in order to then hit it
+I'm sure the number of peaks tells you
+which hole you have to hit so at first I
+tried to look at the peaks and then
+quickly send like a number four or
+number six five zero because I thought
+maybe the game is played by a distillery
+concept but again nothing happens and I
+actually already suspected that it's
+probably hardware again so how could we
+interact with the sport now how can we
+count the peaks and then somehow perform
+the hips so I thought let's try it with
+a simple microcontroller let's take
+another Arduino this is an auto
+incompatible board and just program it
+first thing we have to do is to count
+the number of Peaks to do this I
+obviously have to add some cables
+between the Arduino and the challenge
+board here are already two connections
+one goes to the pin with the peaks so we
+can count them and the second one is
+testing out my assumption that we have
+to send a peak to one of the other
+digital pins to hit them all I just
+chose one I'm still just exploring I
+started out with the digital read
+example included with the other you know
+IDE which sets up a serial connection
+between the audrina and the laptop so I
+can print some debug messages and then I
+basically just write some code that
+reads from the input pin and checks the
+state changes if we suddenly encounter a
+peak I don't want to waste too much time
+explaining code but let's check out this
+early stage here a Piercy setup routine
+which will run once on startup and will
+define the pin forest input and the pin
+7 s output so with pin 4 we can read and
+count the peaks and on pin 7 we want to
+send to peak and hopefully hit them all
+then the loop routine will be executed
+in a loop so you have to read this code
+knowing that this will be executed over
+and over again very quickly so we first
+read the digital state of the input pin
+if the state doesn't change for example
+when we constantly read a zero nothing
+happens
+that when it does change when we see a
+peak we read a 1 we enter this if
+we save the current state and remember
+the current time and if the current
+state is a one so we're either peak we
+will account at once then your next loop
+we will read again this pin and it might
+still be high so the state is not
+different and nothing happens everyone
+falls down again we would remember the
+next timing and if it gets high after
+that it will then count up again so this
+can count Peaks and then the ifs down
+here will check the time that was stored
+of the last state change we have seen
+that the peaks always have the same time
+antelope so if we have not seen a state
+change for 100 milliseconds basically
+there will be no other peak and it's low
+for a while we want to hit the correct
+mode to do this set the output pin 7 too
+high wait a bit with a delay and then
+pull it back to 0 this will create a
+peak and then we reset the counter let's
+look at this on the oscilloscope I
+hooked up the yellow channel to our
+output 7 to see our peak and as you can
+see the counter Peaks are done and then
+you see the fine needle peak if you zoom
+in you see that is indeed the peak but
+it definitely is too short on the
+oscilloscope interface you have some
+information such as the time scale of
+the x axis so you can see that the blue
+Peaks are 50 milliseconds long so let's
+set the delay also to 15 milliseconds I
+would assume that we should send exactly
+the same peak to the challenge board and
+here's how it looks like running here on
+the left the challenge board output and
+here on the right is the other in our
+output counting the peaks seems to work
+whoa did you see that we got a great job
+you whacked it only 50 more to go again
+twice this happened because we counted
+three Peaks every time it looks like we
+do exactly what we are supposed to do
+and the pin we connected of the change
+board represents the third hole so the
+plan is clear let's figure out which
+other numbers correspond to which other
+pin I decided to go pin by pin so I plug
+in one more and make this one peak every
+time if you get another number than
+three and hit something we know that
+this number is that pin if no number
+would work with this pin we moved
+through the next one let's an easy
+process just the tedious takes a while
+but it's fun to look at the oscilloscope
+and see the successful hits so I keep
+adding cables trying to find which
+counted number correspond to which input
+pin and as you can see F more and more
+output pins and have this big switch
+case where depending on a number of
+Peaks we counted a certain output pin of
+trigger if you count one peak we sent
+the peak over pin eight if we count five
+Peaks we send a peek over pin nine it
+works so well see how far we get it
+looks so awesome on the oscilloscope
+blew other Peaks we count and yellow
+indicates when we try to hit a hole
+but why the heck does it not continue
+after six of sevens hit this really
+stumped me I had some theories one was
+that starting with level seven we
+actually have to hit multiple holes like
+your card game more moles come up or
+maybe the hole numbering changes and
+suddenly it's not correct anymore
+but it was late and I had to go to bed
+the next day I want to continue but
+nothing worked anymore what the heck is
+going on I realized that when you
+restart the board the pin assignments
+will be different the hole number three
+is not pin number seven anymore this is
+when I start to write code that would
+automatically brute force a correct pin
+out it would hit holes on random until
+it continued and when it does the hit
+was correct and saved it in a big table
+this took a lot of time and in the end
+all these attempts were kind of stupid
+because when I was staring at your
+sillas cope screen I noticed that at the
+level I'm failing the cereal failed
+response seems to come back a bit faster
+blue is the zero output so it tells us
+that we hit something or we failed and
+yellow other Peaks that we see if you
+look closely you can notice the
+difference what if I'm just sending too
+slow and the pin out is random at the
+start but fixed throughout the levels
+damn so here's my final code a lot more
+complex fix the timing issue and still
+with some code that can pick out the
+random pin hole numbering it's pretty
+shitty code by words here's the serial
+output on the left and the current level
+status sent from the other you know
+board on the right the little star
+indicates the last highest level the
+arrow shows how far we got last level
+once it's filled out it's able to finish
+all of them and there is the flag and
+here's how it looks like on the
+oscilloscope you can see it only solves
+occasionally a level until it's figured
+out all the numbers and then it solves
+them all
+you
+[Music]

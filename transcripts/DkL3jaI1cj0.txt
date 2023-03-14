@@ -1,0 +1,188 @@
+Welcome to the second video in the AngularJS
+sandbox bypass series.
+In the previous video I have provioded a quick
+overview of AngularJS.
+Now we will dive right into AngularJS internals
+by debugging why alert in an AngularJS expression
+doesn’t work.
+The research I’m showing off here was not
+done by me.
+I build upon the research done by other people.
+Most notably mario and gareth.
+I have not found an angularjs sandbox bypasses
+myself, but I understand them now, so I want
+to pass on this knowledge.
+Now let’s execute the expression with the
+alert by submitting this form.
+The site loads, executes angularjs, the expression
+gets evaluated and we hit our first breakpoint.
+The first breakpoint is hit in a function
+called getterfn.
+That means Getter function.
+You can see that in the call stack to the
+right.
+I have also added some comments here.
+Getter fn is a function that creates a string
+with some javascript code.
+The variable with that code is called code.
+And because we hit a breakpoint we are currently
+in that context.
+So we can access this variable code in the
+console and look at what it contains.
+You can also see that it somehow includes
+the alert that we used in the expression.
+It looks like this code checks if alert is
+a property of s or k.
+And tries get that property from s or k.
+And right below the breakpoint you see a call
+to the Function constructor.
+The constructor is called with s and k, meaning
+those are variables that should be known inside
+of the function.
+And third parameter is finally the javascript
+code.
+So this function constructor is fancy javascript
+stuff.
+That creates now a function with two parameters
+s and k.
+With the code that was created as a string.
+And that function could then be actually called.
+So that function contains some dynamically
+generated javascript code trying to get the
+property alert of s or k.
+Let’s quickly make an example what getting
+the property means in javascripot.
+So here is a simple object a, with two properties
+b and c.
+You can now check that a has the property
+b, but not the property f.
+And you can access the propertie’s value
+with .b or in brackets.
+That’s the same.
+Also the object a automatically has the function
+to String.
+So functions are also just properties on an
+object.
+Instead of getting a value like 1, you get
+a function back.
+And you can call it by adding the parantheses
+for the function call.
+Ok…
+So this geterfn function in angulars creates
+a new function which tries to get the property
+alert from an object passed as parameters
+s or k if executed.
+Let’s see what happens when we continue
+in the code.
+The next breakpoint is hit and we are now
+in a function with the name underscore functionCall.
+This function prepares arguments for a function
+to call.
+Our expression attempts to calls the function
+alert, so that makes sense.
+Our first argument of our alert is the number
+1..
+So this function parses the parentheses with
+the arguments and creates an array args with
+all the parameters.
+And args is now an array with only one element.
+The number 1.
+Below our breakpoint you can see a call to
+a function called fn, with the scope as the
+first parameter.
+Thats the angular app scope we have talked
+about earlier.
+If that returns nothing, noop will be used
+instead.
+So what is fn.
+Fn is a short function calling another function
+getter.
+When we click on getter we can see what getter
+is.
+Getter is set here as the result of getterFn.
+And we know what getterFN does.
+GetterFn creates a function that tries to
+get the property alert of an object.
+So getter is now that function.
+And getter is basically fn.
+And fn is called with the scope.
+So all this fn calls tries to do is, to get
+the property alert from the scope.
+If that was sucessful, fnPtr, function pointer,
+would contain a reference to the alert function
+from the scoe.
+But the alert function doesn’t exist in
+the scope object, thus fnptr will be noop.
+And noop is just an empty function doing nothing.
+And this is why the alert(1) fails.
+Because the scope has no function alert defined.
+Okay now we understand angularjs expressions
+better.
+AngularJS evaluates those expressions.
+It parses them and does some fancy javascript
+foo.
+So when you write an identifier like username
+or in this case alert into an expression,
+angularjs tries, in a fancy way, to get the
+property alert from the scope object.
+And then call this as a function.
+So we know now, basically whatever we type
+in an expression, it has to exist in the scope.
+This is basically a javscript sandbox.
+AngularJS expressions are kinda javascript
+syntax, but are parsed and evaluated by angular
+and you are only allowed to access variables
+on functions from that scope object.
+You are not allowed to access global functions
+like alert.
+Or the cookies.
+Now we want to break out of this scope object
+and try to access those dangerous global functions.
+So here it comes.
+How we can break out of the scope.
+The scope object is like any other Javscript
+object, it automatically has the property
+constructor.
+The constructor of the scope object gives
+us the object constructor.
+And the constructor of the object constructor
+gives us the function constructor.
+That’s like the highest constructor in Javascript.
+The constructor of a Function constructor
+is again the function constructor.
+And we have just learned what the function
+constructor can do, from getterFn.
+We can create an arbitrary javascript function.
+So for example we can create a function containing
+the code alert(1).
+The constructor created now a new javascript
+function.
+And then we can call this function by adding
+parentheses and get an alert!
+So because we can get the function constructor
+from the scope by using constructor two times,
+we should be able to create a function with
+alert and execute it.
+At least that seems works in the console.
+Does that also work in an angularjs expression?
+To put it into an angular expression we simply
+have to remove the scope in the beginning,
+because each expression gets already evaluated
+against the scope.
+So lets put it in there and try it.
+So the first breakpoint is again in the getterFn
+function.
+And when we look at the dynamic code that
+got generated this time we see it attempts
+to get the constructor of s.
+So that seems to work!
+This means it will then later try to get the
+property constructor of the scope, which obviously
+does exist.
+That looks good!
+And if we just let the code run, we get the
+alert!
+Awesome!
+In the next part of this series we will have
+a look at a more advanced and more recent
+bypass for angularjs version 1.4.7.

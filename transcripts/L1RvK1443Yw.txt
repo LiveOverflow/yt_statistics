@@ -1,0 +1,306 @@
+Guessing in CTF challenges is the worst!
+And I don’t like guessing in professional
+work such as bug bounty or penetration testing
+either.
+Having to guess anything is so frustrating.
+So in this video I want to explore the differences
+between guessing and simply not knowing something,
+all in the context of IT security or hacking.
+And hopefully this video helps to improve
+CTF challenges in the future, but I also hope
+it helps you to better focus on the topics
+that make sense to spend time on to improve
+your skills.
+And what stuff you should mostly ignore.
+The worst category in competitions for me
+is steganography.
+Steganography is the practice of concealing
+a file, message, image, or video within another
+file.
+Often you just get an image without any context
+and they ask you to find the flag.
+What am I supposed to do?
+It could be anything, the options are kinda
+endless.
+In a very typical basic steganography challenge,
+a message could simply be hidden with the
+tool steghide.
+So to solve it, you have to either know from
+reading other CTF writeups that this is a
+common thing, or you just have to guess and
+search around and get lucky that you discover
+this tool.
+Knowing steghide and being able to solve such
+a challenge is, in my opinion, useless and
+a waste of time - for everybody involved.
+For the player, but also the author who created
+it, because it doesn’t really have much
+educational value.
+I will offer a solution to this problem, because
+I do think there is a way to make steganography
+challenges a ton of fun!
+But first, let’s explore a different example.
+In some CTF challenges, or actually more common
+in real-world bug bounty work.
+You need to do recon or asset discovery.
+That’s when you do a ton of scanning to
+find hidden URL paths, open ports and weird
+subdomains.
+And of course this is literally just bruteforce
+and automating trying out thousands and thousands
+of different options.
+And so there are CTF challenges where you
+just have to run some dirbuster with a wordlist
+that happens to have the word you need.
+I find this boring and a waste of time.
+It’s good to do it once, then you know the
+tools, but on an educational level, it doesn’t
+add to your skill.
+if there is hidden stuff, if you can guess
+it, you guessed it.
+That’s all there is to it.
+Anyway...
+Next example.
+Look at this XSS challenge.
+How can you cause XSS on this site?
+If you watched my recent CTF writeup videos
+you might be able to solve it.
+Feel free to pause, otherwise I will just
+continue and tell you how to trigger an alert.
+To get a XSS here you need start on your own
+site, and that website has to set window.name
+to a XSS payload such as an  tag with
+onerror.
+When you then redirect to this xss challenge,
+it will trigger the alert box.
+There are two important things you have to
+know to understand why this works.
+First of all, variables scoped like this in
+javascript, are all part of the window object.
+Try it.
+Open a console and type in “asd”, assign
+a value and then look at it with window.asd.
+So asd and window.asd are the same variable.
+Which means, if you understand, that in javascript
+variables and functions are part of the window
+object, then you also understand that “name”
+is the same as window.name.
+Alright.
+The second thing you need to understand is,
+that window.name is special.
+“The Window.name property gets/sets the
+name of the window's browsing context.”
+And the browsing context is more than just
+the current website.
+It’s the window, or the tab you have.
+So the window name persists across websites.
+setting the window.name on your own site,
+will persist when you then redirect to the
+xss challenge.
+And there, document.write will take window.name
+that you set and write it into the page.
+And if there is a XSS payload it will trigger.
+So does this feel like guessing to you?
+Do you have to do some crazy guessing to solve
+this?
+I think for a lot of people who just get started,
+this can feel like guessing.
+It’s magical, like “how do you come up
+with this?”.
+But it’s actually the complete opposite.
+In contrast to the steganography challenge
+or bruteforce, here you actually have to know,
+understand and combine two distinct web technology
+behaviours.
+Let me walk you through, how somebody who
+just started with web security could solve
+this challenge.
+So you know you want to get into web security
+and you read that many websites use javascript.
+Which means you start to learn javascript
+with some random tutorial that is out there.
+It really doesn’t matter which one, don’t
+think you have to pay for one.
+Because most tutorials will probably tell
+you about global variables being part of the
+window object.
+Here the kinda shitty w3schools site
+“Global variables are properties of the
+window object.”
+Or here a random tutorial I pulled up from
+javascript.info:
+“In a browser, global functions and variables
+declared with var become the property of the
+global object:”
+here is an example.
+“var gVar = 5; alert(window.gVar);”.
+Showing you that gVar and window.gVar are
+the same.
+Now this is all you need to know for my XSS
+challenge.
+Because when you carefully read the code,
+you would see that you have to control name,
+or window.name, in order to trigger a XSS
+here.
+There is no other option.
+You must control it.
+So you wonder, is there anything you could
+do to control it?
+Well... you search for window.name with google,
+you read a couple of results and you learn
+about that window.name is special.”
+“Each tab contains its own window object,
+which is why even when you navigate to/from
+different pages the window object is persistent,
+whereas if you check on a different tab the
+window.name will be different..”.
+Now you know that you can control the window.name
+from your own website.
+You can set it to a XSS payload, and then
+open the challenge site.
+Solved.
+And in this whole process you learned more
+about javascript and about special browser
+behaviours like the window.name.
+You increased your knowledge.
+But even if you don’t solve this challenge
+and you get frustrated.
+If you later read a writeup about it.
+Or right now watching this video.
+You will still have learned something.
+You actually just learned a bit more about
+javascript and the browser and web security
+in general.
+Congratulations.
+It’s that easy.
+Now you could go out there and look for websites
+where javascript uses the global variable
+window.name and see if it does it in an insecure
+way.
+Of course it’s probably rare to find that.
+But that’s IT security.
+Alone by itself this knowledge about window.name
+feels like a bit useless knowledge, but if
+you learn a TON of these “obscure” things,
+you get a whole repertoire of tricks to pull
+from when looking for bugs.
+And the more you know, the better work as
+a security professional you will do.
+In practice you still need creativity and
+good ideas to apply these things.
+But yah, you are on the right path.
+You got a step forward, may it be for bug
+bounty, penetration testing, or even being
+a web developer who wants to write more secure
+web applications.
+This was time well spent!
+This was the opposite of just guessing.
+Now I don’t want to disregard scanning,
+guessing or brute forcing completely.
+It obviously is a tool in your toolbox you
+need to use.
+For example I think it’s interesting that
+some websites deploy with git and have the
+.git folder accessible, which you can use
+to leak the whole repository.
+And yes, you have to scan or bruteforce for
+that.
+But at the end of the day the general scanning
+and asset discovery is just simple.
+It’s bruteforce.
+It’s literally just guessing the correct
+name of something.
+So for me I don’t learn much from that.
+It doesn’t add to my understanding of different
+technologies.
+It’s logical that if there is hidden stuff,
+it can be discovered by just guessing.
+So I really don’t like spending time on
+that.
+And that’s also one of the reasons why I
+don’t really like bug bounty or even black-box
+web pentesting, because I just don’t want
+to waste my time, or burn the client’s money
+on bruteforcing API endpoints, especially
+when it could just take 5 minutes with the
+source code to find them all.
+Imagine you scan a website for days if you
+could just look at the source code instead.
+So annoying.
+I’m telling you this because when you start
+getting into hacking.
+I see a lot of tutorials that simply are about
+using some tools to scan some stuff.
+It’s great to play around with the web scanning
+tools or hash cracking or wifi password cracking.
+It’s an important tool in your toolbox,
+as a professional you should know that stuff.
+But don’t stop there.
+This stuff can quickly be understood and then
+you should move onto learning more small tricks
+and techniques and accumulate more knowledge.
+Don’t waste too much valuable time on these
+tools.
+Play CTF instead.
+Now before the end I promised that there is
+a way to make steganography challenges more
+fun.
+And it’s a bit of a cop-out.
+My solution is to actually not make it a steganography
+challenge, but another challenge.
+For example.
+Some people say steganography is important
+because malware might use it to hide data
+for example inside images when stealing the
+data.
+Or hide remote-control commands in plain sight.
+So yeah, it could be great to learn more about
+steganography, but make it a malware reversing
+challenge instead.
+Write a small program that acts like a malware
+that uses some steganography technique to
+hide data and your job is it to recover that
+data from an example file.
+Now you don’t have to guess anything.
+You need to reverse engineer the challenge
+malware in order to find out how it’s hidden.
+And then implement the reverse to recover
+the hidden file.
+This is useful.
+This teaches you about reversing and understanding
+some file formats.
+Another way is to for example have a webapp
+where an upload requires an image file.
+But there is another endpoint that opens and
+displays zip files.
+Your goal is it to get a malicious zip file
+onto the server.
+Well now steganography or something kinda
+related, polyglots, come into play.
+You need to craft a file that is an image
+but also hides a valid zip file within it.
+Now you learn so much about interesting web
+security vulnerabilities and what it means
+to really have a file of a certain format.
+To summarize.
+When you learn about IT security and hacking,
+try to identify what topics really teach you
+NEW concepts and NEW techniques and NEW tricks,
+so you can accumulate more knowledge.
+Rather than doing the same stuff over and
+over.
+And a lot of scanning tools or cracking tools,
+are essentially the same concept.
+So learning different tools is not necessarily
+learning anything new.
+And that’s why I find a lot of bugbounty
+and black-box pentesting work super boring
+and repetitive, and that’s why I like CTFs,
+because I can choose the challenges that sound
+like they teach me something new.
+Something to push me forward.
+Something to add to my bag of tricks and develop
+an intuition and the creativity necessary
+for finding my own bugs.
+I hope this video wasn’t too much ranting.
+But I hope you get something out of it.

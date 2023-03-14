@@ -1,0 +1,171 @@
+Hello everybody, let’s talk in this loopback
+video about the recent events.
+First we will talk about the new logo and
+intro, then about reaching 10.000 subscribers,
+that’s why we are doing a small Q&A. And
+a little bit of an outlook into what’s coming
+next.
+So that was the new intro. Some videos I have
+edited before I created this, so don’t get
+confused when you see the old one again.
+But what do you think about the new intro
+and logo? I know it’s not the green hacky
+rabbit and console anymore, which I used to
+appeal to these people who are drawn to these
+misrepresentations of hackers and show them
+the “correct” way, and also because I’m
+a sucker for these hacker stereotypes. Hack
+the planet!
+But I think these new style of videos, with
+the hand-drawn overlays, match this new intro
+better. I think it’s more professional and
+future proof.
+Let me know what you think about it. Especially
+constructive criticism.
+The channel hit 10.000 subscribers recently,
+which is amazing, because it’s such a niche
+topic. But that shows to me, that there is
+real demand for this kind of content. And
+people appreciate it as valuable information.
+Which makes me really proud.
+So, now I’m going to answer questions I
+got. I have to say, not many people sent me
+questions which is a bit of a bummer, but
+actually, I think this just shows that you
+are more interested in technical content,
+rather than the social youtuber interaction
+personality thing, which is also why I don’t
+show a face. I want this place to be about
+learning new things about computers. Not me.
+And now let me do a 180 on this opinion, and
+answer some personal questions :D
+Do you practice these things alot?
+Most of what I do is practicing or learning
+in a way. Especially playing CTFs you have
+easy stuff you have done before and you get
+faster, or new things to practice new tools
+or techniques. One benefit of this channel
+is, it forces me to not brush over topics
+but make sure I understand them properly.
+So creating these videos is very convenient
+practice.
+Do you make money with those skills?
+I work as a freelance penetration tester,
+or maybe betetr described as application security
+analyst. I look at code and software, mostly
+web, from customers and try to find vulnerabilities.
+It’s a lot of fun, I’m very lucky I can
+do this kind of work, and it allows me to
+be very flexible. Especially because I still
+have to finish my masters degree at university.
+Do you have an or many Idol(s) (someone you
+look up to for one or more reason(s))?
+Everybody who is better than me in something.
+So that’s a loooot of people :D
+There are just so many who I admire for their
+contribution to this field that I couldn’t
+even start a list. There is no single idol
+I follow, but more of an Ideal that I thrive
+towards.
+Would you consider yourself skillful, cognitively
+gifted, or both?
+I would say I’m not stupid. School was pretty
+easy with a few exceptions like languages.
+But I have seen a lot of peers understanding
+certain things a lot faster a lot deeper than
+me. And I benchmark myself against these people.
+And you have to understand that I have spend
+most of my life in front of these computers,
+and I have days where I don’t leave the
+apartment. And my friends are also not really
+the types that constantly do stuff. So all
+the skill I have, I have because I spend an
+inconceivable amount of time doing this. And
+I’m still no expert. I still fail the hard
+complex challenges and I still haven’t created
+an iOS or Browser exploit. I’m trying to
+catch up but it’s hard. And so, knowing
+how much time I have spent, and I have not
+been able to compete with people at Pwn2own
+or CTFs, shows me that I’m in no way gifted.
+And there are many people who are much faster
+than me.
+What are some things you're currently trying
+to "hack"?
+Ehm, there are always work related projects
+I can’t talk about. Or things that will
+make it into a video, like the embedded hardware
+CTF that is currently running.
+When you get exhausted during a challenge,
+what symptoms do you have and how do you mitigate
+them?
+I turn in a circle. I try the same things
+over and over hoping it would magically work,
+or that I have overseen something. That is
+a time killer. I also start watching youtube
+videos instead of working. The best thing
+is to take a break, like a shower, or a quick
+shopping trip.
+do you (or did you at some point) play video
+games?
+Yeah I do play occasionally. Not much. For
+a long time it used to be Guild Wars 2, did
+some cool hacks with that, maybe it’s something
+I can show off some time, but because it’s
+still a very active game I feel a bit uncomfortable
+disclosing it.
+And currently I like to play Overwatch, because
+I can play quick rounds when my brain needs
+a break.
+Have you found any zero day bugs yet? And
+if so, how did you find it/them :D
+I did find bugs you can consider 0day, but
+they were nothing great. Nothing world breaking.
+Not in any way comparable to cool remote memory
+corruption bug in a popular sofawre. So I’m
+still hunting for a cool one.
+The ones I found were mostly web related and
+found during work. So also something I can’t
+talk about at this point. But believe me,
+nothing exciting.
+What are you using as your productive system?
+I use a MacBook for most of my work. With
+VMs as I need them. And also have a Windows
+Desktop PC for editing or overwatch. As well
+as multiple Laptops with Linux or whatever
+on it. But mostly I work on mac.
+So, now, what will come next. We are almost
+done with exploit-exercises.com protostar.
+That will be a great milestone for me. This
+basically means I have now a whole series
+that covers the basics of exploitation, and
+which I believe is one of the better tutorials
+on the topic on the internet.
+I will push through this, with two videos
+a week on friday and tuesday, which I have
+done for a while now, but I can’t keep up
+this pace for much longer. I spend too much
+time on this, and while it’s fun, I can’t
+neglect my real responsibilities too much.
+So with christmas coming up, and finishing
+protostar, I will start moving to a once a
+week schedule. And hopefully the one or other
+video in between.
+But ignoring this huge disappointment, we
+will slowly move into the modern age of exploitation
+with ASLR, DEP and so forth.Also in february
+the embedded hardware CTF will be over, so
+you will get a bunch of low-level related
+videos then.
+Otherwise, I currently plan to make LiveOverflow
+stickers, which if they turn out to be ok,
+will bring
+them to the 33c3 congress in december and
+will distribute them on the well known tables
+around the conference for people to grab.
+Thank you all for your ongoing support, It
+means a lot to me that people ask how to donate,
+but the best thing you can give me, is to
+comment and share the videos with more people
+who might be interested in them.
+Talk to you soon!

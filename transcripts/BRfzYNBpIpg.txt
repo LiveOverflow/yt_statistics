@@ -1,0 +1,672 @@
+This is the fourth and last part in my video
+series about creating an online game with
+unity where players have to cheat to win.
+In this video we will go over the challenges
+that I have implemented, how I had the idea
+for them, and the intentional bugs that I
+introduced.
+We will also have a look at how some of the
+players have solved the challenges.
+So if you are interested in playing the game
+yourself, don’t watch this video, it’s
+full of spoilers.
+If you are a game developer or played the
+game already.
+Then go ahead and enjoy.
+Chapter 1 - Level Design
+The game is called Maze.
+Because the map is a maze.
+The idea of a maze popped in my head very
+early.
+That’s because there's this movie series
+called The Maze Runner, which is not the greatest
+movie.
+But I really enjoy kids or teenage movies
+where they are real badass.
+And the premise, which is not really a spoiler,
+it’s right at the start of the movie, is
+that the main protagonist arrives in the middle
+of a huge maze.
+And there they have grass, and trees and can
+live there and are safe.
+But entering the actual maze, this is where
+it gets mysterious.
+And I think that’s also an awesome premise
+for a game and it fits well with players exploring
+a mysterious maze that contains challenges
+which players have to solve.
+So yeah, I wanted to make a maze.
+Here are even some early drawings of a maze
+I made in a notebook.
+It even has some notes about possible challenges
+that I thought about up to this point.
+But these drawings were not done at the start
+of the project.
+I started to think about challenges and the
+maze itself, after I already implemented the
+basic multiplayer networking features.
+This again highlights what I talked about
+in the very first part.
+I’m not concerned with planning every detail
+beforehand.
+I allow my creativity to flow and just come
+up with ideas while working on other parts.
+Also making hacking challenges requires you
+to understand the technical aspects very well,
+and because I was so inexperienced at the
+start, I first wanted to implement basic multiplayer
+features to see, where would be a good place
+to implement a challenge.
+Basically, where would it make sense to allow
+cheating.
+So I drew this maze by hand, but realized
+quickly this would take AGES to make in Unity.
+Place every wall by hand... oooof…
+But look, the real maze is even bigger than
+this.
+Well!
+I wrote a Unity Editor helper tool to draw
+a Maze for me!
+So I looked up maze drawing algorithms and
+found this cool site that visualized a few
+different ones.
+I just had fun looking at different strategies
+there are.
+And then I just picked one, I think it was
+the easiest one?
+Anyway, I first implemented it in python as
+a test.
+In the end I needed the algorithm written
+in C# for Unity, but I had to make a modification
+to this algorithm because for me walls are
+not simply in between two squares, but the
+wall takes up a whole square on it’s own.
+basically I had to extend the algorithm with
+a basic check to see if a certain step is
+valid, or if it would violate having the thick
+walls.
+And once I had this python script, I simply
+reimplemented this as a Unity Editor script.
+I simply googled for how to write your own
+Unity tool and programmatically place game
+objects in the scene.
+I obviously also had to prepare those game
+objects I wanted to place, so I created a
+few prefabs of wall pieces.
+Initially I was not sure which models to use
+from Synty, but in the end I found the walls
+from the bank in the Heist pack to be kinda
+cool and clean, and stacked two of them on
+top.
+Here it is a single square with paths all
+around, but this here for example is a piece
+where other pieces can connect on each side.
+So I also had to add code to select which
+prefab to use.
+And then I could simply call my custom tool,
+and it would draw a maze for me.
+I of course had to fix some bugs with alignments
+of walls.
+And it’s still not super perfect, but good
+enough.
+then I deleted a few pieces in the centre
+to make the spawn point and started to make
+space in the corners of the maze as well,
+where I wanted to place some challenges.
+And that’s basically how the maze was created.
+Chapter 5 - Player Character Design
+Until now we have only talked about some technical
+aspects about the game.
+So let’s talk about my ideas for the game
+design next.
+Let’s start with the player.
+When I was working on the offline game “Follow
+the White Rabbit” I created these rabbit
+NPCs to guide the player.
+And I don’t know why I didn’t come up
+with this idea earlier, but why not let the
+RABBIT BE THE PLAYER.
+Be the white rabbit yourself.
+It’s such a simple idea but I think it makes
+perfect sense and made me very happy when
+I thought of that.
+When I introduced this game in the first episode
+of the Devlogs I said that the goal is to
+become the mysterious white rabbit.
+So you start out with a different look and
+from solving challenges you become the mystical
+creature.
+That was actually not planned at the start,
+I just simply thought that it would be cool
+to play as the white rabbit.
+The feature to unlock different skins and
+change your appearance is something that came
+fairly late in development.
+I think that’s another good example to see
+how an idea evolved and grows over time.
+I didn’t start out with a big plan and idea
+for a background story.
+At first there was just a bunny.
+But over time, when playing the first proof
+of concepts, the creativity came about.
+Chapter 3 - Soft Release
+I was very scared of releasing this game if
+it would be able handle the players.
+It’s a competition and if the server would
+not handle it, it would be very frustrating
+for them.
+So I actually made a soft launch.
+In the first game, Follow the White Rabbit,
+there was a hidden texture containing the
+URL to the game.
+It was also visible in-game behind the house
+as a poster or so, if you managed to solve
+the second flag.
+This way only very few players slowly trickled
+into the game.
+This also gave me some time to fix a few more
+bugs and add a few features.
+A few weeks later it was then officially released
+to everybody.
+Though at least one player found the game
+because they were port scanning our challenge
+server, and this revealed the landing page
+for the game.
+Well.
+that’s fair game too.
+Chapter 4 - Tower Challenge
+The first easy challenge I thought about doesn’t
+include a lot of hacking and builds upon the
+first game hacking challenge I made.
+In one corner of the maze I created a tower
+and made sure it’s visible from the spawn.
+You can basically just walk there, and climb
+all the way to the top, where you can find
+a chest that gives you the flag.
+There is one small issue though, there is
+a fence in the starting area, preventing you
+to actually entering the maze.
+But this is very easy to overcome.
+Simply by using cheatengine and follow the
+most basic tutorials on how to find the player
+position, you can teleport a very small bit
+forward.
+Through the fence.
+And this is not enough to trigger the server-side
+cheating detection.
+If you paid attention to the server code from
+last video where I calculate the distance
+and speed, you can also see it only takes
+x and z into account.
+So only horizontally.
+Vertically you can teleport like crazy, so
+it’s easy to teleport straight up and get
+an overview of the whole maze.
+Now you can draw a path to get to the tower
+and simply walk there.
+Solved!
+I thought that would be a good introduction
+challenge, everybody should be able to solve
+it with some game hacking basics.
+Chapter 5 - Lava Challenge
+The next challenge I thought about was the
+lava zone.
+Basically when you just walk into the lava,
+you die.
+The goal is simple, reach the chest in the
+middle.
+It’s a bit too far to directly teleport
+there, so you have to fly or hover over the
+lava.
+This still is kinda easy, but already requires
+some more creative thinking on how to solve
+it.
+For example multiple players implemented a
+UDP proxy, very similar to how I implemented
+a TCP proxy for the PwnAdventure3 game, and
+simply modified the position packet on the
+fly.
+And simply added a value to the vertical position.
+This means the server THINKS the player is
+much higher than it actually is.
+For the player locally it will look like walking
+over the lava.
+Another player wrote a custom client and simply
+directly sent the position packets to fly
+to the chest.
+So not even playing the game itself.
+But for other players observing it, it looked
+like flying.
+Both of these solutions are actually already
+quite advanced.
+Here is a solution from another player that
+was a bit simpler.
+This player used cheatengine’s dissect mono
+feature, to reverse engineer some of the character
+data, and found a variable that says how many
+times the player can jump while already in
+the air.
+This is used to do things like double jumps.
+And so by setting this to a super high value,
+you can repeatedly jump, and thus basically
+fly.
+Chapter 6 - Emoji Challenge
+In the first version of the game when I shared
+it with the other organizers of our hacking
+competition, I didn’t have emojis yet.
+I thought about it, because I bought an effects
+asset that had emojis, but was already enough
+work.
+But a feedback I got was to have a bit more
+interaction between players and I wanted that
+too.
+So I did implement emojis.
+But I also combined this with the unlocks,
+so that when you discover areas or solve challenges,
+you unlock more emojis that you can use.
+And so the emojibar slowly fills up.
+BUT besides these emojis there are a few secret
+emojis.
+And there is one particular emoji, if you
+manage to trigger that, you get the flag for
+it.
+Now trigger obviously means to make it so
+that other players see it too.
+So you have to figure out how the client sends
+to the server which emoji is supposed to be
+shown.
+And then modify it to show the secret emoji
+instead.
+Let’s checkout how players solved this.
+This player used Ghidra to reverse engineere
+a lot of the code.
+To make this easier they used a tool called
+il2cpp dumper to find the symbol names of
+a lot of the functions.
+And that revealed the ServerManager class
+with the function sendEmoji.
+They then used CheatEngine to debug this code
+and through some trial and error noticed that
+the value in the rdx register seems to control
+the emoji you use.
+So they simply changed it a few times and
+eventually triggered the flag emoji.
+Which also caused the server to send the flag
+to the player.
+Cool!
+Another player, also implemented a custom
+client in python.
+Well, not a full client.
+Only sending a particular packet directly.
+Through reverse engineering the code they
+figured out the encryption layer and wrote
+an encoder and decoder for the packets.
+This decoder was then used to analyze the
+emoji packet, where they noticed only one
+value changed.
+Meaning that could be the ID of the emoji
+shown.
+So they simply tried out different emoji numbers,
+until the flag emoji popped up.
+I have one more writeup for you.
+This one is different.
+Here the player wrote a hack program which
+rewrites the memory of the game.
+Also through reverse engineering they figured
+out the function that is called to send the
+emoji, when you for example press the number
+1.
+And as a parameter the emoji ID is loaded
+into edx.
+So they hardcore patched the code in memory.
+They overwrite this assembly code with their
+own code, loading a different value into edx
+as a parameter.
+Thus they can try out different emoji ids
+until the flag is found.
+Chapter 7 - Reverse Engineering IL2CPP
+Before we look at the other flags I quickly
+wanted to talk about the use of il2cpp.
+So the first game hacking challenge I made,
+the “Follow the white rabbit” was standard
+Unity C# compiler and I only released the
+challenge for Windows.
+The main reason, because tooling around decompiling
+and modifying C# of the game is sooooo easy
+on Windows that I wanted to force players
+to use the easy path.
+For maze however I decided to release it for
+Linux and Mac as well, because I knew that
+all challenges can be solved simply by implementing
+a UDP proxy and some basic reverse engineering.
+And this can be done on all operating systems.
+However I included a small twist compared
+to the first challenge.
+This time I used il2cpp to compile the game.
+And my understanding is that the C# code is
+first transpiled to C++ and then compiled.
+This might make it faster, and maybe also
+makes reverse engineering a bit harder, or
+annoying.
+At least you can’t use simple tools like
+dnSpy anymore to directly change C# code and
+fully decompile the code.
+Some people online even claim that il2cpp
+would be a good measure to prevent cheating
+or hacking for the game.
+But it’s totally not effective for that,
+and this can obviously be seen here with Maze.
+The game hacking community has written crazy
+tools again which can help with the reverse
+engineering process.
+And from looking at the writeups a common
+tool used is Il2CppDumper which can be used
+to extract all the symbol names.
+Mainly the names of the classes and functions
+and match them to the assembly code.
+And then people can very easily find functions
+of interest and reverse engineer the assembly.
+Maybe even use the decompilers included in
+IDA or Ghidra to get somewhat readable code.
+However the actual act of cheating and hacking
+requires a bit more engineering and makes
+it a bit more interesting for this challenge.
+For example writing a UDP proxy, rewriting
+the game’s memory, or other typical techniques
+such as DLL injection and injecting some code.
+Chapter 8 - Player Radar Challenge
+So this challenge was the most confusing to
+players.
+I thought so much about how I could title
+it or describe it, that it doesn’t give
+away the solution, but the direction is clear,
+and still failed.
+The description said “There are rumours
+of a player who found a secret place and walks
+in a weird pattern.
+A radar map could be useful.”
+When I thought about radar map, I had a radar
+hack in mind.
+Like seeing other players on the map that
+you shouldn't be able to see.
+But I didn’t just want to hide a player
+somewhere to find.
+Because you could accidentally find it and
+it wouldn’t super different to the tower
+challenge.
+I wanted that players actually write a cheat
+where they can see other players on a map.
+And THEN, when they have that, they might
+notice how this player walks in an interesting
+pattern.
+Actually writing the secret flag with their
+movement.
+I hid this player just below the floor under
+the hangar area, there is actually a wall
+without collision that you can walk through
+to enter this place below, or you teleport
+down.
+But both is not really required to solve the
+challenge.
+You only need to track the player’s position.
+Players got really confused when they found
+the player, there was also a chest, and didn’t
+get the flag automatically.
+I tried to indicate with an opened non-glowing
+chest that they are in the correct place,
+because the chest and flag was used in other
+areas, but it’s not quite the solution yet.
+Anyway, let’s look at writeups.
+The first solution here is from the player
+who wrote the hack tool to rewrite the memory
+for the emoji challenge.
+But this time they READ from the game’s
+process memory.
+Through reverse engineering, or even Cheat
+engine they somehow found the the coordinates
+from this hidden player and then draw it directly
+with SDL on a window.
+The next one is a solution we haven’t talked
+about yet, and this is directly hooking the
+code and even doing that on Linux.
+So this player apparently has a private tool
+called HookElf, which can be used to install
+hooks into a binary.
+In this case the main GameAssenbly.so.
+Pretty cool that players write their own tools
+like that.
+Here the player hooks the send emoji function
+which seems weird at first.
+But it’s a neat trick, because this is executed
+when you press a certain emoji key in the
+game.
+So essentially it’s a nice way to control
+your hack.
+So if you send an emoji it will have a reference
+to the ServerManager, can then get all the
+players, and from there find the id.
+If it’s the ID of the secret player, 0xffff1337,
+they start a logger thread.
+This thread simply runs in an endless loop
+always getting the player’s position and
+writing it to a file.
+In the end you have a big log with the player’s
+position and you can draw these positions
+on an image.
+Now the next writeup is interesting.
+So this player clearly is an experienced game
+hacker.
+First they used a tool called Ninja Ripper
+to extract the map of the game, render it
+in blender and take a top view screenshot.
+This way they got the whole map like this.
+They also wrote a proxy to decode and analyze
+the packets, which allows them to see all
+players position.
+This person also indicated that this was not
+hard, because they have done something similar
+for CS:GO mobile.
+Linking a YouTube video.
+There you go.
+How cool is that.
+And look at this awesome tool they wrote.
+You have the whole map, the flag is drawn
+by the secret player, and you see the other
+players walking around, and you even see your
+own radar.
+Like in CSGO.
+Stuff like this is just awesome.
+But yeah, if you can read memory, or decode
+the packets, you always somehow get the player
+positions, log them and draw them.
+Cool!
+Chapter 9 - Maze Runner
+Now let’s get to what I imagined to be the
+hardest challenge.
+At least when I compared to the others, but
+I quickly learned that it’s actually not
+that hard.
+I thought using IL2CPP would make reverse
+engineering a bit more laborious.
+But again, tools like IL2CPPDumper are just
+unfairly good.
+So this challenge is a raze.
+It’s probably the first challenge players
+discover, because it’s very close to the
+spawn.
+You reach it after you use the stones to jump
+over the fence.
+When you first try this it becomes pretty
+clear what to do.
+There is this initial glowing checkpoint,
+it’s the start, and when you run into it
+disappears, and you immediately see the next
+checkpoint, and then you keep running.
+But you are so slow, that eventually you won’t
+be able to reach the next one.
+This race is impossible.
+So you need to cheat it.
+I thought you would really have to write a
+custom client, hardcode the path and just
+send the position packets faster.
+But apparently it was super easy to simply
+find the speed variable of the bunny, increase
+that, and then just run the race.
+So this first writeup did exactly this.
+Through cheatengine they found the PlanarMovementParameters
+with the speed variable, and set it to 10.
+This makes the bunny run fast enough to win
+the race, but not too fast to trigger the
+cheat detection.
+And so this is a bit easier than I hoped it
+would be.
+But oh well.
+It is what it is.
+While finding the speed variable is one way,
+you can also do it differently.
+And this player’s solution is quite creative.
+So they used DLL injection to inject this
+code here.
+And this snippet reads the players coordinates,
+twice, with a short time sleep in between.
+Now these two coordinates have a small difference,
+right?
+The player moved a bit forward for example.
+So then the boostFactor is used to make this
+difference larger.
+Move the player further than the player was.
+This effectively gives you also a speed hack.
+Super hacky, and dirty, but it works.
+It’s a speedhack without directly modifying
+the speed variable.
+Now let’s look at a writeup of a player
+who did what I thought would be the intended
+solution.
+Using a proxy or custom client to run the
+race very fast.
+So this player first teleported up and got
+an overview of the checkpoints in the race.
+So now they know the path they have to run.
+By sniffing and decoding, or decrypting, the
+packets they logged all the coordinates of
+the player walking through the race track,
+which gives them a sequence of coordinates,
+to run the race.
+After that they wrote a script to loop over
+all coordinates and simply send them very
+fast.
+And they won the race…. in under 5 seconds.
+WTF?!
+Didn’t I implement a speedhack detection?
+That should be possible!
+Chapter 10 - 1337 M4z3 Runn3r
+So…
+I’m not sure if it was exactly this player
+who did it first.
+But yes that happened.
+Some player solved it in under 5 seconds and
+I had no idea how.
+I implemented the speed and distance check
+that should prevent that, right?
+You could definitely optimize the path, but
+there is a limit.
+How is 5 seconds possible?
+So I looked into my server code again, and
+I noticed, OOOHHHH RIIIIGGGHHTT…
+I did implement that bug on purpose, I just
+forgot about it.
+So when calculating the speed, I use a time.
+And the time is taken from the packet.
+Which means the player controls the time.
+If a player simply always increases the time
+enough, the server will never complain about
+the speed.
+I completely forgot about that.
+And so after realizing this, I thought it
+made sense to have a second challenge.
+And this became 1337 M4z3 Runn3r.
+I also implemented a shitty highscore board
+that shows the fastest player’s times.
+And it achieved what I was hoping it would
+achieve.
+Players started to really optimize their hacks
+to be faster than the others.That’s so awesome.
+And I have seen some crazy tools how players
+tried to optimize their run.
+Look at this one.
+They made a program, to navigate the map and
+draw a path.
+Including the distance check, which still
+applies.
+You can’t just directly teleport to the
+goal.
+You still can only move up to the distance
+check per packet.
+So with this they can try to draw the most
+efficient path to the goal.
+And then let it run this path.
+Insane.
+I love it so much.
+To me as a challenge author, who obviously
+spent countless hours making this game, it’s
+the most awesome thing to see how players
+have spent countless hours optimizing their
+hacks.
+Beautiful.
+Chapter 11 - Open Source
+When this video is released, I don’t know
+if I have open sourced the server already.
+I definitely want to share it at some point
+because I think our server might be taken
+down eventually.
+Or you simply want to be playing with a better
+performing server and with your friends.
+BUT!
+I told myself I will only release it if somebody
+else creates a private server based on reverse
+engineering of the protocol.
+I think it would be sooooo awesome to have
+two alternative servers for this game.
+I don’t think it needs to implement all
+the bugs too.
+But as long as there is basic functionality,
+that would be awesome.
+You could even add own challenges, for example
+get a flag for walking outside of the border
+of the maze.
+Or hide and seek.
+Or something like that.
+Anyway.
+So maybe there is already a server, or maybe
+not.
+We will see.
+Regarding the client, unfortunately I cannot
+open source the Unity project.
+The issue is that I have bought assets from
+the asset store, and the license obviously
+forbids that.
+I could share my C# code for various things.
+Like the maze generator.
+But to be honest, that code is sooooo bad,
+nobody should ever implement something based
+on that.
+Actually I would make the world WORSE by open
+sourcing it.
+Chapter 12 - Conclusion
+I’m so happy that I decided to learn the
+basics of game development.
+Gamedev is really fun and I enjoyed making
+those games.
+But I enjoyed it even more seeing players
+cheating and hacking it.
+It was a great experience.
+Personally I hope Maze can become something
+that many people learn the basics of game
+hacking from.
+Whoa. that’s it.
+This was a very weird video format for my
+channel.
+But I hope you enjoyed this insight and documentary
+about the creation of Maze.
+Let me know what you think about this.
+But now we are back to normal videos.

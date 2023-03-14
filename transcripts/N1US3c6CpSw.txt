@@ -1,0 +1,145 @@
+sometimes your binary will not have
+symbols it's a so-called strip binary
+let me show what you can do that
+[Music]
+sometimes you find yourself with a
+binary that says it's stripped your
+problem is when you try to debug this
+and you want to set a breakpoint romain
+no symbol table is loaded so I have
+downloaded the disassembler called
+Piedra and I've linked it in the
+description of this video this will not
+work
+we still need Java 11 while this is
+still installing let's go back to gdb
+and I'll show you another method first
+with info files you can get a couple of
+informations about this file and so
+first of all you see here a lot of the
+sections that this file has so for
+example you can find the text section
+which is the code or you can find the
+data section where there's an aesthetic
+data this may be other stuff that you
+recognize like the procedure linkage
+table and the global offset table and so
+forth but it also shows you here an
+entry point which coincidentally is
+right at the start of the text section 2
+so let's disassemble the code there ok
+this so there's no function at this
+address so let's look at this with the
+examine command so I'm examining 20
+instructions at this address and then we
+can see here just cohhd cohhd cohhd
+cohhd cohhd and then we see here a call
+coming up as well as certain parameters
+being prepared for it and I get rights
+basically the same thing
+ok I tried to zoom in a little bit so
+obviously it's not very very crowded so
+in the symbol tree you can find a symbol
+that get recalled entry the entry
+function here also starts at 4 F 0 @ is
+the offset kitra puts it actually at 1 0
+0 for f 0 but that's just good invention
+that's just where Dedra kind of like
+assumes where in memory it could be but
+you see the offset is the same and so
+let's look at this code here you can
+also see here eventually this called
+ng draw already recognized this as Lipsy
+start
+main guitar recognize this because even
+though the binary itself M is strip
+doesn't have cymbals it still uses
+dynamic libraries like Lib C and to
+resolve the addresses of the Lib C
+functions it has to include the cymbals
+for this dynamic library so it will
+recognize if it tries to call something
+like main gdb is not really a
+disassembly gdb is a debugger so it
+doesn't have fancy display features like
+this there are some extensions that
+might help you with that but generally
+you would want a disassembler to kind of
+like analyze most ethically a binary
+like this so here we can see ellipses
+start main and get R also has a d
+compiler and you can see that this
+function takes a couple of parameters
+and actually the first parameter of this
+Lipsy start main function is the address
+where the actual main is where your - so
+what get er identified as this function
+here is main so we can go there and we
+can see that's like my shellcode test
+code this this is the main function that
+I have written don't don't worry about
+what this Court has asked but I can
+assure you that this is the main
+function this means that the address
+loaded into RDI is in fact the address
+of main so we know this is the entry
+point so at the corner of the entry
+point you can also see that here's this
+call and because you can assume this is
+a typical binary you might assume that
+in the entry code you have that the
+first call there goes to Lipsy main is
+it's just an assumption that you can
+make this assembler like g-drive will
+actually tell you if that's the case but
+that's a fair assumption you can make if
+you assume as just a normal binary which
+means the first parameter here for this
+call is actually the real main and here
+gdb actually helped you because it's
+from our IP so our IP would be at this
+case 5 0 T plus this offset here here's
+the result so if this address should be
+the real main your main and yet so this
+definitely looks like a function start
+so yeah this this is your main function
+so this is how you can find me
+okay so now that we have learned about
+the lips II start main we can actually
+use this also to our advantage with gdb
+as long as it's a dynamic binary so
+another static binary you can break on
+the lip see function because for that
+you have symbols and it says you hear
+that the lips e start main is not
+defined but you can make a pending
+breakpoint in case a shared library is
+loaded at some point that has the symbol
+and now let's execute the binary we hit
+a breakpoint in lips e start main this
+happened because when the binary was
+executed the loader started to set up
+the whole binary and it saw that it
+needs dynamic library so it was loading
+ellipse e and there was a breakpoint so
+it set a break but you get the point and
+here you can actually see a few more of
+the symbols you can see here the names
+of the parameters of this function and
+the first parameter is called main and
+it shows you actually what the parameter
+value is so at this address generally
+this offset here at the end is where you
+can find main let's see if this is
+correct v fa so yeah we assume that at 5
+F a we can find main so now we can also
+set a breakpoint there and we continue
+and we hit a breakpoint and now we are
+in main so this is how we can find the
+main function in a strip binary and how
+we can also then debug this now you know
+how you can find the main function when
+you have a strip binary make sure to
+check out the full playlist of hex
+member and see you tomorrow
+[Music]

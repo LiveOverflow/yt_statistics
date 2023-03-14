@@ -1,0 +1,191 @@
+Welcome back, let me quickly recap what we
+learned from Paul last video.
+We first downloaded and compiled the vulnerable
+ffmpeg version from github and then used address
+sanitiser to look at the first crash example.
+The crash was caused because of a -1 as the
+HTTP chunk size.
+In the code we see that ffmpeg simply reads
+this chunk size as a string and converts it
+to an integer, without checking if it’s
+negative.
+And in the end this negative size ends up
+as the length in a memcpy.
+Now that doesn’t really help us and just
+cuases memcpy to write data until it writes
+into bad memory and segfaults.
+However Paul already raised the question at
+the end of last episode, what if we can somehow
+get into the else case of this if.
+Because here maybe the negative size number
+can lead to an actual exploitable condition.
+And here it gets a bit fuzzy what exactly
+happens.
+At least I’m not 100% sure.
+And for Paul it has also been a while since
+he looked into it.
+So this read function reads bytes into a buffer.
+At least as long as there is data available.
+And so if the end of the buffer is reached,
+indicated by this calculation, if the ptr
+into the buffer reaches the end, then we get
+into the other case.
+And then we execute ffurl_read, which calls
+retry_transfer_wrapper.
+So I think this is basically called when not
+all data has been received yet by ffmpeg and
+it basically retries to read more data.
+And apparently in that condition you trigger
+then a heap overflow.
+So this ascii picture here this should give
+you an idea on how we are gonna avoid calling
+memcpy with -1 as size.
+If there is nothing to be read, the buf_ptr
+will be equal to buf_end and so we will fall
+through to another branch in the http_buf_read
+function.
+And so what paul did, to not fall into the
+segfaulting memcpy condition, he delays sending
+the response, so that the following data is
+handled by a different function.
+Because ffmpeg consumes the data first and
+then reaches the end and retries to read more.
+So this vulnerability has even a timing compo
+nent to it.
+You can’t send the data all at once.
+So let’s rewrite our response server a bit
+with all things we know for now, and see how
+it all works out.
+I will try to add a sleep function after sending
+chunksize for FFmpeg to copy the contents
+into the buffer, fix the buf_ptr so it will
+be equal to buf_end pointer, so on the next
+attempt to call http_buf_read function we
+will fall through another branch to trigger
+the read function trying to retrieve more
+data.
+Let’s set a breakpoint in the retry function
+to see what kind of function is called here.
+So let’s rerun ffmpeg, continue a bit.
+Now it is waiting for the 5 second sleep we
+have in the server waiting to receive more
+data.
+And boom, we get a crash.
+And when we look back up at the retry function,
+we were calling tcp_read.
+So that was called before we were waiting
+for more data of the server.
+And tcp read is called also with -1 as a size.
+And tcp read is very simple, it simply calls
+recv.
+So it calls recv with a huge number.
+So it can read a huuuge amount of data into
+a buffer.
+That already looks bad.
+And I think paul told me that this is not
+quite where the exploitable heap overflow
+happens, because there is another function
+that trusts this buffer and copies from it
+into another buffer, and this is then where
+we overflow.
+By analyzing a lot of source code I was able
+to recon that the buffer was allocated along
+with it’s context in the libavformat/aviobuf
+file.
+Yeah clearly Paul had to read a lot to figure
+this out.
+I was not able to get it in a short time.
+But you see that all these functions operate
+on this context and that’s a structure that
+just holds a lot of relevant data for this
+data processing.
+And apparently it’s allocated close to the
+buffer that is holding the data we receive.
+So The buffer was allocated in this function.
+So here it is.
+This is the buffer we write into.
+And here is our context allocated.
+Which means the context is allocated after
+we have an allocated buffer and if we get
+a bit lucky the buffer might be before the
+context structure.
+So if we have indeed a heap overflow, we could
+maybe overwrite the context structure.
+So if we get lucky enough they will be allocated
+on heap in the right order, and we actually
+will be overflowing the context structure
+itself.
+Let’s look inside it.
+So here is av_mallocz called.
+And it’s actually a wrapper to the regular
+malloc function.
+Let’s look inside AVContext, which members
+it has.
+Let’s check out other members of this structure.
+We actually have some function pointers over
+here, so if we overflow these pointers, we
+will get immediatly control of RIP register,
+which is very nice.
+So a function pointer is just a variable that
+contains an address of a function.
+And if we overwrite that value, and the function
+is called, it will call our overwritten address.
+So paul figured out that there is a heap overflow
+happening with the other code path.
+The buffer is 32 kilobytes big and so we could
+just send more than that and see what happens.
+I will be sending 32 kilobytes of data, which
+is exactly the buffer size, and a little bit
+more to check if we managed to overflow the
+context structure.
+Launch the server in the background.
+And launch gdb to check what happens.
+So instead of expected reaction we have an
+assertion error over here.
+Let’s go up a little bit.
+Let’s actually open this file to see why
+this was triggered.c
+So this assertation was actually triggered
+by assuming that the length was more than
+the original length.
+So we probably have overflown the av context
+structure.
+But we didn’t overflowthe right fields.
+So maybe if we form it somehow in a better
+way, for example if we send nulls first, then
+overflow the points with some As, we might
+pass this assertation check.
+And hopefully we get RIP control.
+So let’s check it out.
+Let’s launch gdb again.
+And there it goes.
+We have control over RAX and we are curently
+on the instruction call rax, and we have control
+of the first argument.
+And once you have a control of RIP RDI registers
+it is only matter of time until you find proper
+gadgets to get stable ROP chain and achieve
+code execution.
+Unfortunately, this exploit is quite unstable,
+because of the property called MTU, which
+stands for the Maximum Transmission Unit.
+It is made for optimizing data transferring
+process through the network.
+It breaks the large pieces of data into the
+small packets and because of that, our read
+function is not able to receive the whole
+input, which is more than 32 kilobytes, in
+one take to trigger the overflow.
+You can actually get your exact MTU value
+by typing ifconfig command.
+For example, I have fifteen hundred, so that
+means that all packets would be splitted by
+1500 byte, and this exploit will not work
+remotely as it is.
+This is issue is resolvable in general case,
+and you can practice solving it on your own.
+There we have it.
+A PoC exploit where we get control of the
+instruction pointer awesome!
+But paul has another vulnerability, which
+we will look at next time.

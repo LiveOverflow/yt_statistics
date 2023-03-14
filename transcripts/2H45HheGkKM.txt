@@ -1,0 +1,352 @@
+Today we will reach a milestone in this series.
+We will figure out how to send a malicious
+update, that is not signed by ledger, to the
+device.
+And it will persist and run.
+As you probably remember, early in the boot
+sequence of the ledger, the ledger checks
+this address 0x8003000 for the magic value
+0xf00dbabe.
+Only then it will continue execution.
+otherwise it will just return and continue
+into the bootloader.
+So we know this value has to be set, if we
+want to run our own code.
+So let’s investigate further.
+Let’s do again some more roleplaying.
+We know what the goal and issue here is and
+we already know some details from the advisory,
+but let’s pretend we are doing this research
+for the first time, and only know what we
+have figured out so far.
+Then there are two things we would work with
+now.
+First we have this sequence of APDU commands
+that we recorded during a valid update.
+So we can extract some of the unique commands
+as a sample sequence how an update would work.
+The second information we have is the source
+code of a pretty old version.
+Together with reverse engineering and comparing
+this code, we know about the 0xf00dbabe check
+during boot, but we don’t know yet how that
+affects the update.
+We don’t actually know that there is some
+kind of checks and verification happening.
+We might even assume there is none.
+I decided as a first step lets get an overview
+over the APDU commands.
+And I don’t need to spend too much time
+on this, it’s super straight forward.
+You remember we had this loop with the switch
+case statements and these defines that tell
+us what byte means what and so we can quickly
+extract their meaning.
+This is the instruction “VALIDATE_TARGET_ID”.
+And I guess this is the particular matching
+ID.
+Then came a secure instruction “SELECT_SEGMENT”,
+and we can already see here the famous 0x8003000
+address.
+So we select a memory segment now.
+And this is then followed up with multiple
+secure instruction “LOAD”s.
+Where we, according to the source code, have
+an offset that is simply added to the segment
+set previously, we have a length of data here.
+Here that byte is stored into the variable
+rx, and later we see how that length value
+is checked and even used.
+And then followed by data, which doesn’t
+necessarily interest us, however at the start
+of 0x8003000, we of course find also the magic
+value 0xf00dbabe.
+Then we find a secure instruction “FLUSH”,
+followed up by a secure instruction “BOOT”.
+So let’s approach this naively.
+Let’s use our test APDU script and build
+up a test update.
+We basically just copy the apdu commands we
+had above and just slightly adjust them.
+At this point for example I ignored the first
+command VALIDATE_TARGET_ID, because I thought
+it’s not important.
+Then I did the select segment and then I had
+to come up with a load.
+Of course we need the 0xf00dbabe value so
+I leave that, but I also adjust the size,
+because I don’t need to write that much.
+Just to kinda better see what happens I make
+the bytes I write longer and just add some
+recognizable bytes.
+0x41 0x41
+Besides that we also need some code.
+And from reverse engineering we know that
+the regular firmware code typically starts
+at 0x80030c0.
+Which means I added another select segment
+and then a LOAD to write some assembler code.
+But what code do we write there?
+The easiest thing, which also Thomas originally
+did, was testing an endless loop.
+That would be easy for us to see if it works.
+And so I’m using radare2, or more specifically
+the rasm2 utility, to get the bytes for an
+endless loop.
+Now I have actually never used rasm before,
+and never assembled ARM, so let me just quickly
+show you how I figrued out how to use the
+tool.
+First I check the help page, I figure out
+that -a can be used to Set architecture to
+assemble or disassemble.
+And which ones are available can be checked
+with -L. So did that.
+And now in here I found the arm.as.
+So I tried rasm2, -a arm.as followed by the
+assembly I want to assemble.
+And an endless loop would just be a branch
+0.
+Branch is the arm equivalent of a JUMP in
+x86.
+And even though we often see absolute address
+in disassemblers we use, actually these branch
+and jump instructions are typically encoded
+as offsets.
+So because this code is theoretically at address
+0, and we jump to address 0, it’s also just
+a relative branch to the offset 0.
+And thus it’s an endless loop.
+However trying to assemble that will result
+in an error, because it can’t find the arm
+-as, assembler, binary.
+But I remembered that it said it uses the
+ARM_AS environment variable, so just as a
+quick check to see how that affects things
+I set it to asdasd, and then suddenly the
+error said it can’t find the asdasd program.
+Which means this environment variable has
+to be set to the path of the arm assembler,
+and that one comes with the arm cross compiler
+utilities we downloaded some time ago.
+So setting the path to this binary, now it
+works.
+Or almost, this is now clearly 4 bytes, so
+32bit.
+But we have thumb code which is 16bit, and
+from the help we can find out how to set the
+bit length as well.
+So adding a -b16.
+And voila.
+So 0xfee7 appears to be the machine code for
+a branch to itself, so an endless loop.
+And now let’s copy that to our test script.
+And of course we then complete the script
+with the remaining APDU commands that are
+used for whatever.
+And then let’s try it !
+But it doesn’t work.
+However it looks like it already failed in
+with the first command.
+The ledger answers with this error code.
+So let’s look in the code what could cause
+this, and it appears that it checks this state
+value.
+Looking around where this state is changed
+reveals, that we actually do have to send
+the instruction VALIDATE_TARGET_ID.
+So let’s include that as well and try again.
+And of course this doesn’t work.
+If you restart the device and attach GDB to
+it, you will see it didn’t go into our endless
+loop.
+And when we examine now the ledger’s memory,
+we see that the f00dbabe value is missing.
+The As are there, but the magic value that
+is necessary to boot, is not there.
+So this is an indication that there is some
+check happening.
+There are multiple ways how you could figure
+out what happens, I used a very pragmatic
+approach.
+I basically set a breakpoint at 0x080007f2,
+to break on each new APDU command.
+And I was not interested in the first ones,
+but I was interested in the one that would
+apparently write 0xf00dbabe.
+And I just decided to slowly step through
+the program to see what happens.
+How does the f00dbabe dissappear?
+We also know where our APDU buffer is and
+we can see, that foodbabe definetly arrived
+as a command.
+So what happens?
+Again I don’t want to bore you with unimportant
+details, you can imagine yourself it just
+takes time to step through the code and see
+what happens.
+There is no magic to it, it’s just tedious.
+But at some point you reach here a code path
+where it actually checks the current address
+you try to write to.
+So the selected segment and your offset.
+In our case that would be 0x8003000.
+And here in particular it actually does a
+BRANCH NOT EQUAL, so a direct comparison between
+R7 and R4.
+With debugging you see that in our case both
+are 0x8003000.
+And if you check the code and just traced
+what happend you see that R7 is just a constant
+that came here from R3 and is the constant
+0x8003000.
+And R4 is the address we have selected with
+APDU.
+So here is just straight up a direct check
+of this address.
+And ONLY when it matches it will go into the
+block here.
+In any other cases it would skip it.
+ANd in here we find two functions.
+Let’s look at the first one.
+By now you all should be experts in reverse
+engineering and pretty quickly figure out
+what it does.
+At this point here I could also recommend
+the Pwn Adventure playlist where we reverse
+engineer code, there you get a bit more of
+this kind of reversing.
+Here you see a simple loop, and the major
+code in that loop seems to load a value from
+R1 into R4.
+And then stores R4 into R0.
+But in both cases with an offset R3 that is
+incremented.
+And one other hint is that this function has
+TONS of cross references.
+So this must be a super normal common function,
+it’s nothing special.
+And of course this is just a basic memcpy.
+Copy from source to destination.
+We can also with gdb see the address where
+it does that.
+And it copies data from one RAM address to
+another.
+Basically from our APDU incoming buffer into
+another buffer.
+And the function right after the memcpy is
+similar but different.
+Has the same kind of traits, it’s a loop
+and called from many places.
+But it only has a simple store in a loop.
+And it writes always R1 at an address.
+And R1 is set outside of this function to
+0.
+So this is a MEMSET with 0.
+It is clearing, overwriting memory with 0.
+And in fact it overwites 4 bytes with 0.
+And checking with gdb what it actually overwrites,
+we can see it destroys and overwrites the
+0xfoodbabe value.
+So here is the magical check.
+If we try to write any value to address 0x8003000,
+we will get into this block which will overwrite
+it with 0.
+We have no chance to write 0xf00dbabe there.
+Now from the checks before you would also
+see there are no other real special address
+checks.
+These just make sure you don’t write to
+the bootloader area from 0x8000000 to 0x8003000.
+But this also means you cant start writing
+a lot of data before 8003000 and include f00dbabe
+later.
+So this is the only overwrite protection and
+seems strong enough.
+If we try to write to the f00dbabe address
+it will get overwritten.
+And we need it to run our own code.
+One attack idea would be to analyse how a
+VALID firmware would somehow get the 0xf00dbabe
+value there.
+I didn’t do this and you also know it’s
+not necessary, But one of these other APDU
+commands would probably trigger a cryptographic
+check on the loaded new firmware, and if everything
+is correct, it would set the f00dbabe value.
+However this is where hardware knowledge and
+experience with chips and embedded debices
+comes into play.
+And now I’m referring back to the original
+f00dbabe disclosure where we looked into the
+chip’s documentation.
+There we learned about the memory map, and
+that the ROM from 0x8000000 is also mapped
+to 0x0000000.
+And if you know that, and your brain has a
+spark of creativity, you might come up with
+the following attack idea.
+What if we instead of writing f00dbabe to
+that address we are not allowed to, but instead
+write to 0x00003000.
+Let’s do that change and try it again.
+we can also set a breakpoint at the comparison
+where it would ensure that we don’t overwrite
+foodbabe and then look at it.
+And so here we hit it and we see in the register
+output, that now the segent we want to write
+to is obviously NOT EQUAL, thus we skip this
+block and go directly here.
+The f00babe value is not overwritten.
+Awesome.
+So let’s restart the ledger and see if we
+run into our endless loop!
+We run it…
+CTRL+C let’s see where we ended up in!?
+Oh… uh… this is clearly an invalid address.
+Fffff.
+Something went really wrong… let’s do
+it again and set a breakpoint where it would
+decide to jump to the firmware code.
+So all looks good.
+The f00dbabe check is passed and…
+OHHHH!
+We try to jump to 0x4141414…
+I completly forgot that this code here would
+take the value right after f00dbabe as the
+entry address for the firmware.
+So let’s change that address to where we
+have our code.
+0x80030c1.
+Rmember the 1 is to make sure it’s thumb
+code.
+Let’s try it again…
+WAIT AGAIN!?
+Invalid?
+Urgh….
+I see… endianess.
+The bytes are all reversed.
+So let’s fix thaat… do it again.
+Aaaannnd not it seems to work.
+Look we are here in our firmware code at 0x80030c0.
+And we are trapped in this endless loop!
+AWESOME!
+We have successfully updated the Ledger without
+an officially signed firmware.
+Now we are basically done.
+I’d like to remind you that this doesn’t
+fully compromise the ledger and you can’t
+extract the secret keys because they are stored
+on the secure element.
+In my opinion it is a vulnerability, because
+we do bypass some security assumptions here.
+But to be completly honest with you, The impact
+of this is, as of creating this video, is
+fairly small and attacks building on this
+are pretty theoretical at this point.
+So this definitely shouldn’t be seen as
+ledger bashing.
+And for me this was an awesome project.
+I learned so much new things about embedded
+hardware and how to reverse engineer firmware.
+And I hope you did too.

@@ -1,0 +1,616 @@
+welcome to part two of the video right
+up from the cookbook challenge from the
+Boston Tea Party CTF 2016 in this video
+we will step through my exploit step by
+step and analyze it and see how it works
+I will put the link of this exploit code
+into the video description first of all
+I define a couple of important helper
+functions that are needed the first one
+will convert an integer to a string and
+then st you ID converts a signed integer
+to an unsigned one which is important
+receive all will just read bytes from
+the socket until a time of the switch
+and basically read everything are you
+send to send a string over the socket
+and then I also specify arguments that I
+can specify to either I connect to my
+local machine and test it there or I
+connect to the remote service of the
+challenge and you can also see some
+global variables that I'm setting with
+certain numbers that are dependent on
+either my local set up or the remote set
+up namely offsets from Lipsy which Y
+there is the Lipsy provided with the
+cookbook challenge so that you can
+calculate the proper offsets when you
+leek addresses from Lipsy and stuff like
+that then there are some heap helper
+functions but we will look at them once
+we use them because they will take
+advantage of the functionality already
+well and then we already get just to the
+start of the exploit first of all we
+will send the name that they asked us
+for it's not important and afterwards we
+actually start exploiting our first bug
+we want to leak a heap address so we can
+calculate the exact location of the heap
+to do with us we allocate a recipe we
+add an ingredient to it which allocates
+a new area for it and then we free this
+recipe again and then we still print it
+because it's a use after free
+vulnerability and this leaks an address
+on the heap which will have the
+deterministic offsets of this heap
+offset so we know exactly where he the
+heap is all right this is also maybe a
+good moment to check SEC the cook
+as you can see it's has annex enabled
+and it has cannery but it is not
+positionally independently executable so
+the binary itself will not have a SLR
+and thus helps us a lot but nonetheless
+the system themselves might have a SLR
+and the locations where the heap is and
+the location well at Seijas will still
+be random we can verify this by
+connecting to the so credit service that
+is executing the cookbook and then have
+a look at the memory layout of the
+process and we can do this with the proc
+regular file system so we look at the
+memory map of the cookbook and this
+particular case you can now see that the
+here the addresses of the cookbook
+binary itself but you can also see the
+heap and well that see us so let's do it
+again
+and look at the second execution of it
+you can see that the addresses of the
+heap and the addresses of the lepsy
+changed but the addresses of the binary
+itself are the same so even though the
+binary doesn't use a SLR itself the
+system uses it so in this system will
+return an heap area that will be random
+as well the Lipsy and other stuff even
+though the heap location is random it's
+still aligned and if we may look like
+for example if we may look five items
+the offset of those five items will
+always be the same so when we can leak
+an address of the fifth item for example
+we can just subtract off the the offset
+for those five and get the base address
+of the heap and that's basically what we
+want to do we want to leak one heap
+address which then we know exactly where
+the heap will be so let's do exactly
+what my exploit is doing first we go
+into the create recipe menu then we
+press n for create a new recipe which
+will allocate a new recipe on the heap
+then we will add an ingredient to it and
+we will add basil to it and you know the
+amount doesn't matter how many we we add
+to it but we can specify a number that
+we can see it in memory and then we can
+print the recipe and we get to scout the
+recipe and apparently if we print it
+again we can leak some values so how
+does this work so let's have a look at a
+recipe in
+memory and especially what happens when
+we add an ingredient and then of course
+also what happens when we delete the
+recipe but still printed again for this
+we just can take the global variable
+that holds the current recipe address so
+we can easily find where it is on the
+heap at the start obviously there is no
+recipe so it's zero so let's continue
+and add a new recipe this will allocate
+a new recipe on the heap and should set
+the global current recipe address ok so
+apparently at this location we have now
+a recipe doesn't look like much because
+at the start it's all 0 we haven't
+filled the recipe with data yet and as
+the next step we add an ingredient to
+this recipe in this case I add just
+basil which is one of the standard
+ingredients already included and we can
+specify how many the number in our and
+which ingredient doesn't matter but we
+can choose numbers so we can find them
+and easily recognize them again in
+memory and the start of the recipe there
+are now two new values and they look
+like Hiba dresses so what are they
+pointing to the first address seemed to
+point to somewhere where there is
+another pointer so let's see where this
+is pointing to and this looks like one
+of the ingredients actually the basil
+ingredient if it just print this address
+now the strings at this area you should
+notice that at offset a there starts the
+string of the basil and you can see
+there when you are print it as a string
+and Eve other two values before it are
+the calories in the price so the first
+pointer here is pointing to something
+else which then has a pointer to the
+ingredient and obviously if you reverse
+engineer and add multiple ingredients
+you will notice that the first pointer
+in the recipe will point to the start of
+a linked list and the linked list will
+have two elements it the first one is
+the ingredient and the second element
+which is here zero is pointing to the
+next entry in this ingredient list so
+when you add a new ingredient to a
+recipe it will follow this linked list
+at the moment it's only one one
+ingredient in this list until it doesn't
+find a next ingredient
+in this case zero so if we would add
+another one at the location where there
+is a zero we would get the address of
+the next ingredient entry after that one
+the second pointer is very similar it's
+also a linked list but this linked list
+contains the amount of this particular
+ingredient in this case we entered for 1
+for 2 as the amount of basil and if we
+would add another ingredient like the
+previous linked list we would get
+instead of these zeros to the right of
+it it would point to the next amount of
+ingredient entry which will then also
+have an amount and again a next pointer
+which is either 0 or pointing to the
+next entry now we basically know how
+printing the current recipe works
+because as you can see it will display
+the name as well as it cost the calories
+and the amount of the ingredient that we
+have entered enters 1 6 7 0 6
+it's just hex 4 1 4 to which we have
+entered and so now you know that when
+you print it it simply follows those
+pointers so for example for the amount
+it follows the amount pointer in this
+linked list and the first entry and
+we'll print the first entry
+corresponding to the first ingredient in
+the other list and this amount entry
+obviously has a second value 0 so there
+is no next ingredient at the end of the
+list so it just stops there printing the
+next step will be discarding this recipe
+which will free the current recipe we
+are working on but it doesn't reset the
+global recipe pointer that we are
+currently working on so we can discard
+the recipe and still work with it for
+example we can still print the current
+recipe ok now we have discarded it and
+now we can look at it in memory and we
+see that the two addresses that were
+previously pointing to the linked list
+are no different well they are pointing
+to something something weird so this
+goes into how the heap is structured and
+when you print the this location -4 you
+get divided the 4 bytes just before this
+just basically the start of your data
+and there is actually heat metadata this
+tells you how big this junk is and the
+too weird well use are actually the
+forward and backward pointer for this
+information which block
+or free and which blocks are still in
+use when we look at what they are
+pointing through they point to the same
+location this is actually another heap
+meta data storage somewhere else not in
+this heap area which basically tells you
+in this case it's telling you where the
+last block of the heap is basically
+where the free data starts which is
+available again for allocating new data
+now imagine what would happen if you
+would try to print this current recipe
+it would try to follow those pointers
+and interpret them either as a mound or
+as an ingredient and in this case if we
+print us now you see that there are
+those weird values for the amount of the
+first not really existing ingredient and
+the amount of this fake ingredient is
+obviously the value that was stored at
+the location where this heaps metadata
+was pointing to in this case that is an
+address from the heap it's actually
+pointing to the top chunk of the heap
+basically where the completely free data
+starts where you could allocate more so
+this is an address on the heap that we
+can leak and and this defeats a SLR of
+the heap because when we print this now
+we can then just simply parse the output
+that we get and that is what is
+happening here to get the leaked heap
+address so let's look at this more
+closely with info proc mappings we get
+the map memory for this process and we
+know where the heap is so we know that
+this address is the heap and we know
+this is the address that we leaked so
+now we can calculate the offset between
+those two so the leaked address will be
+hex 16 d8 away from the start of the
+heap and as we defeat as a lot of the
+heap and now we know exactly where the
+heap is after that I just removed the
+remaining ingredients because we don't
+need them it's not necessary for the
+exploit particular but you can remove
+them now because otherwise the offsets
+on the heap will not be correct anymore
+so I in my case I just removed them
+because I didn't want to have them in
+the ingredients list when I'm dealing
+with the next bug so let's look at the
+first step of the exploit
+it apparently leaked the heap address
+zero nine zero six sixty eight and we do
+it again we get another address and you
+can see always the offset at the NT is
+68 is always the same that's pretty cool
+the next step of the exploit is we want
+to leak a value from the global offset
+table and namely printf so we can
+calculate off from if it's offset we're
+Lipsy will be loaded thus defeating a
+SLR for lab scene so what is the global
+offset table when we just take a random
+function that is from the see from the
+program for example malloc maybe we can
+see that malach is here defined as
+jumped to and then again a global
+variable in the data segment that is a
+fixed address so it will jump to the
+address that is stored there and that is
+basically the containing the address of
+the real malach look at the status
+section here we can find actually a lot
+more entries and this is called the
+global offset table because when you
+start the program then the program
+itself does not know what the address of
+Lipsy is so the linker who tries to link
+the ellipsoid who this to this program
+will place the real address of Mel look
+at this location here so now the
+application just has to call the smell
+of pepper which then will jump to the
+real melech location and that's how it
+works so if we can and and the address
+of the global as the table here are
+obviously fixed because the binary
+itself doesn't use a SLR so if we can
+leak a value from this table we know
+where Lipsy will be loaded based on the
+based on knowing the offset of the
+function inside of obscene so let's have
+a look at this end gdb we run the
+exploit and then we reach gdb and we
+read the global offset table and via for
+printf and that address that is
+contained there is the real printf so we
+want to leak this f75 cd28 zero somehow
+so let's open Lipsy in hopper now let's
+look for printf and
+we can find the offset of printf inside
+of Lipsy and we can take the address of
+printf from the global offset table
+subtract this offset and then we should
+arrive at the location where the pc is
+loaded to and you will see at the start
+of the exploit that I have defined the
+offsets of printf and also system which
+we will use later based on the ellipse
+see from my local machine and obviously
+I've also added the offset of printf
+from the Lipsy that was provided with
+the challenge so in the next step of the
+exploit we want to leak the global
+offset table entry for printf and as you
+can see them that is here at location D
+0 1 0 and I use a different technique to
+do this and once we have a leaked
+address of printf we can subtract from
+it the printf offset and thus getting
+the base address of Lipsy so let's see
+how this looks like in the exploit and
+works nicely because as you can see we
+get a leaked address and when we
+subtract the printf offset of it we get
+the ellipses base address that looks
+pretty cool we can do it again and we
+get a different location because of a
+SLR so that works very well so let's dig
+into how exactly this league works so
+let's have a look at the ad League
+function that I have defined here it
+takes this first parameter the address
+we want to leak and then a second
+parameter it has called groom with hex
+200 what that is we will see in a second
+so the description says that this
+creates a recipe discards it and at its
+place it allocates a new ingredient adds
+it to the ingredient list and this
+ingredient list is basically this also a
+linked list like in the previous league
+but this time it's the global ingredient
+list of all the ingredients that we have
+added so it's just abusing a different
+function so first if groom is defined it
+will call a function called fill heap so
+groom will fill up all fragmented heap
+chunks so we have a nice fresh align
+teep to start with to do this it will
+have a for loop over the hex 200 entries
+that we want to generate and we do this
+by giving your cookbook a name then we
+can define
+sighs and we choose a very small size of
+this name and then we just give this a
+name this those fellows don't really
+matter what just matters is that they
+are very small and by generating a lot
+of them we can fill all holes that were
+made in the heap structure before and
+basically you know get a new alignment
+for the heap pushing all the heap
+further down and we end and a certain
+chunk will not accidentally allocate it
+in a previous hole that was generated
+earlier from something else so this just
+fills up all the holes in the heap and
+when we have a new nice area where the
+next back will be exploited let's have a
+look at what is happening in this
+function in gdb so we start a new
+instance and attached to it with gdb so
+first we go into the create recipe menu
+and then we call new recipe which will
+allocate a new recipe on the heap and we
+can look at this in memory by going to
+this global variable that stores the
+current recipe that we are editing and
+we can then follow it and just look at
+it okay here's the current recipe
+obviously it's all zero because we
+didn't do anything with the recipe the
+next step is we give this recipe a name
+this is also not particularly necessary
+it just shows you where exactly what a
+name and above a recipe if you specify
+one because that is important for the
+blog now so if we look at this in memory
+we can see where the name of this recipe
+is stored here we see our A's and B's
+and C's in the next step I also create
+another recipe and give it a name this
+part is completely unnecessary but I
+cannot remove it anymore because if I
+would remove it then all the heap
+addresses or the objects would shift a
+little bit further up and that would
+completely screw with the offsets and
+stuff that I calculate later
+so it's unnecessary but it's still in
+there it has nothing special what is
+more important is the next step when we
+decide to discard this last recipe that
+we have generated we basically can
+ignore the first recipe that we have
+added because that will just will never
+be freed it's just laying there on heap
+taking off thing
+space what is important is the second
+one we create now we discard the recipe
+that we have worked on recently so the
+recipe got freed even though this got
+freed like the other stuff that we did
+before it doesn't look different like
+the first two values didn't get set to a
+weird value that's actually because it
+was the last chunk and if we look at the
+size of this particular recipe it's not
+what we expect with before one one or
+whatever it was it's one F 9 f 9 and
+that is called the wilderness because
+this is now the end of the heap we are
+literally after that there is no object
+allocated on it anymore from here on
+everything it's just free heap and the
+indication that we see this wilderness
+value there shows that this particular
+recipe got freed next we enter the add
+ingredient menu and then we allocate a
+new ingredient with n then we give this
+ingredient a name and we export saving
+it so let's look at this in gdb and the
+new ingredient should have been
+allocated where the recipe was
+previously at and we can see this that
+now the wilderness pointer got moved a
+little bit further we can see that it's
+now 1 f8 b1 it has slightly different
+value because obviously we have now a
+little bit less space on the heap
+because it got moved a little bit
+further down next we give this
+ingredient a name and then we can look
+at this in gdb so now we can see that
+the name got written where we expected
+it at offset +8 and just remember that
+the other two values are the calories
+and the price and then we export we safe
+the changes and it says saved if you
+look closely you may see that the name
+that was previously assigned to the
+recipe got overwritten with some other
+values but what do they mean
+remember the functionality that we had
+to list all the ingredients that we have
+in the cookbook and you can see that
+there's the agreement that we just added
+and you just ignore the other ones
+because in the export I would remove
+those but because we started this is a
+fresh net session and not with the
+exploit they are still in there but
+clearly there must be some kind of list
+and obviously a similar linked list as
+we have seen before and we know that
+there is a global variable that seems to
+keep the ingredient list so we can have
+a look at this list in gdb so the start
+of the list is pointed to by this global
+variable so let's follow this global
+variable okay we find another linked
+list entry and it's exactly how we had
+it earlier that the first one is
+pointing to an ingredient and the second
+one is pointing to the next entry of the
+list and the next entry of the list is
+exactly below and so the you have again
+the pointer to an ingredient and then
+next to it is the pointer to the next
+entry so you can see here for example
+this is one ingredient and if you print
+this again as strings you can see that
+this is water and you can see the
+calories and the price for that water as
+well and if you follow this linked list
+eventually we will arrive at the
+ingredient that we have added last which
+will have an empty next pointer
+especially this various looks will be
+weird so yeah that seems to be the
+ingredient that we have added last and
+you can see the excess that we have
+named it for so let's have a look at
+where this list entry is located in
+memory let's have a look at the whole
+recipe again and see where we can find
+this one so that's apparently at offset
+seven five eight and if we look in on
+the heap that was previous planning from
+the recipe pointer it's here
+and if you remember that's exactly at
+the location of the name from the recipe
+so we can now in theory write another
+name to the recipe which will overwrite
+the list entry of the ingredient list
+let's try this let's give this a recipe
+a name so we go into the credit recipe
+menu g4 give it a name and then some a s
+and then we just locate in gdb again and
+see that indeed we have written there
+some ACE but it's just a little bit
+before the list so we have to write some
+B's and C's and then with the DS we
+could over
+right the address of the next ingredient
+and that's exactly what the exploit is
+doing as you can see I create a song
+string with a speeds and seas and the DS
+will theoretically be alright this
+address and instead of an ingredient
+address i right there the address I want
+to leak
+it's basically try this by hand let's
+continue again and create another name
+with A's and B's and C's and DS so that
+we have enough to actually overwrite the
+the ingredient list entry so if we look
+at the heap now we have successfully
+overwritten this address of this
+ingredient and we can specifically just
+display this one list entry to verify it
+we can see that this list entry is now
+pointing at an apparent ingredient at
+four four four four four
+now let's simulate an overwrite with
+chosen address by setting this
+particular address to this special
+number in this case we wanted to
+override it with the address of the
+printf global offset table address but
+then we also have to set the second
+value as well to zero because if it's
+only a then the algorithm will think
+that at address a is the next entry in
+the ingredient list so we definitely
+want to set that to zero so this is our
+fake ingredient list item and after we
+have overwritten it we will simply quit
+the menu and then we will parse the
+ingredients and parse ingredient will
+call L for list ingredients which will
+follow the linked list and display each
+ingredient that is in this linked list
+in this case we still have the normal
+ingredients in there as well but in the
+exploit I removed them if you remember
+and here we can see our fake ingredient
+entry now and you know that the calories
+number is exactly at the address where
+it is pointing to so this global offset
+table entry is now interpreted as an
+ingredient which has calories of hex 476
+something and because the first bit is
+one it will be interpreted as a negative
+number if it's printed as a signed
+number but we can use sto you
+signed two unsigned function that I've
+specified to convert this negative
+number to its unsigned counterpart and
+we do this for all ingredients we find
+and eventually return it so now the
+first entry of this leaked array I'm
+returning will contain the address of
+print F from the global offset table and
+then we can subtract from it the print F
+offset that we have specified and when
+we run the exploit we can see that this
+works well we try to leak the address
+that is stored at the global offset
+table after some heap grooming we can
+leak it and we get an address and that
+is the address of print F and then we
+can abstract the offset and we will get
+the ellipse e base address
+okay so cool the exploit so far leaked
+the heap address and then proceeded to
+use a slightly different bug but similar
+to leak the global offset table entry
+for print F which we can use to
+calculate the ellipse E base address
+which will be important later
+unfortunately the video gets longer than
+I expected so I will split this again
+and in part three we will finish the
+export see you next time

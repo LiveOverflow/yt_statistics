@@ -1,0 +1,71 @@
+Welcome to LiveOverflow.
+Here you can find videos about computer internals,
+with a focus on hacking and security concepts.
+I also record myself solving hacking challenges
+- it might be a bit boring to watch, but if
+you always wondered how other people work
+and think, it might be interesting for you.
+Now let me tell you a short story about why
+I am doing this here.
+I was too young in the 90s and didn’t exist
+in the 80s to be part of the seemingly golden
+age of the hacker culture.
+When I was a teenager I loved taking apart
+electronics and looking at the green circuit
+boards wondering with what kind of magic it
+is imbued with.
+Once my dad brought home our first computers
+and we got access to the internet, I found
+myself being fascinated with “hacking”
+and wanted to learn more about it.
+But all I found was crap, people trying to
+sell old information or fake products.
+So I never got into hacking until much later.
+I started programming in Visual Basic and
+made my first websites with html.
+Eventually I moved on to php and other programming
+languages.
+Some years pass and I moved out to another
+city to go to university.
+One day I was sitting in front of my computer
+coming across this hacking game by stripe.
+A CTF where one level was to exploit a buffer
+overflow.
+I knew what a stack was.
+And I was able to read simple assembler code
+from university classes.
+But not until I saw the shell popping up,
+my mind being blown and struck in awe, I realized
+I was at a position in life where I can pursue
+a dream I had as a kid.
+And I still wear the T-Shirt I got from the
+stripe CTF with pride.
+At the same time I had the opportunity to
+join a hackerspace where I met so many intelligent
+people and I went down a rabbit hole.
+Not many years have passed since then.
+And I still feel I have only explored a tiny
+fraction of what is out there.
+The content I am creating here is an attempt
+to give anybody who want’s to understand
+the world better, an opportunity to start
+somewhere.
+I want to give to others, what I wish I found
+when I was a teenager sitting in the basement
+typing into google “how to hack”.
+At the same time I see more and more people
+making tutorials on how to use certain hacking
+tools, rather than explaining the underlying
+concepts.
+I understand that it looks cool, and that
+you can feel very powerful.
+But there is more to hacking than that.
+Understanding concepts, understanding how
+your phone and laptop do stuff, understanding
+on a technical level how you are able to watch
+this video right now.
+That is amazing.
+There is so much awesome stuff to discover
+and break.
+So I invite you to join me on this adventure
+and “Hack the Planet!”.

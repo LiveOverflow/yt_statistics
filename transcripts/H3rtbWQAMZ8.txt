@@ -1,0 +1,281 @@
+Let’s continue with our project reverse
+engineering the protocol of my air conditioner
+remote.
+Last time we implemented our own poor man’s
+logic analyzer, this time we will use something
+more advanced.
+last time we tried to log the digital output
+with an arduino and serial communication to
+the laptop.
+Though that was a little bit too slow.
+We could try to speed up the implementation,
+by for example not sending text via serial
+in every iteration, because that is slow.
+We could do this by implementing a buffer,
+an array, that always saves 100 samples and
+then pushes them out.
+But I want to show you a real logic analyzer
+this time.
+This is the Saleae Logic Pro 8.
+This is a professional analog and digital
+logic analyzer.
+let’s hook this one up to the circuit and
+collect samples.
+So this one can collect a lot of signals in
+parallel, but we only need one.
+in this case we connect the black ground wire
+to the ground pin.
+It uses these precise hooks which can be easily
+attached to a pin.
+And the orange wire goes to the data-out of
+the ir receiver.
+The arduino is only still connected because
+because we use it for the 5volt power supply.
+Then we connect it to the laptop and launch
+the Saleae Logic application.
+With the big green button we can configure
+the device.
+We can select the sample rate, the speed it
+collects data points with.
+So for exampel currently it would collect
+500 million samples per second of digital
+data, and 50 million samples per second analog
+data.
+In this case our orange cable was channel
+number 3.
+And we can also specify to only log for a
+tenth of a second.
+That should be enough.
+But, we really don’t need to collect such
+a crazy detailled trace.
+We can select a way slower sampling rate.
+Like with our arduino we can now define a
+trigger.
+We want to trigger the recording only when
+the input drops to LOW.
+Because then the IR receiver saw infrared
+light.
+Let’s try it.
+Start.
+Waiting for trigger.
+Pressing a button on the remote.
+And boom.
+There is our collected trace.
+So first of all you can see two traces of
+channel 3.
+The top one is the digital trace, the bottom
+one the analog trace.
+So what does this mean?
+Let’s zoom into one of the edges.
+Ok, you can see that the top channel always
+has a sharp vertical edge down.
+Because in digital logic there is only 1 or
+0.
+But in the analog world we meassure voltage
+and we can see that we meassured almost 5V
+at the start and then over roughly, maybe
+5 microseconds the voltage slowly dropped
+down to basically 0 Volt.
+In the real analog world obviously voltage
+doesn’t drop immediatly, it takes a short
+amount of time to drop down.
+And when it dropped under roughly 2.5V, the
+logical interpretation is then a 0.
+And you can see how many sample points this
+device can collect.
+We have here, I don;t know, hundreds of collected
+points per peak, while with the arduino we
+only had 1 to maximum 3 samples per peak.
+And this trace is also now much more beautiful,
+there are no wide peaks.
+They all have the same width, just sometimes
+a bigger gap between each other.
+Now last time I already hinted at the bit
+interpretation of this trace.
+This is a very typical pattern for an IR consumer
+remote.
+As far as I know it’s based on the protocol
+created by a company called NEC.
+But it can vary in bandwith and frequency
+and so forth used.
+But the general idea is the same, you always
+have a pulse and then either a short or a
+long pause until the next pulse.
+And a long pulse refers to a 1 and a short
+pulse refers to a 0.
+This means we can now extract the bits of
+a transmission and try to reverse engineer
+which bits are used to do what.
+So let’s start.
+So that’s definetly a one.
+That’s a one.
+And that’s a one.
+This is a zero.
+And this is a zero.
+Urgh.
+I already have enough.
+This is annoying.
+So this application also has a cool feature
+called Analyzers.
+Protocol Analyzers.
+So we can select from a big list of low level
+protocols how we want to interpret our data.
+The issue is only, that it doesn’t have
+the NEC or IR consumer protocol by default.
+The one you see here in the list, is the one
+I have written myself.
+So that’s what you have to do if you face
+a protocol that is either unknown, custom
+or just not supported.
+But Saleae offers a Analyzer SDK which you
+can use to implement your own Protocol Analyzers.
+And that’s what I did.
+The documentation of the SDK was a bit rough.
+And it was C++.
+And it took me several hours, so I will not
+do this here again.
+But I will put my code on github so it hopefully
+helps other people.
+Infact you can even install the Logic Application,
+you don’t need the device for that, and
+compile my code to check out the traces yourself.
+I will also make them available.
+No let’s add my analyzer.
+First of all we have to tell the Analyzer
+some information.
+In this case it wants a pulse width, you will
+see in a second what I mean by that.
+Then we can also define if we want to interpret
++5V as 1 or 0.
+Usually it’s seen as 1, but in this case
+we might want to invert this, just because
+the outout is LOW, when the LED of the remote
+is ON.
+But in the end it doesn’t matter.
+We can also select what we want to display,
+so in this case let’s go with single bits.
+SAVE.
+Let’s also set the text output to hex only,
+and then let’s have a look at the data.
+That looks pretty cool.
+You can see those blue bubbles over the digital
+data telling us if it was a 0 or 1.
+Long pauses are a 1, short pauses are a 0.
+You can also see those white dots, which I
+have added to show you what is interpreted
+as pulse width.
+And you can see in a long 1, there are basically
+4 pulses.
+In a short 0, there are basically 2.
+So if we had the pulse width a bit longer
+or shorter, then we wouldn’t be able to
+read the data properly.
+For example if we would use 530, then you
+see the pulse width slowly drift away and
+kind of corrupt the data we read.
+Another available setting is interpreting
+the data as whole words, so now the whole
+packet becomes one frame and the bits are
+shifted into a 64bit variable.
+And you can specify if you either want to
+have the first bit to be the first or last
+bit in the 64bit variable.
+Now let’s document our test properly, that
+when we collect a longer sample with a lot
+of different commands, we are still able to
+identify which one is which.
+So let’s start.
+I suggest we start with turning it on and
+while it’s set to the lowest temperature
+which is 18.
+Then we increase the temperature up to the
+maximum of 32.
+After that we turn it off and on again.
+Then we cycle through the 3 modes.
+Afterwards we cycle through the 4 fan modes,
+while we are on a/c, then we switch the mode
+to the fan, and we cycle through the 3 fan
+modes.
+Back to the a/c mode.
+Then we switch from celsius to farenheit and
+back.
+I honestly don’t know how the timer works
+so I ignore that one.
+Last two modes are their weird feel good home
+thing and the silent mode.
+And we finish by turning it off again.
+Cool.
+We stop the collection and now we can inspect
+them.
+On the right you can see the decoded protocol
+view, which is super cool because it displays
+us the each individual captured packet.
+And when we click on one, we automatically
+jump there.
+We can now also export this data as a simple
+CSV file for further analysis in python.
+Now let’s explore this data in python.
+We open the file and read it.
+Split it by newlines.
+To have a list of each line.
+But we don’t want the csv header and the
+last empty line, so let’s slice that.
+And we can use python list comprehention to
+already split each line at the comma.
+And we loop over each command.
+By the way, you can execute python scripts
+directly in sublime with ctrl+B. Next let’s
+convert the hex value to an integer, and then
+a binary string.
+Because we did like a sequence of commands,
+it would make sense to compare each line and
+visualize which characters change.
+So let’s always safe the last printed value
+and diff it with the current one.
+We can simply define a function diff which
+iterates over both strings and adds a character
+if the characters differ.
+And now we can take this output and analyze
+further.
+So the first packet was 18 degrees celsius.
+And then we incremented it up to 32.
+And we notice that this one bit here changes
+with every increment.
+And the 2nd bit here changes with every 2nd
+increment.
+Si that looks like a counter jsut reversed.
+So it looks like we do want to change the
+endianess of those words, and we can do that
+by changing the settings in the analyzer and
+export it again.
+So it looks like up to 5 bits are involved
+in the temperature selection.
+It’s not quite regular binary to decimal,
+but it’s definitely incrementing.
+After that we turned it off and on again,
+and it looks like this bit is responsible
+for that.
+Next we cycle through the 4 different modes.
+First one is dehumidifier.
+Simple increment.
+But the one after is fan, which has a different
+fan intensity than the other modes.
+So those two might be the fan intensity.
+And if we look closely at the commands after
+those, where we tested changing the 4 fan
+settings, we can see that those one are now
+incrementing.
+After that we switched to fan mode, which
+again changes also the fan intensity, but
+then we tested the different fan levels here
+too and we see those change as well.
+I guess you get the idea now how it works.
+this is how we can slowly reverse engineer
+which bit is responsible for what.
+So now it’s your turn, can you figure out
+which bits are responsible to change the screen
+from farenheit to celsius or activate the
+silent mode?
+The saleae logic trace, as well as my analyzer
+code and exported hex values are available
+on github for you to play around with.

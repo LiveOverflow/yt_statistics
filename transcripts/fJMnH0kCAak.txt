@@ -1,0 +1,284 @@
+In this video we will cover heap level 0 from
+exploit-exercises.com/protostar.
+It’s the heap exploitation introductory
+challenge and is very easy.
+We again compile this on a Ubuntu 16.04 LTS
+version, so basically a modern system, to
+see if or how it’s still exploitable.
+And spoiler alert, nothing changed for this
+challenge, it’s super straight forward.
+But I have a special idea for this video and
+even if it’s a bit easy for you, you might
+want to checkout what else we learn at the
+end.
+In the previous videos of this series I usually
+create the exploit and then think of a way
+how to explain and show it to you.
+But this is so simple, that I thought it would
+be cool if I would instead record myself solving
+it, kind of like a blind solve or a speedrun.
+But I didn’t try to be super fast but it
+was quite straight forward and I include all
+the mistakes and pauses I made.
+And now we will step through the video and
+I explain to you what I have been thinking
+in different moments and point out some other
+things.
+In the top right corner you can also see a
+timer that will keep track of how long it
+took me in real time.
+But before we start doing the exploit let’s
+have a look at the code again.
+There are two functions winner() and nowinner().
+And obviously we have to somehow call winner().
+We can also see there are two structs that
+get space allocated for them on the heap.
+And this fp construct here looks complex,
+but you can ignore that weirdness because
+when you look in the code it’s clear what
+it does.
+We set fp to nowinner.
+Notice how nowinner has no parantheses, this
+means it’s not being called.
+This is literally the function pointer and
+adding paraentheses would cause a call.
+And then later we have those paraentheses
+for fp.
+And fp has been set to point to nowinner,
+so nowinner is executed().
+And our goal is it to somehow use the strcpy,
+which will overflow the name buffer which
+is only 64byte large and overwrite the function
+pointer.
+So sounds easy.
+I start by opening up the binary in gdb.
+And do a first test execution, but I run into
+a segfault which startled me for a few seconds,
+but then I realized I forgot the argument
+parameter again.
+The strcpy uses the first argument to copy
+into name.
+Ok now we had a clean execution.
+Now I want to set a good breakpoint so I disassemble
+main.
+I’m quickly scanning the assembler code
+here, mainly looking at the different function
+calls to figure out what corresponds to what
+in the C code.
+And at first I was thinking about setting
+a breakpoint before or after the strcpy, to
+catch the before and after of the overflow,
+but in the last moment then figured that I
+probably don’t need to look at it this closely,
+and I can simply go to the magic position
+right away.
+The call rdx.
+This is calling the function pointer that
+contains nowinner().
+Ok, so I execute it again and we hit the breakpoint.
+Now this challenge is about a heap overflow,
+so I first check the virtual memory map of
+the process with vmmap.
+Here you can see in which memory regions we
+have the binary itself with the code and data
+segments, we can also see where the stack
+is and where shared libraries like libc are
+loaded too, and we also have the heap here.
+So obviously I want to check out how the heap
+looks like.
+Examine 32 64bit hex values from the start
+of the heap.
+I immediately look for the name we entered
+as an argument, which was “AAAA”, so here
+they are.
+And I also immediately look for the function
+pointer.
+This looks like an address.
+Quick sanity check with the disassemble command.
+Here is a puts call using this address as
+a paremter, and so that is our nowinner string.
+So yep, that’s nowinner.
+So now we want to overwrite that with winner,
+so we need that address.
+Here it is.
+Next I need to figure out how much we have
+to overflow, to do that I simply look at the
+addresses to the left.
+Address of the start of the name ends in 0x10,
+and the function pointer is ath 0x60.
+So we have an offset of 0x50.
+So now I’m feeling confident and actually
+drop out of gdb and hope to have a working
+exploit right away.
+So I start by writing a short python inline
+script to print the exploit string.
+Essentially we need a couple of characters
+as padding to reach the function pointer and
+so I print a few As.
+Quick check again how many that was, 0x60-0x10
+so we need 0x50.
+After that we need the address of winner.
+So 0x40, OOPS!
+Almost made a mistake - this stil happens
+to me sometime, we obviously have to start
+with 0xf6, 0x05 and then 0x40.
+Because of the endianess.
+Now for a sanity and debugging step I pipe
+that output into hexdump to see if it is what
+I expect.
+But then I notice a 0x0a at the end, and that’s
+a newline.
+Python print will add a newline at the end
+which we don’t want.
+So now I change the script to use the sys
+module instead in order to directly write
+a string to stdout, so we don’t have a newline.
+And I verify that again with hexdump.
+And then I’m basically done and try it on
+the target binary.
+So the input is passed as argument, so I use
+backticks to execute the inner python command,
+and the output is then basically replaced
+by it and placed here as the arguments.
+Level passed!
+Awesome!
+I executed the winner function().
+You see this was super simple.
+So when I was writing this script with the
+commentary of my recording, I noticed a small
+detail that I didn’t think about.
+And I actually never thought about before.
+So here is the heap output again.
+Do you see this data down here?
+That is clearly ascii.
+And that’s weird, in our program we did
+not allocate any string like this on the heap.
+So how did this happen?
+When you look at this ascii text, then you
+will realize it’s in fact the printf output.
+But why is that on the heap?
+Let’s investigate.
+First I thought we could checkout valgrind.
+Valgrind is an instrumentation framework for
+building dynamic analysis tools.
+There are Valgrind tools that can automatically
+detect many memory management and threading
+bugs, and profile your programs in detail.
+I really should use valgrind more often, I
+use it wayy to little.
+But here is for example the valgrind output
+with tracing mallocs enabled.
+And then we run our heap0 level.
+And we can indeed see here our two mallocs
+of the structs we do, but also a malloc we
+didn’t do of 1024.
+That’s also the only memory that is freed
+again.
+The mallocs we do have no free.
+So why is that happening?
+Another interesting output is strace.
+Strace traces syscalls.
+And while we don’t see mallocs here, because
+malloc is just some algorithm and memory managment
+implemented in libc, we can see the brk syscall,
+which gets the memory from the operating system
+in the first place.
+So this is where we get memory that will then
+be used by libc for the heap.
+So if malloc is a libc function, we can also
+checkout ltrace, which traces linked dynamic
+library function calls.
+But oddly enough we only see two mallocs for
+the two structs.
+Nothing about the mysterious third malloc.
+It might not be immediately obvious, but that
+is actually already a really good hint that
+the mysterious malloc did not happen from
+a dynamically linked library call.
+Which means, this malloc must have been executed
+for example by libc itself.
+And valgrind is a bit smarter and also traces
+these internal mallocs.
+For the third test I create a simple program
+that calls puts, so it prints a string.
+Because we know the heap did contain the printf
+output so it must have to do something with
+that.
+And then we can debug that program and set
+a breakpoint on brk.
+Remember brk is the syscall that is called
+when a program requests additional virtual
+memory, and so this is called when the heap
+is set up.
+And the heap is not always setup, only if
+it is required.
+So if we assume printf or puts calls malloc,
+it would have to setup the heap first.
+Now that’s also why I created this small
+test program, because the original heap0 has
+obviously regular mallocs before the printf,
+which makes it a bit annoying, so this is
+a clean example.
+On a second note, when you set a breakpoint
+with a symbol name like brk, there has to
+be a symbol name for it.
+And a syscall doesn’t have a symbol name.
+A syscall is an asembler interrup instruction
+with a number as paramter to indicate which
+syscall you want.
+But there is a brk symbol, but it’s not
+initially found.
+You first have to execute the program in order
+to load the dynamic library libc, which does
+contain a brk symbol.
+And infact that is a regular function as a
+wrapper around the brk syscall.
+So anything inside of libc would not directly
+do the syscall interrupt, it would call the
+internal brk function.
+So that;s why we can easily set a breakpoint
+like this.
+Long story short we can now continue and hit
+that breakpoint and then examine the function
+backtrace which tells us which functions have
+been called that lead to this brk call.
+I clean that up a bit.
+So here we go.
+And as you can see it starts with IO_puts.
+You can also look at the libc code for that
+stuff, I just pulled up some mirror of libc
+on github, and you can read the code there.
+The reason why the function is not called
+puts, but IO_puts, eventhough we only use
+puts when we call it, has to do with a lot
+of C macros in libc.
+I find it really difficult to read that code.
+For example we know that the next function
+has the symbol name _IO_new_file_xsputn, but
+that doesn’t show up in the C code.
+But there is this similarely called IO_sputn,
+which when you look that up leads to a macro
+that says that it’s actually IO_Xsputn.
+Which itself is another macro that is JUMP2
+with __xsputn as the first argument , and
+JUMP2 is obviously another macro.
+And it just keeps going like that.
+Feel free to do that on your own.
+But if we trust our trace we can see that
+at some point it calls doallocbuffer.
+And there is also a comment saying: “Allocate
+a buffer if needed”.
+So this 1024 byte malloc has to do with the
+standard output buffer.
+A printf doesn’t immediatly result in a
+syscall write, but libc implements a lot of
+stuff like this in order to achieve higher
+performances by buffering output instead of
+waiting for files, or writing a few bigger
+chunks instead of a lot of small pieces.
+Yeah.
+I would consider this a solved mystery.
+Just a little excursion into the inner workings
+of programs.
+I hope you liked that.
+See you next week.

@@ -1,0 +1,315 @@
+We are going to learn about a weakness of
+RSA, that allows us to recover the private
+key of an admin for a ctf challenge.
+This will be fun.
+It was also the next easy challenge after
+the ones I solved already.
+If you know what you have to do, you can quickly
+google and find solution scripts online, but
+I wanted to take the opportunity to look a
+layer deeper into RSA.
+Key Server, crypto 200 points.
+We have received a portable assymetric key
+storage for evaluation purposes.
+It generates and stores administrators’
+public keys.
+Customers can use this repository to find
+the public key of the admin they want to contact,
+and administrators can use this repository
+to update their key information.
+If this fancy keychain passes the test, we
+are going to give them away like candy, secure
+candy.
+And we have a challenge binary that we can
+download and flash onto the arduino board
+with avrdude.
+Then we can use screen to connect to the board
+via serial.
+Ok, so we get a menu with two options.
+First, if you are a customer you can list
+all public keys.
+Second, if you are an admin you can update
+your keys.
+Just sign the plaintext “admin” and more
+options will be provided.
+The parameters to be used for the signature
+are SHA1 and PKCS #1 version 1.5
+And it’s pretty clear that that is our goal.
+We want to be able to sign the text “admin”
+with one of the admin’s private keys.
+You can also look up PKCS #1 version 1.5 and
+quickly see that the asymmetric encryption
+is RSA.
+And otherwise it basically just tells you
+what the description said, that for signature
+you first reduce the message with a hash algorithm,
+by default that would be md5 but in our case
+we use SHA1, and then we encrypt that hash
+with the private key.
+Wait that doesn’t make sense, does it?
+encrypting with the private key?
+Do you not usually encrypted with the public
+key and decrypt with the private key?
+Well, we want to sign a message.
+If you have my public key, and I want to send
+you a signed message, so that you can verify
+that I really sent it, then I can simply encrypt
+my message with my private key, and then you
+decrypt the message with the public key.
+Only me with the correct private key would
+be able to encrypt it so that you can decrypt
+it with the matching public key.
+And that’s how signing works with RSA.
+So if we had the private key, we could take
+the sha1 hash of the “admin” message.
+And then we encrypt it with the private key.
+And we take the result, and give it to the
+board.
+This way we proved that we are admin.
+Because only an admin with the private key
+could sign the message.
+But how can we get the private key of an admin.
+All we can do is list the public keys.
+At this point you can google for common ways
+how you can break RSA, like mistakes that
+can happen, because crypto is hard.
+but let’s see if we can figure it out ourselves
+by looking at the math.
+At least partially.
+So here is the wikipedia article of RSA, and
+it tells you exactly how RSA works.
+But first of all I like to mention something.
+When people ask, what’s the difference between
+RSA and AES.
+The textbook response is, one is asymmetric
+and the other symmetric encryption.
+But that’s pretty shallow.
+Maybe you have heard about how we usually
+do assymetric encryption of larger messages.
+We don’t just use RSA.
+We generate a secure random key, and use it
+to encrypt our message with AES.
+And then we encrypt this random key with the
+RSA public key of our recipient, and send
+the RSA encrypted key, and the AES encrypted
+message to our contact.
+Our contact then decrypts the key with their
+RSA private key, and then use AES with that
+key to decrypt the message.
+We often say, we do that because it’s faster.
+But again, that’s kind of a shallow reason.
+what’s really the difference.
+AES is a block cipher.
+It basically is a glorified byte mixer.
+First it operates block based, it divides
+the message, the data, into blocks, divides
+that block further and basically handles bytes.
+It then substitutes those bytes, it mixes
+them.
+Of course doing a lot and way more complicated
+stuff than that.
+But key takeaway here is, that it operates
+on bytes.
+That’s completely different on how RSA works.
+RSA is pretty much basic math which operates
+on numbers, it doesn’t really care for bits
+and bytes.
+Sure AES is also math.
+But what I mean is, for plain RSA we never
+really talk about bytes or bits.
+We just do calculations with huuuge numbers
+and that is not trivial with computers.
+The bigger the message you want to encrypt,
+the bigger your number gets.
+Of course there are algorithms how you implement
+those calcluations on a computer to make it
+efficient, but still.
+It’s a big difference.
+So let’s look at how this RSA math looks
+like.
+We won’t get into why it works, but we look
+at all the operations that are done to do
+RSA.
+So encryption works by taking the message
+to the power of the key.
+And then modulo n.
+I think that’s like high school level math,
+isn’t it.
+It’s super simple.
+I mean it’s kinda magical that it works,
+totally goes over my head why.
+But I don’t care.
+It’s math.
+Somebody understands why it works, I just
+know that it does work.
+And Decryption works very similar, you take
+the cipher text, the encrypted text, and take
+that to the power of the other key.
+Of course the magic lies in the properties
+and dependency of the two keys, the private
+and public key, that it works.
+But whatever.
+So that also means, if you take the cleartext
+message to the power of the first key, which
+results to the encrypted text.
+And then to the power of the second key, you
+get back the original message again.
+Well modulo n.
+Just so I don’t loose anybody here.
+Modulo is this clock calculation.
+Ehm.
+What is 3 o’clock + 12 hours?
+15 oclock?
+Well, yeah, in a sane country like germany
+it is.
+But it’s just 3 o clock again, if you take
+that whole thing modulo 12.
+Modulo 12 means to restrict the numbers to
+only what’s available in that range and
+you wrap around.
+So even though that exponentiation of the
+message will be a frkn huge number, if you
+take it modulo this n, it will be the smaller
+message again.
+So what exactly is the public key.
+Let’s have a look at the key generation.
+If you want to generate RSA keys, you first
+need to get two prime numbers.
+P and q.
+And they have to be random.
+Then you calculate p times q and that becomes
+what we call the modulus n.
+And n is part of the public key, because the
+person encrypting something needs to know
+the n.
+So when n is public, and it’s just a product
+of two numbers, why can’t you just figure
+out those two random primes?
+That seems simple?
+Well it turns out, that it is unbelievably
+hard.
+We don’t know how you can figure out the
+prime factorization of a number efficiently.
+If we find a way to do this easily, RSA is
+dead.
+So now you got your public n.
+Next we want to get the private key part.
+There is some fancy math involved how you
+get your private key d now, but eventhoug
+you don’t know exactly what they are doing
+here, they only use p, q, n and e.
+You know n, n is part of the public key, and
+you do know e, because that is also part of
+the public key.
+Mayeb now you are confused, because we only
+got one number per public key from the admin
+list, but that’s not a big issue, usually
+the public key exponent e is pretty constant,
+there are some typical numbers that are always
+used.
+And the reason why they didn’t give us here
+one is, because it’s a standard one.
+Anyhow.
+This means to generate the private key d,
+you need n and e which you already know and
+p and q.
+Which you don’t know.
+So all you have to do to get the private key,
+is to factorize n into the prime numbers p
+and q, and with them, the system falls.
+After that it’s just doing the calculations
+right.
+So how could we factorize n.
+Based on our current knowledge of math, there
+is no easy way to do that.
+But let’s start simple.
+If we would know ONE of these numbers, let’s
+say we know p.
+We can just divide n by p and we get q.
+Mh, that’s easy but also doesn’t help
+us much.
+Well here comes the point where you actually
+have to think a bit outside of the box.
+Because in an ideal world, p and q must be
+random.
+Also we only looked at ONE public key n, and
+came to the conclusion it can’t be broken.
+Well if p or q were super small primes we
+could probably bruteforce it and get lucky.
+That’s certainly something you could try.
+But here is one thing, we have more public
+keys.
+We don’t have only one.
+If they were all perfectly random we couldn’t
+break them.
+But what if one of the primes is the same.
+So two keys share the same p?
+By coincidence, or because of bad random generation.
+The thing is, we know an efficient algorithm
+to find the greatest common divisor, GCD,
+of two numbers.
+It’s also known as euclid’s algorithm.
+This algorithm is over 2000 years old.
+It’s always blowing my mind what kind of
+crazy stuff people figured out long time ago.
+I wish I were this smart.
+Euclid didn’t even have the internet, and
+I can’t even figure this out today.
+Anyway.
+His algorithm can, given two numbers, find
+the greatest common divisor.
+Of course only if they do have a common divisor.
+So if you have two numbers, it can find the
+value that can divide them both.
+See what I’m getting at?
+If two public keys have one random prime number
+in common, then this prime number is the common
+divisor.
+So if one public key is a times q.
+And the other one is b times q.
+So they both share q, then euclid’s algorithm
+will find q.
+So let’s try this.
+We just have to implement this.
+So we loop over all keys, which obviously
+has to be converted to a number not a string,
+and we try to find a greatest common divisor
+and print the result of gcd.
+Obviously if the greatest common divisor is
+1, then that’s not the prime, but look here.
+Gary and Bob have a greatest common divisor.
+And as you know that divisor is already one
+of the primes.
+We got everything we need now!
+Because Dividing the public key n by this
+q, we get p.
+So we now got n, p and q.
+Only missing is the public exponent e, but
+that one has, as I already told you, some
+typical values like 3 or 65537, you may have
+seen these before.
+So we just try them all.
+Now we just have to perform the math as described
+on wikipedia.
+D is the modular multiplicative invese of
+e module phi(n).
+I just copied a modular multiplicative function
+from the internet.
+So we can do just modinv from e and phi(n).
+And what is phi(n).
+phi(n) is just n - (p+q-1)
+Easy.
+Then I just use pycrypto to do the RSA signing
+for me.
+Just check the documentation how to use pycrypto.
+First we create a key object from the values
+we now know.
+And then we use the PKCS1_v1.5 class to sign
+our message.
+Which is the sha1 hash of admin.
+So we just run this, we get a couple of possible
+sigantures.
+All for different e’s.
+Then we try them, aaand, there we go!
+The last one was the correct e.
+Our signature is accepted and we get the flag.

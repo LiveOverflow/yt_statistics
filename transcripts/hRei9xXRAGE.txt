@@ -1,0 +1,168 @@
+Let’s have a look at another ffmpeg vulnerability.
+Again Paul will walk us through the vulnerability
+that he found together with Emil and I try
+to understand it and add some comments.
+Hopefully to make it a bit easier to understand.
+In the previous issue we achieved code execution
+quite easily, this time we will have to be
+much more accurate during exploitation.
+This crash was found during fuzzing the RTMP
+protocol.
+This protocol is binary, so let’s open this
+open up in my favourite hex editor called
+radare2.
+I like to use it when viewing binary files,
+because it has a very shiny UI.
+Nothing too special here, just some binary
+data.
+So let me tell you something about this protocol,
+while I am launching the binary once again.
+RTMP stands for Real Time Messaging protocol,
+actually it was developed by Adobe for real-time
+streaming of audio and video.
+The protocol has actually a lot of stuff inside
+and I had to spend some time learning the
+specs before getting into exploitation.
+All you need to know about the RTMP protocol
+so far is that it does a handshake first and
+then it starts to transfer data in small chunks
+and maximum size of each chunk is one hundred
+and twenty eight bytes.
+Now, let’s dig up into the source code once
+again.
+So after passing the version check and doing
+some handshakes we end up in packet read function
+in rtmppkt.c . This function simply reads
+one bytes of the header and then call the
+most important function in a loop.
+And this is the function which does all the
+parsing of the protocol.
+There are a lot of structures, functions and
+allocations and all of them are important.
+As you can see each chunk has the channel_id.
+It is basicly identifier of each RTMPPacket
+in the array, which corresponds to its own
+buffer.
+One channel may be filled by multiple chunks,
+because maximum size of each chunk is hundred
+twenty eight bytes and packet data might be
+much larger.
+Each chunk has fields like size, type, header,
+timestamp and some extra data.
+So if the current channel does not exist yet,
+RTMPPacket structure is filled in the array
+and a buffer is created for it.
+So the av_realloc function with NULL pointer
+means simply, do the allocation ofthe corresponding
+size, Otherwise data is just filled in the
+existing structure and the buffer.
+So if you will pay enough attention, you may
+notice an issue there, when the structure
+is filled for the second time, there is not
+check that the buffer size passed for the
+second time is actually the same that the
+size of the allocation made the first time.
+And this how we manage to overflow the heap.
+Ah yeah this makes sense.
+So the packet contains a channel ID read from
+the header.
+And if this packet was not seen before it
+will alocate it with the size.
+But if an atatcker sends the packet with the
+same packet id again with a different size
+it will not be reallocated.
+Let’s visualize that.
+If we send a packet with id 1 and size 0xa0
+it will get allocated.
+Then we can send another packet with id 2
+and the size 0x80 and it will get allocated
+after the first one.
+Now we send again a packet with id 1 and a
+much larger size, like 0x200.
+Now we overflow stuff on the heap.
+Awesome.
+Let’s try to gather some primitives from
+the source code.
+So we could allocate a data chunk by sending
+a new channel ID.
+We could overflow the chunk next to it by
+changing the size
+And we could also trigger the reallocation
+inside the rtmp_check_alloc_array function.
+If we send a channel_id large enough we will
+trigger the reallocation of the control structure
+and it will be positioned right after our
+buffer we can overflow..
+By doing this little heap magic we overflow
+the pointer to the data and get arbitrary
+write.
+That’s a super easy plan.
+We just force the reallocation of the array
+that contains the pointers to the data chunks,
+and thus the array will be allocated now after
+the one data packet we have.
+And then we send again a packet with this
+id to overflow into this array.
+And thus control the address of those data
+chunks and can point it anywhere we want and
+thus also write there.
+So I already did some preparations before
+and wrote a little proof of concept, because
+most of the work here was counting the offsets.
+So there are the functions I wrote.
+These are lambdas for packing our integers
+using little endian.
+create_payload function helps me to pack data
+into the RTMP protocol.
+And create_rtmp_packet function will help
+me to create fake rtmp structure on the heap.
+Now let’s take a look at the main code.
+So here is the handshake happens.
+After the handshake I send first payload with
+size just a bit bigger than 80 bytes in hex,
+and some ‘A’s and the channel_id number
+4.
+I do this, to create control structure on
+the heap.
+Next I send some data with larger channel_id
+to trigger the reallocation of the control
+structure.
+Next I overflow the next heap chunk, which
+happens to be the control structure and fix
+it’s size, so that I will have no problems
+with the heap when I will be allocating more
+data.
+I position the fake chunk on the place of
+RTMPPacket with second channel_id.
+As you can see there I position a realloc@got.plt
+instead of data pointer, so I will be able
+to write to it.
+As my last steps I write to got.plt with some
+data, and after I use the big channel_id once
+again to trigger the realloc function.
+All of this should give us control of RIP
+register.
+Let’s see.
+Super straight forward exploit, right?
+If you can overwrite an addresses in the control
+structure, in this array, you can point it
+anywhere and write data to it.
+So here is ffmpeg in gdb with the triggered
+segfault.
+And it does, because we have successfully
+overwritten the .got.plt section.
+Achieving code execution should be easy from
+now on.
+I hope that this video motivated you a little
+bit and shown, that real-life exploitation
+may be rather simple and this will encourage
+you to make your own research.
+Good luck.
+That is a really great example.
+Thank you so much Paul for sharing this with
+us and all the work you have put into recording.
+Make sure to follow him on twitter and check
+the description for some links.
+And don’t forget to checkout the podcast
+episode with Paul, if you haven't listened
+to it yet.

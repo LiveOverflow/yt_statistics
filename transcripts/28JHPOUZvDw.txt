@@ -1,0 +1,144 @@
+this video is part of the cybersecurity
+challenge Germany 2020 I'm showing off
+various tools that can be used to solve
+this part one of the introduction to
+reverse engineering challenges
+note that this challenge is super easy
+and not every technique shown here will
+work for the second challenge but I hope
+I can give you enough inspiration to do
+your own research into these tools and
+then dig into a part two and part three
+yourself
+[Music]
+so here are the intro ref challenges or
+f1 f2 and f3 we will look at ref one so
+first of all it's a good idea to check
+what type of file you have on Linux like
+machines the file command can be used to
+get some information and so it tells us
+it's a 64 bit elf binary for Linux and
+it's not stripped so it contains symbol
+names from the source code it was
+compiled from this makes
+reverse-engineering easier I'm using a
+Mac here and you can see when I try to
+execute it it gives me an exact format
+error and Linux elf binary cannot be
+executed on a Mac so I'm using here a
+workflow with docker to get a linux
+shell I link some resources below how I
+do that alternatively you can also
+install a VM or on Windows check out the
+windows subsystem for Linux okay so now
+I have here a linux shell and you can
+now execute the binary it asks for a
+password and if it's wrong it will fail
+note that I executed here locally once
+you found the password you need to use
+netcat and talk to the IP and port given
+in the challenge description and enter
+the password there now let's just go
+through a big collection of alternatives
+on how you could find the password first
+I'm using a hex editor here you can see
+the raw bytes represented as hex values
+and over here you see those by its
+represented as ASCII text when you look
+around you can find in there some
+readable text like the give me your
+password enter prompt and then there's
+the suspicious-looking string that could
+be a password let's try it out give me
+your password you shall pass and that's
+the right password easy now we solve the
+challenge but let's check out a bit more
+there's also a utility called strings
+which extracts all valid ASCII byte
+sequences from this binary and in there
+you can also find the password a similar
+but more powerful tool is part of red r2
+and it's called robin - with - sets @q
+you can find a lot of possible strings
+and the output also gives you
+information like the offset inside of
+the binary where it was found
+n
+of course here's the password to s trace
+is a tool to trace system calls and it
+can be used to learn more about what the
+binary does all the stuff here at the
+start can be ignored it's just
+executable setup stuff but down here you
+can see how the flag file is opened and
+read and then it writes the password
+prompt and reads and waits for input but
+it didn't reveal the password here
+however there is a related trace tool
+called L trace which traces library
+calls and it can show the Lipsy library
+functions that are being called if you
+use that you can find a string compare
+on the input and the password awesome
+another option especially when a
+password check is a bit more hidden and
+not just a simple string compare is to
+debug it for example with gdb
+in this case I'm using gdb with the
+extension Pony back to make it look
+fancy
+and so you could disassemble main and
+read the assembly here to see what
+happens or you could do a dynamic
+approach and see what happens by setting
+a breakpoint in main and step through
+the code with si4 single stepping or ni
+if you want to skip calls and you can
+observe the registers the stick and
+generally what's going on here you might
+identify the technique for the password
+check in this case simple string compare
+here's the password gdb is definitely
+very useful I talked a bit more about
+gdb and some other videos i linked
+resources that are relevant below
+another awesome tool for reverse
+engineering is Vedra it's also a
+disassembler but it can also decompile
+code so I'm loading the binary into
+Ghidorah yep yeah blah blah could you
+analyze and all that stuff and then
+let's look for the main function it's
+here it automatically D compiles the
+assembly code and it's awesome to learn
+as simply to because you can compare how
+certain assembly instructions relate to
+some pseudo code anyway here you can see
+how user input is read into this char
+buffer and then it is compared to you
+shall pass so this is also a very
+awesome and powerful tool to reverse
+engineer any kind of password check
+algorithm
+another more hardcore reverse
+engineering tool but definitely looking
+cooler is red r2 I'm opening ref one in
+it and I analyze it with a a then I'm
+seeking to the main function and use
+capital V to enter a visual mode and
+here you can also see the call graph
+with the string compare and you can find
+the passport here yeah that's it
+what's really easy right if you are just
+starting out to learn reverse
+engineering I'll link some videos of
+mine below but I can also just recommend
+to play around with it write a simple
+passport check and see yourself
+compile it and then try to
+reverse-engineer it implement a for loop
+a while loop some if case and then
+always reverse engineer to get a feeling
+how C code is compelled to assembly now
+good luck with ref two and ref three
+[Music]

@@ -1,0 +1,470 @@
+Hey. I cannot start this episode with my usual 
+positive excitement. We are in a bedrock jail.
+These blocks cannot be broken. Somebody imprisoned 
+us here. Oh my god. There he was. How do we get
+out of here? you know what! In the first episode 
+we figured out that we can teleport through
+roofs by manipulating the game’s position 
+packets. So let’s use our proxy to escape.
+Mmhh… But turns out it doesn’t work. 
+The server world I’m playing on is an
+online server and with the proxy implementation 
+from quarry we cannot login. Well that’s a bummer.
+But you know what. I have another idea. 
+During our first day we came across a
+cave and there was an enderman. And I 
+killed him and he dropped an ENDERPEARL.
+Enderpearls are very cool items, because you can 
+throw them. And wherever the enderpearl lands,
+you teleport to it. It’s like minecraft has a 
+teleport hack built in. And due to my minecraft
+addiction I have watched too many minecraft 
+youtube tutorials and there is actually a glitch
+in the game where when you just have the right 
+angle when throwing an enderpearl, you can glitch
+through blocks. Let’s try it. Yeah! It worked.
+Ohnononoo. Oh nooo… we are dead again.
+I guess there was a firewall deployed.
+
+Oh man… this is bad. now, we don’t 
+have an enderpearl to escape anymore.
+But I don’t give up. I have an idea. Let’s 
+see. I need a pickaxe and maybe a shove.
+And Luckily I just had enough iron to make another 
+iron pickaxe. So I was thinking. The house had
+missing walls. And the walls are now bedrock. 
+So when they added the bedrock, maybe they
+forgot the floor? Let’s see. Oh, looks like they 
+started to or tried to place some bedrock. But it
+clearly is not complete. looks like my theory 
+is correct. We can just dig down and escape.
+I don’t know. I guess there is a sandbox and 
+jailbreak metaphor here. The implementation
+just forgot one important attack surface, we 
+found it, broke out. Also I wanted to go caving
+anyway. So let’s look for some iron, coal and 
+diamonds. My mood is already increasing again.
+After a bit of digging I hit a first cave. Nice!
+Looks like up there is another entrance for it.
+But let’s go deeper.
+And there is a first
+creeper. Looks like I’m rapping. No problem I’m 
+attacking. Nope nope nope nonono. Let’s stop that.
+I quickly found coal and started to mine as 
+much as I can. And of course I also found
+iron. We are still high enough for those ores. 
+As you probably know, in the new update coal
+only generates higher up, not deep down anymore.
+And of course we keep running into other mobs.
+This skeleton even had an enchanted bow. 
+Unfortunately it didn’t drop it for me.
+Keep mining. Coal. coal coal. Iron. Iron iron. And 
+keep killing mobs. Eventually I reached a depth
+where the stone changed to deepslate. Which means 
+we are slowly getting into diamond territory.
+BUT UH! Found some gold. And copper. It’s good 
+to have some copper and gold, but it’s not that
+important. Iron and of course diamonds are 
+a lot more interesting for me right now.
+Though actually, redstone is also awesome. 
+Redstone is basically the electricity of
+minecraft and we definitely need more of 
+it to build automatic farms in the future.
+I also came across some lapis lazuli, which 
+we need for enchanting our tools later.
+Uh down there is some lava and water. That 
+should be a good depth to find diamonds.
+OH OVER THERE! There were diamonds but 
+first I have to take care of the zombie.
+My diamonds. Go away. This is going 
+well. We found our first diamonds.
+I continued looking for more and eventually 
+stumbled into this amethyst geode.
+Nice to bring some of that back up as well. And 
+by the way, the blocks where the crystals grow,
+they look a bit different. We want to expose 
+all sides of them, because then we increase
+the amound of crystals growing. Later we 
+can come back and harvest even more. Cool.
+You know, the whole time while I was looking 
+for the ores I kept thinking about cheating,
+and I’m really curious how you think 
+about it. So let me share some thoughts
+and then comment blow what you think.
+So we looked at the protocol and figured
+out how to manipulate packets, and with that 
+were able to teleport through roof blocks.
+I guess most people would say, “yeah this was game 
+hacking”. But at the beginning of this episode,
+we used an in-game item enderpearl, threw it in 
+a specific angle, and glitched through the roof.
+Essentially teleporting through the roof as well.
+Even I called this a glitch, and not a hack. But
+is it also cheating? Using ender pearls 
+for glitching through bedrock roofs,
+for example to go on top of the nether 
+roof. It is generally seen as trick to use
+in the game and I don’t get the feeling that 
+the community sees that as really cheating.
+Though, still, I don’t think that this behaviour 
+of enderpearls is really intended - it can be
+seen as a coding mistake that gets exploited.
+And by the way, I love game glitches. Bending
+the rules of the system, finding behaviours the 
+original developers did not intend and exploiting
+them. That’s 100% the spirit of hacking. 
+Glitch speedruns are my favorite category.
+But yeah, there is still something different 
+between using technical solutions like
+manipulating game packets versus 
+abusing something in-game.
+I guess most people have an intuitive feeling 
+that one is worse than the other. And I’m sure
+most people would say packet manipulation is 
+definitely cheating. But with the ender pearl, I
+expect there to be a much bigger divide. I’m sure 
+some say it’s cheating and others say it’s not.
+And this depends on what your 
+definition of cheating is.
+But now let’s think about mods. Client mods. Right 
+now I am playing with Optifine. It’s a graphics
+optimization mod which makes everything look just 
+a bit nicer. It can be used to get crazy graphics,
+but I just like to tweak it every so slightly, so 
+that it still feels like original minecraft. BUT,
+it also enables light from torches held in my 
+hand. Usually these caves around me would be
+very dark if I don’t place down the torches. 
+But this mod illuminates everything around me.
+It makes sense, I’m holding the torch in my hand, 
+maybe it fixes a shortcoming of the original game,
+but the original game doesn’t have it so maybe 
+this goes AGAINST the spirit of the game.
+And thus it is cheating? I think it totally 
+depends on how strict your definition of cheating
+is. And of course you can extend this. What about 
+adjusting the brightness in the game settings.
+I guess that’s still technically the game. 
+But what about the brightness of your monitor.
+That’s a technical outside solution?
+Though I guess seeing better in the dark is
+not that bad. But what about building. Minecraft 
+is about building and the game has certain rules
+about it. So what about mods that help you build. 
+There are mods where you can import a build as a
+wireframe and it shows you where you have to 
+place the blocks. Or which blocks are wrongly
+placed. Clearly, it’s modifying the gameplay and 
+displaying information that usually is not there.
+Many big minecraft builder youtubers use 
+that for their builds. Is that cheating? Mh.
+What about x-ray mods that help you find 
+diamonds easily. I think many regular
+players don’t like x-ray mods and consider it 
+cheating. But from a technology point of view,
+it works exactly the same. Building mods read the 
+state of blocks around, to figure out which blocks
+are placed right or wrong, and xray mods need to 
+know the blocks around, to find the diamond ores.
+And then the building mod manipulates the game 
+rendering to display that information. Coloring
+the blocks for the build instructions. While 
+x-ray mods hide stone to only show the diamonds.
+I think this example shows you that cheating 
+cannot be defined really with arguments about
+the technology used. You cannot say, because 
+you manipulated packets or client code,
+it’s cheating. This means, cheating is more about 
+what you actually do with your manipulations,
+the actions in the game, that is what matters. 
+And that’s where people draw lines differently.
+When is it just a nice utility? When 
+is it cheating? And when is it hacking?
+There is no answer where we all agree.
+And so there might be servers and gamemodes 
+where blueprints of buildings is cheating.
+But I’m sure there are servers where x-ray is 
+not really cheating because it’s just allowed?
+So whether your actions are bad and 
+malicious, and whether you cheated or not,
+depend a lot on the context and often 
+is up for debate. What do you think?
+Also I wanted to mention that I 
+love normal minecraft gameplay.
+Just because I can cheat, doesn’t mean I 
+want to. I mean I’m the admin of this server,
+ANYTIME I could use the minecraft console 
+to give myself 100 stacks of diamonds.
+But I don’t do that, because I want to play the 
+game in a certain way. And cheating in that way,
+would ruin the game for me. So I 
+intentionally choose to not do that.
+And I want to remind you of what I said in the 
+first episode. Because I don’t want to ruin my own
+game, you should respect how others want to play 
+the game as well. Don’t cheat where it negatively
+influences others. Don’t be an asshole.
+And as you can see here, you can cheat in
+your own game to learn and make up your own 
+adventure. Without bothering anybody else.
+Anyway. Speaking about cheating. We just learned 
+that client mods can be used for cheating.
+I guess we should look into them.
+Though I have no no clue how to write 
+my own mods, so of course I just went
+to youtube and looked for some tutorials. I ended 
+up setting up the fabric-example-mod in intellij.
+Just create a new project from version 
+control with the github URL. and then we
+have to wait a bit for gradle to do the magic.
+Here in the folder structure you can find an
+exampleMod main, and an Example Mixin.
+This mixin is printing an example line.
+Let’s test it. In the gradle menu under fabric 
+we have runClient. This will compile our mod and
+then launch an offline client. You can ignore 
+the authentication error, and go back to the
+actual log output. And eventually minecraft 
+started, and we see our line is printed.
+So what do we do now.
+I thought “we have used a
+proxy to look at packets” Let’s try to write a mod 
+that can print all the packets. Of course I’m not
+familiar with writing minecraft mods AT ALL, so I 
+have to find a place to copy and paste code from.
+And to be honest, maybe I looked at this 
+shulker-dupe mod and stole some code from there.
+This is an interesting exploit and maybe we 
+look at it closer another time. Or feel free
+to analyze it yourself. It’s good practice. It’s 
+the same in normal IT security, it always is very
+educational to understand existing or even fixed 
+vulnerabilities. This way you build a foundation,
+so you later can create your own stuff. And 
+this code is actually pretty clean and easy
+to understand. so for me to learn how minecraft 
+hacking works to be able to write my own code,
+it was really helpful to look at this project. 
+Anyway. In there I found a ClientConnectionMixin
+which seems to be related to sending packets? So 
+I took that as a starting point. The red class
+names have to be imported. Intellij helps us 
+with that. And I rip out the packet code here
+that I don’t need. Instead I just want to print 
+the name of the packet that is going to be sent.
+To add this new mixin to the mod, we have to 
+go into the mixins.json file and register it.
+And then we can execute run everything. 
+It takes moment for mineracft to start.
+And then I join my local test server. And 
+see in the console, we are printing a lot
+of positon and look packets. IT works! This is 
+the same information we also had from our proxy.
+So when you saw the first episode where we 
+looked at the minecraft traffic with a proxy,
+was that hacking? If yes, does that mean writing 
+this basic fabric mod ois also hacking? Well?! The
+lines are blurry. That’s my whole point.
+Anyway.
+When I was looking at this code the first 
+time. I was wondering what does “Mixin” mean.
+And how does it work that apparently this code is 
+somehow injected into the ClientConnection class?
+Let’s look at that class. So this 
+is a class from the minecraft game.
+And Intellij decompiled it for us. Here is the 
+send method. Mh. But How does this work? How does
+our send method get called or apparently 
+“injeted” into it? I don’t understand?
+it seems to have to do with 
+this mixin stuff, right?
+So let’s just read the code, that’s how we 
+learn, right? With CTRL and clicking on a class
+we can go there. Inject. But It’s just like this 
+interface stuff. There is no actual code there.
+Maybe this At class is more useful?
+Mh… It does say here something about
+opcodes. But still no actual implementation.
+Maybe it is the mixin class here itself?
+Also no clue… mhmh.
+TELL ME, WHAT ARE YOU DOING? WHERE IS YOUR CODE?
+So from what I understand just by using it 
+here. This mixin stuff, I would maybe have
+called hooking. I mean I’m coming from another 
+area of IT security or game hacking, and
+from my past experiences I would have called this 
+hooking. Somehow we hook this send method. And
+so when I replace mixin in my head with 
+hooking. This code looks less scary to me.
+I understand that mixin has some kind of meaning, 
+why it’s called mixin. But to me it’s hooking. I
+don’t care. I call it hooking. Anyway. I continue 
+my quest trying to figure out how they do it.
+Mixins seem to be part of spongepowered, so I 
+joined their discord, and asked questions. And
+shoutout to Silk and Mumfrey and some others on 
+the discord, they answered lots of my questions
+and helped me understand it. And it turned 
+out Mumfrey is the magician behind mixins.
+This person is crazy. And you will 
+understand in just a moment why.
+Anyway, they also pointed me 
+at some resources to read.
+First of all there is the fabric mixin 
+tutorial, which has some very basic
+examples what you can do with mixins.
+If you specify Inject into the method
+foo at the head of the method, your code will be 
+injected and executed at the start of the method.
+If you specify tail, it will be 
+executed at the end of the method.
+And there are lots of other features. Like 
+injecting code at each return. And many more.
+So this fabric tutorial is very useful to 
+understand what you can do with mixins.
+But that doesn’t explain the magic. And 
+so they told me to read the mixin wiki.
+And I really recommend you to read it. It’s 
+very detailed and if you have some general java
+development experience, I think you will really 
+enjoy it. The key takeaway from these articles is
+that mixins are basically class overlays. Mumfrey 
+the developer of mixins also said that “overlay”
+would be a really good term for it. So what the 
+mixin framework does, it takes our mixin class,
+the the normal existing class, and kinda merges 
+them together, overlays them basically. And that’s
+not just a good imagination. That’s actually what 
+it does. It merges the code of the original class,
+with the code of your overlay class, or 
+mixin class. And so now we need to understand
+how that is done. How is the code merged. And 
+this is not done on the source code level.
+Maybe you remember from last episode 
+where we explored minecraft servers,
+they decompile the server code and apply patches. 
+So actually modify the text source code. But here
+in the minecraft CLIENT, it’s not like your text 
+is copied into the real class and then compiled.
+Mixins don’t decompile and recompile the client.
+The magic lies in the ow2 asm dependency.
+“ASM is an all purpose Java bytecode 
+manipulation and analysis framework.”
+I had a bit of trouble understanding how asm is 
+used. But then I stumbled over this university
+lecture by Fred Ueberlauf. First of all. AMAZING 
+NAME. Ueberlauf is the German translation for
+Overflow. And this class recording was very 
+well done. Unfortunately it’s in german,
+so for many of you not that great. But maybe you 
+can work with the auto translation of YouTube,
+or just look at the code itself. Also I couldn’t 
+figure out which university this is. But shutout
+to this one, you seem to have great teachers.
+Anyway. In the video he was using asm,
+to basically craft a java class by hand. And of 
+course not the text source code of a class, But
+the actual compiled bytecode, for the JVM. That’s 
+what ASM can do. You can write code like this and
+ASM will generate the bytecode for it. And then 
+you can actually use a ClassLoader to load the
+class from the raw bytecode. And seeing this in a 
+practical example from this lecture, suddenly it
+all makes sense to me how Mixins are implemented.
+Simply speaking they take the existing java
+bytecode of a minecraft class, and thanks to 
+asm they can manipulate this bytecode and merge
+the code of your mixin into it. 
+At the positions you defined.
+THis was very oversimplified, there are 
+lots of challenges to overcome in the actual
+implementation. For example minecraft 
+classes are obfuscated. Remember that?
+So when you write your mixin, it also has to 
+use the obfuscation mappings to find the actual
+obfuscated class to apply your code to.
+But it makes sense how it works, right?
+Beautiful design I think.
+But there is one last missing
+puzzle piece that I didn’t understand. And that 
+was, okay you have now your modified class.
+How do you get minecraft to use your modified 
+class? Do you somehow overwrite it in memory?
+turns out it’s not really overwritten. 
+I guess this is my wrong imagination
+coming from the binary world where 
+you patch code in the games memory.
+In the java world, that’s not necessary. And so 
+this is where fabric comes into play. The Fabric
+Loader. Basically they modify the classLoader.
+And by changing the classLoader of minecraft,
+they can basically force other classes 
+to be loaded. The modified classes.
+Classes belonging to [..] Minecraft are 
+loaded with a class loader that applies
+transformations to classes before they are loaded.
+And now I feel like everything makes sense.
+Okay. I wanted to mention, not to confuse 
+everybody, not every mod works through
+mixins. If I understand it correctly, mixins 
+are a more recent development in the way
+how mods can be developed. So each minecraft 
+modding framework has different ways to do it.
+And of course there is also historical baggage and 
+backward compatibility and so forth. But to me,
+as an outsider, and I hope I don’t step on 
+anybody's toes here. I think mixins are a really
+beautiful design. I think the code makes total 
+sense. I think it’s very easy to think of just
+overlaying the classes. So i think for developers 
+it makes sense. It is also very powerful you have
+a lot of freedom and control over where you 
+want to inject your code into in minecraft.
+And of course the technical implementation 
+through modifying the bytecode is awesome.
+It’s just mind blowing. I 
+don’t know what else to say.
+Now maybe you are asking yourself again. What 
+does this have to do with hacking? we just
+learned how to develop minecraft mods. Well. 
+don’t you think asm is useful for hacking?
+For example in 2018 Ian Haken, Senior 
+Security Software Engineer at Netflix,
+presented his work about “Automated 
+Discovery of Deserialization Gadget
+Chains”. He developed this tool Gadget Inspector
+“This project inspects Java libraries and
+classpaths for gadget chains. Gadgets 
+chains are used to construct exploits
+for deserialization vulnerabilities.“
+And guess what. How is that implemented?
+Gadget Inspector primarily utilizes the 
+ASM library for Java bytecode inspection
+and builds upon its instruction visitor 
+framework to perform symbolic execution.
+And to be honest, a lot about java deserialization 
+vulnerabilities are still a bit of a mysterium to
+me. But thanks to minecraft mods, learning 
+about how they are implemented, they lead
+me to a university class where they craft java 
+classes with asm so helping me understand how
+ASM can be used. And now I can connect the dots 
+to research about java deserialization exploits.
+That’s how I learn stuff. And 
+that’s why I love doing this.
+Alright… Our inventory is full. I really want 
+to get back to bring what we found to safety.
+And not sure if you noticed. I got 
+lost and didn’t know how to get back.
+So I just decided to dig to the surface.
+We were actually really close. But it was
+night. And so there were still monster around.
+And holy crap. So this is how the bedrock
+prison looked like. Okay… looks evil. Let’s 
+check it out. Intersting design I would say.
+But HEY! Look over there. Those were materials 
+we found for examole in the jungle but
+I thought we lost when when we died. Looks 
+like whoever imprisoned us was actually nice,
+collected some of the items and planted some 
+trees and bamboo for us. That’s a nice surprise.

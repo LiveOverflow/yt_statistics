@@ -1,0 +1,164 @@
+We can use static analysis and reverse engineer
+the license check algorithm and write a keygen
+to generate valid keys. Obviously this algorithm
+also can become very complex but generally,
+if you put a lot of work in it, you can figure
+it out.
+Now you tell that to your manager, but he
+is a smart ass and tells you: “then stop
+people from being able to reverse engineer
+the binary”. Then you drag yourself back
+to the desk and you come up with a new creative
+way how to stop somebody from debugging or
+reversing it.
+Because you are a pro, you understand that
+a executable is a very complicated file format.
+With objdump we have seen that this executable
+has a lot of information in there, that is
+needed to load and execute it. But you also
+realise that a program like gdb has to parse
+the executable to be able to disassemble and
+debug it. And radare has to read and parse
+the executable file to show you stuff. So
+could you modify the executable in a way,
+that you can still execute it with linux,
+but gdb and radare tell you that something
+is broken?
+What we are looking for is a parser differential.
+We hope that the parser from execve differs
+from the gdb parser. In an ideal world, every
+program that reads input, would do it in the
+exact same way. But every tool implements
+the parsing algorithm a bit different. So
+if you screw with the input, a linux might
+see a valid file and executes it, while a
+gdb says its broken and cannot be disassembled.
+Let me show you a very naive way how to find
+something like that. With fuzzing.
+So lets create a new python script called
+fuzz_elf.py.
+First we import some modules we need. Import
+random. And import os.
+First function we will write is called flip_byte.
+As a parameter it takes a big string. Which
+will be the whole executable file later. Then
+we select a random index i, between 0 and
+the max length of the input. Then we select
+a random character that we will use to overwrite
+a byte in the program. So character byte from
+a random number between 0 and FF, which is
+255. Then we return the original bytes up
+to index i. The next character will be the
+random created one, instead of the original
+character i at this point. And we append the
+remaining original bytes. If you want to understand
+this fancy bracket colon index stuff in python,
+just google ‘python lists’.
+So just a quick example of this function.
+print flip_bytes(“ASD123”)
+With yy you can copy this line and with p
+you can paste it multiple times.
+And now you can see that a random character
+got changed to something else.
+With dd you can delete those lines again.
+Now we want a function that copies the original
+binary but flips a byte and saves it in another
+file. We call this function copy binary. So
+we open the normal license_2 and a copy license_2_fuzz
+with write access.
+Now we read the whole original file, and pass
+those bytes to the flip_byte function. Now
+this returns a copy of our license_2 executable,
+just with a random byte flipped. And then
+we write this to the copy.
+If we just run this now, the new license_2_fuzz
+file will be not executable, so I already
+create this file as a copy from the original,
+and it will be executable.
+Now obviously we flip weird stuff. And the
+file might not be executable anymore. So we
+should check if the program still works the
+same way. This means, that it should print
+Access Granted with a valid key. So this output
+should be the same for the original and the
+fuzz program. That’s why I redirect this
+output to a file called, original_output.
+Now let’s write a python function that runs
+the fuzz binary once a byte got flipped and
+let’s check if it outputs the same thing.
+A really ugly way how I do this now, just
+because it’s less code, I execute the same
+command like I just did, just pipe the output
+into fuzz_output.
+Now I add a function to compare the original
+output with the fuzz output. And also let
+that result return from the check output function.
+Ok so this function checks if the binary still
+executes normally.
+Now let’s think about how we can check if
+gdb still works. Basically we don’t want
+people to disassemble main. So you can use
+echo and pipe this command and quit into gdb
+to get the output. So echo -e and this here
+just basically types those two commands and
+with the pipe we redirect this to the input
+of gdb. This looks good. so let’s simply
+redirect this output also to a file, that
+I will call original_gdb.
+Now let’s basically create the same function,
+just with check gdb.
+And then compare those two files. Now let’s
+to the same for radare2. Here we just use
+the commands aaa, s sym.main and pdf. Also
+store this output in a file. And now again
+we create a check radare function.
+You can use Shift V, which you can use to
+highlight multiple lines, and with y you can
+copy it and paste it with p.
+Ok… almost there. Now let’s create an
+endless loop. Where we first create a new
+copy. Then we check if the executable still
+works. If that works we want radare and gdb
+to fail. So let’s do if not check_gdb and
+not check_radare. If we reach this here, we
+print success and exit.
+Then we print the tail of the radare and gdb
+output. Just to have a visual check if the
+disassembly failed in a way. With raw_input
+we can halt the python program until we hit
+enter.
+Now let’s run it. Ah another small mistake.
+this should be f1 instead of fn1.
+And I just discovered another mistake.
+Ok it found something, but we clearly still
+se disassembly there. So let’s just continue
+until we find an output without disassembly.
+Uh. that looks good. Let’s investigate.
+Binary still works.
+Gdb can’t find a main function.
+And radare also has problems.
+Haha! that is cool :D
+I admit, this is very ugly. This is not really
+a good technique that you can use in practice.
+But that is basically how fuzzing works. And
+how you might discover cool new tricks to
+hide your malware and make it harder for people
+to analyse it.
+If you want to learn more about this you can
+read this one, which calls this a “novel
+technique”, but it is not really new. And
+there is a bit more in depth research on the
+ELF file format from IOActive.
+And you can go even deeper and read even more
+crazy ELF file format tricks in the holy “International
+Journal of PoC || GTFO - Issue 0x00“
+My binary can be found in the github repository
+and you can try different tools like hopper
+or IDA and see if they still analyse it automatically.
+But I suspect they do. So this is just one
+small trick which can annoy somebody trying
+to analyse it.
+Now you can go back to your manager and tell
+him, that he should hire some web developers
+and move the product into the cloud, so that
+the code only runs on the servers you control.

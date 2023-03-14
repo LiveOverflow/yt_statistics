@@ -1,0 +1,255 @@
+What exactly is the heap, what does malloc
+really do?
+Those are questions we try to answer in this
+video.
+You may have learned that when you are programming
+and you need some, more memory you might use
+the heap, by allocating memory with malloc
+and if you are done you free it again.
+And somehow, some magic is happening and you
+don’t really know how you magically get
+more memory or give it back.
+Before we talk about malloc, let’s first
+talk about how our process gets any memory
+in the first place.
+This is done via mmap or brk.
+Those are system calls, which means we ask
+the kernel directly.
+mmap asks the kernel give us some new virtual
+address space, basically requesting a new
+memory segment.
+Besides mmap there is also brk, which can
+be used to change the size of an already used
+memory segment.
+This is real fucking magic.
+In the end the process doesn’t care how
+this memory is implemented - if there is RAM,
+and where exactly on the ram you store it,
+or if you have a SWAP file because you don’t
+have enough RAM.
+The kernel and hardware takes care of this,
+and maps that memory into the process, this
+means that the process can transparently access
+those memory addresses and work with them
+- and transparent in this context means, “doesn’t
+have to know anything about it”.
+You can execute heap1 with strace and you
+see all those calls to mmap to initially set
+up the processes memory regions.
+And near the end it uses brk to setup the
+heap.
+So why don’t we just use mmap or brk to
+get more memory for our process?
+And why do we always talk about the heap with
+malloc and free?
+Well, malloc is just a very fancy and convenient
+wrapper that handles that brk or mmapping
+for us.
+And does much more.
+Malloc will call mmap or brk to get more memory
+if the heap doesn’t exist or is too small.
+But on top of that it will help us to organize
+and manage that memory.
+Also during CTF challenges, and the example
+we will have a look at shortly, use the heap
+so little, that we won’t see any additional
+memory mapped regions.
+So to keep things simple, we consider the
+heap to be, just a big chunk of fixed memory
+mapped memory.
+And we can do in this memory whatever we want.
+So when we refer to the heap, we actually
+mean this memory region.
+So what does it mean that malloc will manage
+the heap?
+Let’s explore this abstractly first.
+We want to allocate 8 bytes.
+So we call malloc with 8.
+This means we block 8 bytes on the heap.
+Each call to malloc will return the address
+of the heap where the area got blocked, and
+with this address we know where we can write
+our 8 bytes to.
+So we can now write the string “AAAABBBB”
+to that address.
+Now we allocate two more times.
+malloc(8), malloc(8).
+This begs the question what does blocking
+mean.
+And how does malloc know what address to return?
+If I would hire you to write me a program
+that gives me an address of memory I can use
+safely for different sizes, you could come
+up with a working solution.
+And if you would implement that you would
+have created your own heap algorithm.
+So there are many different ways one could
+implement that.
+Though most commonly used is an implementation
+called DLmalloc.
+Because a dude with the name Douglas Lea wrote
+it.
+And that malloc algorithm will store for each
+chunk it blocks the size of the chunk right
+before it.
+And it will also keep 4 bytes before that
+empty for how the free is implemented.
+But we will only focus on malloc for now.
+Let’s do the mallocs again, and let’s
+think like a computer.
+So at the start, when the first malloc is
+called, we obviously know the beginning of
+the heap.
+So we store the size that we want to allocate
+there, and return the address where the chunk
+part, that is usable by the programmer, starts.
+Though, how does malloc now know on the next
+call to malloc where the next chunk can be
+placed?
+Not that we write over our previously allocated
+area.
+Well we obviously have to kinda memorize where
+our free region begins.
+So malloc will simply do some math, and update
+the address that pointed to the beginning
+of the heap, by adding the size of the chunk
+we allocated to it.
+And this happens every malloc.
+So there is a pointer somewhere, that will
+always point to free memory.
+Cool.
+Just for understanding purposes.
+Given the returned address of malloc, what
+can you do with that?
+Well, this pointer points to the start where
+we can write data to.
+So if we look at the address just before that,
+we can read the size of the current chunk.
+And if we know the size, we can add the size
+to that address to get to the next chunk on
+the heap.
+Where we can do the same again.
+Now let’s have a look at the heap level
+1 challenge from protostar.
+We will use that example to look at how malloc
+works in real-life.
+But first let’s step through the code line
+by line and try to imagine how the heap will
+look like.
+And then next video we actually do that practically.
+The objective here seems to call winner().
+So we somehow have to redirect code execution
+to that function.
+At the top there is a struct defined called
+internet, which has two members, a priority
+integer.
+And the second member is a char pointer called
+name - Which means name contains a pointer
+to a string somewhere else.
+Structs are like classes.
+At least in terms of providing a structure
+with multiple different member attributes.
+Now, main defines three variables from the
+type struct internet pointer, but only two
+are used.
+I guess a leftover from creating this level.
+I emphasize struct internet pointer, because
+those three internet objects are not stored
+on the stack.
+Only the addresses, the pointer, to those
+objects are stored in i1, i2 and i3.
+Anyhow, then it starts allocating those objects
+on the heap.
+It first calls malloc with enough space for
+the i1 object.
+Sizeof will return the number of bytes this
+struct requires.
+In this case that’s 8, because the integer
+priority is 4 bytes and the char pointer,
+which is an address, is also 4 bytes.
+Because we are on a 32bit machine.
+And we know that malloc returns the address
+on the heap that we can now use.
+So i1 points to the start of 8 bytes in memory.
+And now we want to set priority to 1, which
+will write 1 to the first 4 byte of the allocated
+area.
+Then it allocates another 8 byte, and the
+resulting address will be stored in the char
+pointer name.
+Which is at offset +4 of the i1 object.
+As a programmer we write i1->name, to access
+the name attribute, but implemented is it
+as simply going to a certain offset of i1,
+in thise case i1+4 is the location of the
+char pointer name.
+So now i1->name will contain an address, which
+points to the allocated heap area which we
+just allocated.
+Those 8 bytes are intended to store a list
+of characters, a string - the name.
+Then the same is done over again for i2.
+We make space for the struct i2.
+We set its priority to 2.
+And we allocate another 8 byte for the name
+string.
+So basically we have now two objects allocated
+on the heap that we can work with.
+Next come two strcpys.
+And we know that strcpy is always super suspicious,
+because there is no length indication and
+we can potentially write more than we have
+space.
+In this case the internet-name was allocated
+with only 8 byte, so we could probably write
+over those 8 bytes and really screw up stuff.
+Anyhow, the strcpy will copy the first argument
+to the name of the i1 object.
+i1 points to the start of the i1 object, and
+at offset +4, which is the name, is the address
+of the free 8 bytes that were allocated for
+the string.
+So strcpy will take the address stored there
+and copy the string from argument 1 at that
+location.
+And the same thing is happening for the second
+argument with i2 object.
+It will take the address stored at +4 of i2,
+and attempt to copy there our string.
+After that, we will printf and then quit the
+program.
+In the next video we will have a look at the
+heap while we execute this program to understand
+how the heap looks in real-life and how we
+can work with it in gdb.
+Oh by the way.
+I lied.
+I said the second word would contain the size
+of the chunk.
+Well it does, but also the lowest bit is used
+to indicate that the PREVIOUS chunk is used.
+Not free.
+That becomes more important for the free()
+algorithm.
+Thus in our example those numbers values would
+all be hex 11.
+I just want to put a small disclaimer here
+at the end.
+I simplified the heap and malloc a lot.
+For example I only talked about one pointer
+pointing at the free area, in reality there
+is obviously way more to this.
+And If we look into the history of exploitation
+we are currently looking at stuff from more
+than 15 years ago - like 2001-ish.
+A lot of the stuff hasn’t changed and the
+concepts are the same, but a lot of sdtuff
+is also different.
+Todays malloc implementation is based on dlmalloc,
+but it’s not really the original dlmalloc
+anymore - now its usually referred to as ptmalloc.
+And my goal here is to teach you the fundamentals.
+Eventhough this is not 100% correct, you should
+have now a rough idea what the heap is and
+what to look for and you can transfer this
+knowledge to any heap implementation.

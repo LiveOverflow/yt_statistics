@@ -1,0 +1,571 @@
+Let’s solve a very basic pwnable challenge.
+In this video we will host the challenge with
+docker and also write and run our exploit
+in a docker container.
+as well as get a first introduction to pwntools.
+An awesome python library for developing exploits.
+You can find the git repository with the challenge
+on my github, called pwn_docker_example.
+If you have questions or issues, checkout
+the README of the repository, I will keep
+updating it with information.
+So let’s get going.
+I’m using here my mac, to show you that
+with this docker workflow it’s easy to do
+linux binary exploitation on a mac.
+But it should work the same way on linux,
+and hopefully also on Windows.
+Anyway.
+First we clone the repository.
+Here we find two folders.
+The challenge and the ctf folder.
+Let’s first start the challenge server.
+We do this by building the docker image for
+this challenge first, the command is in the
+dockerfile at the top.
+This will take a moment.
+In the meantime we can also build the ctf
+container.
+I introduced both these docker containers
+in an introduction video about docker, I also
+will link it below.
+The ctf container is a pretty shitty image
+I came up with, it’s nothing special, but
+it’s good enough to run and develop our
+exploit.
+It should be noted that both docker containers
+are based on the same ubuntu version.
+This is very useful for binary exploitation
+challenges, because many exploits depend on,
+for example knowing the exact version of some
+library like libc.
+So if you know the version of the challenge
+server, it’s a good idea to mirror that
+locally.
+Often you can also take a guess, and assume
+it’s the latest stable or LTS version of
+ubuntu.
+That seems to work generally well.
+But maybe it’s also part of the challenge
+to figure that out, through vulnerabilities
+that allow you to leak data.
+Anyway, in this case here you don’t need
+to worry about any of that.
+The version matches.
+When the images are built, you can run the
+containers.
+The command is also in the dockerfiles.
+But make sure that you are in the correct
+location when you run the ctf container, because
+it mounts the current folder into it, and
+we want to make sure we have access to the
+challenge binary.
+And so I’m here in the pwn_docker_example
+directory.
+This will then be available inside the container
+too.
+Both are running now and we can use netcat
+to speak over the network with the challenge
+binary.
+If you are curious and want to see this network
+communication, install wireshark, listen on
+the correct interface, and filter for TCP
+packets on port 1024, and you will see the
+text being sent back and forth.
+Anyway.
+not important.
+Now we are ready to tackle this challenge.
+Let’s see what we have been given.
+We have here the system_health_check binary
+and the source code.
+Source code is given, because it’s a basic
+pwnable challenge.
+It’s not a reversing challenge.
+But it’s good practice to reverse it without
+the source code, so feel free to do that.
+And then you can peak into the sources to
+check if you did it correctly.
+But I’m lazy.
+Let’s look at code.
+At the top you can find information on how
+this binary was compiled.
+We are especially interested in the flags
+that disable some security protections.
+No PIE, position-independent-code.
+Which means the binary itself runs without
+ASLR.
+At least the code and data sections from this
+binary.
+It doesn’t affect loaded libraries like
+libc, the heap or the stack.
+Those are still affected by system ASLR.
+And we have no stack protector, which means
+there is no stack cookie and stack based buffer
+overflows are easy.
+Inside the ctf container you can also use
+the tool checksec on the binary to see the
+enabled security features.
+And you can also see that no stack canary,
+stack protector, was found and that position
+independent code is disabled.
+BUT NX is enabled.
+So non executable stack.
+Which means you can’t use shellcode like
+in old buffer overflow tutorials, because
+the shellcode on the stack couldn’t be executed
+as code.
+At the end of the video I have a few generally
+tips and resources to learn what all that
+means.
+So make sure to don’t miss that.
+Now back to the sources.
+So first of all you can see here a few functions
+named ignore_me.
+They are just here to setup the binary so
+it runs nicely.
+It doesn’t have to do anything with the
+challenge and can safely be ignored.
+Here it disables buffering on the input and
+output and we register a signal that will
+kill the process after 60seconds, which helps
+us cleaning up long hanging processes.
+Ignore them.
+They are just setup stuff.
+That’s why they are named ignore me.
+But feel free to research what these functions
+do.
+Anyway.
+Here is the actual part of the challenge.
+We have a function “backdoor” that's obviously
+super suspicious.
+And then this remote_system_health_check.
+In the main function we see that this function
+is called.
+What does it do?
+Well it simply asks you to enter a password.
+The password is statically stored in the binary
+here.
+“Super Secret password”.
+It does a string compare on your input.
+And if it’s correct, it will execute the
+top command.
+To give you some system information.
+If the password was wrong, the program exits
+directly.
+If you have done some basic exploitation challenges
+before, you might immediately notice the call
+to gets().
+Which reads in a string into the buffer passed
+as parameter, but doesn’t check the size.
+So if you enter more than the 0xff characters,
+so 256, it will overflow this buffer.
+This buffer is stored on the stack.
+And on the stack there is other critical data
+which can be overwritten.
+A very important piece of critical data is
+the so called return pointer.
+So what exactly is that?
+When a C program calls a function, it is compiled
+to an assembler call instruction.
+The call instruction places the address of
+the next instruction onto the stack, and then
+jumps to the code of the function.
+When that function is done, it will execute
+the ret instruction.
+This ret instruction looks at the value on
+the stack, and jumps there.
+So then the execution can continue.
+Btw these graphics are from my binary exploitation
+playlist episode 0x0C.
+If it’s unclear, try to watch this series.
+So this value previously pushed by call onto
+the stack decides where we return to.
+Which means when we can overwrite this value
+which was placed by the call instruction on
+the stack, for example due to a buffer overflow,
+we can overwrite it with a value of our choice,
+and decide where we jump to when the function
+tries to return.
+But let’s go slow.
+First let’s see what happens when we enter
+that password.
+We use netcat to connect to the server.
+Enter the password.
+And we see the output from the top command.
+Cool.
+Now let’s see what happens when we try to
+overflow the buffer.
+Let’s simply enter a lot of AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAs
+trying to overflow it.
+But we have a problem.
+Wrong password.
+Nothing happened.
+The problem is that in the case of a wrong
+password, the function never tries to return.
+We simply exit().
+So we can only reach the return with the correct
+password.
+But how can we overflow the buffer, and at
+the same time enter the correct password which
+is super short?
+We will get back to it in a moment.
+Let’s start preparing our exploit script.
+I’m using here vscode and i create a new
+asd.py script in the folder that is shared
+with the ctf container.
+In most of my videos I’m not using pwntools,
+because it’s kinda fancy and magic.
+And I prefer to show how to implement stuff
+yourself, rather than using too many abstraction
+tools.
+But maybe it’s time to move forward.
+We have done stuff by hand for years.
+So from pwn import *
+The documentation also has various examples
+and some details.
+Definitely check that out or look for other
+example exploit scripts using it, to steal
+snippets.
+So let’s start by simply launching a new
+process, and we execute the binary directly.
+So we don’t use the network to talk to the
+actual challenge server yet.
+And then we call recvline() to get the first
+line of output from this process and print
+it.
+It should be noted that I don’t have pwntools
+installed on my host machine.
+But it’s available inside the container.
+So we can use the visual studio code shell
+down here to use docker exec to get into the
+container.
+Go to the folder where the script is stored
+and we can execute it.
+It started the local process.
+Printed the first line asking for the password.
+And exited again.
+We can then also use sendline() to send the
+password as input to the process.
+And at the end we can use interactive().
+Let’s quickly comment out the password again.
+Interactive simply gives us an interactive
+input output shell, like netcat, So when we
+run it, you see the red prompt here and we
+can enter the password ourselves.
+And that worked.
+So basically, if we successfully execute an
+exploit that gives us a shell, we want to
+use interactive to send inputs to that new
+shell comfortably.
+But before that we need to send our exploit
+input.
+So what’s the trick here to trigger the
+buffer overflow?
+Well, if you have some experience with C programming,
+then you might know.
+Strings in C are null-terminated.
+Meaning in memory there is no information
+about how large a string is.
+A string simply is defined as any squence
+of characters and it stops at a null-byte.
+So string compare compares strings, which
+means if it reaches a null-byte it is done.
+alright.
+Gets() on the other hand can be a bit confusing
+because it says “get a string from standard
+input”.
+But if you read the actual description it
+says, “reads a line from standard input”.
+Which means it reads into the buffer until
+either a terminating newline or end of file
+is reached.
+There is a discrepancy between string compare
+and gets.
+So gets absolutely can read null-bytes from
+the input, it only stops at newlines.
+While strcmp reads newlines but stops at null-bytes.
+This means we can add characters after the
+null-byte, and when we execute this now, we
+see it passed the password check.
+Now let’s send a lot of characters trying
+to provoke the buffer overflow.
+I’m using cyclic here, which is a function
+by pwntools which creates a unique pattern
+string.
+This becomes useful in a moment.
+I’m creating a string that is 0xff long,
+and a bit more.
+Just to be sure.
+When we execute that now, we see that a core
+dump appeared in the folder.
+Indicating that a process crashed.
+And our interactive shell got and EOF.
+And also we see that the binary stopped with
+a SIGSEGV, so a segmentation fault.
+Let’s investigate.
+To do that I’m adding a small pause to the
+script.
+raw_input is typically to get user input in
+the console, but I’m simply using it to
+wait until I hit enter.
+I want to use this to attach gdb in the meantime
+to the process.
+Pwntools has some fancy gdb attach integrations,
+but to be honest, no clue how that works and
+how I could maybe set that up here in docker.
+If anybody knows some cool tricks with that,
+please write it in the comments.
+Anyway, let’s execute it.
+The script is now waiting for input.
+In the meantime we can open another shell
+inside the container.
+And with gdb -p we can attach to the running
+challenge process.
+We need the pid, so pidof the process name
+system_health_check will give us that.
+There we go.
+We are attached.
+The process currently is waiting in the read()
+for user input, for the password.
+And we continue the process.
+Then we go back to our script, hit enter,
+which then continues and sends the password
+with the long cyclic pattern.
+Let’s go to gdb… oh… that doesn’t
+look like it worked.
+The problem is that with the system() function,
+we spawn a new child process, and gdb followed
+that new process.
+Detaching parent process.
+You can also see here it executed top.
+That’s not what we want.
+We want to stay in the parent process.
+Let’s do it again, attach with gdb but this
+time set the follow fork mode to parent.
+And then we continue.
+Let’s send our payload now.
+Hit enter.
+There we go.
+The parent crashed in a segemntation fault.
+As you can see, this is a very colorful gdb.
+Looks a lot more fancy than plain gdn.
+That’s because I have installed the pwndbg
+gdb extension in the ctf container.
+So if you use all that docker setup, you have
+that too.
+So here are the registers, here is the disassembly,
+which right now only shows the return instruction
+where we crashed, we see the stack, and the
+callstack or backtrace.
+The colors also help you quickly identify
+what the number COULD mean.
+So yellow values look like a valid stack address.
+Red values look like a valid code address.
+And white is just basic data.
+And so as I mentioned earlier, the return
+instruction takes the address where to return
+to from the stack.
+RSP points to the top of the stack, you can
+see the stack also displayed here.
+Rsp points here.
+pwndgb already recognized that the values
+on the stack look like a string, so it didn’t
+display raw numbers like here, but displays
+it as a string.
+And this is the cyclic pattern that the cyclic
+function generated.
+Let’s take a few of these characters, because
+with that we can calculate the offset.
+How many characters do we need, until we reach
+this point on the stack.
+But before we do that, let’s make this all
+a bit more comfortable.
+We can create a .gdbinit file and add the
+set follow-fork-mode parent.
+When we now execute gdb it attempts to read
+this as an init file.
+However it complaints because we need to allow
+it to be loaded from anywhere.
+So we need to add this auto-load safe path
+line in our home folder’s /root/.gdbinit.
+Anyway.
+Now we don’t have to type that in every
+time when we want to attach gdb.
+It will be automatically executed.
+So from the pwntools docs we can also learn
+about the cyclic_find function.
+It calculates the position of a substring
+into the sequence.
+So we can create a padding to fill up the
+buffer until we reach the return pointer on
+the stack.
+We repeat “A” so much, to reach the location
+where we found this “aclaacma” string.
+And the next 8 bytes, will now overwrite the
+return pointer.
+I call it in my script RIP, like the instruction
+pointer register, because essentially it’s
+the 8 bytes that controls it.
+The return instruction takes this value from
+the stack and sets RIP to it.
+That’s all that the return instruction does.
+So for me the ret instruction is not really
+“return”, it’s rather, “set rip to
+whatever is on the stack”.
+Anyway.
+What do we want to set RIP to?
+As a first test let’s just use a recognizable
+number.
+P64 is another helper function from pwntools,
+which simply converts this integer number,
+into an 8byte, 64bit, raw byte string.
+So we can send the string as input to the
+program
+And we use 0x4242424243434343.
+So this is CCCCBBBB.
+And don’t forget to add the RIP after the
+padding and then let’s try it.
+BOOM!
+There we go.
+On the stack we can see the string CCCCBBBB.
+And you can also see in the disassembly that
+return attempted to jump to this address.
+Obviously still a bad address, thus we have
+a segfault.
+So where do we want to jump to?
+If we look back into the challenge source
+code, we might remember the backdoor function,
+which simply should execute a shell for us.
+So how about we simply jump to that snippet
+of code and reuse it?
+With p backdoor, we print the symbol backdoor
+and find the address of it.
+We could also disassemble this symbol to find
+the address…
+So this is the start of the backdoor function.
+How about we try to jump there?
+0x401254 replace that.
+And try it.
+Attach gdb just to make sure.
+Continue.
+Boom!
+Crap. we got another segfault.
+BUT LOOK WHERE!
+In the backtrace you see that we were coming
+from the backdoor function.
+So we successfully redirected code execution
+into the backdoor function!
+This is awesome!
+We basically won.
+We just run into some weird other issue.
+And this one is inside of do_system.
+So inside the libc library function system().
+How does that make sense?
+How can a widely used library like libc crash
+so easily.
+Well… if you are desperate you might just
+search for the assembly snippet that caused
+it.
+If it happens in a popular library, it might
+be a known issue, right?
+And indeed!
+You can learn that the movaps instruction
+doesn’t like it when addresses are unaligned.
+“Calling an SSE instruction movaps with
+unaligned parameter causes a crash”.
+So let’s look at this instruction.
+It references RSP, the stack pointer.
+And the stack pointer ends in an 8.
+This is a problem.
+Because we jumped to this system function
+from this buffer overflow, everything is messed
+up.
+The System() function expects that the compiler
+makes sure the addresses are 16bit aligned.
+And that means we want a 0 at the end.
+So how could we do that?
+Somehow we must change the stack pointer before
+we call into system.
+What kind of stuff affects the stack pointer?
+Think logically.
+any push instruction moves the stack up.
+And pop instruction moves the stack pointer
+down.
+But also any CALL instruction places a new
+value on the stack, it’s like a push.
+And any RETURN instruction takes a value from
+the stack, so like a pop.
+So what if we execute a second RETURN before
+we go into backdoor?
+We simply could use the first return of our
+original function and overwrite the stack
+value with the address of another return instruction.
+This means after the first ret it will jump
+there and now execute that return.
+And this return takes the NEXT value from
+the stack to continue execution there.
+This by the way is a tiny ROP chain.
+Return Oriented Programming.
+Anyway.
+This way we can essentially move the stack
+pointer one element further and thus allign
+the address of the stack pointer.
+So let’s look for a return instruction.
+I simply use objdump -D to get the disasembly
+of the whole binary and then grep for ret.
+So any of these addresses point to a return
+instruction.
+So let’s add that to our exploit.
+The first address we jump to is the other
+return instruction.
+And after that we jump to the address of the
+backdoor function.
+Let’s try it out.
+Let’s change the exploit script from launching
+a local process to connecting to the remote
+challenge server.
+In this case this is my local IP.
+This is why pwntools is so awesome, we can
+easily switch between a local process and
+the remote server.
+The functions to talk to it stay the same.
+Let’s run it.
+We get the output of top.
+Now let’s see if we have a shell?
+There we go!
+Looks good.
+And we can read the flag.
+Awesome!
+This was obviously a very quick walkthrough,
+a lot to take in.
+Not going into a lot of details.
+And it will be hard to apply these steps to
+some slightly different exploitation challenge.
+There are a lot of small pitfalls and different
+exploitation strategies.
+And as soon as the other mitigations like
+ALSR and stack cookies are turned on, it gets
+more difficult.
+There is no magical spell to quickly explain
+that.
+So it will take time, and you will have to
+rewatch videos, or read different writeups.
+I encourage you to take a lot of notes and
+just try it.
+I have a whole binary exploitation playlist,
+covering challenges from exploit.education,
+but it’s 32bit and a bit old.
+A lot of the challenges are solved with shellcodes,
+which are rarely a thing on 64bit pwnable
+challenges due to the non executable stack.
+But regardless many of the concepts are still
+the same.
+It’s still very useful to watch it.
+Maybe also checkout the exploit-education
+phoenix challenges for 64bit and practice
+with them.
+Don’t be scared to look up writeups for
+those too. and also watch my recent videos
+where I give general tips on how to avoid
+some annoying pitfalls.
+I link everything below and on github.

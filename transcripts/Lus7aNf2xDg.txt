@@ -1,0 +1,201 @@
+cetf I believe they are one of the best
+ways to learn hacking and it's not only
+because you learn technically by doing
+it but also because it is a competition
+it is motivating it's thrilling
+or it can be hopefully to you so here's
+one suggestion how you should approach
+CTS
+[Music]
+first you go to CTF time dot-org then
+you click on upcoming and check the
+upcoming CTS personally I like the
+Jeopardy CTS the most and I guess you
+should make sure that it's an online CTF
+when you see a wait for CTF that means
+basically two things first of all it
+means when you play it and you get
+points in the CTF your score will feed
+into the yearly overall score on CTF
+time which is kind of low you see then
+your team or your name being tracked
+their overall for others it yes but not
+only that for a CTF to have a weight it
+also means that they had successful CTF
+previously and depending on the
+difficulty of the CTF the weight is
+higher or lower so cts with a weight of
+zero are often new or are not very or
+are not difficult at all most of time
+they are new and then depending on the
+weight score you can see if they are
+harder or easier CTS so for example here
+the C 3 CTF coming up at the end of the
+year again has a very high weight of 63
+so this will be a very very difficult
+CTF you might be scared to take CTF like
+this with a weight and you might tend
+towards 0 CTF I mean you should play as
+many as you want and you should
+definitely check out these zero CTS as
+well but I guess if you have them at a
+time it's better to look for CTF that
+have a weight because generally weighted
+CTS are played more which means there
+will be more write-ups hopefully first
+of all think of a day where you can
+spend at least two hours on a CTF and
+then you check if there's the CTF at
+that day so let's say you play the Xmas
+CTF 2019 so there's a website you go
+there you register and do all this stuff
+and then you play the CTF for two hours
+when the CTF happens you will be there
+and you will spend your two hours on
+basically just researching you will
+select one or two challenges that sound
+kind of interesting to you and you might
+feel like you could maybe understand
+them and then you try it out and then
+you try your best you research you
+google and you take notes take extensive
+notes of everything you tried and
+everything you thought about any ideas
+you
+take notes of what you thought and if
+you have ideas try to validate them try
+to see if they are correct or wrong
+anyway you get the point
+write a lot of notes about this
+challenge if you solve it awesome
+Congrats but most likely you will fail
+you will not solve any challenge which
+is totally fine this is part of the joy
+of CTF it should make you frustrated and
+thus motivated to find out what the
+actual solution will be and don't be
+annoying don't go in IRC and ask people
+for solutions and hints and tips before
+while the CTF is still running that's
+really terrible behavior don't do this
+and then when the CTF is over you wait a
+couple of days maybe even a week or two
+weeks and then you go back to CTF time
+and you look at the page of that event
+and when you scroll down there should be
+an events tasks and write-ups button
+click on there and then you should see
+here the different tasks listed and if
+they are right apps available and then
+you can click on here on write-ups so
+apparently here are three write-ups
+let's click on one ok it's basically
+just a link to a blog and so now we can
+read the right up here of this challenge
+and now you study this write-up you read
+this write-up and you compare to your
+notes where you're on the right track
+where you close what did you get right
+and then more importantly what did you
+get wrong which ideas did you not have
+which technologies did you not know
+about what kind of attack addressed if
+you don't know about analyze yourself
+and figure out what you were missing and
+I assure you next time you see a
+challenge like this you will know it and
+this is the whole CTF learning process
+if you can't find write-ups on CTF time
+there's still a good chance that you can
+just google for it when schools indexes
+blocks that people were writing or you
+can also search on github or github gist
+or paste bins directly does that czf
+time just googling and github you can
+also look on Twitter a lot of times
+people will share their write-ups on
+Twitter and so you can use the name of
+the CTF or kind of a hash tag made out
+of it and maybe you can find then
+write-ups oftentimes CTFs also have an
+IRC channel look in the FA cues of the
+CTF it's often sometimes hidden
+somewhere there
+and be in the IRC channel when the CTF
+ends people will then be sharing their
+solutions and you can ask questions and
+you can just observe also the discussion
+what people are writing about challenges
+this is also an awesome opportunity to
+learn and that's basically the whole
+secret to CTF just accept that you don't
+know everything and it you will fail a
+lot
+but each failed CTF challenge is the new
+opportunity to learn something
+interesting and I encourage you go for
+cts that look a bit harder don't go for
+the easy ones okay if you just solve
+like ten challenges you don't really
+learn anything because you already knew
+what to do you were just like
+speedrunning it at this point this is
+kind of a sweet spot that you want to
+get you don't want to get too hard
+because there are crazy crypto
+challenges or ponyville challenges that
+are so hard that you need a lot of
+experience and this will be frustrating
+you will not understand those write-ups
+I will not understand them either right
+so there are these changes that are too
+hard but then there are also the chances
+that are way too easy where you don't
+learn anything so basically you will you
+want to find the sweet spot of a
+challenge that is too hard for you right
+now but theoretically maybe doable with
+enough time or where you then understand
+the write-up this is kind of the sweet
+spot sometimes you will accidentally try
+out the challenge that turned out way
+too hard and sometimes it was a way too
+easy challenge and you solved it but so
+once you do many cts you will often
+times run into this nice sweet spot and
+this is where you can really really
+learn stuff and don't care about the
+points don't care how many challenges
+you've solved it's not about the points
+it's about learning something ok so
+don't care about this don't beg for
+people for flags or solutions during the
+CTF wait until the CTF is over and then
+you can ask people now I'm usually
+playing with my CTF team but this has
+not always been the case for me when I
+started I also started alone so don't be
+discouraged and have the feeling oh I
+need a CTF team everybody's playing in a
+CTF team that's not true especially when
+you are learning when you're starting
+out you will probably do this alone I
+play cts for a couple of years alone
+until I suddenly ran into my CTF team so
+don't worry about that
+you will hopefully eventually find
+maybe a group of people that you would
+like to play city as together with there
+are so many discord communities out
+there where you if you ask if some
+people want to play city as I'm sure you
+can find a couple of people to do so and
+maybe a team is made out of it anyway
+please take two hours try a CTF and then
+maybe take another hour a couple of days
+or a week later to look at write-ups
+that's all I'm asking for
+so see you next video
+[Music]
+you
+[Music]

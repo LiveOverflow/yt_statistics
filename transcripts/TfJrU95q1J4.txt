@@ -1,0 +1,311 @@
+In the last video we learned some basics about
+how the heap works and now we want to apply
+this to heap level 1 from exploit-exercsies
+protostar to solve it.
+Actually I want try something.
+We do some roleplaying.
+Let’s first be the security researcher who
+want’s to find a bug to exploit in this
+binary.
+Afterwards we play developer trying to understand
+the exploit to fix the issue.
+So we put on our black hoodie and get started…
+first we open the binary heap1 in gdb and
+execute it.
+We get a segfault.
+And it also shows us that the segfault was
+caused by strcpy, because it tried to copy
+a string from the address 0, to this other
+address here, and 0 is obviously not valid
+memory - so it crashes.
+We know how linux binaries work, so we make
+an educated guess that this application might
+require some input and we try the arguments.
+Run with aaaa.
+Again another segfault, but the attentive
+viewer will notice that the address is now
+different, so this is a different strcpy,
+which again can’t copy from address 0, so
+we guess that it requires another argument.
+And this time the program runs through without
+errors.
+Now we try to find a bug, so the simplest
+thing to do is, we just throw some long inputs
+at the program and see if something happens.
+So for the first argument I choose to do a
+pattern with letters and for the second argument
+I do numbers, just so I could idnetify them
+if something would occur.
+We run that, and we got a different segfault.
+Again because of strcpy, but this time the
+destination address looks invalid.
+It tried to copy the string with the numbers,
+which we know is the second argument, to the
+address 46,46,46,46 which is the hexcode for
+FFFF.
+So whatever happened, we somehow overwrote
+an address, that is used as the destination
+of the strcpy.
+And this means we can now use the first argument
+to fully control where we want to write.
+And we can fully choose what to write, with
+the second argument.
+Now we have a lot of freedom what we want
+to overwrite.
+For example we can overwrite the return pointer
+on the stack to redirect code execution, or
+we can overwrite an entry of the global offset
+table, which I explained in a previous video,
+to achieve the same.
+Let’s do the latter one, it’s usually
+more reliable than the stack - which likes
+to move around.
+So let’s check what kind of function is
+called after the evil strcpy.
+We can peak into the source code and see that
+there is a printf, and we could assume that
+we want to overwrite printf on the global
+offset table, but that is deceiving.
+That’s not the case.
+So let’s better stick to the assembly.
+First of all we have to find the location
+from were we were calling the strcpy.
+We can use backtrace for that, which will
+look at the stack and the stored return pointers
+to figure out where we are - as a sidenote,
+if you found a bug that smashes the stack,
+then backtrace can not make much sense of
+it anymore.
+So it doesn’t always work.
+And here we can see that currently we are
+in strcpy, but we were coming from this address.
+So let’s set the disassemblu flavor to sane
+intel syntax and disasemble the address.
+This will now disassemble the whole function
+this address belongs to.
+Our address ended in 5a, so we are here after
+the strcpy.
+And as you can see there is a call to puts
+next.
+Which btw is not printf like in the source
+code.
+That’s because the compiler replaced the
+printf with puts for optimization reasons.
+Ok, so let’s overwrite the global offset
+table entry for puts.
+As shown in the got video we can figure out
+the address of puts by first disassembling
+the function trapoline in the procedure linkage
+table, which would now jump to an address
+stored at this address.
+So this means this is the address of the puts
+global offset table entry.
+So this is the target we want to write to,
+thus we place it in the first argument.
+gdb run, but we use backticks in the first
+argument to execute /bin/echo.
+As you know echo simply outputs whatever you
+pass to it as arguments, and we can use that
+to get characters with hexvalues we can’t
+type.
+For example the hex value 8.
+So echo -ne, -n because we don’t want that
+echo places a newline at the end of the output.,
+and -e because we want echo to convert hex
+escaped numbers into the raw characters.
+Just to make sure everything works we echo
+the whole test string up to the Fs again.
+Now echo inside of the backticks will be executed
+and the output of that will be placed inside
+of the quotes as the first argument.
+And when we run this we get the same segfault
+as before, so all is fine.
+Next step is obviously to replace the Fs with
+the address of the puts global offset table
+entry.
+And when we now run it we get a segfault somehwere
+else, this time because of 30303030, which
+is ascii for 0000.
+And when we look at the registers with info
+registers we can see that we sucessfully got
+control of EIP, which means we can now redirect
+code anywhere we want.
+In this case we want to call winner, winner
+has this address here.
+So we place that into the second argument
+instead of argv2 by using echo in backticks.
+We execute it and we get winner.
+Which also works great outside of gdb.
+In summary we can say this:
+we identified a bug by guessing and playing
+around with it.
+Through gdb we learned that somehow we can
+control the destination of a strcpy, and we
+learned we even control what we want to copy.
+And we abused that to overwrite the function
+address of puts to redirect code execution
+to the winner function.
+All without knowing why this even happened
+and not even knowing that the heap was involved
+at all.
+Being a good security researcher we create
+a writeup, an advisory for this.
+Providing our proof of concept exploit as
+well as some additional information that might
+help the developer.
+Now let’s change sides and become the developer.
+We take off our black hoodie, and put on our
+grey hoodie.
+Because that's what developers wear.
+So we just got this email from this dude who
+found a bug in our program.
+He even provided a Proof of Concept exploit
+with it.
+Now we want to figure out why and how this
+happened, so we can fix it.
+In the advisory it says that it has to do
+something with strcpy.
+So we read the manual about strcpy.
+And have this “oh shit” moment when we
+realized we didn’t even read the documentation
+that would have told us what a bad idea that
+was.
+So now we could fix that.
+For example using strncpy or use strlen to
+check the length before we copy it and then
+exit.
+But because we are a good developer we try
+to learn from this advisory and try to understand
+how the exploit exactly works.
+In the last video, the heap malloc introduction
+video, we already thought about how the heap
+should look like from this program.
+So let’s see how it looks in reality.
+To do this let’s set a breakpoint after
+each malloc and strcpy.
+We dissasemble main and look for all those
+calls and set breakpoints afterwards.
+Then we run it with the proof of concept exploit
+arguments.
+And we hit the first breakpoint.
+So now the first malloc happened.
+So we are currently here in the assembler
+code and the result of malloc is in eax.
+So eax contains the address on the heap where
+we have enough space for the internet struct
+i1.
+And we can look at this address and we can
+see it’s simply 0.
+With info proc mappings we can see the memory
+segments, and there is also the heap and we
+can have a look at that.
+Oh, maybe it’s a good idea to add this heap
+output as a gdb hook as well.
+So we see it automatically at each breakpoint.
+define hook-stop
+x/64wx 0x
+end
+So if we now continue we should set the priority
+of i1 to 1, and then malloc for the name.
+Let’s have a closer look at the heap.
+So as we learned the i1 variable points here.
+So this is where the struct starts and you
+can se that the first attribute, which is
+the priority is set to 1.
+And before that we have the heap metadata,
+the chunk header, which contains the lnegth
+of this chunk, including the last bit set
+to 1 which means that the previous block is
+not free.
+It’s in use.
+And what we see is what we expected, we see
+here two chunks of 8 bytes, including the
+headers it’s obviously 16 bytes.
+Another cool thing we can do is to define
+a variable i1 in gdb and set it to the address
+of this object.
+Aaand we can even add the type of this variable
+which is “struct internet”.
+Now we can print this variable i1 and gdb
+can display us the attributes priority and
+name.
+And we can see that priority is 1, and name
+is still zero, because we have allocated memory
+for the name but not yet assigned it to the
+i1 attribute name.
+If we continue to the next breakpoint the
+address of the name got assigned and the i2
+object got allocated.
+And the result of malloc is again in eax,
+that’s the address of the i2 object.
+So we can also define the variable i2 in gdb.
+And when we print that we can see that it’s
+still empty.
+Now if we continue the priority of i2 should
+be set to two, which we can verify by looking
+at the heap memory as well when we print the
+i2 object.
+Also all of our 4 mallocs are done now.
+And if we compare that to what we expected
+in the earlier video, we can see that it fits
+perfectly.
+There is only one thing that we didn’t talk
+about yet, and that’s this big value after
+all chunks at the end.
+Well this area down here is all free memory
+and in exploitation terms this is often referred
+to as the wilderness.
+This is number is the remaining size of the
+heap.
+This whole thing is basically a huge heap
+chunk, and that number is its length.
+I made a three part video about the cookbook
+challenge from a ctf, and that exploit abuses
+this number to redirect code execution.
+It’s super awesome.
+You should watch it.
+Anyway.
+Right now the name of i1 is still an empty
+string.
+But this is about to change with the next
+breakpoint.
+Because we are about to execute the first
+strcpy, which copies this super long first
+argument.
+Continue.
+Now first thing we notice is here in the heap
+memory.
+Those ascii characters appear and it looks
+like they have overwritten a lot of stuf on
+the heap.
+What earlier was supposed to be chunk header
+metadata, like the size is now 44444444.
+Let’s have a look at the objects i1 and
+i2.
+So i1 looks fine, i1 has still priority 1
+and name with the string that we passed to
+it.
+How about i2?
+Uh… that looks fucked.
+Priority is now a super huge number.
+In fact that’s just 45454545 in decimal,
+and that’s the Es.
+And the name is 46464646, which we know are
+Fs.
+And yeah, we seem to have overwritten a lot
+of stuff on the heap.
+Infact we have overwritten the next chunk
+on the heap after the i1 name.
+And now the next strcpy will take i2->name,
+which is pointing to some bad memory and try
+to copy there the 2nd argument.
+Really frckn awesome.
+So this challenge showed one aspect of heap
+exploits.
+It doesn’t attack the heap algorithm itself,
+it attacks the application, which uses objects
+on the heap that we can modify by overwriting
+stuff.
+And those modified objects then bend the execution
+flow.
+Cool, huh?

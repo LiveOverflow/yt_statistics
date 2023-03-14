@@ -1,0 +1,276 @@
+I want to quickly address the question
+if you should use Windows Linux or Mac
+and I guess also answer the question
+what I'm using huh you use Windows have
+you ever used arch I'm a social
+influencer and I edit photos for my
+Instagram real hackers use Kali Linux if
+you follow my videos you will know that
+I use Mac I use Linux and I use Windows
+I absolutely understand the criticism
+about Apple I understand the value of
+open source and the idea behind Linux
+and the usefulness of it and I grew up
+with Windows and I like to play games
+that are only running on there but
+personally I'm not really emotionally
+invested in any of the operating systems
+I see them as any hardware and software
+just as a tool something that I can use
+to do my work it's always a combination
+of a couple of things it's mostly what
+is available to me right now and where
+do I have like the most experience with
+or what am I most comfortable with and I
+guess this sometimes the stereotype that
+people that use Windows can't be real
+hackers or people that use Mac I'll just
+like stupid instagramers but I don't
+know just look at conferences and look
+at the laptops that the people are using
+to present your stuff you will find
+Linux Mac and Windows and for example
+Greenville is a obviously a very
+experienced at heat security researcher
+and as part of the very successful Drang
+sector CTF team and he's mostly using
+Windows I mean when necessary he will
+also use Linux so he is here setting up
+in Ubuntu VM but for the most part he is
+using Windows as his main operating
+system the stream here isn't polish but
+I guess you only need to look at what
+kind of tools he's installing if you're
+curious and has setup it's pretty fancy
+so go check that out it's on his polish
+channel Greenville cold wind and think
+about malware research most malware runs
+on Windows so you need a good
+understanding of Windows which you will
+only get if you also use it and do your
+research on it but in the end it's just
+the tool you are using because that's
+what you need and when you're interested
+in iOS speed writing apps or even doing
+some research and checking out jail
+breaks then maybe you need a Mac a lot
+of the work that I do requires me to
+have run tools or writing my
+on scripts and yes I really like
+developing on Linux I have most of my
+experience there a lot of that knowledge
+is transferable to Mac and I can do that
+on Mac as well but you see me a lot in
+my videos using some kind of VM or just
+renting we host a server somewhere in
+the internet to get a Linux host for me
+Linux is the best environment to write
+applications for program run scripts and
+so forth but a lot of the daily work
+also is just like writing emails and
+writing on slack writing reports or
+documentation just browsing and
+researching on the internet for these
+kind of tasks I just like Mac a lot and
+even though when I'm at home I have
+these huge monitors and desktop stations
+I love the trackpad on Mac seriously the
+biggest reason why I like Mac's is
+because of the trackpad the track that
+is just so useful and for other people
+this is just a stupid detail they don't
+care about and then a Mac makes no sense
+also yes it's absolutely overpriced and
+way too expensive and the state of
+repairs on Mac is absolutely terrible I
+have nothing to counter that argument I
+fully agree with you it doesn't change
+that I like to click on it I guess the
+main question that I get asked a lot is
+what I would recommend to get started
+with that he security is something
+necessary and please don't look at all
+the different devices that I have and
+think that you need that this is curated
+over many years and I like to invest
+money into this because this is the
+field I'm working in but when I started
+I also had just a Windows PC and then at
+some point I got a laptop and I
+installed Ubuntu I believe was it on
+there but if you have Windows you can
+run a Linux VM or you can do a boot for
+just a couple of dollars per month you
+can also rent like very small Linux
+machines somewhere online which is very
+useful because then you also have a
+public static IP basically I usually use
+digitalocean
+for no particular reason other than
+that's kind of the service that I
+discovered and used since I've never
+like switched away from that affiliate
+link in the description you know the
+game but what I find fascinating is
+there are even people participating in
+kind of like this jailbreak iOS world I
+mean they are not doing like the
+jailbreak stuff but they are writing and
+programming tweaks and I've seen people
+do that
+just on their phone they don't even have
+the laptop they're using a text editor
+on their phone for programming
+absolutely insane and mind blowing a
+raspberry pie is extremely cheap and it
+can run Linux on it so it can run Python
+and whatever you need it's not very
+powerful but for basic programming basic
+web application stuff it's completely
+sufficient also I'm not gonna sit here
+with my five devices and pretend that
+it's not a privilege to have all these
+different devices it makes a lot of
+things easier you know I don't need to
+worry about if a tool is not running I
+can just try it out on any of the
+machines I have that's definitely an
+advantage and I guess a privilege of
+money that I have but I would say it's
+definitely wrong if you think you
+absolutely need that to get started and
+that it's like holding you hugely back I
+do think it's an advantage it's a little
+bit of a privilege is something that
+gets you a bit forward but you know the
+main part that you need is like the
+motivation dedication to look into this
+regardless limited environments are
+where creativity is the highest when you
+are being limited by your device you
+will have to come up with weird ways to
+get around your restrictions this
+requires creativity and you will have a
+much better understanding of the device
+later like I said some of the kids are
+not even held back by just having a
+phone and then programming on there it's
+not the best it's not ideal but you can
+learn so much on it similar if you have
+one laptop one PC you can run a VM in
+there and yes VM is slower its sluggish
+it doesn't feel native and yes it's a
+privilege if you have a dedicated Linux
+machine
+surely that makes working on it a bit
+nicer I'm not gonna pretend that this
+doesn't have an impact on the learning
+process but if you think you need that
+that's completely wrong you can achieve
+so much with just these machines also a
+lot of people recommend Kali Linux if
+you want to do IT security and I'm have
+somewhat of a strong stance against Kali
+not necessarily because I believe like
+Kali is bad or huge reasons I just want
+to be a counterweight against Carly a
+little bit I personally don't use Kali
+I'm Way too overwhelmed by all the tools
+on there and I prefer to just have a
+clean operating system and then install
+what I need also I believe you should be
+capable of doing that because you will
+run into all these different setup
+issues
+programs like how do you compile a
+program how do you make sure that
+dependencies when they require different
+versions are not interfering with each
+other and all that kind of stuff you
+know this is all useful experience to
+gain and should I tell you a secret how
+I got to using a Mac in the early times
+when I kind of like got into IT security
+and I saw various people that were
+extremely skilled and I was really
+looking up to them
+I saw them using Mac's either like
+working on them are using them for their
+presentations if these amazing hackers
+are using Mac's then it can't be bad
+right I know this is a completely
+idiotic influence but that's the truth
+now I kind of like it so yeah to
+summarize for me the operating system or
+the kind of device it is it's just a
+tool and I use whatever is useful to me
+and I'm very well aware of the
+criticisms and disadvantages or
+advantages of the different devices and
+what I do care about these things and
+I'm glad that people fight for it
+personally I have to say I'm a little
+bit you know what motivates to just
+learn technical stuff so I just want to
+get my work done and so I'm just gonna
+use a Mac but if I could cast a vote I
+would definitely kick Apple in their ass
+for the terrible repair ecosystem and if
+you are curious about my Mac setup here
+are the tools that I always install
+first when I get a Mac item - as my
+terminal emulator boom it's not really a
+full window manager it's more like
+arranging Windows nicely Little Snitch
+is kind of like a host firewall in my
+terminal then I'm using said SH with oh
+my status age to make it look fancy
+and then GPG suite has a good
+integration for PGP in mail also in most
+of my videos I'm using sublime as a text
+editor but recently Visual Studio code
+is growing on me
+and I'm also increasingly using docker a
+lot as an easy way to run Linux stuff on
+my Mac I can't give you a lot of tips
+for Windows because I mainly use Windows
+for the video editing process streaming
+and also playing games so I guess here's
+the adobe creative suit that i'm using
+and i guess recently i'm playing a lot
+of apex legends I don't know how
+important that was for you to know for
+Linux my go-to choices are kind of like
+Ubuntu just because it's an easy entry
+but also sometimes Fedora
+like I said I don't hold any religious
+views when it comes to Linux it's just
+happened to be the stuff that I've been
+using
+I would never claim that there's any
+good reason for why I'm using it okay
+don't don't try to argue with me because
+I have no damn clue what I'm talking
+about this is just what I'm used to it's
+just the truth
+I tried arch linux but I'm too stupid
+and impatient for it and typically I
+also use set SH and oh my said Sh on
+Linux as well but please me telling you
+what I'm using don't take this as kind
+of the best recommendation okay I have
+no damn clue this is like the stuff I
+come across and that I've been using and
+I'm sure there are better ways to do
+things in some cases I'm actually very
+aware what would be better to use but
+I'm so used to my way of doing it that I
+haven't found the time or motivation yet
+to transition so please spare me all the
+comments that other stuff is better I
+don't care well I do care but like I
+said I'm so used to this stuff how I do
+it and so it's unlikely gonna change I'm
+getting too old okay I'm getting closer
+to 30 I don't like change anymore
+[Music]
