@@ -1,6 +1,7 @@
 # yt_statistics
 
-`liveoverflow_videos.jsonl`
+This repository contains various data from the LiveOverflow YouTube channel (`liveoverflow_videos.jsonl`) and other security creators (`all_videos.jsonl`).
+Data was last pulled on 15.03.2023.
 
 ```json
 {
@@ -15,7 +16,7 @@
 }
 ```
 
-each `video_id` in the `liveoverflow_videos.jsonl` has a corresponding `transcript/<video_id>.txt` file:
+Each `video_id` in the `liveoverflow_videos.jsonl` has a corresponding `liveoverflow_transcripts/<video_id>.txt` file:
 
 ```
 Is leaking your IP address really dangerous? It 
@@ -26,3 +27,5 @@ as well as the IP of other players (oops sorry?). 
 After that I got tons of worrying messages telling
 ...
 ```
+
+Feel free to use the data to create some statistics, or train a LiveOverflow script writing AI (but pls let me use it too :P)
