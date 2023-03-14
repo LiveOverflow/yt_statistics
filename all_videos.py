@@ -30,7 +30,6 @@ channels = {
     "hakluke": "hakluke",
     "stacksmashing": "stacksmashing",
     "Low Level Learning": "LowLevelLearning",
-    "David Bombal": "davidbombal",
 }
 
 with open("all_videos.jsonl", "w") as f:

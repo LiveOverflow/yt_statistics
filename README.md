@@ -29,3 +29,5 @@ After that I got tons of worrying messages telling
 ```
 
 Feel free to use the data to create some statistics, or train a LiveOverflow script writing AI (but pls let me use it too :P)
+
+The file `500_metadata_finetune.jsonl` contains a partial attempt at [fine-tuning](https://platform.openai.com/docs/guides/fine-tuning) GPT-3. It's incomplete because I used openai to generate questions about paragraphs of the video transcript, and I blew threw my credit before going through all videos (see `train_ai.py`).
